@@ -257,16 +257,13 @@ namespace YARG.Editor.YargAudio
 
             var destinationWriteTime = File.GetLastWriteTimeUtc(destinationBinaryPath);
 
-            var srcDir = Path.Combine(nativeDir, "src");
-            if (Directory.Exists(srcDir) && HasFilesNewerThan(srcDir, destinationWriteTime))
+            foreach (var dir in new[] { "src", "include", "third_party" })
             {
-                return true;
-            }
-
-            var includeDir = Path.Combine(nativeDir, "include");
-            if (Directory.Exists(includeDir) && HasFilesNewerThan(includeDir, destinationWriteTime))
-            {
-                return true;
+                var path = Path.Combine(nativeDir, dir);
+                if (Directory.Exists(path) && HasFilesNewerThan(path, destinationWriteTime))
+                {
+                    return true;
+                }
             }
 
             var cmakeLists = Path.Combine(nativeDir, "CMakeLists.txt");

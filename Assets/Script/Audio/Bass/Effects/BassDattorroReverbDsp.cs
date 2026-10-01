@@ -26,7 +26,7 @@ namespace YARG.Audio.BASS.Effects
 
             return YargAudioNative.Attach(EFFECT_NAME, streamHandle,
                 (out BassDattorroReverbDsp handle, out int bassError) =>
-                    YargAudioBindings.DattorroReverbDspAttach(unchecked((uint) streamHandle), dryMix, wetMix,
+                    YargAudioBindings.DattorroReverbDspAttach(streamHandle, dryMix, wetMix,
                         roomSize, damp, width, priority, out handle, out bassError));
         }
 

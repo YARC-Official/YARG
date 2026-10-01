@@ -186,6 +186,44 @@ void YARG_BASS_CALLBACK sineSynthDspProc(std::uint32_t, std::uint32_t,
         state->tempoStream, BassPositionByte | BassPositionDecode);
     if (bytes < 0) return;
 
+    if (state->stretchStream) {
+        const auto& stretch = *state->stretchStream;
+        const double endFrame = static_cast<double>(bytes) / (stretch.channels() * sizeof(float));
+        const double step = static_cast<double>(stretch.sampleRate()) / info.frequency;
+        const double startFrame = endFrame - frames * step;
+        const double offset = bitCast<double>(state->songTimeOffsetBits.load(std::memory_order_relaxed));
+        auto* output = static_cast<float*>(buffer);
+
+        std::size_t rendered = 0;
+        while (rendered < frames) {
+            const double curStartFrame = startFrame + rendered * step;
+            const auto blockIndex = static_cast<std::uint64_t>(
+                std::max(0.0, curStartFrame) / StretchTempoStream::BLOCK_FRAMES);
+            const double nextBlockStartFrame = static_cast<double>(
+                (blockIndex + 1) * StretchTempoStream::BLOCK_FRAMES);
+
+            std::size_t chunkFrames = frames - rendered;
+            if (step > 0.0 && curStartFrame < nextBlockStartFrame) {
+                const auto framesToNextBlock = static_cast<std::size_t>(
+                    std::ceil((nextBlockStartFrame - curStartFrame) / step));
+                if (framesToNextBlock > 0 && framesToNextBlock < chunkFrames) {
+                    chunkFrames = framesToNextBlock;
+                }
+            }
+
+            const double curEndFrame = curStartFrame + chunkFrames * step;
+            double startSec = 0;
+            double endSec = 0;
+            if (stretch.position(std::max(0.0, curStartFrame), startSec) &&
+                stretch.position(std::max(0.0, curEndFrame), endSec)) {
+                sineSynthDspRender(*state, output + rendered * info.channels, chunkFrames,
+                    info.channels, info.frequency, startSec + offset, endSec + offset);
+            }
+            rendered += chunkFrames;
+        }
+        return;
+    }
+
     const double seconds = state->bass.bytesToSeconds(state->tempoStream, bytes);
     if (!(seconds >= 0)) return;
 
@@ -223,6 +261,7 @@ int sineSynthDspCreate(const BassCoreBindings& bass, const yarg_sine_synth_confi
     if (!state) return YARG_AUDIO_ERROR_INTERNAL;
 
     state->outputChannel.store(config->output_channel, std::memory_order_relaxed);
+    state->stretchStream = yarg::audio::StretchTempoStream::findByHandle(config->tempo_stream);
 
     *dsp = state;
     return YARG_AUDIO_OK;

@@ -90,6 +90,12 @@ namespace YARG.Settings
         Quality = 1
     }
 
+    public enum TempoEngine
+    {
+        BassFx = 0,
+        YargStretch = 1
+    }
+
     public struct CustomCharacterInfo : IEquatable<CustomCharacterInfo>
     {
         public CustomCharacterSource          Source;
@@ -788,6 +794,12 @@ namespace YARG.Settings
             #endregion
 
             #region Experimental
+
+            public DropdownSetting<TempoEngine> TempoImplementation { get; } = new(TempoEngine.BassFx)
+            {
+                TempoEngine.BassFx,
+                TempoEngine.YargStretch
+            };
 
             public ToggleSetting DataStreamEnable { get; } = new(false, DataStreamEnableCallback );
             public DropdownSetting<BandComboType> BandComboTypeSetting { get; } = new(BandComboType.Off)

@@ -94,6 +94,8 @@ namespace YARG.Editor
 
         private string _loadedSongName = "No song loaded";
         private string _sourcePath = string.Empty;
+        private SongEntry? _loadedSongEntry;
+        private TempoEngine _activeTempoEngine = TempoEngine.BassFx;
 
         private int _readAheadBufferMs = DEFAULT_BUFFER_MS;
         private float _playbackSpeed = 1f;

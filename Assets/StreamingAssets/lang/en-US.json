@@ -1572,6 +1572,14 @@
                 "Description": "Choose the resolution of your screen. \"Default\" is recommended.",
                 "Default": "<i>Default ({0})</i>"
             },
+            "TempoImplementation": {
+                "Name": "Time-stretch Algorithm",
+                "Description": "Selects how song speed changes without changing pitch. YargStretch is experimental. Applies to newly loaded songs.",
+                "Dropdown": {
+                    "BassFx": "BASS_FX (Default)",
+                    "YargStretch": "YargStretch"
+                }
+            },
             "ReverbImplementation": {
                 "Name": "Reverb Implementation",
                 "Description": "Selects the reverb trade-off. Performance uses a lighter Freeverb, Quality uses a fuller Dattorro plate.",

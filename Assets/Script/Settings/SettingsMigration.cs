@@ -61,6 +61,7 @@ namespace YARG.Settings
             }
 
             SetCurrentSchemaVersion(settings);
+            ValidateTempoImplementation(settings);
             return settings;
         }
 
@@ -131,6 +132,23 @@ namespace YARG.Settings
 
             return Enum.TryParse(token.ToString(), true, out mode) &&
                 mode is LegacyCrowdFxMode.Disabled or LegacyCrowdFxMode.StarpowerClapsOnly or LegacyCrowdFxMode.Enabled;
+        }
+
+        private static void ValidateTempoImplementation(JObject settings)
+        {
+            const string SETTING_NAME = nameof(SettingsManager.SettingContainer.TempoImplementation);
+            if (!settings.TryGetValue(SETTING_NAME, out var token))
+            {
+                return;
+            }
+
+            if (TryGetInteger(token, out var value) &&
+                value is (int) TempoEngine.BassFx or (int) TempoEngine.YargStretch)
+            {
+                return;
+            }
+
+            settings[SETTING_NAME] = (int) TempoEngine.BassFx;
         }
 
         private static void MigrateLegacyReverbImplementation(JObject settings)

@@ -7,9 +7,11 @@
 #include "dsp/NoiseGateDsp.h"
 #include "dsp/SineSynthDsp.h"
 #include "one_shot/NativeOneShotStream.h"
+#include "stretch/StretchTempoStream.h"
 #include "yarg_audio.h"
 
 #include <cmath>
+#include <cstddef>
 #include <cstdint>
 #include <limits>
 #include <memory>
@@ -86,6 +88,77 @@ void storeBassError(int32_t* target, int error) noexcept {
 
 uint32_t YARG_AUDIO_CALL yarg_audio_get_abi_version(void) {
     return YARG_AUDIO_ABI_VERSION;
+}
+
+int32_t YARG_AUDIO_CALL yarg_stretch_stream_create(uint32_t source,
+    yarg_stretch_stream** stream, uint32_t* stream_handle, int32_t* bass_error) {
+    if (!stream || !stream_handle || !bass_error || source == 0) {
+        return YARG_AUDIO_ERROR_INVALID_ARGUMENT;
+    }
+    *stream = nullptr;
+    *stream_handle = 0;
+    *bass_error = 0;
+    try {
+        auto result = std::make_unique<yarg_stretch_stream>();
+        result->value = yarg::audio::StretchTempoStream::create(
+            coreBassBindings(), source, bass_error);
+        if (!result->value) {
+            return YARG_AUDIO_ERROR_BASS;
+        }
+        *stream_handle = result->value->streamHandle();
+        *stream = result.release();
+        return YARG_AUDIO_OK;
+    } catch (...) {
+        return YARG_AUDIO_ERROR_INTERNAL;
+    }
+}
+
+int32_t YARG_AUDIO_CALL yarg_stretch_stream_set_speed(
+    yarg_stretch_stream* stream, float speed, float pitch) {
+    using yarg::audio::StretchTempoStream;
+    if (!stream || !std::isfinite(speed) || !std::isfinite(pitch) ||
+        speed < StretchTempoStream::MIN_SPEED || speed > StretchTempoStream::MAX_SPEED ||
+        pitch < 1.0f / 32 || pitch > 32) {
+        return YARG_AUDIO_ERROR_INVALID_ARGUMENT;
+    }
+    stream->value->setSpeed(speed, pitch);
+    return YARG_AUDIO_OK;
+}
+
+int32_t YARG_AUDIO_CALL yarg_stretch_stream_flush(yarg_stretch_stream* stream) {
+    if (!stream) {
+        return YARG_AUDIO_ERROR_INVALID_ARGUMENT;
+    }
+    return stream->value->flush() ? YARG_AUDIO_OK : YARG_AUDIO_ERROR_BASS;
+}
+
+int32_t YARG_AUDIO_CALL yarg_stretch_stream_get_latency(
+    yarg_stretch_stream* stream, double* seconds) {
+    if (!stream || !seconds) {
+        return YARG_AUDIO_ERROR_INVALID_ARGUMENT;
+    }
+    *seconds = static_cast<double>(stream->value->latencyFrames()) / stream->value->sampleRate();
+    return YARG_AUDIO_OK;
+}
+
+int32_t YARG_AUDIO_CALL yarg_stretch_stream_get_position(
+    yarg_stretch_stream* stream, int64_t bytes, double* seconds) {
+    if (!stream || !seconds || bytes < 0) {
+        return YARG_AUDIO_ERROR_INVALID_ARGUMENT;
+    }
+    return stream->value->getPosition(bytes, *seconds)
+        ? YARG_AUDIO_OK : YARG_AUDIO_ERROR_INVALID_STATE;
+}
+
+int32_t YARG_AUDIO_CALL yarg_stretch_stream_destroy(yarg_stretch_stream* stream) {
+    if (!stream) {
+        return YARG_AUDIO_ERROR_INVALID_ARGUMENT;
+    }
+    if (!stream->value->destroy()) {
+        return YARG_AUDIO_ERROR_BASS;
+    }
+    delete stream;
+    return YARG_AUDIO_OK;
 }
 
 int32_t YARG_AUDIO_CALL yarg_gain_dsp_attach(uint32_t channel,

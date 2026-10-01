@@ -104,7 +104,7 @@ namespace YARG.Audio.BASS.Effects
 
                 int result = YargAudioBindings.OneShotStreamAttach(
                     stream: this,
-                    mixer: unchecked((uint) mixerHandle),
+                    mixer: mixerHandle,
                     anchorSongPosition: anchorSongPosition,
                     playbackSpeed: playbackSpeed,
                     paused: paused ? 1 : 0,
@@ -135,7 +135,7 @@ namespace YARG.Audio.BASS.Effects
                 {
                     int result = YargAudioBindings.OneShotStreamResync(
                         stream: this,
-                        mixer: unchecked((uint) _mixerHandle),
+                        mixer: _mixerHandle,
                         anchorSongPosition: anchorSongPosition,
                         playbackSpeed: playbackSpeed,
                         clearActiveVoices: clearActiveVoices ? 1 : 0,
@@ -190,7 +190,7 @@ namespace YARG.Audio.BASS.Effects
 
                 int result = YargAudioBindings.OneShotStreamSetPaused(
                     stream: this,
-                    mixer: unchecked((uint) _mixerHandle),
+                    mixer: _mixerHandle,
                     paused: paused ? 1 : 0,
                     out int bassError);
 

@@ -51,6 +51,8 @@ namespace YARG.Editor
                 }
 
                 EditorGUILayout.Space(4);
+                DrawTempoSection();
+                EditorGUILayout.Space(4);
 
                 if (_bassSong?.Channels == null || !_bassSong.Channels.Any())
                 {
@@ -274,6 +276,140 @@ namespace YARG.Editor
             }
 
             GlobalAudioHandler.SetVolumeSetting(stem, effectiveVol);
+        }
+
+        private void DrawTempoSection()
+        {
+            using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
+            {
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    EditorGUILayout.LabelField("Tempo", EditorStyles.boldLabel, GUILayout.Width(50));
+
+                    bool settingsReady = SettingsManager.SettingContainer.IsInitialized;
+                    GUI.enabled = settingsReady;
+                    TempoEngine selected = settingsReady
+                        ? SettingsManager.Settings.TempoImplementation.Value
+                        : _activeTempoEngine;
+                    EditorGUI.BeginChangeCheck();
+                    var newEngine = (TempoEngine) EditorGUILayout.EnumPopup(selected, GUILayout.Width(95));
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        SetTempoEngine(newEngine);
+                    }
+                    GUI.enabled = true;
+
+                    if (_bassSong != null)
+                    {
+                        double latencyMs = _bassSong.GetTempoStreamLatency() * 1000.0;
+                        EditorGUILayout.LabelField($"Active: {_activeTempoEngine} \u2022 {latencyMs:F1} ms",
+                            EditorStyles.miniLabel, GUILayout.Width(170));
+                        if (settingsReady &&
+                            SettingsManager.Settings.TempoImplementation.Value != _activeTempoEngine)
+                        {
+                            if (GUILayout.Button("Reload to apply", EditorStyles.miniButton, GUILayout.Width(110)))
+                            {
+                                ReloadCurrentSong();
+                            }
+                        }
+                    }
+                    else
+                    {
+                        EditorGUILayout.LabelField("No song loaded", EditorStyles.miniLabel, GUILayout.Width(170));
+                    }
+
+                    GUILayout.FlexibleSpace();
+
+                    if (settingsReady)
+                    {
+                        bool chipmunk = SettingsManager.Settings.UseChipmunkSpeed.Value;
+                        EditorGUI.BeginChangeCheck();
+                        bool newChipmunk = GUILayout.Toggle(chipmunk, "Chipmunk", GUILayout.Width(80));
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            SettingsManager.Settings.UseChipmunkSpeed.Value = newChipmunk;
+                            SetPlaybackSpeed(_playbackSpeed);
+                        }
+                    }
+                }
+
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    EditorGUILayout.LabelField("Speed", EditorStyles.miniBoldLabel, GUILayout.Width(40));
+                    DrawSpeedPill(0.5f, EditorStyles.miniButtonLeft);
+                    DrawSpeedPill(0.75f, EditorStyles.miniButtonMid);
+                    DrawSpeedPill(1.0f, EditorStyles.miniButtonMid);
+                    DrawSpeedPill(1.25f, EditorStyles.miniButtonMid);
+                    DrawSpeedPill(1.5f, EditorStyles.miniButtonRight);
+
+                    GUILayout.Space(4);
+                    float newSpeed = EditorGUILayout.Slider(_playbackSpeed, 0.1f, 2.5f, GUILayout.Width(85));
+                    if (Mathf.Abs(newSpeed - _playbackSpeed) > 0.001f)
+                    {
+                        SetPlaybackSpeed(newSpeed);
+                    }
+
+                    if (GUILayout.Button("1x", EditorStyles.miniButton, GUILayout.Width(32)))
+                    {
+                        SetPlaybackSpeed(1f);
+                    }
+
+                    EditorGUILayout.LabelField($"{_playbackSpeed:0.##}x", EditorStyles.miniLabel, GUILayout.Width(40));
+                }
+            }
+        }
+
+        private void SetTempoEngine(TempoEngine engine)
+        {
+            if (!SettingsManager.SettingContainer.IsInitialized)
+            {
+                return;
+            }
+
+            SettingsManager.Settings.TempoImplementation.Value = engine;
+            if (_bassSong != null && _activeTempoEngine != engine)
+            {
+                ReloadCurrentSong();
+            }
+        }
+
+        private void SetPlaybackSpeed(float speed)
+        {
+            _playbackSpeed = speed;
+            if (_bassSong == null)
+            {
+                return;
+            }
+
+            double currentInputSystemTime = InputManager.CurrentInputTime;
+            double currentPos = _bassSong.GetPosition();
+            _inputTimeOffset = currentInputSystemTime - ((currentPos - _simulatedClockDisturbance) / _playbackSpeed);
+
+            if (_audioSynchronizer != null && _modelSongSync)
+            {
+                _audioSynchronizer.ChangeSongSpeed(_playbackSpeed);
+            }
+            else
+            {
+                _bassSong.SetPlaybackSpeed(_playbackSpeed);
+            }
+        }
+
+        private void DrawSpeedPill(float speed, GUIStyle style)
+        {
+            bool isActive = Mathf.Approximately(_playbackSpeed, speed);
+            var prevBg = GUI.backgroundColor;
+            if (isActive)
+            {
+                GUI.backgroundColor = new Color(0.25f, 0.65f, 1f, 1f);
+            }
+
+            if (GUILayout.Button($"{speed:0.##}x", style, GUILayout.Width(46), GUILayout.Height(18)))
+            {
+                SetPlaybackSpeed(speed);
+            }
+
+            GUI.backgroundColor = prevBg;
         }
 
     }

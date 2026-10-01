@@ -805,10 +805,10 @@ namespace YARG.Playback
         private const double SYNC_START_SECONDS      = 0.003;
         private const double SYNC_STOP_SECONDS       = 0.0015;
         private const double SETTLE_MARGIN_SECONDS   = 0.025;
-        private const double MIN_CORRECTION_TIME_SECONDS = 0.100;
+        private const double MIN_CORRECTION_TIME_SECONDS = 0.080;
         private const double MAX_CORRECTION_TIME_SECONDS = 0.500;
-        private const double CORRECTION_DELAY_MULTIPLIER  = 0.10;
-        private const float  SYNC_CLAMP              = 2.00f;
+        private const double CORRECTION_DELAY_MULTIPLIER  = 0.50;
+        private const float  SYNC_CLAMP              = 0.50f;
         private const float  MIN_SYNC_SPEED_RATIO    = 0.50f;
 
         private readonly StemMixer _mixer;
@@ -906,7 +906,7 @@ namespace YARG.Playback
 
         private float CalculateCorrectionAdjustment(double controlError, float songSpeed)
         {
-            double scaledDelay = _mixer.GetTempoStreamLatency() * CORRECTION_DELAY_MULTIPLIER;
+            double scaledDelay = _mixer.GetTempoResponseLatency() * CORRECTION_DELAY_MULTIPLIER;
             double correctionTime = Math.Clamp(
                 MIN_CORRECTION_TIME_SECONDS + scaledDelay,
                 MIN_CORRECTION_TIME_SECONDS,
@@ -993,7 +993,7 @@ namespace YARG.Playback
         private void BeginSettling(double now)
         {
             _state = SyncState.Settling;
-            _settleUntil = now + _mixer.GetTempoStreamLatency() + SETTLE_MARGIN_SECONDS;
+            _settleUntil = now + _mixer.GetTransportLatency() + SETTLE_MARGIN_SECONDS;
         }
 
     }
