@@ -93,6 +93,7 @@ namespace YARG.Gameplay
         // Pictures the decoder must deliver after the song-start seek before the curtain lifts.
         private const long REVEAL_MIN_FRAMES = 3;
         private bool _videoRevealed;
+        private bool _videoEnding;
         private long _revealFrameBaseline;
 
         private float YARGROUND_OFFSET = 50f;
@@ -664,13 +665,27 @@ namespace YARG.Gameplay
 
             RevealVideoWhenPlaying(force: false);
 
-            // End video when reaching the specified end time
-            if (time + _videoStartTime >= _videoEndTime)
+            // End video when reaching the specified end time, behind the curtain: what a stopped
+            // player leaves on the texture is undefined.
+            double videoPosition = time + _videoStartTime;
+            if (!_videoEnding && videoPosition >= _videoEndTime - FADE_DURATION * GameManager.SongSpeed)
+                BeginVideoFadeOut();
+
+            if (videoPosition >= _videoEndTime)
             {
                 _videoPlayer.Stop();
                 _videoPlayer.playerEnabled = false;
                 enabled = false;
             }
+        }
+
+        private void BeginVideoFadeOut()
+        {
+            _videoEnding = true;
+
+            // Plain-video backgrounds only, as for the reveal.
+            if (_type == BackgroundType.Video)
+                _venueFadeOverlay.CrossFadeAlpha(1f, FADE_DURATION, true);
         }
 
         // Some video player properties don't work correctly until
@@ -709,7 +724,9 @@ namespace YARG.Gameplay
                     player.isLooping = false;
                     if (_videoEndTime <= 0)
                     {
-                        _videoEndTime = player.length;
+                        // Unspecified: the video's own end, or the song's if the video is longer,
+                        // which it otherwise plays on past.
+                        _videoEndTime = Math.Min(player.length, GameManager.SongLength + _videoStartTime);
                     }
                 }
             }
@@ -746,6 +763,14 @@ namespace YARG.Gameplay
                     _parkState = ParkState.None;
                     _reparkAtUnscaledTime = float.NaN;
                     _releaseParkOnLanding = false;
+
+                    // A seek back into a video that has faded out (practice) reveals it again.
+                    if (_videoEnding)
+                    {
+                        _videoEnding = false;
+                        _videoRevealed = false;
+                        _revealFrameBaseline = _videoPlayer.framesDelivered;
+                    }
 
                     double videoTime = VideoTargetFor(songTime);
                     if (videoTime < 0f) // Seeking before video start
@@ -896,7 +921,8 @@ namespace YARG.Gameplay
         // rather than shown. Latched.
         private void RevealVideoWhenPlaying(bool force)
         {
-            if (_videoRevealed)
+            // Not while ending: the reveal would cancel the fade-out it runs every frame against.
+            if (_videoRevealed || _videoEnding)
                 return;
 
             if (!force && _videoPlayer.framesDelivered - _revealFrameBaseline < REVEAL_MIN_FRAMES)
