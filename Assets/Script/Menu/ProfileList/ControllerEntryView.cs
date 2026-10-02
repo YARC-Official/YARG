@@ -10,6 +10,7 @@ using YARG.Core.Game;
 using YARG.Core.Logging;
 using YARG.Helpers;
 using YARG.Input.Bindings;
+using YARG.Localization;
 using YARG.Player;
 
 namespace YARG.Menu.ProfileList
@@ -32,6 +33,10 @@ namespace YARG.Menu.ProfileList
         private BindingsIndicator _gameplayIndicator;
         [SerializeField]
         private BindingsIndicator _menuIndicator;
+        [SerializeField]
+        private TextMeshProUGUI _gameplayBindingsTitle;
+        [SerializeField]
+        private TextMeshProUGUI _menuBindingsTitle;
         [SerializeField]
         private Button _jumpToGameplayBindingsButton;
         [SerializeField]
@@ -59,6 +64,9 @@ namespace YARG.Menu.ProfileList
             Controller = controller;
             PopulateDropdownOptions();
             SetDrawerOpen(false);
+
+            _gameplayBindingsTitle.text = $"{Localize.Key("Menu.ProfileList.BindingsTitle", Profile.GameMode)}:";
+            _menuBindingsTitle.text = $"{Localize.Key("Menu.ProfileList.BindingsTitle.Menu")}:";
         }
 
         public void Remove()
@@ -150,7 +158,7 @@ namespace YARG.Menu.ProfileList
             _open = open;
             _drawer.SetActive(_open);
             _arrow.localScale = _arrow.localScale.WithY(_open ? 1f : -1f);
-            _layoutElement.preferredHeight = _open ? 230 : 60;
+            _layoutElement.preferredHeight = _open ? 240 : 60;
         }
     }
 }

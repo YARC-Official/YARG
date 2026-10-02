@@ -631,6 +631,17 @@
 				"Gameplay": "G",
 				"Menu": "M"
 			},
+			"BindingsTitle": {
+				"FiveFretGuitar": "5-Fret Guitar Gameplay Bindings",
+				"SixFretGuitar": "6-Fret Guitar Gameplay Bindings",
+				"FourLaneDrums": "4-Lane Drums Gameplay Bindings",
+				"FiveLaneDrums": "5-Lane Drums Gameplay Bindings",
+				"EliteDrums": "Drums Gameplay Bindings",
+				"ProKeys": "Keys Gameplay Bindings",
+				"ProGuitar": "Pro Guitar Gameplay Bindings",
+				"Vocals": "Vocals Gameplay Bindings",
+				"Menu": "Menu Navigation Bindings"
+			},
 			"UserCount": "Profiles Using This Binding Set: {0}",
 			"Tooltip": {
 			    "InputMode": {
