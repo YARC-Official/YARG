@@ -41,7 +41,6 @@ namespace YARG.Input
         private readonly Dictionary<InputDevice, RuntimeBindingSet> _activeGameplayRuntimeBindings = new();
         private readonly Dictionary<InputDevice, RuntimeBindingSet> _activeMenuRuntimeBindings = new();
         private readonly Dictionary<(GameMode mode, ControllerFamily controllerFamily), ReusableBindingSet> _preferredBindsByContext = new();
-        public readonly Dictionary<ControllerFamily, ReusableBindingSet> PreferredMenuBindingsByBaseLayout = new();
 
         private readonly RuntimeInputAggregator _gameplayInputAggregator = new();
         private readonly RuntimeInputAggregator _menuInputAggregator = new();
@@ -119,40 +118,12 @@ namespace YARG.Input
                                 modesToRemove.Add(mode);
                             }
                         }
-
                     }
-
-
                 }
 
                 foreach (var mode in modesToRemove)
                 {
                     serialized.ModeMappings.Remove(mode);
-                }
-            }
-
-            if (serialized.MenuMappings is not null)
-            {
-                var menuMappingsToRemove = new List<string>();
-
-                foreach (var (baseLayout, bindingSetGuid) in serialized.MenuMappings)
-                {
-                    var controllerFamily = LayoutHelper.LayoutStringToControllerFamily(baseLayout);
-
-                    if (BindingsContainer.TryGetBindingCollectionById(bindingSetGuid, out var menuMapping))
-                    {
-                        PreferredMenuBindingsByBaseLayout[controllerFamily] = menuMapping;
-                    }
-                    else
-                    {
-                        YargLogger.LogWarning($"Referenced nonexistent binding collection GUID {bindingSetGuid}; it will be removed");
-                        menuMappingsToRemove.Add(baseLayout);
-                    }
-                }
-
-                foreach (var baseLayout in menuMappingsToRemove)
-                {
-                    serialized.MenuMappings.Remove(baseLayout);
                 }
             }
         }
@@ -194,19 +165,6 @@ namespace YARG.Input
 
                 var baseLayout = LayoutHelper.ControllerFamilyToLayoutString(controllerFamily);
                 serialized.ModeMappings[mode].MappingsByBaseLayout[baseLayout] = bindingSet.Guid;
-            }
-
-            foreach (var (controllerFamily, bindingSet) in PreferredMenuBindingsByBaseLayout)
-            {
-                var serializedMenuBinds = bindingSet.Serialize();
-
-                if (serializedMenuBinds is null)
-                {
-                    continue;
-                }
-
-                var baseLayout = LayoutHelper.ControllerFamilyToLayoutString(controllerFamily);
-                serialized.MenuMappings[baseLayout] = bindingSet.Guid;
             }
 
             return serialized;
@@ -474,12 +432,7 @@ namespace YARG.Input
 
             foreach (var bindings in _preferredBindsByContext.Values)
             {
-                // bindings.SetDefaultBindings(controller); TODO
-            }
-
-            foreach (var bindings in PreferredMenuBindingsByBaseLayout.Values)
-            {
-                // bindings.SetDefaultBindings(controller); TODO
+                // bindings.SetDefaultBindings(controller); TODO-FRICK
             }
 
             return true;
@@ -494,12 +447,7 @@ namespace YARG.Input
 
             foreach (var bindings in _preferredBindsByContext.Values)
             {
-                // bindings.SetDefaultBindings(gamepad, mode); TODO
-            }
-
-            foreach (var bindings in PreferredMenuBindingsByBaseLayout.Values)
-            {
-                // bindings.SetDefaultBindings(gamepad, mode); TODO
+                // bindings.SetDefaultBindings(gamepad, mode); TODO-FRICK
             }
 
             return true;

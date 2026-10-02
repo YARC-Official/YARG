@@ -15,25 +15,14 @@ namespace YARG.Menu.ProfileInfo
         private EditBindsTab _editBindsTab;
 
         private GameMode _gameMode;
-        private bool _isMenuBindings;
 
         public void Init(GameMode gameMode, EditBindsTab editBindsTab)
         {
             _editBindsTab = editBindsTab;
 
             _gameMode = gameMode;
-            _isMenuBindings = false;
 
             _gameModeName.text = gameMode.ToLocalizedName();
-        }
-
-        public void InitAsMenuBindings(EditBindsTab editBindsTab)
-        {
-            _editBindsTab = editBindsTab;
-
-            _isMenuBindings = true;
-
-            _gameModeName.text = Localize.Key("Enum.GameMode.Menu");
         }
 
         protected override void OnSelectionChanged(bool selected)
@@ -45,14 +34,7 @@ namespace YARG.Menu.ProfileInfo
                 return;
             }
 
-            if (_isMenuBindings)
-            {
-                _editBindsTab.RefreshMenuBindings();
-            }
-            else
-            {
-                _editBindsTab.RefreshBindings(_gameMode);
-            }
+            _editBindsTab.RefreshBindings(_gameMode);
         }
     }
 }

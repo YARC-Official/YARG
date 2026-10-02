@@ -5,13 +5,10 @@ using System.Threading;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using YARG.Core.Logging;
-using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Input;
 using YARG.Input.Bindings;
 using YARG.Localization;
-using YARG.Player;
 
 namespace YARG.Menu.ProfileInfo
 {

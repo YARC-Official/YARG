@@ -73,7 +73,7 @@ namespace YARG.Menu.ProfileInfo
 
             // Spawn in a game mode view for the menu binds
             gameModeView = Instantiate(_gameModeViewPrefab, _gameModeList);
-            gameModeView.GetComponent<GameModeView>().InitAsMenuBindings(this);
+            gameModeView.GetComponent<GameModeView>().Init(GameMode.Menu, this);
             _gameModeNavGroup.AddNavigatable(gameModeView);
 
             // Select first game mode
@@ -96,10 +96,12 @@ namespace YARG.Menu.ProfileInfo
         {
             SelectingMenuBinds = true;
 
+            /* TODO-FRICK
             foreach (var bindings in _currentPlayer.DeviceInfo.PreferredMenuBindingsByBaseLayout.Values)
             {
                 // RefreshFromBindingCollection(bindings); TODO
             }
+            */
         }
 
         private void RefreshFromBindingCollection(BindingCollection collection)

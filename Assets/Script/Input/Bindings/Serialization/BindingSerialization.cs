@@ -46,7 +46,6 @@ namespace YARG.Input.Serialization
         public SerializedMic? Microphone;
 
         public Dictionary<GameMode, SerializedModeMappingCollection> ModeMappings = new();
-        public Dictionary<string, Guid> MenuMappings = new(); // Key is BaseLayout
     }
 
     public class SerializedModeMappingCollection
