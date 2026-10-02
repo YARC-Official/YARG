@@ -2437,9 +2437,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.ProfileList.BindingsCenterPaneSettingsPanel
   _leftyNamesGroup: {fileID: 4522117044565965088}
+  _leftyToggle: {fileID: 4911705530541695676}
   _userCountGroup: {fileID: 99599486427691349}
   _userCountText: {fileID: 2503170214413269372}
-  _centerPane: {fileID: 0}
+  _centerPane: {fileID: 8728195230581420338}
 --- !u!1 &8480179244186169325
 GameObject:
   m_ObjectHideFlags: 0
@@ -3295,23 +3296,27 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7147442041986558330, guid: aed667cd79204fe4aad4f297b650e848, type: 3}
       propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.size
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7147442041986558330, guid: aed667cd79204fe4aad4f297b650e848, type: 3}
       propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7147442041986558330, guid: aed667cd79204fe4aad4f297b650e848, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 8023080906555745224}
+    - target: {fileID: 7147442041986558330, guid: aed667cd79204fe4aad4f297b650e848, type: 3}
       propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
       value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 7147442041986558330, guid: aed667cd79204fe4aad4f297b650e848, type: 3}
       propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: ChangeRangeDisabled
+      value: OnChangeHandedness
       objectReference: {fileID: 0}
     - target: {fileID: 7147442041986558330, guid: aed667cd79204fe4aad4f297b650e848, type: 3}
       propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: YARG.Menu.ProfileList.ProfileSidebar, Assembly-CSharp
+      value: YARG.Menu.ProfileList.BindingsCenterPaneSettingsPanel, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 7147442041986558330, guid: aed667cd79204fe4aad4f297b650e848, type: 3}
       propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
@@ -3327,6 +3332,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 3252069457828798820, guid: aed667cd79204fe4aad4f297b650e848, type: 3}
   m_PrefabInstance: {fileID: 2817338580120062918}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &4911705530541695676 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7147442041986558330, guid: aed667cd79204fe4aad4f297b650e848, type: 3}
+  m_PrefabInstance: {fileID: 2817338580120062918}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9085046f02f69544eb97fd06b6048fe2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &7000959414131699406
 PrefabInstance:
   m_ObjectHideFlags: 0

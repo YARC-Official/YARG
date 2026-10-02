@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem.Layouts;
 using YARG.Core.Logging;
@@ -9,7 +10,12 @@ using YARG.Menu.Settings;
 
 namespace YARG.Menu.ProfileList
 {
-    public abstract class ReusableBindGroup<TSingleView, TBinding, TSingle, TSingleState> : MonoBehaviour
+    public abstract class ReusableBindGroup : MonoBehaviour
+    {
+        public event Action<bool> HandednessChanged;
+    }
+
+    public abstract class ReusableBindGroup<TSingleView, TBinding, TSingle, TSingleState> : ReusableBindGroup
         where TSingleView : ReusableSingleBindView<TBinding, TSingle, TSingleState>
         where TBinding : ReusableControlBinding<TSingle, TSingleState>
         where TSingle : ReusableSingleBinding<TSingleState>, new()
@@ -32,6 +38,7 @@ namespace YARG.Menu.ProfileList
         protected BindingSetsCenterPane _centerPane;
         protected DummyControllerQuickBindDialogMenu _quickBindDialog;
         protected bool _interactable;
+        protected bool _showLeftyNames;
 
         public virtual void Init(
             ProfilesMenu profilesMenu,
@@ -50,7 +57,7 @@ namespace YARG.Menu.ProfileList
             Binding = binding;
             _controls = controls;
 
-            _header.Init(binding, _interactable);
+            _header.Init(this, binding, _interactable, _centerPane.ShowLeftyNames);
             _header.BindingsClicked += ToggleBindingsDrawer;
             _header.SettingsClicked += ToggleSettingsDrawer;
 
@@ -58,6 +65,8 @@ namespace YARG.Menu.ProfileList
             _settingsList.SetDrawerWithoutRebuild(false);
             _header.SetSettingsButtonActive(false);
             _header.SetArrowOpen(true);
+
+            _centerPane.HandednessChanged += RefreshHandedness;
 
             RefreshBindings();
         }
@@ -129,5 +138,15 @@ namespace YARG.Menu.ProfileList
         }
 
         public void ToggleSettingsDrawer() => SetSettingsDrawer(!_settingsList.DrawerOpened);
+
+        private void OnDestroy()
+        {
+            _centerPane.HandednessChanged -= RefreshHandedness;
+        }
+
+        private void RefreshHandedness(bool lefty)
+        {
+            _header.RefreshHandedness(lefty);
+        }
     }
 }

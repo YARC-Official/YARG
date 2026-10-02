@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using YARG.Helpers.Extensions;
 using YARG.Input.Bindings;
 using YARG.Localization;
@@ -16,6 +17,8 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private GameObject _leftyNamesGroup;
         [SerializeField]
+        private Toggle _leftyToggle;
+        [SerializeField]
         private GameObject _userCountGroup;
         [SerializeField]
         private TextMeshProUGUI _userCountText;
@@ -25,6 +28,8 @@ namespace YARG.Menu.ProfileList
 
         public void Refresh()
         {
+            _leftyToggle.SetIsOnWithoutNotify(_centerPane.ShowLeftyNames);
+
             var bindingSet = _centerPane.BindingSet;
 
             _leftyNamesGroup.SetActive(bindingSet.Mode.HasLeftyNames() || bindingSet.ControllerFamily.HasLeftyNames());
@@ -52,6 +57,11 @@ namespace YARG.Menu.ProfileList
 
                 _userCountText.text = Localize.KeyFormat("Menu.ProfileList.UserCount", userCountNumText);
             }
+        }
+
+        public void OnChangeHandedness()
+        {
+            _centerPane.SetHandedness(_leftyToggle.isOn);
         }
     }
 }
