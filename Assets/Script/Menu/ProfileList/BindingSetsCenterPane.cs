@@ -1,0 +1,224 @@
+﻿using System;
+using System.Collections.Generic;
+using TMPro;
+using UnityEngine;
+using UnityEngine.InputSystem;
+using YARG.Core.Logging;
+using YARG.Helpers;
+using YARG.Helpers.Extensions;
+using YARG.Input;
+using YARG.Input.Bindings;
+using YARG.Menu.ProfileInfo;
+
+namespace YARG.Menu.ProfileList
+{
+    public class BindingSetsCenterPane : MonoBehaviour
+    {
+        [SerializeField]
+        private ProfilesMenu _profilesMenu;
+        [SerializeField]
+        private DummyControllerQuickBindDialogMenu _quickBindDialog;
+        [SerializeField]
+        private GameObject _contents;
+        [SerializeField]
+        private Transform _bindsList;
+        [SerializeField]
+        private TextMeshProUGUI _name;
+
+        [Space]
+        [SerializeField]
+        private ReusableButtonBindGroup _buttonGroupPrefab;
+        [SerializeField]
+        private ReusableAxisBindGroup _axisGroupPrefab;
+        [SerializeField]
+        private IntegerBindGroup _integerGroupPrefab;
+
+        [Space]
+        [SerializeField]
+        private TMP_Dropdown _dummyControllerDropdown;
+
+        public ReusableBindingSet BindingSet { get; private set; }
+
+        [Space]
+        [SerializeField]
+        private BindingsCenterPaneSettingsPanel _settingsPanel;
+        public InputDevice DummyController { get; private set; } = null;
+        private List<InputDevice> _availableDummyControllers = new();
+
+        private bool _showLeftyNames;
+        public bool ShowLeftyNames
+        {
+            get => _showLeftyNames;
+            private set
+            {
+                _showLeftyNames = value;
+                HandednessChanged?.Invoke(value);
+            }
+        }
+
+        public event Action DummyControllerChanged;
+        public event Action<bool> HandednessChanged;
+
+        public void HideContents()
+        {
+            _contents.SetActive(false);
+        }
+
+        public void ShowContents()
+        {
+            _contents.SetActive(true);
+            RefreshDummyControllers();
+        }
+
+        public void OnEnable()
+        {
+            InputManager.DeviceAdded += OnControllerAdded;
+            InputManager.DeviceRemoved += OnControllerRemoved;
+        }
+
+        public void OnDisable()
+        {
+            InputManager.DeviceAdded -= OnControllerAdded;
+            InputManager.DeviceRemoved -= OnControllerRemoved;
+            HideContents();
+        }
+
+        private void OnControllerAdded(InputDevice controller)
+        {
+            RefreshDummyControllers();
+        }
+
+        private void OnControllerRemoved(InputDevice controller)
+        {
+            if (controller == DummyController)
+            {
+                DummyController = null;
+            }
+            RefreshDummyControllers();
+        }
+
+        public void ClearBindingSet()
+        {
+            SelectBindingSet(null);
+        }
+
+        public void SelectBindingSet(ReusableBindingSet? bindingSet)
+        {
+            BindingSet = bindingSet;
+
+            if (BindingSet is null)
+            {
+                HideContents();
+                return;
+            }
+
+            ShowContents();
+
+            RefreshFromBindingSet(BindingSet);
+        }
+
+        public void SetDummyController()
+        {
+            var idx = _dummyControllerDropdown.value;
+
+            if (idx < 0 || idx >= _availableDummyControllers.Count)
+            {
+                DummyController = null;
+                return;
+            }
+
+            DummyController = _availableDummyControllers[idx];
+
+            DummyControllerChanged?.Invoke();
+        }
+
+        private void DestroyBindsList()
+        {
+            foreach (Transform t in _bindsList)
+            {
+                if (t != _settingsPanel.transform)
+                {
+                    Destroy(t.gameObject);
+                }
+            }
+        }
+
+        private void RefreshFromBindingSet(ReusableBindingSet bindingSet)
+        {
+            DestroyBindsList();
+
+            var template = ReusableBindingSetTemplates.GetTemplate(bindingSet.Mode);
+            var controls = LayoutHelper.GetAllControlsForControllerFamily(_profilesMenu.CurrentBindingSetFilter);
+
+            foreach (var (action, info) in template)
+            {
+                switch (info.Type)
+                {
+                    case BindingType.Button or BindingType.IndividualButton or BindingType.DrumButton:
+                        var buttonGroup = Instantiate(_buttonGroupPrefab, _bindsList);
+                        buttonGroup.Init(
+                            _profilesMenu,
+                            this,
+                            _quickBindDialog,
+                            bindingSet,
+                            bindingSet.Bindings[action] as ReusableButtonBinding,
+                            controls
+                        );
+                        break;
+                    case BindingType.Axis:
+                        var axisGroup = Instantiate(_axisGroupPrefab, _bindsList);
+                        axisGroup.Init(
+                            _profilesMenu,
+                            this,
+                            _quickBindDialog,
+                            bindingSet,
+                            bindingSet.Bindings[action] as ReusableAxisBinding,
+                            controls
+                        );
+                        break;
+                    // TODO-FRICK: Integer
+                }
+            }
+
+            _name.text = bindingSet.Name;
+            _settingsPanel.Refresh();
+        }
+
+        public void RefreshDummyControllers()
+        {
+            _dummyControllerDropdown.options.Clear();
+            _dummyControllerDropdown.options.Add(new("<i>None</i>"));
+
+            _availableDummyControllers.Clear();
+            _availableDummyControllers.Add(null);
+
+            var family = _profilesMenu.CurrentBindingSetFilter;
+
+            foreach (var controller in InputSystem.devices)
+            {
+                if (family == LayoutHelper.LayoutStringToControllerFamily(controller.layout))
+                {
+                    _availableDummyControllers.Add(controller);
+                    _dummyControllerDropdown.options.Add(new(controller.displayName));
+                }
+            }
+
+            var currentIdx = _availableDummyControllers.IndexOf(DummyController);
+
+            if (currentIdx is -1)
+            {
+                DummyController = null;
+                currentIdx = 0;
+            }
+
+
+            _dummyControllerDropdown.SetValueWithoutNotify(currentIdx);
+            _dummyControllerDropdown.RefreshShownValue();
+        }
+
+        public void SetHandedness(bool lefty)
+        {
+            ShowLeftyNames = lefty;
+        }
+    }
+}

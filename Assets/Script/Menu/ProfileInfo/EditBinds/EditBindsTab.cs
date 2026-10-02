@@ -1,4 +1,4 @@
-using Cysharp.Threading.Tasks;
+﻿using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core;
@@ -73,7 +73,7 @@ namespace YARG.Menu.ProfileInfo
 
             // Spawn in a game mode view for the menu binds
             gameModeView = Instantiate(_gameModeViewPrefab, _gameModeList);
-            gameModeView.GetComponent<GameModeView>().InitAsMenuBindings(this);
+            gameModeView.GetComponent<GameModeView>().Init(GameMode.Menu, this);
             _gameModeNavGroup.AddNavigatable(gameModeView);
 
             // Select first game mode
@@ -86,14 +86,22 @@ namespace YARG.Menu.ProfileInfo
             SelectedGameMode = gameMode;
             SelectingMenuBinds = false;
 
-            RefreshFromBindingCollection(_currentPlayer.Bindings[gameMode]);
+            foreach (var controller in _currentPlayer.DeviceInfo.Controllers)
+            {
+                // RefreshFromBindingCollection(_currentPlayer.DeviceInfo[(gameMode, controller.layout)]); TODO
+            }
         }
 
         public void RefreshMenuBindings()
         {
             SelectingMenuBinds = true;
 
-            RefreshFromBindingCollection(_currentPlayer.Bindings.MenuBindings);
+            /* TODO-FRICK
+            foreach (var bindings in _currentPlayer.DeviceInfo.PreferredMenuBindingsByBaseLayout.Values)
+            {
+                // RefreshFromBindingCollection(bindings); TODO
+            }
+            */
         }
 
         private void RefreshFromBindingCollection(BindingCollection collection)

@@ -10,6 +10,7 @@ using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Logging;
 using YARG.Input;
+using YARG.Input.Bindings;
 using YARG.Localization;
 using YARG.Menu.Data;
 using YARG.Menu.Persistent;
@@ -67,7 +68,7 @@ namespace YARG.Menu.Dialogs
         {
             _device = parameters.device;
             _player = parameters.player;
-            _bindingCollection = _player.Bindings[_player.Profile.GameMode];
+            // _bindingCollection = _player.DeviceInfo[(_player.Profile.GameMode, _device.layout)]; TODO
             _mode = parameters.mode;
         }
 
@@ -87,7 +88,7 @@ namespace YARG.Menu.Dialogs
             button.interactable = false;
             button.image.color = Color.gray;
 
-            _player.Bindings.ClearBindingsForDevice(_device, false);
+            // _player.DeviceInfo.ClearBindingsForController(_device, false); TODO: Delete?
 
             _cancelButton.Text.text = Localize.Key("Menu.Dialog.FriendlyBindingDialog.Skip");
             bool success;

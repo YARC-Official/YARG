@@ -10,6 +10,7 @@ namespace YARG.Assets.Script.Helpers
     {
         // Universal
         public const string INSTRUMENT_SELECT = "Instrument Select";
+        public const string CONTROLLERS = "Controllers";
         public const string ENGINE_PRESET = "Engine Preset";
         public const string THEME_SELECT = "Theme Select";
         public const string COLOR_PROFILE_SELECT = "Color Profile Select";
@@ -20,6 +21,7 @@ namespace YARG.Assets.Script.Helpers
         public const string NOTE_SPEED_AND_HIGHWAY_LENGTH = "Note Speed and Highway Length";
 
         // GameMode-specific
+        public const string MICROPHONES                             = "Microphones";
         public const string LEFTY_FLIP                              = "Lefty Flip";
         public const string RANGE_DISABLE                           = "Range Disable";
         public const string OPEN_LANE_DISPLAY_TYPE                  = "Dedicated Open Note Lane";

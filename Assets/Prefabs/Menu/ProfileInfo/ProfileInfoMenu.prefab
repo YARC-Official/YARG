@@ -3036,6 +3036,14 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4163541651447921944, guid: 318a76075e5c25f4e9a8e9bcd40aeb05, type: 3}
+      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
+      value: 1801810542
+      objectReference: {fileID: 0}
+    - target: {fileID: 4919672518943997676, guid: 318a76075e5c25f4e9a8e9bcd40aeb05, type: 3}
+      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
+      value: 1801810542
+      objectReference: {fileID: 0}
     - target: {fileID: 7085972344865827844, guid: 318a76075e5c25f4e9a8e9bcd40aeb05, type: 3}
       propertyPath: m_AnchorMax.x
       value: 1

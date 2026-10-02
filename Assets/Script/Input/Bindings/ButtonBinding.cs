@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -22,9 +22,9 @@ namespace YARG.Input
 
     public class SingleButtonBinding : SingleBinding<float>
     {
-        private const bool INVERT_DEFAULT = false;
-        private const DebounceMode DEBOUNCE_MODE_DEFAULT = DebounceMode.Press;
-        private const long DEBOUNCE_THRESHOLD_DEFAULT = 5;
+        private const bool INVERT_DEFAULT = false; // TODO-FRICK: Delete?
+        private const DebounceMode DEBOUNCE_MODE_DEFAULT = DebounceMode.Press; // TODO-FRICK: Delete?
+        private const long DEBOUNCE_THRESHOLD_DEFAULT = 5; // TODO-FRICK: Delete?
 
         private DebounceTimer<float> _debounceTimer = new()
         {
@@ -95,7 +95,7 @@ namespace YARG.Input
             PressPoint = control.GetPressPoint(settings);
         }
 
-        public SingleButtonBinding(InputControl<float> control, SerializedInputControl serialized)
+        public SingleButtonBinding(InputControl<float> control, SerializedSingleBinding serialized)
             : base(control, serialized)
         {
             if (!serialized.Parameters.TryGetValue(nameof(Inverted), out string invertedText) ||
@@ -123,7 +123,7 @@ namespace YARG.Input
             DebounceThreshold = debounceThreshold;
         }
 
-        public override SerializedInputControl Serialize()
+        public override SerializedSingleBinding Serialize()
         {
             var serialized = base.Serialize();
             if (serialized is null)
@@ -311,7 +311,7 @@ namespace YARG.Input
             return new(control, settings);
         }
 
-        protected override SingleButtonBinding DeserializeControl(InputControl<float> control, SerializedInputControl serialized)
+        protected override SingleButtonBinding DeserializeControl(InputControl<float> control, SerializedSingleBinding serialized)
         {
             return new(control, serialized);
         }
