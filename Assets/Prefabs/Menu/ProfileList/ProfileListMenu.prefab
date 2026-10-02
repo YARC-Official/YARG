@@ -14489,6 +14489,30 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2032733367408491483, guid: 5abcff02d9ff58643a1993ddac92b7a5, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2032733367408491483, guid: 5abcff02d9ff58643a1993ddac92b7a5, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2032733367408491483, guid: 5abcff02d9ff58643a1993ddac92b7a5, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2032733367408491483, guid: 5abcff02d9ff58643a1993ddac92b7a5, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2032733367408491483, guid: 5abcff02d9ff58643a1993ddac92b7a5, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2032733367408491483, guid: 5abcff02d9ff58643a1993ddac92b7a5, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3375415662878964117, guid: 5abcff02d9ff58643a1993ddac92b7a5, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -14585,6 +14609,10 @@ PrefabInstance:
       propertyPath: m_SizeDelta.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8023080906555745224, guid: 5abcff02d9ff58643a1993ddac92b7a5, type: 3}
+      propertyPath: _centerPane
+      value: 
+      objectReference: {fileID: 3697091531127064971}
     - target: {fileID: 8584532824812272280, guid: 5abcff02d9ff58643a1993ddac92b7a5, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -14644,7 +14672,7 @@ PrefabInstance:
     - target: {fileID: 8728195230581420338, guid: 5abcff02d9ff58643a1993ddac92b7a5, type: 3}
       propertyPath: _settingsPanel
       value: 
-      objectReference: {fileID: 4448334537990125611}
+      objectReference: {fileID: 2682394861457775473}
     - target: {fileID: 8728195230581420338, guid: 5abcff02d9ff58643a1993ddac92b7a5, type: 3}
       propertyPath: _quickBindDialog
       value: 
@@ -14654,6 +14682,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5abcff02d9ff58643a1993ddac92b7a5, type: 3}
+--- !u!114 &2682394861457775473 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8023080906555745224, guid: 5abcff02d9ff58643a1993ddac92b7a5, type: 3}
+  m_PrefabInstance: {fileID: 5363350073214204089}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 97affc230a4191842b1756e0f11b7bbf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.ProfileList.BindingsCenterPaneSettingsPanel
 --- !u!114 &3697091531127064971 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 8728195230581420338, guid: 5abcff02d9ff58643a1993ddac92b7a5, type: 3}
@@ -14665,11 +14704,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d63dfce412302a4449bf1b9ee4805121, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.ProfileList.BindingSetsCenterPane
---- !u!224 &4448334537990125611 stripped
-RectTransform:
-  m_CorrespondingSourceObject: {fileID: 8635048413164978322, guid: 5abcff02d9ff58643a1993ddac92b7a5, type: 3}
-  m_PrefabInstance: {fileID: 5363350073214204089}
-  m_PrefabAsset: {fileID: 0}
 --- !u!224 &6837417037008249973 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 1480858441226116300, guid: 5abcff02d9ff58643a1993ddac92b7a5, type: 3}

@@ -24,6 +24,7 @@ namespace YARG.Input.Bindings
         private static readonly Dictionary<Guid, PlayerDeviceInfo> _profileDeviceInfo = new(); // GUID is YargProfile GUID
 
         private static readonly Dictionary<Guid, ReusableBindingSet> _allReusableBindingSetsByGuid = new(); // GUID is ReusableBindingSet GUID
+        public static IEnumerable<PlayerDeviceInfo> AllPlayerDeviceInfo => _profileDeviceInfo.Values;
 
         private static readonly Dictionary<ControllerFamily, Dictionary<GameMode, List<ReusableBindingSet>>> _reusableBindingSetsByControllerFamily = new()
         {
@@ -129,7 +130,7 @@ namespace YARG.Input.Bindings
             }
         };
 
-        public static PlayerDeviceInfo GetBindingsForProfile(YargProfile profile)
+        public static PlayerDeviceInfo GetDeviceInfoForProfile(YargProfile profile)
         {
             if (!_profileDeviceInfo.TryGetValue(profile.Id, out var bindings))
             {

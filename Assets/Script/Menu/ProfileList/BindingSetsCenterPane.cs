@@ -37,11 +37,11 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private TMP_Dropdown _dummyControllerDropdown;
 
-        private ReusableBindingSet _bindingSet;
+        public ReusableBindingSet BindingSet { get; private set; }
 
         [Space]
         [SerializeField]
-        private Transform _settingsPanel;
+        private BindingsCenterPaneSettingsPanel _settingsPanel;
         public InputDevice DummyController { get; private set; } = null;
         private List<InputDevice> _availableDummyControllers = new();
 
@@ -92,9 +92,9 @@ namespace YARG.Menu.ProfileList
 
         public void SelectBindingSet(ReusableBindingSet? bindingSet)
         {
-            _bindingSet = bindingSet;
+            BindingSet = bindingSet;
 
-            if (_bindingSet is null)
+            if (BindingSet is null)
             {
                 HideContents();
                 return;
@@ -102,7 +102,7 @@ namespace YARG.Menu.ProfileList
 
             ShowContents();
 
-            RefreshFromBindingSet(_bindingSet);
+            RefreshFromBindingSet(BindingSet);
         }
 
         public void SetDummyController()
@@ -124,7 +124,7 @@ namespace YARG.Menu.ProfileList
         {
             foreach (Transform t in _bindsList)
             {
-                if (t != _settingsPanel)
+                if (t != _settingsPanel.transform)
                 {
                     Destroy(t.gameObject);
                 }
@@ -169,6 +169,7 @@ namespace YARG.Menu.ProfileList
             }
 
             _name.text = bindingSet.Name;
+            _settingsPanel.Refresh();
         }
 
         public void RefreshDummyControllers()
