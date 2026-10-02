@@ -660,6 +660,12 @@
 				  "Title": "{0}",
 				  "Text": "This is a {0} that is connected to your setup."
 			  },
+			  "JumpTo": {
+				  "Title": "Jump to Binding Set",
+				  "Text": "{0}",
+				  "Populated": "Open the <b>Bindings</b> tab and view this binding set. {0} will automatically become the dummy controller, so you can use it to test and edit bindings.",
+				  "Unpopulated": "If you select a binding set, you can use this button to open the <b>Bindings</b> tab and view it."
+			  },
 			  "Microphones": {
 				"Title": "Microphones",
 				"Text": "A microphone is any device that provides an audio signal to <i>YARG</i>. Use microphones to play Vocals and Harmonies. To navigate menus as a vocalist, set up a controller."
