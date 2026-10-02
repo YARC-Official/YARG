@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.InputSystem;
 using YARG.Core.Logging;
+using YARG.Input;
 using YARG.Input.Bindings;
 using YARG.Menu.ProfileList;
 using static UnityEngine.InputSystem.Layouts.InputControlLayout;
@@ -41,6 +42,9 @@ namespace YARG.Helpers
                 return controlPath;
             }
 
+            // We're about to make a temporary virtual device, which we don't want to toast for
+            InputManager.SuppressDeviceToasts = true;
+
             // Temporarily create virtual device so we can inspect its actual controls
             var device = InputSystem.AddDevice(layout);
 
@@ -61,6 +65,7 @@ namespace YARG.Helpers
             finally
             {
                 InputSystem.RemoveDevice(device);
+                InputManager.SuppressDeviceToasts = false;
             }
         }
 

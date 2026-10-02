@@ -1,8 +1,12 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using TMPro;
+using UniGLTF.Extensions.VRMC_vrm;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 using YARG.Core.Input;
 using YARG.Core.Logging;
 using YARG.Helpers;
@@ -11,7 +15,6 @@ using YARG.Input;
 using YARG.Input.Bindings;
 using YARG.Menu.ProfileInfo;
 using YARG.Scores;
-using static UnityEditor.AddressableAssets.Build.Layout.BuildLayout;
 
 namespace YARG.Menu.ProfileList
 {
@@ -49,12 +52,16 @@ namespace YARG.Menu.ProfileList
         private GameObject _editNameContainer;
         [SerializeField]
         private TMP_InputField _nameInput;
+        [SerializeField]
+        private Button _nameEditButton;
+
+        [Space]
+        [SerializeField]
+        private Button _exportButton;
 
         [Space]
         [SerializeField]
         private BindingsCenterPaneSettingsPanel _settingsPanel;
-
-        private BindingSetView _bindingSetView;
         private InputDevice _dummyController;
 
         public InputDevice DummyController {
@@ -181,6 +188,9 @@ namespace YARG.Menu.ProfileList
 
         private void RefreshFromBindingSet(ReusableBindingSet bindingSet)
         {
+            _nameEditButton.interactable = !bindingSet.IsHardcoded;
+            _exportButton.interactable = !bindingSet.IsHardcoded;
+
             DestroyBindsList();
 
             var template = ReusableBindingSetTemplates.GetTemplate(bindingSet.Mode);
@@ -276,6 +286,33 @@ namespace YARG.Menu.ProfileList
                 _name.text = BindingSet.Name;
                 _profilesMenu.GetSelectedBindingSetView().UpdateDisplay(BindingSet);
             }
+        }
+
+        public void Export()
+        {
+            FileExplorerHelper.OpenSaveFile(null, BindingSet.Name, "binds", path =>
+            {
+                if (File.Exists(path))
+                {
+                    File.Delete(path);
+                }
+
+                try
+                {
+                    var serializable = BindingSet.Serialize(export: true);
+                    var text = JsonConvert.SerializeObject(
+                        serializable,
+                        new JsonSerializerSettings() {
+                            Formatting = Formatting.Indented,
+                            NullValueHandling = NullValueHandling.Ignore
+                        }
+                    );
+                    File.WriteAllText(path, text);
+                }
+                catch (Exception) {
+                    YargLogger.LogError("Failed to export binding set.");
+                }
+            });
         }
     }
 }
