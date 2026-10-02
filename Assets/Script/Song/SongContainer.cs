@@ -101,6 +101,7 @@ namespace YARG.Song
         // multiple versions of the same chart, which will have the same guid, so we
         // must accommodate that
         private static Dictionary<Guid, List<SongEntry>> _songsByGuid = new();
+        private static Dictionary<string, List<SongEntry>> _songsByShortName = new();
 
         private static SongCategory[] _sortTitles = Array.Empty<SongCategory>();
         private static SongCategory[] _sortArtists = Array.Empty<SongCategory>();
@@ -148,6 +149,7 @@ namespace YARG.Song
         // public static IReadOnlyDictionary<HashWrapper, List<SongEntry>> SongsByHash => _songCache.Entries;
         public static IReadOnlyDictionary<HashWrapper, List<SongEntry>> SongsByHash => _songsByHash;
         public static IReadOnlyDictionary<Guid, List<SongEntry>> SongsByGuid => _songsByGuid;
+        public static IReadOnlyDictionary<string, List<SongEntry>> SongsByShortName => _songsByShortName;
         public static SongEntry[]                                       Songs       => _songs;
 
         public static SongEntry[] UnfilteredSongs => _songCache.Entries.Values.SelectMany(e => e).ToArray();
@@ -1112,6 +1114,7 @@ namespace YARG.Song
             {
                 _songsByHash.Clear();
                 _songsByGuid.Clear();
+                _songsByShortName.Clear();
 
                 int songCount = 0;
                 foreach (var node in entries)
@@ -1153,6 +1156,17 @@ namespace YARG.Song
                                 }
 
                                 guidSongs.Add(song);
+                            }
+
+                            if (song is RBCONEntry rbconEntry && !string.IsNullOrEmpty(rbconEntry.RBSongId))
+                            {
+                                if (!_songsByShortName.TryGetValue(rbconEntry.RBSongId, out var shortNameSongs))
+                                {
+                                    shortNameSongs = new List<SongEntry>();
+                                    _songsByShortName.Add(rbconEntry.RBSongId, shortNameSongs);
+                                }
+
+                                shortNameSongs.Add(song);
                             }
 
                             songs[index++] = song;

@@ -174,7 +174,11 @@ namespace YARG.Menu.MusicLibrary
         private void OnSearchFieldSelected(string _)
         {
             _focusBorder.SetActive(true);
-            _focusBackground.enabled = true;
+
+            if (_focusBackground != null)
+            {
+                _focusBackground.enabled = true;
+            }
 
             if (_searchNavigationActive)
             {
@@ -194,7 +198,12 @@ namespace YARG.Menu.MusicLibrary
         private void OnSearchFieldDeselected(string _)
         {
             _focusBorder.SetActive(false);
-            _focusBackground.enabled = false;
+
+            if (_focusBackground != null)
+            {
+                _focusBackground.enabled = false;
+            }
+
             DisableSearchNavigation();
         }
 

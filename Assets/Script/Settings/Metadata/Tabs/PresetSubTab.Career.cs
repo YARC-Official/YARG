@@ -373,7 +373,7 @@ namespace YARG.Settings.Metadata
                         "jpg",
                         "jpeg"
                     };
-                    
+
                     FileExplorerHelper.OpenChooseFile("", extensions, mediaPath =>
                     {
                         var mediaSetting = new FileInfoSetting(tier.MediaFilename, _presetRef,
@@ -431,6 +431,15 @@ namespace YARG.Settings.Metadata
                 });
             }
 
+            if (song is RBCONEntry rbconEntry && !string.IsNullOrEmpty(rbconEntry.RBSongId))
+            {
+                dialog.AddListButton("Song Short Name (Use for RBCON songs)", () =>
+                {
+                    tier.AddSong(CareerSong.FromSongEntry(song, CareerSongIdentifier.ShortName));
+                    SaveAndRefresh();
+                });
+            }
+
             dialog.AddListButton("Song Hash", () =>
             {
                 tier.AddSong(CareerSong.FromSongEntry(song, CareerSongIdentifier.SongHash));
@@ -460,11 +469,14 @@ namespace YARG.Settings.Metadata
             dialog.AddListButton($"Song: {currentArtist} - {currentSongName}", null);
             dialog.AddListButton($"Current Identifier: {song.Identifier}", null);
 
-            dialog.AddListButton("Change Identifier to: Song ID (GUID)", () =>
+            if (!string.IsNullOrEmpty(song.SongEntry?.YargGuid))
             {
-                song.UpdateIdentifier(CareerSongIdentifier.SongId);
-                SaveAndRefresh();
-            });
+                dialog.AddListButton("Change Identifier to: Song ID (GUID)", () =>
+                {
+                    song.UpdateIdentifier(CareerSongIdentifier.SongId);
+                    SaveAndRefresh();
+                });
+            }
 
             dialog.AddListButton("Change Identifier to: Song Hash", () =>
             {
@@ -478,11 +490,14 @@ namespace YARG.Settings.Metadata
                 SaveAndRefresh();
             });
 
-            dialog.AddListButton("Change Identifier to: Short Name", () =>
+            if (song.SongEntry is RBCONEntry rbconEntry && !string.IsNullOrEmpty(rbconEntry.RBSongId))
             {
-                song.UpdateIdentifier(CareerSongIdentifier.ShortName);
-                SaveAndRefresh();
-            });
+                dialog.AddListButton("Change Identifier to: Short Name", () =>
+                {
+                    song.UpdateIdentifier(CareerSongIdentifier.ShortName);
+                    SaveAndRefresh();
+                });
+            }
 
             dialog.AddListButton(
                 $"Edit Fallback Description: {(string.IsNullOrEmpty(song.Description) ? "(None)" : song.Description)}",

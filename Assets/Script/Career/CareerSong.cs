@@ -145,7 +145,13 @@ namespace YARG.Career
                 case CareerSongIdentifier.SongHash:
                     return new CareerSong(song.Hash);
                 case CareerSongIdentifier.ShortName:
-                    return new CareerSong(song.Name); // TODO: Not correct
+                    if (song is RBCONEntry rbconEntry && !string.IsNullOrEmpty(rbconEntry.RBSongId))
+                    {
+                        return new CareerSong(rbconEntry.RBSongId);
+                    }
+
+                    throw new ArgumentException("Song does not have a valid RBSongId");
+                    break;
                 case CareerSongIdentifier.SongTuple:
                     return new CareerSong(new SongTuple
                     {
@@ -215,10 +221,17 @@ namespace YARG.Career
                     }
                     break;
                 case CareerSongIdentifier.ShortName:
-                    ShortName = song.Name;
-                    using (var md5 = MD5.Create())
+                    if (song is RBCONEntry rbconEntry && !string.IsNullOrEmpty(rbconEntry.RBSongId))
                     {
-                        Id = new Guid(md5.ComputeHash(Encoding.UTF8.GetBytes(song.Name)));
+                        ShortName = rbconEntry.RBSongId;
+                        using (var md5 = MD5.Create())
+                        {
+                            Id = new Guid(md5.ComputeHash(Encoding.UTF8.GetBytes(rbconEntry.RBSongId)));
+                        }
+                    }
+                    else
+                    {
+                        throw new ArgumentException("CareerSong: ShortName was not defined!");
                     }
                     break;
                 case CareerSongIdentifier.SongTuple:
@@ -274,6 +287,18 @@ namespace YARG.Career
 
                     break;
                 case CareerSongIdentifier.ShortName:
+                    if (!string.IsNullOrEmpty(ShortName))
+                    {
+                        if (SongContainer.SongsByShortName.TryGetValue(ShortName, out var shortEntries) &&
+                            shortEntries.Count > 0)
+                        {
+                            entry = shortEntries[0];
+                        }
+                    }
+                    else
+                    {
+                        YargLogger.LogError("CareerSong: ShortName was not defined!");
+                    }
                     break;
                 case CareerSongIdentifier.SongTuple:
                     entry = FindSongByTuple(SongTuple);
