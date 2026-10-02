@@ -32,7 +32,7 @@ namespace YARG.Menu.ProfileList
 
             var bindingSet = _centerPane.BindingSet;
 
-            _leftyNamesGroup.SetActive(bindingSet.Mode.HasLeftyNames() || bindingSet.ControllerFamily.HasLeftyNames());
+            _leftyNamesGroup.SetActive(bindingSet.Mode.HasLeftyNames());
 
             if (bindingSet.IsHardcoded)
             {
