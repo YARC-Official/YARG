@@ -1,6 +1,9 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using TMPro;
+using UniGLTF.Extensions.VRMC_vrm;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -12,7 +15,6 @@ using YARG.Input;
 using YARG.Input.Bindings;
 using YARG.Menu.ProfileInfo;
 using YARG.Scores;
-using static UnityEditor.AddressableAssets.Build.Layout.BuildLayout;
 
 namespace YARG.Menu.ProfileList
 {
@@ -284,6 +286,27 @@ namespace YARG.Menu.ProfileList
                 _name.text = BindingSet.Name;
                 _profilesMenu.GetSelectedBindingSetView().UpdateDisplay(BindingSet);
             }
+        }
+
+        public void Export()
+        {
+            FileExplorerHelper.OpenSaveFile(null, BindingSet.Name, "binds", path =>
+            {
+                if (File.Exists(path))
+                {
+                    File.Delete(path);
+                }
+
+                try
+                {
+                    var serializable = BindingSet.Serialize();
+                    var text = JsonConvert.SerializeObject(serializable, formatting: Formatting.Indented);
+                    File.WriteAllText(path, text);
+                }
+                catch (Exception) {
+                    YargLogger.LogError("Failed to export binding set.");
+                }
+            });
         }
     }
 }
