@@ -674,6 +674,17 @@
 				"Gameplay": "G",
 				"Menu": "M"
 			},
+			"BindingsTitle": {
+				"FiveFretGuitar": "5-Fret Guitar Gameplay Bindings",
+				"SixFretGuitar": "6-Fret Guitar Gameplay Bindings",
+				"FourLaneDrums": "4-Lane Drums Gameplay Bindings",
+				"FiveLaneDrums": "5-Lane Drums Gameplay Bindings",
+				"EliteDrums": "Drums Gameplay Bindings",
+				"ProKeys": "Keys Gameplay Bindings",
+				"ProGuitar": "Pro Guitar Gameplay Bindings",
+				"Vocals": "Vocals Gameplay Bindings",
+				"Menu": "Menu Navigation Bindings"
+			},
 			"UserCount": "Profiles Using This Binding Set: {0}",
 			"Tooltip": {
 			    "InputMode": {
@@ -702,6 +713,12 @@
 			  "ControllerName": {
 				  "Title": "{0}",
 				  "Text": "This is a {0} that is connected to your setup."
+			  },
+			  "JumpTo": {
+				  "Title": "Jump to Binding Set",
+				  "Text": "{0}",
+				  "Populated": "Open the <b>Bindings</b> tab and view this binding set. {0} will automatically become the dummy controller, so you can use it to test and edit bindings.",
+				  "Unpopulated": "If you select a binding set, you can use this button to open the <b>Bindings</b> tab and view it."
 			  },
 			  "Microphones": {
 				"Title": "Microphones",

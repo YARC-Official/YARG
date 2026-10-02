@@ -25,6 +25,10 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private BindingSetsCenterPane _centerPane;
 
+        public void OnEnable()
+        {
+            _centerPane.HandednessChanged += (_) => Refresh();
+        }
 
         public void Refresh()
         {
@@ -57,11 +61,6 @@ namespace YARG.Menu.ProfileList
 
                 _userCountText.text = Localize.KeyFormat("Menu.ProfileList.UserCount", userCountNumText);
             }
-        }
-
-        public void OnChangeHandedness()
-        {
-            _centerPane.SetHandedness(_leftyToggle.isOn);
         }
     }
 }

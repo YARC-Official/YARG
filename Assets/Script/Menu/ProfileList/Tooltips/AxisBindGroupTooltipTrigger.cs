@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using YARG.Localization;
-using YARG.Menu.ProfileList;
 using YARG.Menu.Tooltips;
 
 namespace YARG.Menu.ProfileList

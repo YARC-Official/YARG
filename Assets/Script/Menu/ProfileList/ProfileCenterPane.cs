@@ -12,8 +12,6 @@ using YARG.Core.Game;
 using YARG.Core.IO;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
-using YARG.Input;
-using YARG.Input.Bindings;
 using YARG.Localization;
 using YARG.Menu.Data;
 using YARG.Menu.Filters;
@@ -22,7 +20,6 @@ using YARG.Menu.ProfileInfo;
 using YARG.Player;
 using YARG.Scores;
 using YARG.Settings.Customization;
-using static UnityEditor.AddressableAssets.Build.Layout.BuildLayout;
 
 namespace YARG.Menu.ProfileList
 {
@@ -118,6 +115,7 @@ namespace YARG.Menu.ProfileList
         [Space]
         [SerializeField]
         private ProfilesMenu _profileListMenu;
+        public ProfilesMenu ProfileMenu => _profileListMenu;
 
         [Space]
         [SerializeField]

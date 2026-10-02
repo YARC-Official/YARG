@@ -10,6 +10,7 @@ using YARG.Core.Game;
 using YARG.Core.Logging;
 using YARG.Helpers;
 using YARG.Input.Bindings;
+using YARG.Localization;
 using YARG.Player;
 
 namespace YARG.Menu.ProfileList
@@ -32,6 +33,14 @@ namespace YARG.Menu.ProfileList
         private BindingsIndicator _gameplayIndicator;
         [SerializeField]
         private BindingsIndicator _menuIndicator;
+        [SerializeField]
+        private TextMeshProUGUI _gameplayBindingsTitle;
+        [SerializeField]
+        private TextMeshProUGUI _menuBindingsTitle;
+        [SerializeField]
+        private Button _jumpToGameplayBindingsButton;
+        [SerializeField]
+        private Button _jumpToMenuBindingsButton;
 
         public YargProfile Profile { get; private set; }
         private ProfileView _profileView;
@@ -41,17 +50,23 @@ namespace YARG.Menu.ProfileList
         private List<ReusableBindingSet> _gameplayBindingSetsByIndex = new();
         private List<ReusableBindingSet> _menuBindingSetsByIndex = new();
 
+        public ReusableBindingSet? GameplayBindingSet => _gameplayBindingSetsByIndex[_gameplayBindingSetDropdown.value];
+        public ReusableBindingSet? MenuBindingSet => _menuBindingSetsByIndex[_menuBindingSetDropdown.value];
+
         private bool _open;
 
-        public void Init(YargProfile profile, ProfileView profileView, ProfileCenterPane profileSidebar, InputDevice controller)
+        public void Init(YargProfile profile, ProfileView profileView, ProfileCenterPane centerPane, InputDevice controller)
         {
             _name.text = controller.displayName;
             Profile = profile;
             _profileView = profileView;
-            _centerPane = profileSidebar;
+            _centerPane = centerPane;
             Controller = controller;
             PopulateDropdownOptions();
             SetDrawerOpen(false);
+
+            _gameplayBindingsTitle.text = $"{Localize.Key("Menu.ProfileList.BindingsTitle", Profile.GameMode)}:";
+            _menuBindingsTitle.text = $"{Localize.Key("Menu.ProfileList.BindingsTitle.Menu")}:";
         }
 
         public void Remove()
@@ -84,7 +99,7 @@ namespace YARG.Menu.ProfileList
             }
 
             _gameplayBindingSetDropdown.value = _gameplayBindingSetsByIndex.IndexOf(player.DeviceInfo.GetSelectedGameplayBindingsForController(Controller));
-            UpdateGameplayIndicator();
+            UpdateGameplayBindingsStatus();
 
             _menuBindingSetsByIndex.Clear();
             _menuBindingSetsByIndex.Add(null); // Always start with the None option
@@ -102,31 +117,35 @@ namespace YARG.Menu.ProfileList
             }
 
             _menuBindingSetDropdown.value = _menuBindingSetsByIndex.IndexOf(player.DeviceInfo.GetActiveMenuBindingsForController(Controller));
-            UpdateMenuIndicator();
+            UpdateMenuBindingsStatus();
         }
 
         public void ChangeGameplayBindingSet()
         {
             var player = PlayerContainer.GetPlayerFromProfile(Profile);
             player.DeviceInfo.SelectGameplayBindingsForController(Controller, _gameplayBindingSetsByIndex[_gameplayBindingSetDropdown.value]);
-            UpdateGameplayIndicator();
+            UpdateGameplayBindingsStatus();
         }
 
         public void ChangeMenuBindingSet()
         {
             var player = PlayerContainer.GetPlayerFromProfile(Profile);
             player.DeviceInfo.SetActiveMenuBindingsForController(Controller, _menuBindingSetsByIndex[_menuBindingSetDropdown.value]);
-            UpdateMenuIndicator();
+            UpdateMenuBindingsStatus();
         }
 
-        private void UpdateGameplayIndicator()
+        private void UpdateGameplayBindingsStatus()
         {
-            _gameplayIndicator.SetLit(_gameplayBindingSetDropdown.value is not 0);
+            var status = _gameplayBindingSetDropdown.value is not 0;
+            _gameplayIndicator.SetLit(status);
+            _jumpToGameplayBindingsButton.interactable = status;
         }
 
-        private void UpdateMenuIndicator()
+        private void UpdateMenuBindingsStatus()
         {
-            _menuIndicator.SetLit(_menuBindingSetDropdown.value is not 0);
+            var status = _menuBindingSetDropdown.value is not 0;
+            _menuIndicator.SetLit(status);
+            _jumpToMenuBindingsButton.interactable = status;
         }
 
         public void ToggleDrawer()
@@ -139,7 +158,17 @@ namespace YARG.Menu.ProfileList
             _open = open;
             _drawer.SetActive(_open);
             _arrow.localScale = _arrow.localScale.WithY(_open ? 1f : -1f);
-            _layoutElement.preferredHeight = _open ? 180 : 60;
+            _layoutElement.preferredHeight = _open ? 240 : 60;
+        }
+
+        public void JumpToGameplayBindingSet()
+        {
+            _centerPane.ProfileMenu.JumpToBindingSet(GameplayBindingSet, Controller, Profile.LeftyFlip);
+        }
+
+        public void JumpToMenuBindingSet()
+        {
+            _centerPane.ProfileMenu.JumpToBindingSet(MenuBindingSet, Controller, Profile.LeftyFlip);
         }
     }
 }
