@@ -293,18 +293,20 @@ namespace YARG.Gameplay
 
         private void Update()
         {
-
-
-            // Pause/unpause
-            if (Keyboard.current.escapeKey.wasPressedThisFrame)
+            var keyboard = Keyboard.current;
+            if (keyboard != null)
             {
-                TogglePause();
-            }
+                // Pause/unpause
+                if (keyboard.escapeKey.wasPressedThisFrame)
+                {
+                    TogglePause();
+                }
 
-            // Toggle debug text
-            if (Keyboard.current.ctrlKey.isPressed && Keyboard.current.tabKey.wasPressedThisFrame)
-            {
-                ToggleDebugEnabled();
+                // Toggle debug text
+                if (keyboard.ctrlKey.isPressed && keyboard.tabKey.wasPressedThisFrame)
+                {
+                    ToggleDebugEnabled();
+                }
             }
 
             // Skip the rest if paused
