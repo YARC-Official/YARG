@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using TMPro;
 using UnityEngine;
+using YARG.Helpers.Extensions;
 using YARG.Input.Bindings;
 using YARG.Localization;
 using YARG.Player;
@@ -21,14 +22,12 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private BindingSetsCenterPane _centerPane;
 
-        private void OnEnable()
-        {
-            Refresh();
-        }
 
         public void Refresh()
         {
             var bindingSet = _centerPane.BindingSet;
+
+            _leftyNamesGroup.SetActive(bindingSet.Mode.HasLeftyNames() || bindingSet.ControllerFamily.HasLeftyNames());
 
             if (bindingSet.IsHardcoded)
             {
