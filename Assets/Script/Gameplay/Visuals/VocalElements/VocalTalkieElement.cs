@@ -28,13 +28,7 @@ namespace YARG.Gameplay.Visuals
         {
             // Get the right talkie mesh
             int lanes = GameManager.VocalTrack.LyricLaneCount;
-            var mesh = lanes switch
-            {
-                1 => _oneLaneTalkie,
-                2 => _twoLaneTalkie,
-                3 => _threeLaneTalkie,
-                _ => throw new Exception("Unreachable.")
-            };
+            var mesh = GetLaneMesh(lanes);
 
             // Hide all of the other meshes
             _oneLaneTalkie.gameObject.SetActive(lanes == 1);
@@ -42,8 +36,7 @@ namespace YARG.Gameplay.Visuals
             _threeLaneTalkie.gameObject.SetActive(lanes == 3);
 
             // Set the color
-            var color = Player.VocalTrack.Colors[NoteRef.HarmonyPart];
-            mesh.material.SetColor(BaseColorId, color.WithAlpha(ALPHA_VALUE));
+            RefreshColor();
 
             // Update the size of the talkie
             var transform = mesh.transform;
@@ -61,6 +54,31 @@ namespace YARG.Gameplay.Visuals
                 _ => 0f,
             } + 100f;
             transform.position = transform.position.WithY(yPos);
+        }
+
+        /// <summary>
+        /// Re-applies the part color to the active talkie mesh. Called on spawn and when the
+        /// practice guide pitch part changes, so talkies already on screen re-tint.
+        /// </summary>
+        public void RefreshColor()
+        {
+            var mesh = GetLaneMesh(GameManager.VocalTrack.LyricLaneCount);
+            var color = VocalTrack.GetPartColor(NoteRef.HarmonyPart);
+
+            // Multiply (not overwrite) the talkie's base alpha so the unselected-part
+            // transparency from VocalTrack.GetPartColor composes with it.
+            mesh.material.SetColor(BaseColorId, color.WithAlpha(color.a * ALPHA_VALUE));
+        }
+
+        private MeshRenderer GetLaneMesh(int lanes)
+        {
+            return lanes switch
+            {
+                1 => _oneLaneTalkie,
+                2 => _twoLaneTalkie,
+                3 => _threeLaneTalkie,
+                _ => throw new Exception("Unreachable.")
+            };
         }
 
         protected override void UpdateElement()
