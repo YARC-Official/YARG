@@ -28,6 +28,7 @@ namespace YARG.Menu.MusicLibrary
         public readonly SortedDictionary<SortString, List<SongEntry>> Subgenres = new();
         public readonly SortedDictionary<SortString, List<SongEntry>> Charters = new();
         public readonly SortedDictionary<SortString, List<SongEntry>> Playlists = new();
+        public readonly SortedDictionary<SortString, List<SongEntry>> Folders = new();
         public readonly SortedDictionary<SortString, List<SongEntry>> Sources = new();
 
         [NonSerialized]
@@ -52,6 +53,7 @@ namespace YARG.Menu.MusicLibrary
             Subgenres.Clear();
             Charters.Clear();
             Playlists.Clear();
+            Folders.Clear();
             Sources.Clear();
             SongLengths.Clear();
             DatesAdded.Clear();
