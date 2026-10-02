@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 using YARG.Core.Input;
 using YARG.Core.Logging;
 using YARG.Helpers;
@@ -49,12 +50,12 @@ namespace YARG.Menu.ProfileList
         private GameObject _editNameContainer;
         [SerializeField]
         private TMP_InputField _nameInput;
+        [SerializeField]
+        private Button _nameEditButton;
 
         [Space]
         [SerializeField]
         private BindingsCenterPaneSettingsPanel _settingsPanel;
-
-        private BindingSetView _bindingSetView;
         private InputDevice _dummyController;
 
         public InputDevice DummyController {
@@ -181,6 +182,8 @@ namespace YARG.Menu.ProfileList
 
         private void RefreshFromBindingSet(ReusableBindingSet bindingSet)
         {
+            _nameEditButton.interactable = !bindingSet.IsHardcoded;
+
             DestroyBindsList();
 
             var template = ReusableBindingSetTemplates.GetTemplate(bindingSet.Mode);

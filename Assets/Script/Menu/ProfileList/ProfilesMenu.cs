@@ -66,6 +66,8 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private GameObject _addProfileButtons;
         [SerializeField]
+        private GameObject _importBindingSetButton;
+        [SerializeField]
         private GameObject _profileViewPrefab;
         [SerializeField]
         private GameObject _bindingSetViewPrefab;
@@ -490,6 +492,7 @@ namespace YARG.Menu.ProfileList
         {
             _profileCenterPane.gameObject.SetActive(tabId == PROFILES_TAB);
             _addProfileButtons.gameObject.SetActive(tabId == PROFILES_TAB);
+            _importBindingSetButton.gameObject.SetActive(tabId == BINDINGS_TAB);
             _bindingSetsCenterPane.gameObject.SetActive(tabId == BINDINGS_TAB);
             _bindingSetsFilter.gameObject.SetActive(tabId == BINDINGS_TAB);
 
