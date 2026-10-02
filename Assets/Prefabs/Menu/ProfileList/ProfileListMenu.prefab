@@ -14289,7 +14289,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 1
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
       propertyPath: m_AnchorMax.y
@@ -14297,7 +14297,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
       propertyPath: m_AnchorMin.x
-      value: 1
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
       propertyPath: m_AnchorMin.y
@@ -14341,7 +14341,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -257
+      value: 905
       objectReference: {fileID: 0}
     - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
       propertyPath: m_AnchoredPosition.y
@@ -14365,7 +14365,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4441713907549617493, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5240628994194081110, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
       propertyPath: m_text
@@ -14379,10 +14379,31 @@ PrefabInstance:
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 8637973974686150122, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3411670961067788323}
     - targetCorrespondingSourceObject: {fileID: 976617834159072917, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2575771330584466587}
   m_SourcePrefab: {fileID: 100100000, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+--- !u!1 &3947468918810693678 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8637973974686150122, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+  m_PrefabInstance: {fileID: 4695008664479071684}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &3411670961067788323
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3947468918810693678}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
+  _localizationKey: ImportBindingSet
 --- !u!1 &5522997812712381265 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 976617834159072917, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}

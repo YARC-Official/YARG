@@ -612,6 +612,7 @@
 			"AddBot": "Add Bot",
 			"AddProfile": "Add Profile",
 			"ImportBindingSet": "Import Binding Set",
+			"ExportBindingSet": "Export",
 			"Bots": "Bots",
 			"Players": "Players",
 			"CouldNotLoad": "Couldn't Load",
@@ -777,6 +778,14 @@
 			  "AddOtherBindingSet": {
 				  "Title": "Add Other Binding Set",
 				  "Text": "Create a binding set for use with this controller type in a mode that isn't already listed here. <b><color=\"yellow\">Only use this if you know what you're doing!</color></b> This controller type wasn't designed for other modes."
+			  },
+			  "ImportBindingSet": {
+				  "Title": "Import Binding Set",
+				  "Text": "Opens a file browser that you can use to select and import an exported binding set file."
+			  },
+			  "ExportBindingSet": {
+				  "Title": "Export Binding Set",
+				  "Text": "Export this binding set as a JSON file that you can transfer to other <i>YARG</i> setups.\n\nNot applicable to built-in binding sets."
 			  },
 			  "DuplicateBindingSet": {
 				  "Title": "Duplicate Binding Set",

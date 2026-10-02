@@ -55,6 +55,10 @@ namespace YARG.Menu.ProfileList
 
         [Space]
         [SerializeField]
+        private Button _exportButton;
+
+        [Space]
+        [SerializeField]
         private BindingsCenterPaneSettingsPanel _settingsPanel;
         private InputDevice _dummyController;
 
@@ -183,6 +187,7 @@ namespace YARG.Menu.ProfileList
         private void RefreshFromBindingSet(ReusableBindingSet bindingSet)
         {
             _nameEditButton.interactable = !bindingSet.IsHardcoded;
+            _exportButton.interactable = !bindingSet.IsHardcoded;
 
             DestroyBindsList();
 
