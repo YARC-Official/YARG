@@ -699,7 +699,7 @@ namespace YARG.Career
                     Songs = tierTwo,
                     CustomUnlockText = "You're moving on up...to the east side. To a dee-luxe apartment in the sky.",
                     CompletionBonus = CompletionBonusType.Video,
-                    MediaFilename = "rick.webm",
+                    MediaFilename = new FileInfo("rick.webm"),
                 },
                 new ()
                 {

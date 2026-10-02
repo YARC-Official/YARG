@@ -1,13 +1,12 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.UI;
 using YARG.Career;
 using YARG.Core.Song;
+using YARG.Helpers;
 using YARG.Localization;
-using YARG.Menu;
 using YARG.Menu.Data;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
@@ -52,11 +51,12 @@ namespace YARG.Settings.Metadata
                 }));
 
             CreateField(container, navGroup, nameof(CareerBase), nameof(CareerBase.BackgroundImageName),
-                new StringSetting(_presetRef.BackgroundImageName ?? string.Empty, val =>
-                {
-                    _presetRef.BackgroundImageName = val;
-                    Save();
-                }));
+                new FileInfoSetting(_presetRef.BackgroundImageName, _presetRef,
+                    nameof(CareerBase.BackgroundImageName), val =>
+                    {
+                        _presetRef.BackgroundImageName = val;
+                        Save();
+                    }));
 
             CreateField(container, navGroup, nameof(CareerBase), nameof(CareerBase.Source),
                 new StringSetting(_presetRef.Source ?? string.Empty, val =>
@@ -363,16 +363,35 @@ namespace YARG.Settings.Metadata
                     });
                 }, closeOnClick: false);
 
-            dialog.AddListButton(
-                $"Media Filename: {(string.IsNullOrEmpty(tier.MediaFilename) ? "(None)" : tier.MediaFilename)}", () =>
+            var mediaButton = dialog.AddListButton(
+                $"Media File: {tier.MediaFilename?.Name ?? "(None)"}", () =>
                 {
                     DialogManager.Instance.ClearDialog();
-                    DialogManager.Instance.ShowRenameDialog(tier.MediaFilename ?? string.Empty, newMedia =>
+                    string[] extensions =
                     {
-                        tier.MediaFilename = newMedia?.Trim();
-                        SaveAndRefresh();
+                        "png",
+                        "jpg",
+                        "jpeg"
+                    };
+                    
+                    FileExplorerHelper.OpenChooseFile("", extensions, mediaPath =>
+                    {
+                        var mediaSetting = new FileInfoSetting(tier.MediaFilename, _presetRef,
+                            nameof(CareerTier.MediaFilename), mediaFile =>
+                            {
+                                tier.MediaFilename = mediaFile;
+                                SaveAndRefresh();
+                            });
+                        mediaSetting.Value = new FileInfo(mediaPath);
                     });
                 }, closeOnClick: false);
+
+            dialog.AddListButton("Clear Media File", () =>
+            {
+                tier.MediaFilename = null;
+                mediaButton.Text.text = $"Media File: {tier.MediaFilename?.Name ?? "(None)"}";
+                SaveAndRefresh();
+            }, closeOnClick: false);
         }
 
         private async void ShowSongPickerDialog(CareerTier tier, string filterQuery = null)

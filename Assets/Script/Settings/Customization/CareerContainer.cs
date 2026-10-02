@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using YARG.Career;
 using YARG.Core.Game;
 using YARG.Core.Logging;
+using YARG.Helpers;
 
 namespace YARG.Settings.Customization
 {
@@ -23,15 +25,53 @@ namespace YARG.Settings.Customization
                 return newPreset;
             }
 
-            var oldPath = original.GetExtraContentFolder();
             var newPath = newPreset.GetExtraContentFolder();
 
-            if (oldPath != null && Directory.Exists(oldPath) && newPath != null && !oldPath.Equals(newPath))
+            if (original.DefaultPreset)
             {
-                CopyAdditionalFiles(oldPath, newPath);
+                var sourcePath = Path.Combine(PathHelper.StreamingAssetsPath, "career", original.Id.ToString());
+                CopyReferencedMedia(original, sourcePath, newPath);
+            }
+            else
+            {
+                var oldPath = original.GetExtraContentFolder();
+                if (oldPath != null && Directory.Exists(oldPath) && newPath != null && !oldPath.Equals(newPath))
+                {
+                    CopyAdditionalFiles(oldPath, newPath);
+                }
             }
 
             return newPreset;
+        }
+
+        public override void ExportPreset(BasePreset preset, string path)
+        {
+            if (preset is not CareerBase career || career.DefaultPreset)
+            {
+                return;
+            }
+
+            base.ExportPreset(preset, path);
+        }
+
+        public override BasePreset ImportPreset(string path)
+        {
+            if (base.ImportPreset(path) is not CareerBase career)
+            {
+                return null;
+            }
+
+            try
+            {
+                using var archive = ZipFile.OpenRead(path);
+                SaveAdditionalFilesFromExport(archive, career);
+            }
+            catch (Exception e)
+            {
+                YargLogger.LogException(e, "Failed to extract career media from preset archive.");
+            }
+
+            return career;
         }
 
         // TODO: Refactor so highwaypresetcontainer can (mostly) share these next two
@@ -92,58 +132,93 @@ namespace YARG.Settings.Customization
             var careerBase = (CareerBase) preset;
             var contentFolder = preset.GetExtraContentFolder();
 
-            if (careerBase.Path == null || contentFolder == null)
+            if (careerBase.DefaultPreset || careerBase.Path == null || contentFolder == null)
             {
                 return;
             }
 
+            var exportedFilenames = new HashSet<string>(StringComparer.Ordinal);
+            AddMediaFileToExport(archive, contentFolder, careerBase.BackgroundImageName, exportedFilenames);
             foreach (var tier in careerBase.Tiers)
             {
-                if (string.IsNullOrWhiteSpace(tier.MediaFilename))
-                {
-                    continue;
-                }
-
-                var mediaPath = Path.Combine(contentFolder, tier.MediaFilename);
-                if (File.Exists(mediaPath))
-                {
-                    archive.CreateEntryFromFile(contentFolder, Path.GetFileName(mediaPath));
-                }
+                AddMediaFileToExport(archive, contentFolder, tier.MediaFilename, exportedFilenames);
             }
         }
 
         protected override void SaveAdditionalFilesFromExport(ZipArchive archive, CareerBase preset)
         {
-            if (preset.Path == null)
-            {
-                return;
-            }
-
             var contentFolder = preset.GetExtraContentFolder();
-
             if (contentFolder == null)
             {
                 return;
             }
 
-            if (!string.IsNullOrWhiteSpace(preset.BackgroundImageName))
-            {
-                var bgEntry = archive.GetEntry(preset.BackgroundImageName);
-                bgEntry?.ExtractToFile(Path.Combine(contentFolder, preset.BackgroundImageName), true);
-            }
+            Directory.CreateDirectory(contentFolder);
+            ExtractMediaFileFromArchive(archive, contentFolder, preset.BackgroundImageName);
 
             foreach (var tier in preset.Tiers)
             {
-                if (string.IsNullOrWhiteSpace(tier.MediaFilename))
-                {
-                    continue;
-                }
-
-                var entry = archive.GetEntry(tier.MediaFilename);
-
-                // TODO: If preset.Path isn't what we think it is, this will not work
-                entry?.ExtractToFile(Path.Combine(contentFolder, tier.MediaFilename), true);
+                ExtractMediaFileFromArchive(archive, contentFolder, tier.MediaFilename);
             }
+        }
+
+        private static void CopyReferencedMedia(CareerBase career, string sourceFolder, string destinationFolder)
+        {
+            if (destinationFolder == null)
+            {
+                return;
+            }
+
+            CopyMediaFile(career.BackgroundImageName, sourceFolder, destinationFolder);
+            foreach (var tier in career.Tiers)
+            {
+                CopyMediaFile(tier.MediaFilename, sourceFolder, destinationFolder);
+            }
+        }
+
+        private static void CopyMediaFile(FileInfo mediaFile, string sourceFolder, string destinationFolder)
+        {
+            if (mediaFile == null)
+            {
+                return;
+            }
+
+            var filename = mediaFile.Name;
+            var sourcePath = Path.Combine(sourceFolder, filename);
+            if (!File.Exists(sourcePath))
+            {
+                return;
+            }
+
+            Directory.CreateDirectory(destinationFolder);
+            File.Copy(sourcePath, Path.Combine(destinationFolder, filename), true);
+        }
+
+        private static void AddMediaFileToExport(ZipArchive archive, string contentFolder, FileInfo mediaFile,
+            HashSet<string> exportedFilenames)
+        {
+            if (mediaFile == null)
+            {
+                return;
+            }
+
+            var filename = mediaFile.Name;
+            var filePath = Path.Combine(contentFolder, filename);
+            if (File.Exists(filePath) && exportedFilenames.Add(filename))
+            {
+                archive.CreateEntryFromFile(filePath, filename);
+            }
+        }
+
+        private static void ExtractMediaFileFromArchive(ZipArchive archive, string contentFolder, FileInfo mediaFile)
+        {
+            if (mediaFile == null)
+            {
+                return;
+            }
+
+            var filename = mediaFile.Name;
+            archive.GetEntry(filename)?.ExtractToFile(Path.Combine(contentFolder, filename), true);
         }
 
         public void RefreshSongEntries()
@@ -158,5 +233,5 @@ namespace YARG.Settings.Customization
                 customs.RefreshSongEntries();
             }
         }
-}
+    }
 }

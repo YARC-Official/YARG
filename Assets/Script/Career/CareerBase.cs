@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 using YARG.Core.Game;
 using YARG.Core.Game.Settings;
 using YARG.Scores;
+using YARG.Settings.Customization;
 
 namespace YARG.Career
 {
@@ -13,10 +15,9 @@ namespace YARG.Career
         public string Title;
         [SettingType(SettingType.String)]
         public string Description;
-        // TODO: Change this to be a FileInfo
-        // [SettingType(SettingType.FileInfo)]
-        [SettingType(SettingType.String)]
-        public string BackgroundImageName;
+        [SettingType(SettingType.FileInfo)]
+        [JsonConverter(typeof(JsonFileInfoConverter))]
+        public FileInfo BackgroundImageName;
         [SettingType(SettingType.String)]
         public string Source;
         public int    Version = 1;
@@ -39,19 +40,24 @@ namespace YARG.Career
             Description = description;
             _tiers = tiers?.ToList() ?? new List<CareerTier>();
 
-            BackgroundImageName = bgImage;
+            BackgroundImageName = CreateFileInfo(bgImage);
         }
 
         [JsonConstructor]
-        public CareerBase(Guid id, string name, string description, string bgImage, string source, bool defaultPreset,
+        public CareerBase(Guid id, string name, string description, string backgroundImageName, string source, bool defaultPreset,
             CareerTier[] tiers) : base(name, defaultPreset)
         {
             Id = id;
             Name = name;
             Description = description;
-            BackgroundImageName = bgImage;
+            BackgroundImageName = CreateFileInfo(backgroundImageName);
             Source = source;
             _tiers = tiers?.ToList() ?? new List<CareerTier>();
+        }
+
+        private static FileInfo CreateFileInfo(string filename)
+        {
+            return string.IsNullOrWhiteSpace(filename) ? null : new FileInfo(System.IO.Path.GetFileName(filename));
         }
 
         /// <summary>
@@ -155,7 +161,7 @@ namespace YARG.Career
 
             // TODO: Create extra content folder and copy content from source preset
 
-            return new CareerBase(Guid.NewGuid(), name, Description, BackgroundImageName, Source, false, tiers);
+            return new CareerBase(Guid.NewGuid(), name, Description, BackgroundImageName?.Name, Source, false, tiers);
         }
 
         public override string ToString()

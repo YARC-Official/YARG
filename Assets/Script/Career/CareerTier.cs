@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Runtime.Serialization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using YARG.Core.Logging;
+using YARG.Settings.Customization;
 
 namespace YARG.Career
 {
@@ -50,7 +52,8 @@ namespace YARG.Career
         public string       CompletionBonusText;
         [JsonConverter(typeof(StringEnumConverter))]
         public CompletionBonusType CompletionBonus;
-        public string              MediaFilename;
+        [JsonConverter(typeof(JsonFileInfoConverter))]
+        public FileInfo            MediaFilename;
         [JsonConverter(typeof(StringEnumConverter))]
         public VenueSize           VenueSize;
         public string              VenueHint;
@@ -105,7 +108,7 @@ namespace YARG.Career
             CustomUnlockText = other.CustomUnlockText;
             CompletionBonusText = other.CompletionBonusText;
             CompletionBonus = other.CompletionBonus;
-            MediaFilename = other.MediaFilename;
+            MediaFilename = other.MediaFilename == null ? null : new FileInfo(other.MediaFilename.Name);
             VenueSize = other.VenueSize;
             VenueHint = other.VenueHint;
             UnlockType = other.UnlockType;

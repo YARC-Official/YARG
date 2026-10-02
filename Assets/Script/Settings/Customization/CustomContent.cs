@@ -21,7 +21,8 @@ namespace YARG.Settings.Customization
             Converters = new List<JsonConverter>
             {
                 new JsonColorConverter(),
-                new JsonVector2Converter()
+                new JsonVector2Converter(),
+                new JsonFileInfoConverter()
             }
         };
 

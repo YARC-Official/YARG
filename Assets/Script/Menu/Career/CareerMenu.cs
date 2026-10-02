@@ -303,11 +303,15 @@ namespace YARG.Menu.Career
         {
             if (tier?.CompletionBonus == CompletionBonusType.Video)
             {
-                // TODO: Handle custom career path
-                var file = Path.Combine(PathHelper.StreamingAssetsPath, "career", _career.Id.ToString(), tier.MediaFilename);
-                if (File.Exists(file))
+                var folder = GetCareerContentFolder(_career);
+                var mediaFilename = tier.MediaFilename?.Name;
+                if (!string.IsNullOrEmpty(folder) && !string.IsNullOrEmpty(mediaFilename))
                 {
-                    await PlayVideo(file);
+                    var file = Path.Combine(folder, mediaFilename);
+                    if (File.Exists(file))
+                    {
+                        await PlayVideo(file);
+                    }
                 }
             }
 
@@ -324,17 +328,10 @@ namespace YARG.Menu.Career
 
             SetBackground(null);
 
-            string folder;
-            if (career.DefaultPreset)
-            {
-                folder = Path.Combine(PathHelper.StreamingAssetsPath, "career", career.Id.ToString());
-            }
-            else
-            {
-                folder = career?.GetExtraContentFolder();
-            }
+            var folder = GetCareerContentFolder(career);
+            var backgroundImageName = career.BackgroundImageName?.Name;
 
-            if (string.IsNullOrEmpty(folder) || string.IsNullOrWhiteSpace(career.BackgroundImageName))
+            if (string.IsNullOrEmpty(folder) || string.IsNullOrWhiteSpace(backgroundImageName))
             {
                 // TODO: fall back to default career art once a default exists; until then no art is
                 //  better than a blank stretched placeholder.
@@ -343,16 +340,28 @@ namespace YARG.Menu.Career
 
             _backgroundCts = new CancellationTokenSource();
 
-            var file = Path.Combine(folder, career.BackgroundImageName);
+            var file = Path.Combine(folder, backgroundImageName);
             if (!File.Exists(file))
             {
                 YargLogger.LogFormatWarning<string, string, string>(
                     "Career: background image `{0}` for career '{1}' was not found in `{2}`.",
-                    career.BackgroundImageName, career.Name, folder);
+                    backgroundImageName, career.Name, folder);
                 return;
             }
 
             LoadBackground(career.Id, file, _backgroundCts.Token).Forget();
+        }
+
+        private static string GetCareerContentFolder(CareerBase career)
+        {
+            if (career == null)
+            {
+                return null;
+            }
+
+            return career.DefaultPreset
+                ? Path.Combine(PathHelper.StreamingAssetsPath, "career", career.Id.ToString())
+                : career.GetExtraContentFolder();
         }
 
         private async UniTask LoadBackground(Guid careerId, string file, CancellationToken token)

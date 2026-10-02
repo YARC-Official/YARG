@@ -93,15 +93,28 @@ namespace YARG.Settings.Customization
         {
             base.AddAdditionalFilesToExport(preset, archive);
             var highwayPreset = (HighwayPreset) preset;
-            var backgroundImage = highwayPreset.BackgroundImage;
-            var sideImage = highwayPreset.SideImage;
-            if (backgroundImage is { Exists: true })
+            var contentFolder = preset.GetExtraContentFolder();
+            if (contentFolder == null)
             {
-                archive.CreateEntryFromFile(backgroundImage.FullName, "background.png");
+                return;
             }
-            if (sideImage is { Exists: true })
+
+            if (highwayPreset.BackgroundImage != null)
             {
-                archive.CreateEntryFromFile(sideImage.FullName, "side.png");
+                var backgroundPath = Path.Combine(contentFolder, "background.png");
+                if (File.Exists(backgroundPath))
+                {
+                    archive.CreateEntryFromFile(backgroundPath, "background.png");
+                }
+            }
+
+            if (highwayPreset.SideImage != null)
+            {
+                var sidePath = Path.Combine(contentFolder, "side.png");
+                if (File.Exists(sidePath))
+                {
+                    archive.CreateEntryFromFile(sidePath, "side.png");
+                }
             }
         }
 
