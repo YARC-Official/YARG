@@ -179,5 +179,27 @@ namespace LibVLCSharp
             return false;
 #endif
         }
+
+        public static bool InteractButtonDown()
+        {
+#if ENABLE_INPUT_SYSTEM && VLC_HAS_INPUT_SYSTEM
+            return Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame;
+#elif ENABLE_LEGACY_INPUT_MANAGER
+            return Input.GetMouseButtonDown(0);
+#else
+            return false;
+#endif
+        }
+
+        public static bool CancelButtonDown()
+        {
+#if ENABLE_INPUT_SYSTEM && VLC_HAS_INPUT_SYSTEM
+            return Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame;
+#elif ENABLE_LEGACY_INPUT_MANAGER
+            return Input.GetKeyDown(KeyCode.Escape);
+#else
+            return false;
+#endif
+        }
     }
 }

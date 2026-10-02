@@ -89,7 +89,8 @@ From this directory (`vlc/`):
 
 ```sh
 dotnet build LibVLCSharp/src/LibVLCSharp/LibVLCSharp.csproj -c Release \
-    -p:DefineConstants="UNITY DESKTOP" -f netstandard2.1 -o .
+    -p:DefineConstants="UNITY DESKTOP" -f netstandard2.1 \
+    -p:TargetFrameworks=netstandard2.1 -o .
 ```
 
 This produces `LibVLCSharp.dll` next to the command output, which is then
@@ -172,11 +173,18 @@ Everything above is automated by `vlc/build.sh`, which:
    `vlc/sdk/` as needed.
 3. Copies the binaries to `Assets/Plugins/vlc/` and mirrors
    `vlc-unity/Assets/VLCUnity/Internal` (+ asmdef) into `Assets/VLCUnity/`
-4. Writes the used commits to `vlc/BUILT_WITH` (including
+4. Re-applies `vlc/patches/*.patch` onto the imported C# sources. Those
+   patches are the YARG fixes (tolerate a missing native plugin, and a
+   missing `libvlc_unity_has_retired_renderers` export) and must be kept
+   when upstream moves.
+5. Writes the used commits to `vlc/BUILT_WITH` (including
    `libvlc-macos-sdk=` / `libvlc-win64-sdk=` when those plugins were built)
-5. Stages and commits everything as `Updating vlc assets`, with the exact
+6. Stages and commits everything as `Updating vlc assets`, with the exact
    hashes and a changelog against the previously built commits
    (obtained by comparing against `vlc/BUILT_WITH`)
+
+The Linux `.so` is only rebuilt when the script runs on Linux. A macOS or
+Windows host leaves `Assets/Plugins/vlc/Linux/` untouched.
 
 ```sh
 ./vlc/build.sh           # build + import + commit
