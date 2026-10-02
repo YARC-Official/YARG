@@ -1,12 +1,32 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Serialization;
 
 namespace LibVLCSharp
 {
     [RequireComponent(typeof(RawImage))]
     public class VLCDisplayUGUI : MonoBehaviour
     {
-        public VLCVideoProviderBase mediaPlayer;
+        [FormerlySerializedAs("mediaPlayer")]
+        [SerializeField] private VLCVideoProviderBase _mediaPlayer;
+
+        public VLCVideoProviderBase MediaPlayer
+        {
+            get => _mediaPlayer;
+            set
+            {
+                if (_mediaPlayer == value)
+                    return;
+
+                if (isActiveAndEnabled)
+                    Unbind();
+
+                _mediaPlayer = value;
+
+                if (isActiveAndEnabled)
+                    Bind();
+            }
+        }
 
         private RawImage _rawImage;
         private static readonly Rect UnflippedUVRect = new Rect(0, 0, 1, 1);
@@ -19,33 +39,39 @@ namespace LibVLCSharp
 
         private void OnEnable()
         {
-            if (mediaPlayer != null)
-                mediaPlayer.OnTextureResized += ApplyTexture;
+            Bind();
         }
 
         private void OnDisable()
         {
-            if (mediaPlayer != null)
-                mediaPlayer.OnTextureResized -= ApplyTexture;
+            Unbind();
+            ApplyTexture(null);
+        }
 
-            ClearTexture();
+        private void Bind()
+        {
+            if (_rawImage == null)
+                return;
+
+            if (_mediaPlayer != null)
+                _mediaPlayer.OnTextureResized += ApplyTexture;
+
+            ApplyTexture(_mediaPlayer != null ? _mediaPlayer.OutputTexture : null);
+        }
+
+        private void Unbind()
+        {
+            if (_mediaPlayer != null)
+                _mediaPlayer.OnTextureResized -= ApplyTexture;
         }
 
         private void ApplyTexture(RenderTexture texture)
         {
-            _rawImage.uvRect = GetPlatformUVRect();
+            if (_rawImage == null)
+                return;
+
+            _rawImage.uvRect = texture != null ? VideoUVRect : UnflippedUVRect;
             _rawImage.texture = texture;
-        }
-
-        private void ClearTexture()
-        {
-            _rawImage.texture = null;
-            _rawImage.uvRect = UnflippedUVRect;
-        }
-
-        private Rect GetPlatformUVRect()
-        {
-            return VideoUVRect;
         }
     }
 }
