@@ -18,7 +18,7 @@ namespace YARG.Input.Bindings
 
             { ControlStrings.FOUR_DRUMS_YELLOW_CYMBAL,  new(ControlStrings.FOUR_DRUMS_YELLOW_CYMBAL,    BindingType.DrumButton, (int) DrumsAction.YellowCymbal) },
             { ControlStrings.FOUR_DRUMS_BLUE_CYMBAL,    new(ControlStrings.FOUR_DRUMS_BLUE_CYMBAL,      BindingType.DrumButton, (int) DrumsAction.BlueCymbal) },
-            { ControlStrings.FOUR_DRUMS_GREEN_CYMBAL,   new(ControlStrings.FOUR_DRUMS_GREEN_CYMBAL,     BindingType.DrumButton, (int) DrumsAction.GreenCymbal) },
+            { ControlStrings.FOUR_DRUMS_GREEN_CYMBAL,   new(ControlStrings.FOUR_DRUMS_GREEN_CYMBAL,     ControlStrings.FOUR_DRUMS_RED_CYMBAL,                       BindingType.DrumButton, (int) DrumsAction.GreenCymbal) },
         };
     }
 }

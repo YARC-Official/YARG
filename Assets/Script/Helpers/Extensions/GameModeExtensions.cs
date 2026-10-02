@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using YARG.Assets.Script.Helpers;
@@ -149,6 +149,11 @@ namespace YARG.Helpers.Extensions
 
             return conditionalSettings;
         }
-        #nullable disable
+#nullable disable
+
+        public static bool HasLeftyNames(this GameMode gameMode)
+        {
+            return gameMode is GameMode.FiveFretGuitar or GameMode.SixFretGuitar or GameMode.FourLaneDrums or GameMode.EliteDrums;
+        }
     }
 }

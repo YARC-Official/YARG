@@ -29,11 +29,16 @@ namespace YARG.Menu.ProfileList
         public event Action BindingsClicked;
         public event Action SettingsClicked;
 
-        public void Init(ReusableControlBinding binding, bool interactable)
+        private ReusableBindGroup _group;
+        private ReusableControlBinding _binding;
+
+        public void Init(ReusableBindGroup group, ReusableControlBinding binding, bool interactable, bool showLeftyNames)
         {
-            _bindingNameText.text = Localize.Key(/*player.Profile.LeftyFlip TODO-FRICK: Lefty toggle
-                ? binding.NameLefty
-                :*/ binding.Name);
+            _group = group;
+            _binding = binding;
+            _group.HandednessChanged += RefreshHandedness;
+            RefreshHandedness(showLeftyNames);
+
 
             /* TODO-FRICK: Menu binding stuff
             var icons = MenuData.NavigationIcons;
@@ -76,6 +81,16 @@ namespace YARG.Menu.ProfileList
         public void OnSettingsClicked()
         {
             SettingsClicked?.Invoke();
+        }
+
+        public void RefreshHandedness(bool lefty)
+        {
+            _bindingNameText.text = Localize.Key(lefty ? _binding.NameLefty : _binding.Name);
+        }
+
+        private void OnDestroy()
+        {
+            _group.HandednessChanged -= RefreshHandedness;
         }
     }
 }

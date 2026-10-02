@@ -45,7 +45,19 @@ namespace YARG.Menu.ProfileList
         public InputDevice DummyController { get; private set; } = null;
         private List<InputDevice> _availableDummyControllers = new();
 
+        private bool _showLeftyNames;
+        public bool ShowLeftyNames
+        {
+            get => _showLeftyNames;
+            private set
+            {
+                _showLeftyNames = value;
+                HandednessChanged?.Invoke(value);
+            }
+        }
+
         public event Action DummyControllerChanged;
+        public event Action<bool> HandednessChanged;
 
         public void HideContents()
         {
@@ -202,6 +214,11 @@ namespace YARG.Menu.ProfileList
 
             _dummyControllerDropdown.SetValueWithoutNotify(currentIdx);
             _dummyControllerDropdown.RefreshShownValue();
+        }
+
+        public void SetHandedness(bool lefty)
+        {
+            ShowLeftyNames = lefty;
         }
     }
 }
