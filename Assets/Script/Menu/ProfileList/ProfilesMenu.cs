@@ -385,6 +385,14 @@ namespace YARG.Menu.ProfileList
             }
         }
 
+        public void JumpToBindingSet(ReusableBindingSet bindingSet, InputDevice dummyController, bool lefty)
+        {
+            _headerTabs.SelectTabById(BINDINGS_TAB);
+            SetCurrentBindingSetFilter(bindingSet.ControllerFamily);
+            _bindingSetsCenterPane.JumpTo(bindingSet, dummyController, lefty);
+            SetSelectedBindingSet(bindingSet);
+        }
+
         public void OnPlayerAdded(YargPlayer player)
         {
             RefreshProfileList(GetSelectedProfile());

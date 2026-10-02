@@ -55,12 +55,12 @@ namespace YARG.Menu.ProfileList
 
         private bool _open;
 
-        public void Init(YargProfile profile, ProfileView profileView, ProfileCenterPane profileSidebar, InputDevice controller)
+        public void Init(YargProfile profile, ProfileView profileView, ProfileCenterPane centerPane, InputDevice controller)
         {
             _name.text = controller.displayName;
             Profile = profile;
             _profileView = profileView;
-            _centerPane = profileSidebar;
+            _centerPane = centerPane;
             Controller = controller;
             PopulateDropdownOptions();
             SetDrawerOpen(false);
@@ -159,6 +159,16 @@ namespace YARG.Menu.ProfileList
             _drawer.SetActive(_open);
             _arrow.localScale = _arrow.localScale.WithY(_open ? 1f : -1f);
             _layoutElement.preferredHeight = _open ? 240 : 60;
+        }
+
+        public void JumpToGameplayBindingSet()
+        {
+            _centerPane.ProfileMenu.JumpToBindingSet(GameplayBindingSet, Controller, Profile.LeftyFlip);
+        }
+
+        public void JumpToMenuBindingSet()
+        {
+            _centerPane.ProfileMenu.JumpToBindingSet(MenuBindingSet, Controller, Profile.LeftyFlip);
         }
     }
 }

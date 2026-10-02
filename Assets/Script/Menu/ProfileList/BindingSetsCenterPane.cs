@@ -42,7 +42,20 @@ namespace YARG.Menu.ProfileList
         [Space]
         [SerializeField]
         private BindingsCenterPaneSettingsPanel _settingsPanel;
-        public InputDevice DummyController { get; private set; } = null;
+
+        private InputDevice _dummyController;
+
+        public InputDevice DummyController {
+            get => _dummyController;
+            private set {
+                if (value != _dummyController)
+                {
+                    _dummyController = value;
+                    DummyControllerChanged?.Invoke();
+                }
+            }
+        }
+
         private List<InputDevice> _availableDummyControllers = new();
 
         private bool _showLeftyNames;
@@ -128,8 +141,19 @@ namespace YARG.Menu.ProfileList
             }
 
             DummyController = _availableDummyControllers[idx];
+        }
 
-            DummyControllerChanged?.Invoke();
+        public void JumpTo(ReusableBindingSet bindingSet, InputDevice dummyController, bool lefty)
+        {
+            var controllerIdx = _availableDummyControllers.IndexOf(dummyController);
+            if (controllerIdx > 0)
+            {
+                _dummyControllerDropdown.value = controllerIdx + 1;
+                DummyController = dummyController;
+            }
+
+            SelectBindingSet(bindingSet);
+            _showLeftyNames = lefty;
         }
 
         private void DestroyBindsList()

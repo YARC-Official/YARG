@@ -215,7 +215,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 3741502698538902037}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 3692162781744761990}
+        m_TargetAssemblyTypeName: YARG.Menu.ProfileList.ControllerEntryView, Assembly-CSharp
+        m_MethodName: JumpToMenuBindingSet
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!222 &8389129941750121114
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -825,7 +837,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 4413778639385725972}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 3692162781744761990}
+        m_TargetAssemblyTypeName: YARG.Menu.ProfileList.ControllerEntryView, Assembly-CSharp
+        m_MethodName: JumpToGameplayBindingSet
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!222 &5814208789574740809
 CanvasRenderer:
   m_ObjectHideFlags: 0
