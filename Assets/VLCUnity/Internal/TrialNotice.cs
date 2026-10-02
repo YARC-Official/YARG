@@ -24,6 +24,7 @@ public static class TrialNotice
 #endif
 
     [DllImport(UnityPlugin, CallingConvention = CallingConvention.Cdecl, EntryPoint = "libvlc_unity_is_trial")]
+    [return: MarshalAs(UnmanagedType.I1)]
     static extern bool IsTrial();
 
     private const string STORE_URL = "https://videolabs.io/store/unity/";
