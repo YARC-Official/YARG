@@ -1,4 +1,4 @@
-#if (UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX || UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN)
+#if (UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX || UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_EDITOR_LINUX || UNITY_STANDALONE_LINUX)
 #define VLC_LOADER_SUPPORTED
 #endif
 
@@ -67,7 +67,7 @@ public static class VlcLibraryLoader
             return false;
         }
 #else
-        // Linux loads its bundled libVLC in VLCMediaPlayer's own Awake.
+        // No preload mechanism on this platform; VLCMediaPlayer's own Awake builds LibVLC itself.
         return true;
 #endif
     }
@@ -105,18 +105,28 @@ public static class VlcLibraryLoader
         _loadedFrom = null;
     }
 
-    // Returns false only when calling Core.Initialize would be unsafe (see TryPreloadMac).
+    // Returns false only when calling Core.Initialize would be unsafe (see TryPreloadMac/TryPreloadLinux).
     private static bool InitializeCore(string basePath)
     {
+#if UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX || UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX
+        // Core.Initialize's own native lookup can't be trusted on either platform: on Mac its path
+        // math uses backslashes and never finds anything; on Linux there's no bundled libvlc at
+        // all, only whatever the OS loader's default search already sees. Preload the real
+        // libraries ourselves instead, on both.
 #if UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
-        // Core.Initialize's own Mac path math uses backslashes, which aren't separators on macOS,
-        // so its lookup never finds anything. Preload the real libraries ourselves instead.
         bool loaded = TryPreloadMac(basePath, out string pluginsDir);
+#else
+        bool loaded = TryPreloadLinux(basePath, out string pluginsDir);
+#endif
         if (!loaded && basePath != Application.dataPath)
         {
             Debug.LogWarning($"[VlcLibraryLoader] No usable libvlc under configured path '{basePath}'. Trying default location.");
             basePath = Application.dataPath;
+#if UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
             loaded = TryPreloadMac(basePath, out pluginsDir);
+#else
+            loaded = TryPreloadLinux(basePath, out pluginsDir);
+#endif
         }
 
         if (!loaded)
@@ -137,9 +147,9 @@ public static class VlcLibraryLoader
             Core.Initialize(Application.dataPath);
         }
 
-#if UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
-        // Core.Initialize overwrites VLC_PLUGIN_PATH with its own broken guess; put ours back
-        // before LibVLC is constructed and reads it.
+#if UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX || UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX
+        // Core.Initialize overwrites VLC_PLUGIN_PATH with its own guess; put ours back before
+        // LibVLC is constructed and reads it.
         if (pluginsDir != null)
             Environment.SetEnvironmentVariable("VLC_PLUGIN_PATH", pluginsDir);
 #endif
@@ -215,6 +225,131 @@ public static class VlcLibraryLoader
             Path.Combine(libDir, "plugins"),
             Path.Combine(Path.GetDirectoryName(libDir) ?? string.Empty, "plugins"),
             Path.Combine(libDir, "vlc", "plugins"),
+        };
+
+        pluginsDir = pluginCandidates.FirstOrDefault(Directory.Exists);
+
+        if (pluginsDir != null)
+        {
+            Environment.SetEnvironmentVariable("VLC_PLUGIN_PATH", pluginsDir);
+            Debug.Log($"[VlcLibraryLoader] Pre-loaded libvlc from '{libDir}', plugins from '{pluginsDir}'.");
+        }
+        else
+        {
+            Debug.LogWarning($"[VlcLibraryLoader] Pre-loaded libvlc from '{libDir}' but couldn't find a plugins folder (checked: {string.Join(", ", pluginCandidates)}).");
+        }
+
+        return true;
+    }
+#endif
+
+#if UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX
+    // Unlike on macOS, this does not make LibVLCSharp's bare-name DllImports find libvlc: glibc
+    // matches those against files on the search path, not already-loaded images. Unity also loads
+    // libVLCUnityPlugin.so before any script runs, and it needs libvlc.so.12. So libvlc's
+    // directory must be on LD_LIBRARY_PATH when the process starts; this adds what that path alone
+    // doesn't give: plugins from the configured folder and dlerror() reporting.
+    // NativeLibrary isn't available at this project's API compatibility level, hence raw dlopen.
+    // libdl.so.2 is the glibc compat shim kept even on distros where dlopen moved into libc.so.6.
+    [DllImport("libdl.so.2", EntryPoint = "dlopen")]
+    private static extern IntPtr Dlopen(string path, int mode);
+
+    [DllImport("libdl.so.2", EntryPoint = "dlerror")]
+    private static extern IntPtr Dlerror();
+
+    private static string LastDlError() => Marshal.PtrToStringAnsi(Dlerror()) ?? "unknown error";
+
+    // Linux's RTLD_NOW | RTLD_GLOBAL bit values differ from macOS's.
+    private const int RTLD_NOW_GLOBAL = 0x2 | 0x100;
+
+    // Native libraries are never unloaded within one process, so a later dlopen of a different
+    // libvlc doesn't replace the first; tracked only to warn about it.
+    private static string _linuxPreloadedFrom;
+
+    // Finds and dlopen-preloads libvlc, its dependencies and plugins under basePath. Needs an
+    // unversioned libvlc.so (what a -dev/-devel package provides); every other library in that
+    // folder may be versioned-only. Returns false if nothing usable is found or loading fails, and
+    // the caller must then not call Core.Initialize: a failed DllImport into LibVLCSharp is cached
+    // for the rest of the process, so it would also break a corrected path later this session. On
+    // success pluginsDir is the plugins folder, or null if none was found nearby.
+    private static bool TryPreloadLinux(string basePath, out string pluginsDir)
+    {
+        pluginsDir = null;
+
+        const string libvlcName = "libvlc.so";
+
+        // Known layouts: the folder itself (pointed directly at the lib dir), or its "lib"
+        // subfolder (a standalone SDK/assembled-tree root).
+        string[] candidates =
+        {
+            basePath,
+            Path.Combine(basePath, "lib"),
+        };
+
+        string libDir = candidates.FirstOrDefault(candidate =>
+            File.Exists(Path.Combine(candidate, libvlcName)));
+
+        if (libDir == null)
+        {
+            Debug.LogWarning($"[VlcLibraryLoader] Could not find unversioned {libvlcName} under '{basePath}' (checked: {string.Join(", ", candidates)}). " +
+                "A runtime-only libvlc install (just libvlc.so.<N>) can't be used -- a -dev/-devel package or equivalent is required.");
+            return false;
+        }
+
+        if (_linuxPreloadedFrom != null && _linuxPreloadedFrom != libDir)
+        {
+            Debug.LogWarning($"[VlcLibraryLoader] A different libvlc was already loaded earlier in this session, from '{_linuxPreloadedFrom}'. " +
+                "Native libraries aren't unloaded between Play sessions -- restart the Editor/app to test the newly-configured path.");
+        }
+        _linuxPreloadedFrom = libDir;
+
+        // Preload every other library in libDir first (libvlccore, plus anything libvlc needs that
+        // this system lacks). A preloaded library satisfies later DT_NEEDED lookups by SONAME, so
+        // libvlc's dependencies resolve from libDir even though it isn't on the search path.
+        // Dependencies between them are unknown, so retry failures until a pass loads nothing.
+        var pending = Directory.EnumerateFiles(libDir, "*.so*")
+            .Where(f => !Path.GetFileName(f).StartsWith(libvlcName, StringComparison.Ordinal))
+            .ToList();
+        var errors = new Dictionary<string, string>();
+        bool progressed = true;
+        while (pending.Count > 0 && progressed)
+        {
+            progressed = false;
+            errors.Clear();
+            foreach (string lib in pending.ToArray())
+            {
+                if (Dlopen(lib, RTLD_NOW_GLOBAL) != IntPtr.Zero)
+                {
+                    pending.Remove(lib);
+                    progressed = true;
+                }
+                else
+                {
+                    errors[lib] = LastDlError();
+                }
+            }
+        }
+
+        if (pending.Count > 0)
+        {
+            Debug.LogWarning($"[VlcLibraryLoader] Failed to pre-load libvlc dependencies from '{libDir}': " +
+                string.Join("; ", pending.Select(lib => $"{Path.GetFileName(lib)}: {errors[lib]}")));
+            return false;
+        }
+
+        if (Dlopen(Path.Combine(libDir, libvlcName), RTLD_NOW_GLOBAL) == IntPtr.Zero)
+        {
+            Debug.LogWarning($"[VlcLibraryLoader] Failed to pre-load libvlc from '{libDir}': {LastDlError()}");
+            return false;
+        }
+
+        // Plugins: a "vlc/plugins" subfolder of libDir (the standard libVLC SDK/install layout),
+        // or beside/sibling of libDir.
+        string[] pluginCandidates =
+        {
+            Path.Combine(libDir, "vlc", "plugins"),
+            Path.Combine(libDir, "plugins"),
+            Path.Combine(Path.GetDirectoryName(libDir) ?? string.Empty, "plugins"),
         };
 
         pluginsDir = pluginCandidates.FirstOrDefault(Directory.Exists);
