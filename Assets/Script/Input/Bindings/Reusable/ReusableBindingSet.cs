@@ -16,7 +16,7 @@ namespace YARG.Input.Bindings
         public Guid Guid { get; private set; }
         public GameMode Mode { get; }
         public ControllerFamily ControllerFamily { get; private set; }
-        public string Name { get; private set; }
+        public string Name;
         public bool IsHardcoded { get; private set; }
 
         // Key is binding name, like "FiveFret.Green" or "FourDrums.RedPad"
