@@ -152,10 +152,22 @@ namespace YARG.Menu.Career
             {
                 var tier = _career.Tiers[tierIndex];
                 var result = _evaluation.Tiers[tierIndex];
-                viewList.Add(new TierViewType(tier, result));
 
-                if (!result.Unlocked)
+                if (result.Unlocked)
                 {
+                    viewList.Add(new TierViewType(tier, result));
+                }
+                else
+                {
+                    // Don't show bonus tier unless there are no more non-bonus tiers to unlock
+                    // TODO: This doesn't actually do what it says in the case where there are multiple bonus tiers
+                    //  after the last non-bonus tier
+                    if (tier.IsBonus && tierIndex < _career.Tiers.Count - 1)
+                    {
+                        continue;
+                    }
+                    
+                    viewList.Add(new TierViewType(tier, result));
                     break;
                 }
 
