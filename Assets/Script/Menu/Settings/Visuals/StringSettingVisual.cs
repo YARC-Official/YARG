@@ -11,7 +11,13 @@ namespace YARG.Menu.Settings.Visuals
         [SerializeField]
         private TMP_InputField _inputField;
 
+
         public override NavigationScheme GetNavigationScheme() => NavigationScheme.EmptyWithMusicPlayer;
+
+        public void OnTextFieldChange()
+        {
+            Setting.Value = _inputField.text;
+        }
 
         public override void RefreshVisual()
         {
