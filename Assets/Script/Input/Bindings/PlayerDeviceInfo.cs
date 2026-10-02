@@ -41,6 +41,7 @@ namespace YARG.Input
         private readonly Dictionary<InputDevice, RuntimeBindingSet> _activeGameplayRuntimeBindings = new();
         private readonly Dictionary<InputDevice, RuntimeBindingSet> _activeMenuRuntimeBindings = new();
         private readonly Dictionary<(GameMode mode, ControllerFamily controllerFamily), ReusableBindingSet> _preferredBindsByContext = new();
+        public IEnumerable<ReusableBindingSet> AllPreferredBindingSets => _preferredBindsByContext.Values;
 
         private readonly RuntimeInputAggregator _gameplayInputAggregator = new();
         private readonly RuntimeInputAggregator _menuInputAggregator = new();
@@ -332,11 +333,14 @@ namespace YARG.Input
 
         public void SetActiveMenuBindingsForController(InputDevice controller, ReusableBindingSet bindingSet)
         {
+            var family = LayoutHelper.LayoutStringToControllerFamily(controller.layout);
+
             if (_activeMenuRuntimeBindings.Remove(controller, out var oldRuntimeBindings))
             {
                 oldRuntimeBindings.Source.Changed -= OnMenuBindingSetChanged;
                 _menuInputAggregator.Remove(oldRuntimeBindings);
                 oldRuntimeBindings.Dispose();
+                _preferredBindsByContext.Remove((GameMode.Menu, family));
             }
 
             if (bindingSet is null)
@@ -349,6 +353,7 @@ namespace YARG.Input
             var newRuntimeBindings = bindingSet.GetRuntimeBindings(Profile, controller);
 
             _activeMenuRuntimeBindings[controller] = newRuntimeBindings;
+            _preferredBindsByContext[(GameMode.Menu, family)] = bindingSet;
             _menuInputAggregator.Add(newRuntimeBindings);
 
             if (_inputsEnabled)

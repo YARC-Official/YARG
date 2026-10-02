@@ -674,6 +674,7 @@
 				"Gameplay": "G",
 				"Menu": "M"
 			},
+			"UserCount": "Profiles Using This Binding Set: {0}",
 			"Tooltip": {
 			    "InputMode": {
 				    "Title": "Input Mode",
