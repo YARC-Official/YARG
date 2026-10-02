@@ -616,10 +616,39 @@ namespace YARG.Gameplay
             GetComponent<TextureManager>().SetVideoTexture(_videoPlayer.targetTexture);
             if (_type == BackgroundType.Video)
             {
+                FitVideoBackground(player);
                 _venueOutput.texture = _videoPlayer.targetTexture;
                 _venueOutput.gameObject.SetActive(true);
                 _venueFadeOverlay.CrossFadeAlpha(0f, FADE_DURATION, true);
             }
+        }
+
+        private void FitVideoBackground(YargVideoPlayer player)
+        {
+            player.MatchRenderTextureToVideoSize();
+
+            uint width = player.width;
+            uint height = player.height;
+            if (width == 0 || height == 0)
+            {
+                var texture = player.targetTexture;
+                if (texture == null || texture.height == 0)
+                {
+                    return;
+                }
+
+                width = (uint) texture.width;
+                height = (uint) texture.height;
+            }
+
+            var fitter = _venueOutput.GetComponent<AspectRatioFitter>();
+            if (fitter == null)
+            {
+                fitter = _venueOutput.gameObject.AddComponent<AspectRatioFitter>();
+            }
+
+            fitter.aspectMode = AspectRatioFitter.AspectMode.FitInParent;
+            fitter.aspectRatio = (float) width / height;
         }
 
         public void SetTime(double songTime, bool waitForSeek = true)

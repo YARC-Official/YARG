@@ -1260,7 +1260,7 @@ VideoPlayer:
   m_TargetMaterialRenderer: {fileID: 0}
   m_TargetMaterialProperty: <noninit>
   m_RenderMode: 2
-  m_AspectRatio: 2
+  m_AspectRatio: 3
   m_DataSource: 1
   m_TimeUpdateMode: 2
   m_PlaybackSpeed: 1
