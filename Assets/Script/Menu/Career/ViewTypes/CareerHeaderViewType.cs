@@ -6,15 +6,10 @@ using YARG.Player;
 
 namespace YARG.Menu.Career
 {
-    /// <summary>
-    /// The progress row above the tier list: who is playing, which tier the run is on, and how many
-    /// stars have been earned in the current tier and in the whole run.
-    /// </summary>
     public class CareerHeaderViewType : ViewType
     {
         public override BackgroundType Background => BackgroundType.Category;
 
-        // The header describes progress, it is never entered.
         public override bool IsClickable => false;
 
         private readonly CareerBase _career;
@@ -61,8 +56,6 @@ namespace YARG.Menu.Career
 
         public override string GetSecondaryText(bool selected)
         {
-            // The star totals are exposed through CareerInfo for the header's own widgets; this line
-            // says which tier the run is on.
             var tier = TierDisplayName(_currentTier);
 
             return FormatAs(string.IsNullOrEmpty(tier)
@@ -71,10 +64,6 @@ namespace YARG.Menu.Career
                 TextType.Secondary, selected);
         }
 
-        /// <summary>
-        /// The tier the player is working on: the first unlocked tier that is not finished yet, or
-        /// the last unlocked tier once everything attempted is complete.
-        /// </summary>
         private static CareerEvaluation.TierResult FindCurrentTier(CareerEvaluation evaluation)
         {
             if (evaluation?.Tiers is null || evaluation.Tiers.Count == 0)
@@ -122,9 +111,6 @@ namespace YARG.Menu.Career
             return _career.Tiers[tier.TierIndex].Name;
         }
 
-        /// <summary>
-        /// The seated human players - the same set the career save is attributed to.
-        /// </summary>
         private static string ResolvePlayerNames()
         {
             var names = PlayerContainer.Players

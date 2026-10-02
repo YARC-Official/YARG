@@ -27,15 +27,8 @@ namespace YARG.Menu.Dialogs
         public override void Submit()
         {
             SelectAction?.Invoke(_viewList.CurrentSelection.SongEntry);
-            _searchField.OnSearchQueryUpdated -= OnSearchChanged;
             DialogManager.Instance.ClearDialog();
         }
-        
-        // protected override void OnBeforeClose()
-        // {
-        //     SelectAction.Invoke(_viewList.CurrentSelection.SongEntry);
-        //     _searchField.OnSearchQueryUpdated -= OnSearchChanged;
-        // }
 
         private void OnSearchChanged(bool force)
         {
@@ -43,6 +36,12 @@ namespace YARG.Menu.Dialogs
             _viewList.UpdateCategories(_sortedSongs);
         }
 
+        protected override void OnBeforeClose()
+        {
+            _searchField.OnSearchQueryUpdated -= OnSearchChanged;
+        }
+
+        // Currently unused click handler
         private void OnSongSelected(SongEntry song)
         {
             SelectAction?.Invoke(song);

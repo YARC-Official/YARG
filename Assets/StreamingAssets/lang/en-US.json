@@ -333,7 +333,7 @@
             "SongArtistAlbum": "{0} - {1}",
             "HeaderPlayers": "Players: {0}",
             "HeaderTier": "Current tier: {0}",
-            "NoPlayers": "No players seated",
+            "NoPlayers": "No eligible players",
             "Reset": "(Hold) Reset Progress",
             "ResetDone": "Career progress has been reset.",
             "NothingToReset": "This career has no progress to reset yet.",

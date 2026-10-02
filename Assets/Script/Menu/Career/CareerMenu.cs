@@ -26,7 +26,7 @@ namespace YARG.Menu.Career
 {
     public class CareerMenu : ListMenu<ViewType, SongView>
     {
-        protected override int ExtraListViewPadding => 10;
+        protected override int ExtraListViewPadding => 16;
 
         private const float RESET_HOLD_SECONDS = 1f;
 
@@ -166,7 +166,7 @@ namespace YARG.Menu.Career
                     {
                         continue;
                     }
-                    
+
                     viewList.Add(new TierViewType(tier, result));
                     break;
                 }
