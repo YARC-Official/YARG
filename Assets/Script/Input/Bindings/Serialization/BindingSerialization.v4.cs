@@ -82,10 +82,6 @@ namespace YARG.Input.Serialization
                 {
                     ModeMappings[gameMode] = new(modeMappingCollection);
                 }
-
-                foreach (var (baseLayout, bindingSetGuid) in serialized.MenuMappings) {
-                    MenuMappings[baseLayout] = bindingSetGuid;
-                }
             }
 
             public SerializedPlayerDeviceInfo Deserialize()
@@ -105,11 +101,6 @@ namespace YARG.Input.Serialization
                 foreach (var (gameMode, modeMappingCollection) in ModeMappings)
                 {
                     deserialized.ModeMappings[gameMode] = modeMappingCollection.Deserialize();
-                }
-
-                foreach (var (baseLayout, bindingSetGuid) in MenuMappings)
-                {
-                    deserialized.MenuMappings[baseLayout] = bindingSetGuid;
                 }
 
                 return deserialized;
