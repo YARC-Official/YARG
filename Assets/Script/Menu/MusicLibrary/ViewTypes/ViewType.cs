@@ -87,4 +87,5 @@ namespace YARG.Menu.MusicLibrary
             return ZString.Concat(count, " ", songs);
         }
     }
+
 }

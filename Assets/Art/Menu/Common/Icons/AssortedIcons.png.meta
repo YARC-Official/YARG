@@ -382,7 +382,7 @@ TextureImporter:
         width: 128
         height: 128
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -391,6 +391,50 @@ TextureImporter:
       bones: []
       spriteID: 8b4b8f2027b9a4fc0a9e2f20cf941e44
       internalID: 159281766
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AssortedIcons_Box
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 0
+        width: 128
+        height: 128
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6c850dce476bcee4a94e15af38c2cb18
+      internalID: -474021365
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AssortedIcons_CheckedBox
+      rect:
+        serializedVersion: 2
+        x: 256
+        y: 0
+        width: 128
+        height: 128
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 18f870c86eba95345bc371218c9800d0
+      internalID: -1459663910
       vertices: []
       indices: 
       edges: []
@@ -410,6 +454,8 @@ TextureImporter:
       entries: []
     nameFileIdTable:
       AssortedIcons_0: 1064137891
+      AssortedIcons_Box: -474021365
+      AssortedIcons_CheckedBox: -1459663910
       AssortedIcons_Down: 420058925
       AssortedIcons_Expand: 159281766
       AssortedIcons_Up: -1079830279

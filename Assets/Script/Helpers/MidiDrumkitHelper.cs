@@ -14,6 +14,23 @@ namespace YARG.Helpers
             Instrument.FourLaneDrums
         };
 
+        // Four-lane drum controllers can play both chart types, but should prefer Pro Drums.
+        public static readonly Instrument[] FourLaneInstruments =
+        {
+            Instrument.ProDrums,
+            Instrument.FourLaneDrums
+        };
+
+        public static Instrument[] GetInstruments(GameMode gameMode)
+        {
+            return gameMode switch
+            {
+                GameMode.EliteDrums => Instruments,
+                GameMode.FourLaneDrums => FourLaneInstruments,
+                _ => null
+            };
+        }
+
         public static bool HasAnyDrumPart(SongEntry song)
         {
             foreach (var instrument in Instruments)
@@ -29,7 +46,18 @@ namespace YARG.Helpers
 
         public static Instrument? GetPreferredInstrumentForSong(SongEntry song)
         {
-            foreach (var instrument in Instruments)
+            return GetPreferredInstrumentForSong(song, Instruments);
+        }
+
+        public static Instrument? GetPreferredInstrumentForSong(SongEntry song, GameMode gameMode)
+        {
+            var instruments = GetInstruments(gameMode);
+            return instruments == null ? null : GetPreferredInstrumentForSong(song, instruments);
+        }
+
+        public static Instrument? GetPreferredInstrumentForSong(SongEntry song, Instrument[] instruments)
+        {
+            foreach (var instrument in instruments)
             {
                 if (song.HasInstrument(instrument))
                 {

@@ -26,7 +26,7 @@ namespace YARG.Gameplay
                 _stem = stem;
             }
 
-            public double SetMute(bool muted)
+            public double SetMute(bool muted, bool keepAudibleUntilAllMiss)
             {
                 if (muted)
                 {
@@ -35,6 +35,11 @@ namespace YARG.Gameplay
                 else if (Audible < Total)
                 {
                     ++Audible;
+                }
+
+                if (keepAudibleUntilAllMiss)
+                {
+                    return Audible > 0 ? Volume : 0;
                 }
 
                 return Volume * Audible / Total;
@@ -129,7 +134,12 @@ namespace YARG.Gameplay
                 return;
             }
 
-            double volume = state.SetMute(muted);
+            // The background stem keeps its own split: it stands in for players whose instrument
+            // has no stem of its own, so one of them missing should not silence the whole song.
+            bool keepAudibleUntilAllMiss = SettingsManager.Settings.MuteOnlyWhenAllPlayersMiss.Value
+                && stem != _backgroundStem;
+
+            double volume = state.SetMute(muted, keepAudibleUntilAllMiss);
 
             if (duration <= 0.0f)
             {

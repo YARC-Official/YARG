@@ -99,6 +99,7 @@ namespace YARG.Menu.MusicLibrary
         private const int BACK_ID = 2;
         private const int RECOMMENDED_SONGS_ID = 3;
         private const int CREATE_NEW_PLAYLIST_ID = 4;
+        private const int MINIMUM_ALBUM_GROUP_SIZE = 3;
 
         public static MusicLibraryMode LibraryMode;
 
@@ -494,7 +495,9 @@ namespace YARG.Menu.MusicLibrary
         private List<ViewType> CreateNormalViewList()
         {
             var list = new List<ViewType>();
+            _totalSongCount = 0;
             _totalStarCount = 0;
+            _allVisibleSongsGold = false;
 
             // If `_sortedSongs` is null, then this function is being called during very first initialization,
             // which means the song list hasn't been constructed yet.
@@ -511,6 +514,7 @@ namespace YARG.Menu.MusicLibrary
 
             bool allowdupes = SettingsManager.Settings.AllowDuplicateSongs.Value;
             int songCount = 0;
+            bool hasNonGoldSong = false;
             foreach (var section in _sortedSongs)
             {
                 if (allowdupes)
@@ -641,12 +645,15 @@ namespace YARG.Menu.MusicLibrary
                 }
 
                 int sectionTotalStars = 0;
+                bool sectionHasNonGoldSong = false;
                 bool includeSongs = _sortedSongs.Length <= 1 || !_collapsedHeaders[SettingsManager.Settings.LibrarySort].Contains(section);
 
-                foreach (var song in section.Songs)
-                {
-                    if (!allowdupes && song.IsDuplicate) continue;
+                var displayedSongs = section.Songs
+                    .Where(song => allowdupes || !song.IsDuplicate)
+                    .ToArray();
 
+                void AddSong(SongEntry song)
+                {
                     StarAmount? starAmount;
 
                     if (includeSongs)
@@ -664,16 +671,76 @@ namespace YARG.Menu.MusicLibrary
                     {
                         sectionTotalStars += starAmount.Value.GetStarCount();
                     }
+
+                    bool isNotGold = starAmount != StarAmount.StarGold;
+                    sectionHasNonGoldSong |= isNotGold;
+                    hasNonGoldSong |= isNotGold;
+                }
+
+                var secondaryAlbumSort = SettingsManager.Settings.SecondaryAlbumSort.Value;
+                if (includeSongs && SettingsManager.Settings.LibrarySort == SortAttribute.Artist &&
+                    secondaryAlbumSort != SecondaryAlbumSortMode.Off)
+                {
+                    IEnumerable<IGrouping<SortString, SongEntry>> albumGroups = displayedSongs
+                        .GroupBy(song => song.Album)
+                        .Where(group => group.Key.Length > 0 && group.Count() >= MINIMUM_ALBUM_GROUP_SIZE);
+
+                    albumGroups = secondaryAlbumSort is
+                        SecondaryAlbumSortMode.AlbumsByYearSongsByTitle or
+                        SecondaryAlbumSortMode.AlbumsByYearSongsByTrack
+                        ? albumGroups.OrderBy(group => group.Min(song => song.YearAsNumber))
+                            .ThenBy(group => group.Key)
+                        : albumGroups.OrderBy(group => group.Key);
+
+                    var groupedAlbums = albumGroups.ToArray();
+                    var groupedSongs = new HashSet<SongEntry>(groupedAlbums.SelectMany(group => group));
+
+                    // Songs without enough same-album companions retain their existing title order
+                    // immediately below the artist header.
+                    foreach (var song in displayedSongs.Where(song => !groupedSongs.Contains(song)))
+                    {
+                        AddSong(song);
+                    }
+
+                    foreach (var album in groupedAlbums)
+                    {
+                        var albumSongs = secondaryAlbumSort is
+                            SecondaryAlbumSortMode.AlbumsByTitleSongsByTrack or
+                            SecondaryAlbumSortMode.AlbumsByYearSongsByTrack
+                            ? album.OrderBy(song => song.AlbumTrack).ThenBy(song => song.Name).ToArray()
+                            : album.OrderBy(song => song.Name).ToArray();
+                        var albumHeader = new SecondaryHeaderViewType(album.Key, albumSongs.Length);
+                        list.Add(albumHeader);
+                        int starsBeforeAlbum = sectionTotalStars;
+                        bool albumHasNonGoldSong = false;
+                        foreach (var song in albumSongs)
+                        {
+                            AddSong(song);
+                            albumHasNonGoldSong |=
+                                SongViewType.GetStarAmountForSong(song) != StarAmount.StarGold;
+                        }
+                        albumHeader.TotalStarsCount = sectionTotalStars - starsBeforeAlbum;
+                        albumHeader.HasGoldStars = !albumHasNonGoldSong;
+                    }
+                }
+                else
+                {
+                    foreach (var song in displayedSongs)
+                    {
+                        AddSong(song);
+                    }
                 }
                 _totalStarCount += sectionTotalStars;
 
                 if (sortHeader != null)
                 {
                     sortHeader.TotalStarsCount = sectionTotalStars;
+                    sortHeader.HasGoldStars = !sectionHasNonGoldSong;
                 }
             }
 
             _totalSongCount = songCount;
+            _allVisibleSongsGold = songCount > 0 && !hasNonGoldSong;
             CalculateCategoryHeaderIndices(list);
             return list;
         }
@@ -1023,12 +1090,19 @@ namespace YARG.Menu.MusicLibrary
 
         public void SelectRandomSong()
         {
-            if (!ViewList.Any(i => i is SongViewType)) return;
-
-            do
+            var songIndices = new List<int>();
+            for (int i = 0; i < ViewList.Count; i++)
             {
-                SelectedIndex = Random.Range(0, ViewList.Count);
-            } while (CurrentSelection is not SongViewType);
+                if (ViewList[i] is SongViewType)
+                {
+                    songIndices.Add(i);
+                }
+            }
+
+            if (songIndices.Count == 0)
+                return;
+
+            SelectedIndex = songIndices[Random.Range(0, songIndices.Count)];
         }
 
         public void ExpandAll()
@@ -1321,15 +1395,21 @@ namespace YARG.Menu.MusicLibrary
 
         public async void RefreshSongs()
         {
+            // Block all menu and pointer input before awaiting preview shutdown. Otherwise,
+            // repeated input can start another scan before the loading screen is active.
+            using var context = new LoadingContext();
+
             // Stop any library preview audio so the loading screen doesn't inherit it
             await StopPreviewAsync();
 
             SetSidebarDifficultiesVisible(false);
             _sidebar.gameObject.SetActive(false);
-            using var context = new LoadingContext();
             try
             {
                 await SongContainer.RunRefresh(false, context);
+                // Some filters cache SongEntry instances. A scan rebuilds those instances, so
+                // recreate the predicate before applying it to the refreshed song container.
+                FiltersMenu.RefreshActiveFilterPredicate();
                 RefreshAndReselect();
             }
             finally

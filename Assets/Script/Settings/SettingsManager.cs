@@ -9,6 +9,7 @@ using YARG.Core.Audio;
 using YARG.Core.Logging;
 using YARG.Core.Utility;
 using YARG.Helpers;
+using YARG.Menu.Filters;
 using YARG.Settings.Metadata;
 using YARG.Settings.Types;
 
@@ -100,14 +101,17 @@ namespace YARG.Settings
                 nameof(Settings.AllowDuplicateSongs),
                 nameof(Settings.UseFullDirectoryForPlaylists),
                 nameof(Settings.Genrelizer),
-                new HeaderMetadata("MusicLibrary"),
-                nameof(Settings.MaxSongRating),
-                nameof(Settings.CensorMatureContent),
+                new HeaderMetadata("LibraryDisplay"),
                 nameof(Settings.ShowFavoriteButton),
                 nameof(Settings.DifficultyRings),
                 nameof(Settings.HighScoreInfo),
-                new FieldMetadata(nameof(Settings.ShowPercentDecimals), isAdvanced: true),
                 nameof(Settings.HighScoreHistory),
+                new FieldMetadata(nameof(Settings.ShowPercentDecimals), isAdvanced: true),
+                new HeaderMetadata("SortingAndFiltering"),
+                nameof(Settings.MaxSongRating),
+                nameof(Settings.CensorMatureContent),
+                nameof(Settings.RememberFilters),
+                nameof(Settings.SecondaryAlbumSort),
                 new FieldMetadata(nameof(Settings.SongLengthLabels), isAdvanced: true),
                 new HeaderMetadata("PlayAShow"),
                 nameof(Settings.EnablePlayAShow),
@@ -145,6 +149,7 @@ namespace YARG.Settings
 
                 new HeaderMetadata("Gameplay"),
                 nameof(Settings.MuteOnMiss),
+                nameof(Settings.MuteOnlyWhenAllPlayersMiss),
                 nameof(Settings.UseStarpowerFx),
                 nameof(Settings.UseVenueSfx),
                 nameof(Settings.OverstrumAndOverhitSoundEffects),
@@ -382,6 +387,7 @@ namespace YARG.Settings
             // (such as closing the game before they load)
             if (SettingContainer.IsInitialized && Settings is not null && _settingsCanBeSaved)
             {
+                FiltersMenu.PrepareForSettingsSave();
                 var json = JObject.Parse(JsonConvert.SerializeObject(Settings, JsonSettings));
                 SettingsMigration.SetCurrentSchemaVersion(json);
                 File.WriteAllText(SettingsFile, json.ToString(Formatting.Indented));

@@ -541,8 +541,8 @@ namespace YARG.Settings.Metadata
         private const string PV_STAR_POWER_ACTIVE = "Star Power Active";
         private const string PV_GROOVE = "Groove";
         private const string PV_LEFTY_FLIP = "Lefty Flip";
-        private const string PV_GLYPH_ON = "\u25C9 ";  // ◉ fisheye
-        private const string PV_GLYPH_OFF = "\u25CB "; // ○ circle
+        private const string PV_GLYPH_ON = "\u2611 ";  // ☑ ballot box with check
+        private const string PV_GLYPH_OFF = "\u2610 "; // ☐ ballot box
 
         // Localization keys for the preview-toggle labels and caption. The PV_*
         // values above are the dropdown's internal option values (stable

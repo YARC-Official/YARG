@@ -52,6 +52,7 @@ namespace YARG.Menu.Filters
             public readonly Dictionary<string, bool> Enabled;
             public readonly Func<string, string> LabelTransform;
             public readonly Instrument IntensityInstrument;
+            public readonly GameMode? IntensityGameMode;
 
             public FilterGroup Group => Key.Group;
 
@@ -61,7 +62,8 @@ namespace YARG.Menu.Filters
                 Func<Dictionary<string, int>> getCounts,
                 Dictionary<string, bool> enabled,
                 Func<string, string> labelTransform = null,
-                Instrument intensityInstrument = default)
+                Instrument intensityInstrument = default,
+                GameMode? intensityGameMode = null)
             {
                 Key = key;
                 GetValues = getValues;
@@ -69,6 +71,7 @@ namespace YARG.Menu.Filters
                 Enabled = enabled;
                 LabelTransform = labelTransform;
                 IntensityInstrument = intensityInstrument;
+                IntensityGameMode = intensityGameMode;
             }
         }
 
@@ -77,12 +80,15 @@ namespace YARG.Menu.Filters
             public readonly Guid ProfileId;
             public readonly string ProfileName;
             public readonly Instrument Instrument;
+            public readonly GameMode? GameMode;
 
-            public IntensityFilterContext(Guid profileId, string profileName, Instrument instrument)
+            public IntensityFilterContext(Guid profileId, string profileName, Instrument instrument,
+                GameMode? gameMode = null)
             {
                 ProfileId = profileId;
                 ProfileName = profileName;
                 Instrument = instrument;
+                GameMode = gameMode;
             }
         }
         [SerializeField]
@@ -144,7 +150,7 @@ namespace YARG.Menu.Filters
         private static Dictionary<string, int> _cachedPlaylistCounts;
         private static IReadOnlyList<string> _cachedCharters;
         private static IReadOnlyList<string> _cachedLengths;
-        private static readonly Dictionary<Instrument, IReadOnlyList<string>> _cachedIntensitiesByInstrument = new();
+        private static readonly Dictionary<(Instrument, GameMode?), IReadOnlyList<string>> _cachedIntensities = new();
 
         private static int _cachedGenreSongCount = -1;
         private static int _cachedSubgenreSongCount = -1;
@@ -190,9 +196,98 @@ namespace YARG.Menu.Filters
 
         protected override void SingletonAwake()
         {
+            LoadRememberedFilters();
+
+            // Consume pointer events in empty areas of this overlay so they cannot
+            // reach Music Library controls (notably the search field) behind it.
+            var raycastBlocker = gameObject.GetComponent<Image>();
+            if (raycastBlocker == null)
+            {
+                raycastBlocker = gameObject.AddComponent<Image>();
+            }
+
+            raycastBlocker.color = Color.clear;
+            raycastBlocker.raycastTarget = true;
+
             // Match SettingsMenu behavior: initialized at startup, then hidden.
             gameObject.SetActive(false);
             _ready = true;
+        }
+
+        private static string SerializeFilterKey(FilterKey key)
+        {
+            return key.ContextId == Guid.Empty
+                ? key.Group.ToString()
+                : $"{key.Group}:{key.ContextId:D}";
+        }
+
+        private static bool TryDeserializeFilterKey(string value, out FilterKey key)
+        {
+            key = default;
+            if (string.IsNullOrWhiteSpace(value))
+                return false;
+
+            int separator = value.IndexOf(':');
+            string groupValue = separator < 0 ? value : value[..separator];
+            if (!Enum.TryParse(groupValue, ignoreCase: true, out FilterGroup group))
+                return false;
+
+            Guid contextId = Guid.Empty;
+            if (separator >= 0 && !Guid.TryParse(value[(separator + 1)..], out contextId))
+                return false;
+
+            key = new FilterKey(group, contextId);
+            return true;
+        }
+
+        private static void LoadRememberedFilters()
+        {
+            if (SettingsManager.Settings?.RememberFilters.Value != true)
+                return;
+
+            var remembered = SettingsManager.Settings.RememberedFilters;
+            if (remembered == null || remembered.Count == 0)
+                return;
+
+            _savedFilters.Clear();
+            foreach (var entry in remembered)
+            {
+                if (!TryDeserializeFilterKey(entry.Key, out var key) || entry.Value == null)
+                    continue;
+
+                _savedFilters[key] = new Dictionary<string, bool>(
+                    entry.Value,
+                    StringComparer.OrdinalIgnoreCase);
+            }
+
+            _hasSavedFilters = _savedFilters.Count > 0;
+        }
+
+        private static void StoreRememberedFilters()
+        {
+            if (SettingsManager.Settings?.RememberFilters.Value != true)
+                return;
+
+            var remembered = SettingsManager.Settings.RememberedFilters ??= new();
+            remembered.Clear();
+            foreach (var entry in _savedFilters)
+            {
+                remembered[SerializeFilterKey(entry.Key)] = new Dictionary<string, bool>(
+                    entry.Value,
+                    StringComparer.OrdinalIgnoreCase);
+            }
+        }
+
+        public static void PrepareForSettingsSave()
+        {
+            if (SettingsManager.Settings?.RememberFilters.Value != true)
+                return;
+
+            var menu = GetMenuInstance();
+            if (menu != null && menu._ready && menu.gameObject.activeInHierarchy)
+                menu.SaveFilters();
+            else
+                StoreRememberedFilters();
         }
 
         private void OnEnable()
@@ -448,7 +543,8 @@ namespace YARG.Menu.Filters
                 contexts.Add(new IntensityFilterContext(
                     profile.Id,
                     profile.Name,
-                    instrument));
+                    instrument,
+                    profile.GameMode));
             }
 
             return contexts;
@@ -463,7 +559,12 @@ namespace YARG.Menu.Filters
             string profileName = string.IsNullOrWhiteSpace(context.ProfileName)
                 ? Localize.Key(IntensityLabels.UnknownKey)
                 : context.ProfileName;
-            string instrumentName = context.Instrument.ToLocalizedName();
+            string instrumentName = context.GameMode switch
+            {
+                GameMode.EliteDrums => SortAttribute.AggregateDrums.ToLocalizedName(),
+                GameMode.FourLaneDrums => Localize.Key("Menu.Filters.Intensities.FourLaneProDrums"),
+                _ => context.Instrument.ToLocalizedName()
+            };
             string contextLabel = $"({profileName} on {instrumentName})";
 
             return $"{baseLabel} {TextColorer.StyleString(contextLabel, MenuData.Colors.TrackDefaultSecondary, 400)}";
@@ -505,14 +606,14 @@ namespace YARG.Menu.Filters
         private void ResetIntensityFilters(YargProfile profile)
         {
             var instrument = GetIntensityInstrumentForProfile(profile);
-            ResetIntensityFilters(profile.Id, instrument);
+            ResetIntensityFilters(profile.Id, instrument, profile.GameMode);
         }
 
-        private void ResetIntensityFilters(Guid profileId, Instrument instrument)
+        private void ResetIntensityFilters(Guid profileId, Instrument instrument, GameMode? gameMode = null)
         {
             var enabled = GetIntensityEnabled(profileId);
             enabled.Clear();
-            foreach (var value in GetAllIntensitiesCached(instrument))
+            foreach (var value in GetAllIntensitiesCached(instrument, gameMode))
                 enabled[value] = true;
 
             var key = new FilterKey(FilterGroup.Intensity, profileId);
@@ -964,12 +1065,14 @@ namespace YARG.Menu.Filters
             foreach (var context in GetIntensityFilterContexts())
             {
                 var instrument = context.Instrument;
+                var gameMode = context.GameMode;
                 yield return new FilterDef(
                     new FilterKey(FilterGroup.Intensity, context.ProfileId),
-                    () => GetAllIntensitiesCached(instrument),
-                    () => GetIntensityCounts(instrument),
+                    () => GetAllIntensitiesCached(instrument, gameMode),
+                    () => GetIntensityCounts(instrument, gameMode),
                     GetIntensityEnabled(context.ProfileId),
-                    intensityInstrument: instrument);
+                    intensityInstrument: instrument,
+                    intensityGameMode: gameMode);
             }
 
             yield return new FilterDef(
@@ -1008,6 +1111,9 @@ namespace YARG.Menu.Filters
         private void RestoreSavedFilters()
         {
             if (!_hasSavedFilters)
+                LoadRememberedFilters();
+
+            if (!_hasSavedFilters)
                 return;
 
             foreach (var def in GetFilterDefs())
@@ -1032,6 +1138,7 @@ namespace YARG.Menu.Filters
             }
 
             _hasSavedFilters = true;
+            StoreRememberedFilters();
         }
 
         private void UpdateAllSummaries()
@@ -1245,10 +1352,11 @@ namespace YARG.Menu.Filters
                 if (def.Group != FilterGroup.Intensity) continue;
 
                 var instrument = def.IntensityInstrument;
+                var gameMode = def.IntensityGameMode;
                 if (TryGetSelectedSet(def.Enabled, def.GetValues(), NormalizeFilterKey, out var intensities))
                     predicates.Add(entry =>
                     {
-                        var label = GetIntensityLabel(entry, instrument);
+                        var label = GetIntensityLabel(entry, instrument, gameMode);
                         return label != null && intensities.Contains(NormalizeFilterKey(label));
                     });
             }
@@ -1604,25 +1712,26 @@ namespace YARG.Menu.Filters
 #endregion
 
 #region Intensities
-        private static IReadOnlyList<string> GetAllIntensitiesCached(Instrument instrument)
+        private static IReadOnlyList<string> GetAllIntensitiesCached(Instrument instrument, GameMode? gameMode = null)
         {
             if (_cachedIntensitySongCount != SongContainer.Count)
             {
                 _cachedIntensitySongCount = SongContainer.Count;
-                _cachedIntensitiesByInstrument.Clear();
+                _cachedIntensities.Clear();
             }
 
-            if (_cachedIntensitiesByInstrument.TryGetValue(instrument, out var cached))
+            var cacheKey = (instrument, gameMode);
+            if (_cachedIntensities.TryGetValue(cacheKey, out var cached))
                 return cached;
 
-            var built = BuildIntensityList(instrument);
-            _cachedIntensitiesByInstrument[instrument] = built;
+            var built = BuildIntensityList(instrument, gameMode);
+            _cachedIntensities[cacheKey] = built;
             return built;
         }
 
-        private static IReadOnlyList<string> BuildIntensityList(Instrument instrument)
+        private static IReadOnlyList<string> BuildIntensityList(Instrument instrument, GameMode? gameMode)
         {
-            var counts = GetIntensityCounts(instrument);
+            var counts = GetIntensityCounts(instrument, gameMode);
             var ordered = new List<string>(IntensityLabels.LabelCount + 2);
             var nonstandardIntensities = new SortedSet<int>();
 
@@ -1635,7 +1744,7 @@ namespace YARG.Menu.Filters
 
             foreach (var song in SongContainer.Songs)
             {
-                if (TryGetIntensity(song, instrument, out int intensity) &&
+                if (TryGetIntensity(song, instrument, gameMode, out int intensity) &&
                     (intensity < 0 || intensity >= IntensityLabels.LabelCount))
                 {
                     nonstandardIntensities.Add(intensity);
@@ -1652,13 +1761,13 @@ namespace YARG.Menu.Filters
             return ordered;
         }
 
-        private static Dictionary<string, int> GetIntensityCounts(Instrument instrument)
+        private static Dictionary<string, int> GetIntensityCounts(Instrument instrument, GameMode? gameMode = null)
         {
             var dict = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var song in SongContainer.Songs)
             {
-                var label = GetIntensityLabel(song, instrument);
+                var label = GetIntensityLabel(song, instrument, gameMode);
                 if (string.IsNullOrWhiteSpace(label))
                     continue;
 
@@ -1669,16 +1778,36 @@ namespace YARG.Menu.Filters
             return dict;
         }
 
-        private static string GetIntensityLabel(SongEntry entry, Instrument instrument)
+        private static string GetIntensityLabel(SongEntry entry, Instrument instrument, GameMode? gameMode = null)
         {
-            return TryGetIntensity(entry, instrument, out int intensity)
+            return TryGetIntensity(entry, instrument, gameMode, out int intensity)
                 ? GetIntensityLabel(intensity)
                 : Localize.Key(IntensityLabels.NoPartKey);
         }
 
         private static bool TryGetIntensity(SongEntry entry, Instrument instrument, out int intensity)
         {
-            if (instrument == Instrument.EliteDrums)
+            return TryGetIntensity(entry, instrument, null, out intensity);
+        }
+
+        private static bool TryGetIntensity(SongEntry entry, Instrument instrument, GameMode? gameMode,
+            out int intensity)
+        {
+            var drumInstruments = gameMode.HasValue
+                ? MidiDrumkitHelper.GetInstruments(gameMode.Value)
+                : null;
+            if (drumInstruments != null)
+            {
+                var preferredInstrument = MidiDrumkitHelper.GetPreferredInstrumentForSong(entry, drumInstruments);
+                if (!preferredInstrument.HasValue)
+                {
+                    intensity = default;
+                    return false;
+                }
+
+                instrument = preferredInstrument.Value;
+            }
+            else if (instrument == Instrument.EliteDrums)
             {
                 var preferredInstrument = MidiDrumkitHelper.GetPreferredInstrumentForSong(entry);
                 if (!preferredInstrument.HasValue)

@@ -39,6 +39,15 @@ namespace YARG.Settings
         LegacyLabels,
     }
 
+    public enum SecondaryAlbumSortMode
+    {
+        AlbumsByTitleSongsByTitle,
+        AlbumsByTitleSongsByTrack,
+        AlbumsByYearSongsByTitle,
+        AlbumsByYearSongsByTrack,
+        Off,
+    }
+
     public enum ShowMeanSongOffsetCalibrationMode
     {
         Off,
@@ -140,6 +149,10 @@ namespace YARG.Settings
             public SortAttribute PreviousLibrarySort = SortAttribute.Name;
 
             public Dictionary<string, HUDPositionProfile> HUDPositionProfiles = new();
+
+            // Filter selections are stored separately from the toggle setting because their
+            // available values are generated from the user's song library at runtime.
+            public Dictionary<string, Dictionary<string, bool>> RememberedFilters = new();
 
             private static MetronomeSample? _previousMetronomeSound;
 
@@ -279,10 +292,24 @@ namespace YARG.Settings
             // this setting could change the available songs, so we need to refresh the song list
             public ToggleSetting CensorMatureContent { get; } = new(false, _ => RefreshSongs());
 
+            public ToggleSetting RememberFilters { get; } = new(false);
+
             public ToggleSetting AllowDuplicateSongs { get; } = new(true, _ => MusicLibraryMenu.SetReload(MusicLibraryReloadState.Partial));
             public ToggleSetting UseFullDirectoryForPlaylists { get; } = new(false);
 
             public ToggleSetting ShowFavoriteButton { get; } = new(true);
+
+            public DropdownSetting<SecondaryAlbumSortMode> SecondaryAlbumSort { get; }
+                = new(SecondaryAlbumSortMode.AlbumsByTitleSongsByTitle,
+                    _ => MusicLibraryMenu.SetReload(MusicLibraryReloadState.Partial))
+                {
+                    SecondaryAlbumSortMode.AlbumsByTitleSongsByTitle,
+                    SecondaryAlbumSortMode.AlbumsByTitleSongsByTrack,
+                    SecondaryAlbumSortMode.AlbumsByYearSongsByTitle,
+                    SecondaryAlbumSortMode.AlbumsByYearSongsByTrack,
+                    SecondaryAlbumSortMode.Off,
+                };
+
             public ToggleSetting ShowRecommendedSongs { get; } = new(true, ShowRecommendedSongsCallback);
             public ToggleSetting OnlyShowPlayableSongs { get; } = new(false, RefreshLibraryFilterCallback);
 
@@ -407,6 +434,7 @@ namespace YARG.Settings
             {
                 AutomaticPlaybackBuffer = new(true, AutomaticPlaybackBufferChanged);
                 PlaybackBufferLength.EditableWhen = () => !AutomaticPlaybackBuffer.Value;
+                MuteOnlyWhenAllPlayersMiss.EditableWhen = () => MuteOnMiss.Value != AudioFxMode.Off;
             }
 
             public SliderSetting MicrophoneSensitivity { get; } = new(2f, -50f, 50f);
@@ -417,6 +445,8 @@ namespace YARG.Settings
                 AudioFxMode.MultitrackOnly,
                 AudioFxMode.On
             };
+
+            public ToggleSetting MuteOnlyWhenAllPlayersMiss { get; } = new(false);
 
             public DropdownSetting<AudioFxMode> UseStarpowerFx { get; } = new(AudioFxMode.On)
             {

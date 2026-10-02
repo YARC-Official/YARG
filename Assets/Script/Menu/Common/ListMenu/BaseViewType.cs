@@ -12,6 +12,7 @@ namespace YARG.Menu.ListMenu
         public enum BackgroundType
         {
             Normal,
+            SecondaryHeader,
             Category,
             Button
         }
@@ -24,6 +25,11 @@ namespace YARG.Menu.ListMenu
         }
 
         public abstract BackgroundType Background { get; }
+
+        /// <summary>
+        /// Whether this row can become the active list selection.
+        /// </summary>
+        public virtual bool IsSelectable => true;
 
         public abstract string GetPrimaryText(bool selected);
         public abstract string GetSecondaryText(bool selected);
