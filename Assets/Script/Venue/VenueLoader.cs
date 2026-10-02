@@ -58,7 +58,80 @@ namespace YARG.Venue
         }
 
 #nullable enable
+        /// <summary>
+        /// Loads a song or global video without consuming yargrounds/images, so the
+        /// main display can keep its original venue while the video goes elsewhere.
+        /// </summary>
+        public static BackgroundResult? GetVideoBackground(SongEntry song, out VenueSource source)
+#nullable disable
+        {
+            BackgroundResult? result = null;
+            source = VenueSource.Song;
+            if (!SettingsManager.Settings.DisablePerSongBackgrounds.Value)
+            {
+                result = song.LoadBackground(SettingsManager.Settings.CensorMatureContent.Value, excludeYarground: true);
+                if (result != null && result.Type != BackgroundType.Video)
+                {
+                    result.Dispose();
+                    result = null;
+                }
+            }
+
+            if (result == null && !SettingsManager.Settings.DisableGlobalBackgrounds.Value)
+            {
+                source = VenueSource.Global;
+                result = GetVenuePathFromGlobal(includeVideo: true, includeYarground: false, includeImage: false);
+            }
+
+            if (result == null)
+            {
+                source = VenueSource.Song;
+            }
+
+            return result;
+        }
+
+#nullable enable
+        /// <summary>
+        /// Loads a venue/image/default background, skipping videos so they can be
+        /// shown on a second display instead of replacing the main background.
+        /// </summary>
+        public static BackgroundResult? GetVenueExcludingVideo(SongEntry song, out VenueSource source)
+#nullable disable
+        {
+            BackgroundResult? result = null;
+            source = VenueSource.Song;
+            if (!SettingsManager.Settings.DisablePerSongBackgrounds.Value)
+            {
+                result = song.LoadBackground(SettingsManager.Settings.CensorMatureContent.Value);
+                if (result != null && result.Type == BackgroundType.Video)
+                {
+                    result.Dispose();
+                    result = null;
+                }
+            }
+
+            if (result == null && !SettingsManager.Settings.DisableGlobalBackgrounds.Value)
+            {
+                source = VenueSource.Global;
+                result = GetVenuePathFromGlobal(includeVideo: false, includeYarground: true, includeImage: true);
+            }
+
+            if (result == null && !SettingsManager.Settings.DisableDefaultBackground.Value)
+            {
+                result = LoadDefaultVenue();
+            }
+
+            return result;
+        }
+
+#nullable enable
         private static BackgroundResult? GetVenuePathFromGlobal()
+        {
+            return GetVenuePathFromGlobal(includeVideo: true, includeYarground: true, includeImage: true);
+        }
+
+        private static BackgroundResult? GetVenuePathFromGlobal(bool includeVideo, bool includeYarground, bool includeImage)
 #nullable disable
         {
             string[] validExtensions =
@@ -89,6 +162,11 @@ namespace YARG.Venue
                     case ".png":
                     case ".jpg":
                     case ".jpeg":
+                        if (!includeImage)
+                        {
+                            filePaths.RemoveAt(index);
+                            break;
+                        }
                         var image = YARGImage.Load(file);
                         if (image != null)
                         {
@@ -98,8 +176,18 @@ namespace YARG.Venue
                     case ".mp4":
                     case ".mov":
                     case ".webm":
+                        if (!includeVideo)
+                        {
+                            filePaths.RemoveAt(index);
+                            break;
+                        }
                         return new BackgroundResult(BackgroundType.Video, File.OpenRead(file));
                     case ".yarground":
+                        if (!includeYarground)
+                        {
+                            filePaths.RemoveAt(index);
+                            break;
+                        }
                         return new BackgroundResult(BackgroundType.Yarground, File.OpenRead(file));
                     default:
                         filePaths.RemoveAt(index);

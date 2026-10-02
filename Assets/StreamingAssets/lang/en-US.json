@@ -716,6 +716,9 @@
         }
     },
     "Gameplay": {
+        "SecondDisplay": {
+            "WaitingForVideo": "Waiting for video"
+        },
         "Notifications": {
             "BassGroove": "BASS GROOVE",
             "CountdownGetReady": "Get Ready!",
@@ -1121,6 +1124,7 @@
             "ExportSongsWeb": "Web Page",
             "OpenCalibrator": "Open Calibrator",
             "OpenVenueFolder": "Open Backgrounds/Venue Folder",
+            "OpenWaitingFolder": "Open Waiting Folder",
             "AddFolder": "Add Folder",
             "RefreshCache": "Scan Songs",
             "OpenExecutablePath": "Open Executable Path",
@@ -1941,6 +1945,10 @@
             "UpcomingLyricsTime": {
                 "Name": "Upcoming Lyrics Lead Time",
                 "Description": "The time in seconds prior to an upcoming lyric that it will appear on screen. Upcoming lyrics will always appear if the time between the current and upcoming lyrics is smaller than this value."
+            },
+            "SendVideoBackgroundToSecondDisplay": {
+                "Name": "Send Video Backgrounds To Second Display",
+                "Description": "Keeps the venue or default background on the main screen and plays song or folder videos on a second monitor when one is available. Between songs, the second display shows images from the Waiting folder. If no second display is connected, videos still play on the main screen."
             },
             "WaitForSongVideo": {
                 "Name": "Wait For Song Videos When Seeking",

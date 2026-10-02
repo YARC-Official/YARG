@@ -63,6 +63,9 @@ namespace YARG.Gameplay
         private bool _videoSeeking = false;
         private bool _videoSeekWaitForPause = false;
         private bool _videoWasPausedBeforeSeek = false;
+        private bool _videoBackgroundLoaded;
+        private bool _videoOnSecondDisplay;
+        private VenueSource _videoSource;
 
         private const float FADE_DURATION = 0.5f;
 
@@ -179,18 +182,17 @@ namespace YARG.Gameplay
             }
 #endif
 
-            using var result = VenueLoader.GetVenue(GameManager.Song, out _source);
-
-            if (result == null)
-            {
-                return;
-            }
-
             var vocalGender = GameManager.Song.VocalGender;
 
             var colorDim = _backgroundDimmer.color.WithAlpha(1 - SettingsManager.Settings.SongBackgroundOpacity.Value);
 
             _backgroundDimmer.color = colorDim;
+
+            using var video = TryCreateSecondDisplayVideo(out _videoSource);
+            if (video == null)
+            {
+                SecondDisplayManager.Instance?.ShowWaiting();
+            }
 
             // If we have a venue hint for the song and we can load the hinted yarground, prefer that
             var hint = GameManager.Song.VenueHint;
@@ -202,6 +204,10 @@ namespace YARG.Gameplay
                     if (loaded)
                     {
                         GameManager.CrowdEventHandler.Start();
+                        if (video != null)
+                        {
+                            LoadVideoBackground(video);
+                        }
                         return;
                     }
                 }
@@ -209,6 +215,57 @@ namespace YARG.Gameplay
 
             // Hint didn't resolve or failed to load, so pretend it didn't exist
 
+            using var result = _videoOnSecondDisplay
+                ? VenueLoader.GetVenueExcludingVideo(GameManager.Song, out _source)
+                : VenueLoader.GetVenue(GameManager.Song, out _source);
+
+            if (result == null)
+            {
+                if (video != null)
+                {
+                    LoadVideoBackground(video);
+                }
+                return;
+            }
+
+            await LoadBackgroundResult(result);
+
+            if (video != null && !_videoBackgroundLoaded)
+            {
+                LoadVideoBackground(video);
+            }
+        }
+
+        private BackgroundResult TryCreateSecondDisplayVideo(out VenueSource videoSource)
+        {
+            videoSource = VenueSource.Song;
+            if (!SettingsManager.Settings.SendVideoBackgroundToSecondDisplay.Value)
+            {
+                return null;
+            }
+
+            SecondDisplayManager.TryInitialize();
+
+            var video = VenueLoader.GetVideoBackground(GameManager.Song, out videoSource);
+            if (video == null)
+            {
+                return null;
+            }
+
+            if (!SecondDisplayManager.IsReady)
+            {
+                YargLogger.LogInfo("No second display available; video background will play on the main screen");
+                video.Dispose();
+                return null;
+            }
+
+            _videoOnSecondDisplay = true;
+            YargLogger.LogInfo("Sending video background to the second display");
+            return video;
+        }
+
+        private async UniTask LoadBackgroundResult(BackgroundResult result)
+        {
             _type = result.Type;
 
             // Start crowd event handler now if we aren't waiting on a yarground
@@ -225,6 +282,7 @@ namespace YARG.Gameplay
                     GameManager.CrowdEventHandler.Start();
                     break;
                 case BackgroundType.Video:
+                    _videoSource = _source;
                     LoadVideoBackground(result);
                     break;
                 case BackgroundType.Image:
@@ -457,8 +515,8 @@ namespace YARG.Gameplay
             switch (songBackGround.Type)
             {
                 case BackgroundType.Video:
-                    //set venue source to song to enable video seeking/pausing features
-                    _source = VenueSource.Song;
+                    // Song videos can seek/pause with the chart even when shown on a second display
+                    _videoSource = VenueSource.Song;
                     //set up videoPlayer to render to venue texture
                     _videoPlayer.targetTexture = textureManager.GetVideoTexture(0, 0);
 
@@ -476,8 +534,24 @@ namespace YARG.Gameplay
 
         private void ShowVenue()
         {
+            ResetVenueOutputToFillScreen();
             _venueOutput.gameObject.SetActive(true);
             FadeInVenue().Forget();
+        }
+
+        private void ResetVenueOutputToFillScreen()
+        {
+            var fitter = _venueOutput.GetComponent<AspectRatioFitter>();
+            if (fitter != null)
+            {
+                fitter.enabled = false;
+            }
+
+            var rect = _venueOutput.rectTransform;
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
         }
 
         private async UniTaskVoid FadeInVenue()
@@ -495,6 +569,13 @@ namespace YARG.Gameplay
 
         private void LoadVideoBackground(BackgroundResult bg)
         {
+            if (_videoBackgroundLoaded)
+            {
+                return;
+            }
+
+            _videoBackgroundLoaded = true;
+
             var textureManager = GetComponent<TextureManager>();
 
             var videoTexture = textureManager.GetVideoTexture(Screen.width, Screen.height);
@@ -543,7 +624,7 @@ namespace YARG.Gameplay
                     return;
 
                 // Delay until the start time is reached
-                if (_source == VenueSource.Song && time < -_videoStartTime)
+                if (_videoSource == VenueSource.Song && time < -_videoStartTime)
                     return;
 
                 if (_videoEndTime == 0)
@@ -554,7 +635,7 @@ namespace YARG.Gameplay
 
                 // Disable after starting the video if it's not from the song folder
                 // or if video end time is not specified
-                if (_source != VenueSource.Song || double.IsNaN(_videoEndTime))
+                if (_videoSource != VenueSource.Song || double.IsNaN(_videoEndTime))
                 {
                     enabled = false;
                     return;
@@ -567,6 +648,10 @@ namespace YARG.Gameplay
                 _videoPlayer.Stop();
                 _videoPlayer.playerEnabled = false;
                 enabled = false;
+                if (_videoOnSecondDisplay)
+                {
+                    SecondDisplayManager.Instance?.ShowWaiting();
+                }
             }
         }
 
@@ -581,7 +666,7 @@ namespace YARG.Gameplay
             const double endTimeThreshold = 0;
             const double dontLoopThreshold = 0.85;
 
-            if (_source == VenueSource.Song && !GameManager.Song.VideoLoop)
+            if (_videoSource == VenueSource.Song && !GameManager.Song.VideoLoop)
             {
                 _videoStartTime = GameManager.Song.VideoStartTimeSeconds;
                 _videoEndTime = GameManager.Song.VideoEndTimeSeconds;
@@ -614,53 +699,111 @@ namespace YARG.Gameplay
             }
 
             GetComponent<TextureManager>().SetVideoTexture(_videoPlayer.targetTexture);
+            player.MatchRenderTextureToVideoSize();
+
+            if (_videoOnSecondDisplay && SecondDisplayManager.IsReady)
+            {
+                ShowVideoOnSecondDisplay(player);
+                return;
+            }
+
             if (_type == BackgroundType.Video)
             {
+                FitVideoToRawImage(player, _venueOutput);
                 _venueOutput.texture = _videoPlayer.targetTexture;
                 _venueOutput.gameObject.SetActive(true);
                 _venueFadeOverlay.CrossFadeAlpha(0f, FADE_DURATION, true);
             }
         }
 
+        private void ShowVideoOnSecondDisplay(YargVideoPlayer player)
+        {
+            if (!TryGetVideoAspect(player, out float aspectRatio))
+            {
+                return;
+            }
+
+            SecondDisplayManager.Instance.ShowVideo(player.targetTexture, aspectRatio);
+        }
+
+        private static void FitVideoToRawImage(YargVideoPlayer player, RawImage image)
+        {
+            if (!TryGetVideoAspect(player, out float aspectRatio))
+            {
+                return;
+            }
+
+            var fitter = image.GetComponent<AspectRatioFitter>();
+            if (fitter == null)
+            {
+                fitter = image.gameObject.AddComponent<AspectRatioFitter>();
+            }
+
+            fitter.enabled = true;
+            fitter.aspectMode = AspectRatioFitter.AspectMode.FitInParent;
+            fitter.aspectRatio = aspectRatio;
+        }
+
+        private static bool TryGetVideoAspect(YargVideoPlayer player, out float aspectRatio)
+        {
+            uint width = player.width;
+            uint height = player.height;
+            if (width == 0 || height == 0)
+            {
+                var texture = player.targetTexture;
+                if (texture == null || texture.height == 0)
+                {
+                    aspectRatio = 0f;
+                    return false;
+                }
+
+                width = (uint) texture.width;
+                height = (uint) texture.height;
+            }
+
+            aspectRatio = (float) width / height;
+            return aspectRatio > 0f;
+        }
+
         public void SetTime(double songTime, bool waitForSeek = true)
         {
-            switch (_type)
+            if (!IsVideoPlaybackActive())
             {
-                case BackgroundType.Video:
-                    // Don't seek videos that aren't from the song
-                    if (_source != VenueSource.Song)
-                        return;
+                return;
+            }
 
-                    double videoTime = songTime + _videoStartTime;
-                    if (videoTime < 0f) // Seeking before video start
-                    {
-                        enabled = true;
-                        _videoPlayer.playerEnabled = true;
-                        _videoStarted = false;
-                        _videoPlayer.Stop();
-                    }
-                    else if (videoTime >= _videoPlayer.length) // Seeking after video end
-                    {
-                        enabled = false;
-                        _videoPlayer.playerEnabled = false;
-                        _videoPlayer.Stop();
-                    }
-                    else
-                    {
-                        enabled = false; // Temp disable
-                        _videoPlayer.playerEnabled = true;
+            // Don't seek videos that aren't from the song
+            if (_videoSource != VenueSource.Song)
+                return;
 
-                        // Hack to ensure the video stays synced to the audio
-                        _videoSeeking = true; // Signaling flag; must come first
-                        _videoSeekWaitForPause = waitForSeek;
-                        _videoWasPausedBeforeSeek = _videoPlayer.isPaused;
+            double videoTime = songTime + _videoStartTime;
+            if (videoTime < 0f) // Seeking before video start
+            {
+                enabled = true;
+                _videoPlayer.playerEnabled = true;
+                _videoStarted = false;
+                _videoPlayer.Stop();
+            }
+            else if (videoTime >= _videoPlayer.length) // Seeking after video end
+            {
+                enabled = false;
+                _videoPlayer.playerEnabled = false;
+                _videoPlayer.Stop();
+            }
+            else
+            {
+                enabled = false; // Temp disable
+                _videoPlayer.playerEnabled = true;
 
-                        if (waitForSeek && SettingsManager.Settings.WaitForSongVideo.Value)
-                            GameManager.OverridePause();
+                // Hack to ensure the video stays synced to the audio
+                _videoSeeking = true; // Signaling flag; must come first
+                _videoSeekWaitForPause = waitForSeek;
+                _videoWasPausedBeforeSeek = _videoPlayer.isPaused;
 
-                        _videoPlayer.time = videoTime;
-                    }
-                    break;
+                if (waitForSeek && SettingsManager.Settings.WaitForSongVideo.Value)
+                    GameManager.OverridePause();
+
+                _videoPlayer.time = videoTime;
             }
         }
 
@@ -685,12 +828,15 @@ namespace YARG.Gameplay
 
         public void SetSpeed(float speed)
         {
-            switch (_type)
+            if (IsVideoPlaybackActive())
             {
-                case BackgroundType.Video:
-                    _videoPlayer.playbackSpeed = speed;
-                    break;
+                _videoPlayer.playbackSpeed = speed;
             }
+        }
+
+        private bool IsVideoPlaybackActive()
+        {
+            return _type == BackgroundType.Video || _videoOnSecondDisplay;
         }
 
         public void SetPaused(bool paused)
@@ -1249,22 +1395,9 @@ namespace YARG.Gameplay
 
         public void Dispose()
         {
-            if (VIDEO_PATH != null)
-            {
-                File.Delete(VIDEO_PATH);
-                VIDEO_PATH = null;
-            }
-
-            // In case this somehow doesn't happen in GameplayDestroy
-            if (loadedAddressable)
-            {
-                foreach (var handle in _handles)
-                {
-                    Addressables.Release(handle);
-                }
-                loadedAddressable = false;
-                _handles.Clear();
-            }
+            ReturnSecondDisplayToWaiting();
+            CleanupTempVideo();
+            ReleaseAddressables();
 
 #if UNITY_EDITOR
             if (_usingEditorVenue)
@@ -1272,24 +1405,57 @@ namespace YARG.Gameplay
                 SceneManager.UnloadSceneAsync(_editorVenueScene);
             }
 #endif
+            GC.SuppressFinalize(this);
         }
 
         protected override void GameplayDestroy()
         {
-            if (loadedAddressable)
+            ReturnSecondDisplayToWaiting();
+            ReleaseAddressables();
+        }
+
+        private static void ReturnSecondDisplayToWaiting()
+        {
+            SecondDisplayManager.Instance?.ShowWaiting();
+        }
+
+        private void CleanupTempVideo()
+        {
+            if (VIDEO_PATH == null)
             {
-                foreach (var handle in _handles)
-                {
-                    Addressables.Release(handle);
-                }
-                loadedAddressable = false;
-                _handles.Clear();
+                return;
             }
+
+            try
+            {
+                File.Delete(VIDEO_PATH);
+            }
+            catch (Exception)
+            {
+                // Best-effort cleanup; the file is marked temporary.
+            }
+
+            VIDEO_PATH = null;
+        }
+
+        private void ReleaseAddressables()
+        {
+            if (!loadedAddressable)
+            {
+                return;
+            }
+
+            foreach (var handle in _handles)
+            {
+                Addressables.Release(handle);
+            }
+            loadedAddressable = false;
+            _handles.Clear();
         }
 
         ~BackgroundManager()
         {
-            Dispose();
+            CleanupTempVideo();
         }
     }
 }

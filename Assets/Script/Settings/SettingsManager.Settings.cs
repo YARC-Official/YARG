@@ -209,6 +209,11 @@ namespace YARG.Settings
                 FileExplorerHelper.OpenFolder(VenueLoader.VenueFolder);
             }
 
+            public void OpenWaitingFolder()
+            {
+                FileExplorerHelper.OpenFolder(SecondDisplayManager.WaitingFolder);
+            }
+
             public DropdownSetting<NoFailMode> NoFail { get; } = new(NoFailMode.Off)
             {
                 NoFailMode.Off,
@@ -219,6 +224,17 @@ namespace YARG.Settings
             public ToggleSetting DisableDefaultBackground  { get; } = new(false);
             public ToggleSetting DisableGlobalBackgrounds  { get; } = new(false);
             public ToggleSetting DisablePerSongBackgrounds { get; } = new(false);
+            public ToggleSetting SendVideoBackgroundToSecondDisplay { get; } = new(true, enabled =>
+            {
+                if (enabled)
+                {
+                    SecondDisplayManager.TryInitialize();
+                }
+                else if (SecondDisplayManager.Instance != null)
+                {
+                    SecondDisplayManager.Instance.gameObject.SetActive(false);
+                }
+            });
             public ToggleSetting WaitForSongVideo          { get; } = new(true);
             public ToggleSetting AllowRemoteContent        { get; } = new(true);
 
