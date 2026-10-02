@@ -24,16 +24,18 @@ namespace YARG.Menu.Dialogs
             _searchField.OnSearchQueryUpdated += OnSearchChanged;
         }
 
-        private void RefreshList()
+        public override void Submit()
         {
-
-        }
-
-        protected override void OnBeforeClose()
-        {
-            SelectAction.Invoke(_viewList.CurrentSelection.SongEntry);
+            SelectAction?.Invoke(_viewList.CurrentSelection.SongEntry);
             _searchField.OnSearchQueryUpdated -= OnSearchChanged;
+            DialogManager.Instance.ClearDialog();
         }
+        
+        // protected override void OnBeforeClose()
+        // {
+        //     SelectAction.Invoke(_viewList.CurrentSelection.SongEntry);
+        //     _searchField.OnSearchQueryUpdated -= OnSearchChanged;
+        // }
 
         private void OnSearchChanged(bool force)
         {

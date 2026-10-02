@@ -351,17 +351,6 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 86514725792275789, guid: 5c1aa998cb33a0f4dbd8e30a9620a283, type: 3}
   m_PrefabInstance: {fileID: 916948188464498853}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &2295434666298766754 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 1396857153880833287, guid: 5c1aa998cb33a0f4dbd8e30a9620a283, type: 3}
-  m_PrefabInstance: {fileID: 916948188464498853}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b6738045cff16e840b711505d125696f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &2720268678479862108 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 2988686423750906361, guid: 5c1aa998cb33a0f4dbd8e30a9620a283, type: 3}
@@ -392,7 +381,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Dialogs.LibrarySearchDialog
   _dialogButtonContainer: {fileID: 975868434072802792}
   _navigationGroup: {fileID: 2720268678479862108}
-  _dialogButtonPrefab: {fileID: 2295434666298766754}
+  _dialogButtonPrefab: {fileID: 2095609304296693110, guid: 1391aeff5bdd1ce40b9b1a76d237c1eb, type: 3}
   <Title>k__BackingField: {fileID: 5260089550834054729}
   _searchField: {fileID: 65630496197930919}
   _viewList: {fileID: 8064025211266798686}

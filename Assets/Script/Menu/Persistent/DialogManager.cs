@@ -248,6 +248,10 @@ namespace YARG.Menu.Persistent
             dialog.Title.text = title;
             dialog.SelectAction = selectAction;
 
+            dialog.ClearButtons();
+            dialog.AddDialogButton("Menu.Common.Cancel", MenuData.Colors.CancelButton, ClearDialog);
+            dialog.AddDialogButton("Menu.Common.Apply", MenuData.Colors.ConfirmButton, () => _currentDialog.Submit());
+
             return dialog;
         }
 
