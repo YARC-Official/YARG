@@ -224,7 +224,7 @@ namespace YARG.Menu.ScoreScreen
                     case GameMode.SixFretGuitar:
                     {
                         card = Instantiate(_guitarCardPrefab, _cardContainer);
-                        ((ScoreCard<GuitarStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as GuitarStats, score.IsReplay);
+                        ((ScoreCard<GuitarStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as GuitarStats, score.IsReplay, score.OffsetSampleFilterCategory);
                         break;
                     }
                     case GameMode.FourLaneDrums:
@@ -232,19 +232,19 @@ namespace YARG.Menu.ScoreScreen
                     case GameMode.EliteDrums:
                     {
                         card = Instantiate(_drumsCardPrefab, _cardContainer);
-                        ((ScoreCard<DrumsStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as DrumsStats, score.IsReplay);
+                        ((ScoreCard<DrumsStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as DrumsStats, score.IsReplay, score.OffsetSampleFilterCategory);
                         break;
                     }
                     case GameMode.Vocals:
                     {
                         card = Instantiate(_vocalsCardPrefab, _cardContainer);
-                        ((ScoreCard<VocalsStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as VocalsStats, score.IsReplay);
+                        ((ScoreCard<VocalsStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as VocalsStats, score.IsReplay, score.OffsetSampleFilterCategory);
                         break;
                     }
                     case GameMode.ProKeys:
                     {
                         card = Instantiate(_keysCardPrefab, _cardContainer);
-                        ((ScoreCard<KeysStats>) card).Initialize(score.IsHighScore, score.Player, score.Stats as KeysStats, score.IsReplay);
+                        ((ScoreCard<KeysStats>) card).Initialize(score.IsHighScore, score.Player, score.Stats as KeysStats, score.IsReplay, score.OffsetSampleFilterCategory);
                         break;
                     }
                 }
@@ -602,7 +602,12 @@ namespace YARG.Menu.ScoreScreen
 
         private void ToggleOffsetToJson()
         {
-            var offset = GlobalVariables.State.ScoreScreenStats.Value.MeanAverageOffset;
+            var scoreScreenStats = GlobalVariables.State.ScoreScreenStats.Value;
+            // MeanAverageOffsetFilterCategoryOnly is already resolved per player against their own
+            // instrument's calibration filter (falling back to a player's unfiltered samples when
+            // their own setting is Everything), so once it has a value it's always the right number
+            // to save -- no need to re-check the two global dropdowns here.
+            var offset = scoreScreenStats.MeanAverageOffsetFilterCategoryOnly ?? scoreScreenStats.MeanAverageOffset;
 
             var offsetMs = (long)Math.Round(offset * 1000);
 

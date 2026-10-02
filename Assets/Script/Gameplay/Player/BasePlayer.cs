@@ -88,6 +88,25 @@ namespace YARG.Gameplay.Player
 
         public int TotalNotes { get; protected set; }
 
+        /// <summary>
+        /// Per-hit-note category for the score-screen offset histogram, aligned 1:1 in order with
+        /// <see cref="Engine.BaseStats.GetOffsetSamples"/>: true for the "selected" side of this
+        /// instrument's calibration filter (e.g. a strummed note for guitar, a kick for drums),
+        /// false for the other side. Returns null for instruments with no such distinction, in
+        /// which case the histogram should render as a single color.
+        /// </summary>
+        public virtual IReadOnlyList<bool> GetOffsetSampleFilterCategory() => null;
+
+        /// <summary>
+        /// Which <see cref="OffsetCalibrationFilter"/> mode this instrument's own calibration
+        /// filter dropdown is currently set to (e.g. UseStrumOnlyOffsetForCalibration for guitar,
+        /// UseKickOnlyOffsetForCalibration for drums) -- read by <c>GameManager</c> when pooling
+        /// band-wide offset samples, so each player is filtered according to their own setting
+        /// rather than a single hardcoded direction. Everything for instruments with no such
+        /// distinction.
+        /// </summary>
+        public virtual OffsetCalibrationFilter OffsetSampleFilterMode => OffsetCalibrationFilter.Everything;
+
         public bool IsFc { get; protected set; }
 
         public int? LastHighScore { get; private set; }
