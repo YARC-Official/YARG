@@ -105,8 +105,7 @@ namespace YARG.Career
                         {
                             result.Unlocked = completedCount >= tier.UnlockCriteria;
 
-                            var completed = previousRegularTier.Songs.Count(song => song.Completed);
-                            result.RemainingToUnlock = Math.Max(0, tier.UnlockCriteria - completedCount + completed);
+                            result.RemainingToUnlock = Math.Max(0, tier.UnlockCriteria - completedCount);
                             break;
                         }
                         case UnlockType.StarCount:

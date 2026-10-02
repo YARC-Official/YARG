@@ -148,8 +148,6 @@ namespace YARG.Menu.Career
 
             _evaluation ??= Evaluate(_career, _careerSaveId);
 
-            // viewList.Add(new CareerHeaderViewType(_career, _evaluation));
-
             for (var tierIndex = 0; tierIndex < _career.Tiers.Count; tierIndex++)
             {
                 var tier = _career.Tiers[tierIndex];
