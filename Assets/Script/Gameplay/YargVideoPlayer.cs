@@ -14,6 +14,8 @@ using YARG.Core.Logging;
 /// (e.g. WSA), the VLC code path is compiled out entirely
 /// (see VLC_SUPPORTED) and the class behaves as a thin Unity VideoPlayer wrapper.
 /// </summary>
+// Before VLCMediaPlayer (on the same GameObject), whose Awake builds LibVLC itself unless one exists.
+[DefaultExecutionOrder(-100)]
 public class YargVideoPlayer : MonoBehaviour
 {
     [SerializeField] private VideoPlayer _unityVideoPlayer;
@@ -245,6 +247,20 @@ public class YargVideoPlayer : MonoBehaviour
 
     // ─── Unity lifecycle ───
 
+    private void Awake()
+    {
+#if VLC_SUPPORTED
+        // Without a usable libVLC, VLCMediaPlayer's own Awake would run Core.Initialize against a
+        // path known not to work, poisoning VLC for the rest of the process. Remove it before it
+        // wakes, and use Unity's player instead.
+        if (_vlcPlayer != null && !VlcLibraryLoader.EnsureLoaded(_vlcPlayer))
+        {
+            DestroyImmediate(_vlcPlayer);
+            _vlcPlayer = null;
+        }
+#endif
+    }
+
     private void Start()
     {
 #if VLC_SUPPORTED
@@ -275,6 +291,14 @@ public class YargVideoPlayer : MonoBehaviour
 #if VLC_SUPPORTED
     private void TryInitializeVLC()
     {
+        if (_vlcPlayer == null)
+        {
+            _usingVLC = false;
+            YargLogger.LogInfo("[YargVideoPlayer] VLC not available, using Unity VideoPlayer");
+            SwitchToVideoPlayerFallback();
+            return;
+        }
+
         try
         {
             _vlcPlayer.enabled = true;
