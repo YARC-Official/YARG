@@ -385,6 +385,13 @@ namespace YARG.Menu.ProfileList
             }
         }
 
+#nullable enable
+        public BindingSetView? GetSelectedBindingSetView()
+#nullable disable
+        {
+            return _leftPaneList.GetComponentsInChildren<BindingSetView>().FirstOrDefault(e => e.Selected);
+        }
+
         public void JumpToBindingSet(ReusableBindingSet bindingSet, InputDevice dummyController, bool lefty)
         {
             _headerTabs.SelectTabById(BINDINGS_TAB);

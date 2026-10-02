@@ -3,12 +3,15 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using YARG.Core.Input;
 using YARG.Core.Logging;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Input;
 using YARG.Input.Bindings;
 using YARG.Menu.ProfileInfo;
+using YARG.Scores;
+using static UnityEditor.AddressableAssets.Build.Layout.BuildLayout;
 
 namespace YARG.Menu.ProfileList
 {
@@ -41,8 +44,17 @@ namespace YARG.Menu.ProfileList
 
         [Space]
         [SerializeField]
+        private GameObject _nameContainer;
+        [SerializeField]
+        private GameObject _editNameContainer;
+        [SerializeField]
+        private TMP_InputField _nameInput;
+
+        [Space]
+        [SerializeField]
         private BindingsCenterPaneSettingsPanel _settingsPanel;
 
+        private BindingSetView _bindingSetView;
         private InputDevice _dummyController;
 
         public InputDevice DummyController {
@@ -243,6 +255,27 @@ namespace YARG.Menu.ProfileList
         public void SetHandedness(bool lefty)
         {
             ShowLeftyNames = lefty;
+        }
+
+        public void SetNameEditMode(bool editing)
+        {
+            _nameContainer.SetActive(!editing);
+            _editNameContainer.SetActive(editing);
+
+            if (editing)
+            {
+                _nameInput.text = BindingSet.Name;
+                _nameInput.Select();
+            }
+            else
+            {
+                // Set the name. Make sure to record the name change in the scores.
+                BindingSet.Name = _nameInput.text;
+
+                // Update the UI
+                _name.text = BindingSet.Name;
+                _profilesMenu.GetSelectedBindingSetView().UpdateDisplay(BindingSet);
+            }
         }
     }
 }

@@ -1681,7 +1681,10 @@ MonoBehaviour:
   _axisGroupPrefab: {fileID: 2066996443643632486, guid: 617b13d7ce511044480bb2e48739cd6a, type: 3}
   _integerGroupPrefab: {fileID: 777512555580489659, guid: 2c9b962f8dbdf8947b897c21e3b49819, type: 3}
   _dummyControllerDropdown: {fileID: 7140282011858445247}
-  _settingsPanel: {fileID: 8635048413164978322}
+  _nameContainer: {fileID: 613406341123490909}
+  _editNameContainer: {fileID: 8608351501547111751}
+  _nameInput: {fileID: 3194256475477784227}
+  _settingsPanel: {fileID: 8023080906555745224}
 --- !u!1 &6708636396383567381
 GameObject:
   m_ObjectHideFlags: 0
@@ -2677,8 +2680,8 @@ MonoBehaviour:
   m_OnEndEdit:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: YARG.Menu.ProfileSidebar, Assembly-CSharp
+      - m_Target: {fileID: 8728195230581420338}
+        m_TargetAssemblyTypeName: YARG.Menu.ProfileList.BindingSetsCenterPane, Assembly-CSharp
         m_MethodName: SetNameEditMode
         m_Mode: 6
         m_Arguments:
@@ -3727,6 +3730,10 @@ PrefabInstance:
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 1245898288579793007, guid: 30455cc33f47e564894a0ec80dcbed66, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 8728195230581420338}
+    - target: {fileID: 1245898288579793007, guid: 30455cc33f47e564894a0ec80dcbed66, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
       value: 2
       objectReference: {fileID: 0}
@@ -3736,7 +3743,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1245898288579793007, guid: 30455cc33f47e564894a0ec80dcbed66, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: YARG.Menu.ProfileSidebar, Assembly-CSharp
+      value: YARG.Menu.ProfileList.BindingSetsCenterPane, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 1245898288579793007, guid: 30455cc33f47e564894a0ec80dcbed66, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_BoolArgument
