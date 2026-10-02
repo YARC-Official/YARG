@@ -96,6 +96,12 @@ namespace YARG.Settings
         YargStretch = 1
     }
 
+    public enum EffectsMode
+    {
+        Performance = 0,
+        Quality = 1
+    }
+
     public struct CustomCharacterInfo : IEquatable<CustomCharacterInfo>
     {
         public CustomCharacterSource          Source;
@@ -795,12 +801,6 @@ namespace YARG.Settings
 
             #region Experimental
 
-            public DropdownSetting<TempoEngine> TempoImplementation { get; } = new(TempoEngine.BassFx)
-            {
-                TempoEngine.BassFx,
-                TempoEngine.YargStretch
-            };
-
             public ToggleSetting DataStreamEnable { get; } = new(false, DataStreamEnableCallback );
             public DropdownSetting<BandComboType> BandComboTypeSetting { get; } = new(BandComboType.Off)
             {
@@ -808,12 +808,20 @@ namespace YARG.Settings
                 BandComboType.Lenient,
                 BandComboType.Strict
             };
-            public DropdownSetting<ReverbMode> ReverbImplementation { get; } = new(ReverbMode.Performance,
-                ReverbImplementationCallback)
+            public DropdownSetting<EffectsMode> EffectsMode { get; } = new(YARG.Settings.EffectsMode.Performance,
+                EffectsModeCallback)
             {
-                ReverbMode.Performance,
-                ReverbMode.Quality
+                YARG.Settings.EffectsMode.Performance,
+                YARG.Settings.EffectsMode.Quality
             };
+
+            public ReverbMode CurrentReverbMode => EffectsMode.Value == YARG.Settings.EffectsMode.Quality
+                ? ReverbMode.Quality
+                : ReverbMode.Performance;
+
+            public TempoEngine CurrentTempoEngine => EffectsMode.Value == YARG.Settings.EffectsMode.Quality
+                ? TempoEngine.YargStretch
+                : TempoEngine.BassFx;
             public ToggleSetting SaveScoresWithBots { get; } = new(false);
             public SliderSetting FontScaling { get; } = new(0f, 0f, 100f, FontScalingCallback);
 
@@ -1123,7 +1131,7 @@ namespace YARG.Settings
                 }
             }
 
-            private static void ReverbImplementationCallback(ReverbMode mode)
+            private static void EffectsModeCallback(EffectsMode mode)
             {
                 if (!IsInitialized)
                 {
@@ -1135,8 +1143,8 @@ namespace YARG.Settings
                 {
                     if (!GlobalAudioHandler.ReinitializeOutput())
                     {
-                        YargLogger.LogError("Failed to reinitialize audio output after reverb implementation change");
-                        ToastManager.ToastError("Failed to reinitialize audio output after reverb change.");
+                        YargLogger.LogError("Failed to reinitialize audio output after effects mode change");
+                        ToastManager.ToastError("Failed to reinitialize audio output after effects mode change.");
                     }
                 }
                 finally

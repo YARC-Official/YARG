@@ -288,14 +288,14 @@ namespace YARG.Editor
 
                     bool settingsReady = SettingsManager.SettingContainer.IsInitialized;
                     GUI.enabled = settingsReady;
-                    TempoEngine selected = settingsReady
-                        ? SettingsManager.Settings.TempoImplementation.Value
-                        : _activeTempoEngine;
+                    EffectsMode selected = settingsReady
+                        ? SettingsManager.Settings.EffectsMode.Value
+                        : (_activeTempoEngine == TempoEngine.YargStretch ? EffectsMode.Quality : EffectsMode.Performance);
                     EditorGUI.BeginChangeCheck();
-                    var newEngine = (TempoEngine) EditorGUILayout.EnumPopup(selected, GUILayout.Width(95));
+                    var newMode = (EffectsMode) EditorGUILayout.EnumPopup(selected, GUILayout.Width(95));
                     if (EditorGUI.EndChangeCheck())
                     {
-                        SetTempoEngine(newEngine);
+                        SetEffectsMode(newMode);
                     }
                     GUI.enabled = true;
 
@@ -305,7 +305,7 @@ namespace YARG.Editor
                         EditorGUILayout.LabelField($"Active: {_activeTempoEngine} \u2022 {latencyMs:F1} ms",
                             EditorStyles.miniLabel, GUILayout.Width(170));
                         if (settingsReady &&
-                            SettingsManager.Settings.TempoImplementation.Value != _activeTempoEngine)
+                            SettingsManager.Settings.CurrentTempoEngine != _activeTempoEngine)
                         {
                             if (GUILayout.Button("Reload to apply", EditorStyles.miniButton, GUILayout.Width(110)))
                             {
@@ -359,14 +359,15 @@ namespace YARG.Editor
             }
         }
 
-        private void SetTempoEngine(TempoEngine engine)
+        private void SetEffectsMode(EffectsMode mode)
         {
             if (!SettingsManager.SettingContainer.IsInitialized)
             {
                 return;
             }
 
-            SettingsManager.Settings.TempoImplementation.Value = engine;
+            SettingsManager.Settings.EffectsMode.Value = mode;
+            var engine = SettingsManager.Settings.CurrentTempoEngine;
             if (_bassSong != null && _activeTempoEngine != engine)
             {
                 ReloadCurrentSong();

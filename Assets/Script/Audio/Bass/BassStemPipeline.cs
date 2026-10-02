@@ -76,7 +76,7 @@ namespace YARG.Audio.BASS
             BassTempoStream? tempoStream;
             try
             {
-                tempoStream = BassTempoStream.Create(mixer.Handle, SettingsManager.Settings.TempoImplementation.Value);
+                tempoStream = BassTempoStream.Create(mixer.Handle, SettingsManager.Settings.CurrentTempoEngine);
                 if (tempoStream == null)
                 {
                     mixer.Dispose();

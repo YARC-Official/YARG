@@ -30,6 +30,7 @@
 #include <cmath>
 #include "signalsmith-linear/stft.h"
 #include "stretch/NoiseMorph.h"
+#include "stretch/EnvelopeEq.h"
 
 #include <vector>
 #include <array>
@@ -137,6 +138,7 @@ struct YargStretch {
 	void reset() {
 		stft.reset(0.1);
 		noiseMorph.reset(0);
+		envelopeEq.reset();
 		stashedInput = stft.input;
 		stashedOutput = stft.output;
 		
@@ -151,7 +153,8 @@ struct YargStretch {
 		transientSamples_ = int(stft.blockSamples());
 		transientCooldown_ = 0;
 		transientCount_ = 0;
-		transientOnset_ = false;
+		transientState_ = TransientState::IDLE;
+		transientInputSamples_ = 0;
 		transientBg_[0] = transientBg_[1] = transientBg_[2] = 0;
 		transientBgReady_ = false;
 		for (int b = 0; b < bands; ++b) {
@@ -160,7 +163,7 @@ struct YargStretch {
 			pvdrPreviousEnergy[b] = 0;
 		}
 		std::fill(transientHold_.begin(), transientHold_.end(), 0);
-		std::fill(hblLocked_.begin(), hblLocked_.end(), 0);
+		tonalReferenceHistory_ = false;
 	}
 
 	// One-time setup: channel count, sample rate, block and hop sizes.
@@ -173,20 +176,31 @@ struct YargStretch {
 		stft.reset(Sample(0.1));
 		const bool useGrains = channels <= 2 && !splitComputation &&
 			intervalSamples * 3 <= blockSamples;
-		noiseMorph.configure(stft, channels, useGrains);
+		noiseMorph.configure(stft, channels, sampleRate, useGrains);
+		if (useGrains) {
+			envelopeEq.configure(stft, channels, sampleRate);
+		}
 		derivativeWindow.resize(blockSamples);
 		timeWindow.resize(blockSamples);
 		const auto *window = stft.analysisWindow();
+		Sample rampPower = 0;
+		Sample rampMoment = 0;
 		for (int i = 0; i < blockSamples; ++i) {
 			Sample left = i > 0 ? window[i - 1] : Sample(0);
 			Sample right = i + 1 < blockSamples ? window[i + 1] : Sample(0);
 			derivativeWindow[i] = (right - left)*Sample(0.5);
 			timeWindow[i] = window[i]*(i - int(stft.analysisOffset()));
+			Sample ramp = window[i]*Sample(i);
+			Sample power = ramp*ramp;
+			rampPower += power;
+			rampMoment += power*Sample(i - int(stft.analysisOffset()));
 		}
+		transientCenter_ = rampMoment/rampPower;
 		transientSamples_ = int(stft.blockSamples());
 		transientCooldown_ = 0;
 		transientCount_ = 0;
-		transientOnset_ = false;
+		transientState_ = TransientState::IDLE;
+		transientInputSamples_ = 0;
 		transientBg_[0] = transientBg_[1] = transientBg_[2] = 0;
 		transientBgReady_ = false;
 		stashedInput = stft.input;
@@ -206,8 +220,8 @@ struct YargStretch {
 		pvdrCurrentEnergy.resize(bands);
 		pvdrPreviousEnergy.resize(bands);
 		pvdrSteer_.assign(bands, Sample(1));
+		tonalReferenceHistory_ = false;
 		transientHold_.assign(bands, 0);
-		hblLocked_.assign(bands, 0);
 
 		for (int b = 0; b < bands; ++b) {
 			pvdrOrder[b] = b;
@@ -248,6 +262,11 @@ struct YargStretch {
 	template<class Inputs>
 	void seek(Inputs &&inputs, int inputSamples, double playbackRate) {
 		noiseMorph.clearHistory();
+		envelopeEq.reset();
+		tonalReferenceHistory_ = false;
+		transientState_ = TransientState::IDLE;
+		transientInputSamples_ = 0;
+		std::fill(transientHold_.begin(), transientHold_.end(), 0);
 		tmpProcessBuffer.resize(0);
 		tmpProcessBuffer.resize(stft.blockSamples() + stft.defaultInterval());
 
@@ -355,9 +374,14 @@ struct YargStretch {
 					silenceFirst = false;
 					if (noiseMorph.usesGrains()) {
 						noiseMorph.clearHistory();
+						envelopeEq.reset();
 					}
 					//stft.reset();
 					blockProcess = {};
+					tonalReferenceHistory_ = false;
+					transientState_ = TransientState::IDLE;
+					transientInputSamples_ = 0;
+					std::fill(transientHold_.begin(), transientHold_.end(), 0);
 					for (auto &b : _channelBands) {
 						b.input = b.prevInput = b.output = b.prevOutput = 0;
 						b.inputEnergy = 0;
@@ -408,6 +432,13 @@ struct YargStretch {
 				int intervalStep = int(stft.defaultInterval());
 				transientSamples_ = std::max(0, transientSamples_ - intervalStep);
 				transientCooldown_ = std::max(0, transientCooldown_ - intervalStep);
+				if (transientState_ != TransientState::IDLE) {
+					transientInputSamples_ = std::max(0, transientInputSamples_ - std::max(0, inputInterval));
+					if (transientInputSamples_ == 0) {
+						transientState_ = TransientState::IDLE;
+						std::fill(transientHold_.begin(), transientHold_.end(), 0);
+					}
+				}
 				prevInputOffset = inputOffset;
 				
 				copyInput(inputOffset);
@@ -422,6 +453,7 @@ struct YargStretch {
 				if (blockProcess.newSpectrum) {
 					// make sure the previous input is the correct distance in the past (give or take 1 sample)
 					blockProcess.reanalysePrev = didSeek || std::abs(inputInterval - int(stft.defaultInterval())) > 1;
+					blockProcess.phaseInterval = blockProcess.reanalysePrev ? int(stft.defaultInterval()) : inputInterval;
 					if (blockProcess.reanalysePrev) blockProcess.steps += stft.analyseSteps() + 1;
 
 					// analyse a new input
@@ -542,14 +574,11 @@ struct YargStretch {
 					// Shaping chain: phase locks, transient handling, harshness control,
 					// loudness caps, in that order.
 					applyHarmonicPolish();
-					applySidelobeLock();
 					applySubBassPhaseAlignment();
 					applyStereoLock();
 					applyPhasePolish();
-					applyVocalBandEnhancement();
 					applyAttackGain();
 					applySpectralContrastAndAntiRinging();
-					applyInterHopCancellationCompensation();
 					applyCausalPreEchoSuppression();
 					applySpectralPeakAndValleyShaping();
 					applyDeesser();
@@ -570,12 +599,17 @@ struct YargStretch {
 							channelBands[b].prevOutput = channelBands[b].output;
 						}
 					}
-					if (channels <= 2 && noiseMorphEnabled_) {
-						Sample strength = std::clamp(getSpeedDose(), Sample(0), Sample(1));
+					if (noiseMorphEnabled_ && noiseMorph.usesGrains()) {
+						Sample strength = std::clamp(NOISE_MORPH_STRENGTH *
+							(smoothTimeFactor_ - Sample(1)) / smoothTimeFactor_, Sample(0), Sample(1));
 						if (blockProcess.mappedFrequencies || blockProcess.processFormants || transientSamples_ > 0) {
 							strength = 0;
 						}
-						noiseMorph.apply(stft, [&](int c, int b) { return bandsForChannel(c)[b].input; }, strength, transientMinFreq_);
+						Sample decorrelation = std::clamp((smoothTimeFactor_ - NOISE_DECORRELATION_START_STRETCH) /
+							(NOISE_DECORRELATION_FULL_STRETCH - NOISE_DECORRELATION_START_STRETCH), Sample(0), Sample(1));
+						noiseMorph.apply(stft, [&](int c, int b) { return bandsForChannel(c)[b].input; }, strength, transientMinFreq_, decorrelation);
+						envelopeEq.setReference([&](int c, int b) { return bandsForChannel(c)[b].input; },
+							!blockProcess.mappedFrequencies && !blockProcess.processFormants && smoothTimeFactor_ > Sample(1.01));
 					}
 					continue;
 				}
@@ -598,11 +632,13 @@ struct YargStretch {
 				stft.readOutput(c, 1, &v);
 				if (noiseMorphEnabled_ && noiseMorph.usesGrains()) {
 					v += noiseMorph.readGrain(c);
+					v = envelopeEq.filter(c, v);
 				}
 				outputChannel[outputIndex] = v;
 			}
 			if (noiseMorphEnabled_ && noiseMorph.usesGrains()) {
 				noiseMorph.advanceGrain();
+				envelopeEq.advance();
 			}
 			stft.moveOutput(1);
 			if (_splitComputation) stashedOutput.swap(stft.output);
@@ -656,8 +692,21 @@ struct YargStretch {
 				outputChannel[outputBlock + tailSamples - 1 - i] -= tmpProcessBuffer[i];
 			}
 		}
+		if (noiseMorph.usesGrains()) {
+			for (int i = 0; i < tailSamples; ++i) {
+				for (int c = 0; c < channels; ++c) {
+					outputs[c][outputBlock + i] = envelopeEq.filter(c, outputs[c][outputBlock + i]);
+				}
+				envelopeEq.advance(false);
+			}
+		}
 		stft.reset(0.1f);
 		noiseMorph.reset(0);
+		envelopeEq.reset();
+		tonalReferenceHistory_ = false;
+		transientState_ = TransientState::IDLE;
+		transientInputSamples_ = 0;
+		std::fill(transientHold_.begin(), transientHold_.end(), 0);
 		// Reset the phase-vocoder stuff, so the next block gets a fresh start
 		for (int c = 0; c < channels; ++c) {
 			auto channelBands = bandsForChannel(c);
@@ -705,6 +754,7 @@ private:
 		bool reanalysePrev = false;
 		bool mappedFrequencies = false;
 		bool processFormants = false;
+		int phaseInterval = 0;
 		Sample timeFactor;
 	} blockProcess;
 
@@ -723,6 +773,7 @@ private:
 	static constexpr Sample TRANSIENT_MEDIUM_BG_SCALE{Sample(0.6)};
 	static constexpr Sample TRANSIENT_BASS_POWER_FRACTION{Sample(0.01)};
 	static constexpr int TRANSIENT_NEIGHBOR_BINS = 3;
+	static constexpr Sample TRANSIENT_READY_POWER_FRACTION = Sample(0.5);
 	Sample transientMinFreq_{Sample(0.03)};
 	Sample attackPowerGate_{Sample(2.25)};
 	Sample attackSmoothRatio_{Sample(0.5)};
@@ -731,8 +782,14 @@ private:
 	int transientSamples_ = 0;
 	int transientCooldown_ = 0;
 	int transientCount_ = 0;
-	bool transientOnset_ = false;
+	enum class TransientState { IDLE, COLLECTING, RESET, COOLDOWN };
+	TransientState transientState_ = TransientState::IDLE;
+	int transientInputSamples_ = 0;
+	Sample transientCenter_ = 0;
 	static constexpr Sample ENHANCEMENT_STRENGTH = Sample(1.5);
+	static constexpr Sample NOISE_MORPH_STRENGTH = Sample(2);
+	static constexpr Sample NOISE_DECORRELATION_START_STRETCH = Sample(2);
+	static constexpr Sample NOISE_DECORRELATION_FULL_STRETCH = Sample(4);
 
 	Sample getSpeedDose() const noexcept {
 		Sample raw = std::clamp((smoothTimeFactor_ - Sample(1)) / smoothTimeFactor_, Sample(0), Sample(1));
@@ -764,6 +821,7 @@ private:
 	using STFT = signalsmith::linear::DynamicSTFT<Sample, false, true>;
 	STFT stft;
 	NoiseMorph<Sample> noiseMorph;
+	EnvelopeEq<Sample> envelopeEq;
 	bool noiseMorphEnabled_ = true;
 	typename STFT::Input stashedInput;
 	typename STFT::Output stashedOutput;
@@ -848,6 +906,7 @@ private:
 	struct Prediction {
 		Sample energy = 0;
 		Sample timeGradient = 0;
+		Sample timeAdvance = 0;
 		Sample frequencyGradient = 0;
 		Complex input;
 
@@ -866,34 +925,74 @@ private:
 	std::vector<Sample> pvdrCurrentEnergy;
 	std::vector<Sample> pvdrPreviousEnergy;
 	std::vector<Sample> pvdrSteer_;
+	bool tonalReferenceHistory_ = false;
 	std::vector<char> transientHold_;
-	std::vector<char> hblLocked_;
 	static constexpr Sample PVDR_ENERGY_TOLERANCE = Sample(1e-12);
 	static constexpr int PVDR_PREVIOUS = -1;
 	static constexpr int PVDR_UNPROCESSED = -2;
 	static constexpr int PVDR_RANDOM = -3;
 	static constexpr int PEAK_SHELTER_RADIUS = 4;
 	static constexpr Sample PEAK_SHELTER_RATIO = Sample(4);
+	static constexpr Sample TONAL_REFERENCE_PRIORITY = Sample(1.5);
+	static constexpr Sample TONAL_REFERENCE_PROMINENCE = Sample(2.5);
+	static constexpr Sample TONAL_REFERENCE_POWER_RATIO = Sample(0.5);
+	static constexpr Sample TONAL_REFERENCE_MIN_POWER = Sample(0.001);
+	static constexpr Sample TONAL_PHASE_MAX_HZ = Sample(2500);
+	static constexpr Sample TONAL_PHASE_MAX_WEIGHT = Sample(0.5);
+	static constexpr Sample TONAL_PHASE_ERROR_START = Sample(0.025);
+	static constexpr Sample TONAL_PHASE_ERROR_RANGE = Sample(0.25);
+	static constexpr Sample TONAL_PHASE_MAX_CORRECTION = Sample(0.12);
+	static constexpr int TONAL_AGREEMENT_RADIUS = 2;
+	static constexpr Sample TONAL_AGREEMENT_MIN_POWER = Sample(0.1);
+	static constexpr Sample TONAL_AGREEMENT_TOLERANCE = Sample(0.1);
+	static constexpr Sample TONAL_AGREEMENT_MIN_CONFIDENCE = Sample(0.25);
 	static constexpr Sample TIMEFACTOR_SMOOTHING = Sample(0.05);
 	static constexpr Sample TIMEFACTOR_SNAP_RATIO = Sample(0.1);
 	Prediction * predictionsForChannel(int c) {
 		return channelPredictions.data() + c*bands;
 	}
 
+	Sample getTonalPeakAgreement(int channel, int b, Sample sourcePhase) {
+		const auto *bins = bandsForChannel(channel);
+		const Sample currentPower = _impl::norm(bins[b].input);
+		const Sample previousPower = _impl::norm(bins[b].prevInput);
+		Sample weightedAgreement = tinyFloor;
+		Sample totalWeight = tinyFloor;
+		const Sample phaseScale = Sample(stft.defaultInterval()) / blockProcess.phaseInterval;
+		for (int direction : {-1, 1}) {
+			Sample lastCurrent = currentPower;
+			Sample lastPrevious = previousPower;
+			for (int k = b + direction; k >= 0 && k < bands && std::abs(k - b) <= TONAL_AGREEMENT_RADIUS; k += direction) {
+				const Sample current = _impl::norm(bins[k].input);
+				const Sample previous = _impl::norm(bins[k].prevInput);
+				if (current >= lastCurrent || previous >= lastPrevious ||
+					current < currentPower * TONAL_AGREEMENT_MIN_POWER ||
+					previous < previousPower * TONAL_AGREEMENT_MIN_POWER) {
+					break;
+				}
+				lastCurrent = current;
+				lastPrevious = previous;
+				const Complex progression = _impl::mul<true>(bins[k].input, bins[k].prevInput);
+				Sample difference = std::atan2(progression.imag(), progression.real()) - sourcePhase;
+				difference -= Sample(2*M_PI) * std::round(difference / Sample(2*M_PI));
+				const Sample deviation = difference * phaseScale / TONAL_AGREEMENT_TOLERANCE;
+				const Sample weight = std::sqrt(current * previous);
+				weightedAgreement += weight / (Sample(1) + deviation * deviation);
+				totalWeight += weight;
+			}
+		}
+		return TONAL_AGREEMENT_MIN_CONFIDENCE + (Sample(1) - TONAL_AGREEMENT_MIN_CONFIDENCE) *
+			weightedAgreement / totalWeight;
+	}
+
 	// PVDR traversal adapted from Holighaus and Prusa, "Phase vocoder done right", EUSIPCO 2017.
 	void preparePvdrTraversal() {
-		if (transientSamples_ > 0) {
-			for (int b = 0; b < bands; ++b) {
-				pvdrOrder[b] = b;
-			}
-			std::sort(pvdrOrder.begin(), pvdrOrder.end(), [&](int a, int b) {
-				if (pvdrCurrentEnergy[a] != pvdrCurrentEnergy[b]) {
-					return pvdrCurrentEnergy[a] > pvdrCurrentEnergy[b];
-				}
-				return a < b;
-			});
-			return;
-		}
+		const bool trackReferences = blockProcess.newSpectrum && !blockProcess.mappedFrequencies &&
+			!blockProcess.processFormants && blockProcess.timeFactor > TRANSIENT_MIN_STRETCH &&
+			transientSamples_ == 0 && transientState_ != TransientState::COLLECTING;
+		const bool continueReferences = trackReferences && tonalReferenceHistory_;
+		tonalReferenceHistory_ = trackReferences;
+		std::fill(pvdrSteer_.begin(), pvdrSteer_.end(), Sample(1));
 		if (!blockProcess.mappedFrequencies && blockProcess.timeFactor > TRANSIENT_MIN_STRETCH) {
 			Sample peakMax = 0;
 			for (int b = 0; b < bands; ++b) {
@@ -901,6 +1000,21 @@ private:
 			}
 			Sample peakTol = peakMax*PVDR_ENERGY_TOLERANCE;
 			int highBin = static_cast<int>(freqToBand(splitFreq));
+			if (continueReferences) {
+				for (int b = 1; b < highBin; ++b) {
+					Sample previous = pvdrPreviousEnergy[b];
+					Sample current = pvdrCurrentEnergy[b];
+					Sample neighbors = std::max(pvdrCurrentEnergy[b - 1], pvdrCurrentEnergy[b + 1]);
+					if (pvdrParent[b] == PVDR_PREVIOUS &&
+						previous > pvdrPreviousEnergy[b - 1] && previous >= pvdrPreviousEnergy[b + 1] &&
+						current > peakMax*TONAL_REFERENCE_MIN_POWER &&
+						current >= previous*TONAL_REFERENCE_POWER_RATIO &&
+						current >= neighbors*TONAL_REFERENCE_POWER_RATIO &&
+						energy[b] > smoothedEnergy[b]*TONAL_REFERENCE_PROMINENCE) {
+						pvdrSteer_[b] = TONAL_REFERENCE_PRIORITY;
+					}
+				}
+			}
 			int orderSize = 0;
 			int heapSize = 0;
 			int significant = 0;
@@ -1157,11 +1271,12 @@ private:
 			}
 		}
 		bool transientTripped = false;
+		const bool timedReset = !blockProcess.mappedFrequencies && !blockProcess.processFormants;
 		Sample stretchDose = std::clamp((smoothTimeFactor_ - Sample(1)) / smoothTimeFactor_, Sample(0), Sample(1));
 		Sample onsetNeed = TRANSIENT_ONSET_FLUX_RATIO * (Sample(1) - Sample(0.3) * stretchDose);
 		Sample bgNeed = TRANSIENT_BG_RATIO * (Sample(1) - Sample(0.25) * stretchDose);
 		for (int region = 0; region < 3; ++region) {
-			if (transientCooldown_ > 0) {
+			if (transientCooldown_ > 0 || transientState_ != TransientState::IDLE) {
 				break;
 			}
 			if (highPower[region] > TRANSIENT_MIN_POWER &&
@@ -1173,7 +1288,7 @@ private:
 				}
 				transientSamples_ = int(stft.blockSamples()/2);
 				transientCooldown_ = int(stft.blockSamples()*3/2);
-				transientOnset_ = true;
+				transientState_ = timedReset ? TransientState::COLLECTING : TransientState::RESET;
 				transientTripped = true;
 				break;
 			}
@@ -1182,7 +1297,7 @@ private:
 			Sample mediumOnsetNeed = onsetNeed * TRANSIENT_MEDIUM_ONSET_SCALE;
 			Sample mediumBgNeed = bgNeed * TRANSIENT_MEDIUM_BG_SCALE;
 			for (int region = 0; region < 3; ++region) {
-				if (transientCooldown_ > 0) {
+				if (transientCooldown_ > 0 || transientState_ != TransientState::IDLE) {
 					break;
 				}
 				if (highPower[region] > TRANSIENT_MIN_POWER &&
@@ -1191,13 +1306,13 @@ private:
 					risingEnergy[region] > totalEnergy[region] * mediumOnsetNeed) {
 					transientSamples_ = int(stft.blockSamples()/4);
 					transientCooldown_ = int(stft.blockSamples()/2);
-					transientOnset_ = true;
+					transientState_ = timedReset ? TransientState::COLLECTING : TransientState::RESET;
 					transientTripped = true;
 					break;
 				}
 			}
 		}
-		if (!transientTripped && transientCooldown_ == 0 && firstBand > 1) {
+		if (!transientTripped && transientCooldown_ == 0 && transientState_ == TransientState::IDLE && firstBand > 1) {
 			Sample lowPower = 0;
 			Sample lowRising = 0;
 			Sample lowTotal = 0;
@@ -1224,18 +1339,18 @@ private:
 				lowRising > lowTotal * bassOnsetNeed) {
 				transientSamples_ = int(stft.blockSamples()/4);
 				transientCooldown_ = int(stft.blockSamples()/2);
-				transientOnset_ = true;
+				transientState_ = timedReset ? TransientState::COLLECTING : TransientState::RESET;
 				transientTripped = true;
 			}
 		}
 		if (!transientBgReady_) {
-			if (!transientTripped && transientSamples_ == 0 && transientCooldown_ == 0) {
+			if (!transientTripped && transientSamples_ == 0 && transientCooldown_ == 0 && transientState_ == TransientState::IDLE) {
 				for (int region = 0; region < 3; ++region) {
 					transientBg_[region] = highPower[region];
 				}
 				transientBgReady_ = true;
 			}
-		} else if (transientSamples_ == 0 && transientCooldown_ == 0) {
+		} else if (transientSamples_ == 0 && transientCooldown_ == 0 && transientState_ == TransientState::IDLE) {
 			Sample upRate = Sample(1)/(Sample(8)*blockProcess.timeFactor);
 			Sample downRate = upRate*Sample(0.125);
 			for (int region = 0; region < 3; ++region) {
@@ -1243,9 +1358,7 @@ private:
 				transientBg_[region] += (highPower[region] - transientBg_[region])*rate;
 			}
 		}
-		if (transientSamples_ == 0) {
-			std::fill(transientHold_.begin(), transientHold_.end(), 0);
-		} else {
+		if (!timedReset && transientTripped) {
 			Sample holdNeed = TRANSIENT_FLUX_RATIO * (Sample(1) - Sample(0.25) * stretchDose);
 			for (int b = 0; b < bands; ++b) {
 				Sample curPower = Sample(0);
@@ -1266,6 +1379,68 @@ private:
 					}
 				}
 			}
+			return;
+		}
+		if (transientTripped) {
+			transientInputSamples_ = int(stft.blockSamples());
+		}
+		if (transientState_ != TransientState::COLLECTING) {
+			return;
+		}
+
+		Sample markedPower = 0;
+		Sample futurePower = 0;
+		int first = 0;
+		while (first < bands) {
+			int peak = first;
+			while (peak + 1 < bands && energy[peak + 1] >= energy[peak]) {
+				++peak;
+			}
+			int last = peak;
+			while (last + 1 < bands && energy[last + 1] < energy[last]) {
+				++last;
+			}
+			Sample power = 0;
+			Sample moment = 0;
+			Sample rising = 0;
+			Sample magnitude = 0;
+			for (int b = first; b <= last; ++b) {
+				Sample previousPower = 0;
+				const int firstNeighbor = std::max(0, b - TRANSIENT_NEIGHBOR_BINS);
+				const int lastNeighbor = std::min(bands - 1, b + TRANSIENT_NEIGHBOR_BINS);
+				for (int c = 0; c < channels; ++c) {
+					const auto *bins = bandsForChannel(c);
+					moment += _impl::mul<true>(bins[b].timed, bins[b].input).real();
+					Sample previous = 0;
+					for (int neighbor = firstNeighbor; neighbor <= lastNeighbor; ++neighbor) {
+						previous = std::max(previous, _impl::norm(bins[neighbor].prevInput));
+					}
+					previousPower += previous;
+				}
+				Sample current = std::sqrt(energy[b]);
+				power += energy[b];
+				rising += std::max(Sample(0), current - std::sqrt(previousPower));
+				magnitude += current;
+			}
+			Sample collectPosition = transientTripped ? Sample(0) : transientCenter_;
+			if (power > TRANSIENT_MIN_POWER && rising > magnitude*onsetNeed && moment > power*collectPosition) {
+				std::fill(transientHold_.begin() + first, transientHold_.begin() + last + 1, 1);
+			}
+			Sample selectedPower = 0;
+			for (int b = first; b <= last; ++b) {
+				if (transientHold_[b] != 0) {
+					selectedPower += energy[b];
+				}
+			}
+			markedPower += selectedPower;
+			if (moment > power*transientCenter_) {
+				futurePower += selectedPower;
+			}
+			first = last + 1;
+		}
+		if (markedPower > TRANSIENT_MIN_POWER && futurePower <= markedPower*TRANSIENT_READY_POWER_FRACTION) {
+			transientState_ = TransientState::RESET;
+			transientSamples_ = std::max(transientSamples_, int(stft.blockSamples()/4));
 		}
 	}
 
@@ -1309,6 +1484,12 @@ private:
 			}
 		}
 		if (step-- == 0) {
+			if (transientState_ != TransientState::IDLE &&
+				(blockProcess.timeFactor <= TRANSIENT_MIN_STRETCH || blockProcess.mappedFrequencies || blockProcess.processFormants)) {
+				transientState_ = TransientState::IDLE;
+				transientInputSamples_ = 0;
+				std::fill(transientHold_.begin(), transientHold_.end(), 0);
+			}
 			if (blockProcess.newSpectrum && blockProcess.timeFactor > TRANSIENT_MIN_STRETCH) {
 				protectTransients();
 			}
@@ -1362,6 +1543,7 @@ private:
 				timeGradient = std::clamp(timeGradient, Sample(-M_PI), Sample(M_PI));
 				prediction.frequencyGradient = std::clamp(prediction.frequencyGradient, Sample(-M_PI), Sample(M_PI));
 				Sample horizontalAngle = (prediction.timeGradient + timeGradient)*Sample(0.5);
+				prediction.timeAdvance = horizontalAngle;
 				Complex timeTwist = std::polar(Sample(1), horizontalAngle);
 				prediction.timeGradient = timeGradient;
 				outputBin.output = _impl::mul(outputBin.output, timeTwist);
@@ -1399,7 +1581,9 @@ private:
 				int parent = pvdrParent[b];
 				Complex phase;
 				const int firstBand = int(freqToBand(transientMinFreq_));
-				if (transientOnset_ && (transientHold_[b] != 0 || b >= firstBand)) {
+				const bool mappedReset = (blockProcess.mappedFrequencies || blockProcess.processFormants) && b >= firstBand;
+				const bool resetTransient = transientState_ == TransientState::RESET && (transientHold_[b] != 0 || mappedReset);
+				if (resetTransient) {
 					phase = prediction.input;
 				} else if (!blockProcess.mappedFrequencies && b >= splitBin && parent >= 0 && clampedTimeFactor > TRANSIENT_MIN_STRETCH) {
 					auto &peakPrediction = predictions[parent];
@@ -1415,6 +1599,28 @@ private:
 					}
 				} else if (parent == PVDR_PREVIOUS) {
 					phase = outputBin.output;
+					if (blockProcess.newSpectrum && pvdrSteer_[b] > Sample(1) &&
+						bandToHz(Sample(b)) < TONAL_PHASE_MAX_HZ) {
+						const Complex previous = bins[b].prevInput;
+						const Complex progression = _impl::mul<true>(prediction.input, previous);
+						const Sample interval = Sample(blockProcess.phaseInterval);
+						const Sample hop = Sample(stft.defaultInterval());
+						const Sample expected = prediction.timeAdvance * interval / hop;
+						const Sample sourcePhase = std::atan2(progression.imag(), progression.real());
+						Sample measured = sourcePhase -
+							Sample(2*M_PI) * bandToFreq(Sample(b)) * interval;
+						measured -= Sample(2*M_PI) * std::round((measured - expected) / Sample(2*M_PI));
+						const Sample error = measured * hop / interval - prediction.timeAdvance;
+						const Sample currentPower = _impl::norm(prediction.input);
+						const Sample previousPower = _impl::norm(previous);
+						const Sample confidence = Sample(2) * std::sqrt(currentPower * previousPower) /
+							(currentPower + previousPower + tinyFloor) * getTonalPeakAgreement(maxChannel, b, sourcePhase);
+						const Sample disagreement = std::clamp((std::abs(error) - TONAL_PHASE_ERROR_START) /
+							TONAL_PHASE_ERROR_RANGE, Sample(0), Sample(1));
+						const Sample correction = std::clamp(error * confidence * disagreement * TONAL_PHASE_MAX_WEIGHT,
+							-TONAL_PHASE_MAX_CORRECTION, TONAL_PHASE_MAX_CORRECTION);
+						phase = _impl::mul(phase, std::polar(Sample(1), correction));
+					}
 				} else if (parent == PVDR_RANDOM) {
 					phase = std::polar(Sample(1), phaseDist(randomEngine));
 				} else {
@@ -1441,7 +1647,7 @@ private:
 					if (c != maxChannel) {
 						auto &channelBin = bandsForChannel(c)[b];
 						auto &channelPrediction = predictionsForChannel(c)[b];
-						if (transientOnset_ && (transientHold_[b] != 0 || b >= firstBand)) {
+						if (resetTransient) {
 							channelBin.output = channelPrediction.makeOutput(channelPrediction.input);
 						} else {
 							Complex channelTwist = _impl::mul<true>(channelPrediction.input, prediction.input);
@@ -1455,8 +1661,9 @@ private:
 					}
 				}
 			}
-			if (chunk + 1 == splitMainPrediction) {
-				transientOnset_ = false;
+			if (chunk + 1 == splitMainPrediction && transientState_ == TransientState::RESET) {
+				transientState_ = transientInputSamples_ > 0 ? TransientState::COOLDOWN : TransientState::IDLE;
+				std::fill(transientHold_.begin(), transientHold_.end(), 0);
 			}
 			return;
 		}
@@ -1464,20 +1671,11 @@ private:
 
 	// Shaping stages, called in the order listed in process().
 	void applyHarmonicPolish() {
-		applyHarmonicPhaseLocking();
 		applyPeakNeighborPhaseLocking();
-		applySumFrequencyPhaseLocking();
 	}
 
 	void applyPhasePolish() {
 		applyMainLobePhaseLocking();
-		applyChirpPhaseAlignment();
-		applyMidSideStereoAlignment();
-	}
-
-	void applyVocalBandEnhancement() {
-		applyVocalPresence();
-		applyVocalBite();
 	}
 
 	void applySpectralPeakAndValleyShaping() {
@@ -1487,7 +1685,6 @@ private:
 
 	void applyDecayDamping() {
 		applyHfDecayDamping();
-		applyReverbTailDamping();
 	}
 
 	void applyPostTransientShaping() {
@@ -1498,168 +1695,6 @@ private:
 		applySpectralBoostLimit();
 		applySpectralGainDiffusion();
 		applyGainFloor();
-	}
-
-	void applyHarmonicPhaseLocking() {
-		if (blockProcess.mappedFrequencies || transientSamples_ > 0 || smoothTimeFactor_ <= Sample(1.01) || channels == 0 || bands == 0) {
-			return;
-		}
-
-		std::fill(hblLocked_.begin(), hblLocked_.end(), 0);
-
-		Sample speedDose = getSpeedDose();
-		int maxFundBin = std::min(bands - 1, static_cast<int>(hzToBand(Sample(2000))));
-		int minFundBin = std::max(2, static_cast<int>(hzToBand(Sample(35))));
-
-		for (int b = minFundBin; b < maxFundBin; ++b) {
-			if (hblLocked_[b] != 0) {
-				continue;
-			}
-			if (energy[b] <= energy[b - 1] || energy[b] <= energy[b + 1] || energy[b] <= smoothedEnergy[b] * Sample(3.0)) {
-				continue;
-			}
-
-			Sample e0 = energy[b - 1];
-			Sample e1 = energy[b];
-			Sample e2 = energy[b + 1];
-			Sample denom = 2 * e1 - e0 - e2;
-			Sample delta = denom > Sample(1e-12) ? Sample(0.5) * (e2 - e0) / denom : Sample(0);
-			delta = std::clamp(delta, Sample(-0.5), Sample(0.5));
-			Sample bStar = Sample(b) + delta;
-
-			int domChannel = 0;
-			if (channels > 1 && predictionsForChannel(1)[b].energy > predictionsForChannel(0)[b].energy) {
-				domChannel = 1;
-			}
-
-			const auto &fundIn = bandsForChannel(domChannel)[b].input;
-			const auto &fundOut = bandsForChannel(domChannel)[b].output;
-			if (_impl::norm(fundIn) <= Sample(1e-18) || _impl::norm(fundOut) <= Sample(1e-18)) {
-				continue;
-			}
-
-			Sample phi1In = std::atan2(fundIn.imag(), fundIn.real());
-			Sample phi1Out = std::atan2(fundOut.imag(), fundOut.real());
-
-			for (int m = 2; m <= 4; ++m) {
-				int targetBin = static_cast<int>(std::round(freqToBand(bandToFreq(bStar) * Sample(m))));
-				if (targetBin >= bands - 1 || bandToHz(Sample(targetBin)) > Sample(4000)) {
-					break;
-				}
-				if (hblLocked_[targetBin] != 0) {
-					continue;
-				}
-
-				int bestK = targetBin;
-				Sample bestEnergy = energy[targetBin];
-				for (int k = targetBin - 1; k <= targetBin + 1; ++k) {
-					if (k > 0 && k < bands && energy[k] > bestEnergy) {
-						bestEnergy = energy[k];
-						bestK = k;
-					}
-				}
-
-				if (bestEnergy <= smoothedEnergy[bestK] * Sample(2.0) || bestEnergy <= e1 * Sample(0.005)) {
-					continue;
-				}
-				if (bestK > 0 && bestK + 1 < bands) {
-					if (energy[bestK] <= energy[bestK - 1] || energy[bestK] <= energy[bestK + 1]) {
-						continue;
-					}
-				}
-
-				hblLocked_[bestK] = 1;
-
-				const auto &harmIn = bandsForChannel(domChannel)[bestK].input;
-				const auto &harmOut = bandsForChannel(domChannel)[bestK].output;
-				if (_impl::norm(harmIn) <= Sample(1e-18) || _impl::norm(harmOut) <= Sample(1e-18)) {
-					continue;
-				}
-
-				Sample phikIn = std::atan2(harmIn.imag(), harmIn.real());
-				Sample phikOut = std::atan2(harmOut.imag(), harmOut.real());
-
-				Sample biphaseIn = phikIn - Sample(m) * phi1In;
-				Sample biphaseOut = phikOut - Sample(m) * phi1Out;
-				Sample error = biphaseOut - biphaseIn;
-				error = error - Sample(2 * M_PI) * std::round(error / Sample(2 * M_PI));
-
-				Sample lambda = Sample(0.4) / std::sqrt(Sample(m));
-				Sample steerAngle = std::clamp(-error * lambda * speedDose, Sample(-0.3), Sample(0.3));
-				Complex rotator = _impl::fastPolar(Sample(1), steerAngle);
-
-				Sample crest = Sample(1) + Sample(0.02) * speedDose * (Sample(1) / Sample(m));
-				Complex crestRotator = rotator * crest;
-
-				for (int c = 0; c < channels; ++c) {
-					auto *chBands = bandsForChannel(c);
-					chBands[bestK].output = _impl::mul(chBands[bestK].output, crestRotator);
-				}
-			}
-		}
-	}
-
-	void applyChirpPhaseAlignment() {
-		if (transientSamples_ > 0 || smoothTimeFactor_ <= Sample(1.01) || channels == 0 || bands < 3) {
-			return;
-		}
-
-		Sample speedDose = getSpeedDose();
-
-		int domChannel = 0;
-		if (channels > 1 && predictionsForChannel(1)[bands / 4].energy > predictionsForChannel(0)[bands / 4].energy) {
-			domChannel = 1;
-		}
-
-		auto *domBands = bandsForChannel(domChannel);
-
-		int maxBand = std::min(bands - 1, static_cast<int>(hzToBand(Sample(5000))));
-		for (int b = 1; b < maxBand; ++b) {
-			if (energy[b] <= smoothedEnergy[b] * Sample(0.5)) {
-				continue;
-			}
-
-			const auto &inPrev = domBands[b - 1].input;
-			const auto &inCur = domBands[b].input;
-			const auto &inNext = domBands[b + 1].input;
-
-			const auto &outPrev = domBands[b - 1].output;
-			const auto &outCur = domBands[b].output;
-			const auto &outNext = domBands[b + 1].output;
-
-			if (_impl::norm(inPrev) <= Sample(1e-18) || _impl::norm(inCur) <= Sample(1e-18) || _impl::norm(inNext) <= Sample(1e-18) ||
-				_impl::norm(outPrev) <= Sample(1e-18) || _impl::norm(outCur) <= Sample(1e-18) || _impl::norm(outNext) <= Sample(1e-18)) {
-				continue;
-			}
-
-			Complex inCurConj = std::conj(inCur);
-			Complex inCurConjSq = _impl::mul(inCurConj, inCurConj);
-			Complex inChirp = _impl::mul(_impl::mul(inNext, inPrev), inCurConjSq);
-
-			Complex outCurConj = std::conj(outCur);
-			Complex outCurConjSq = _impl::mul(outCurConj, outCurConj);
-			Complex outChirp = _impl::mul(_impl::mul(outNext, outPrev), outCurConjSq);
-
-			Sample inNorm = _impl::norm(inChirp);
-			Sample outNorm = _impl::norm(outChirp);
-			if (inNorm <= Sample(1e-18) || outNorm <= Sample(1e-18)) {
-				continue;
-			}
-
-			Complex dispError = _impl::mul<true>(outChirp, inChirp);
-			Sample errAngle = std::atan2(dispError.imag(), dispError.real());
-
-			Sample taper = getHighFrequencyTaper(bandToHz(Sample(b)));
-			Sample correction = std::clamp(errAngle * Sample(0.2) * speedDose * taper, Sample(-0.25), Sample(0.25));
-			Complex rotator = _impl::fastPolar(Sample(1), correction);
-
-			for (int c = 0; c < channels; ++c) {
-				auto *bins = bandsForChannel(c);
-				bins[b].output = _impl::mul(bins[b].output, rotator);
-			}
-
-			++b;
-		}
 	}
 
 	void applyPeakNeighborPhaseLocking() {
@@ -1776,174 +1811,6 @@ private:
 			} else {
 				binsL[b].output = fixed;
 			}
-			hblLocked_[b] = 1;
-		}
-	}
-
-	void applyVocalPresence() {
-		if (blockProcess.mappedFrequencies || transientSamples_ > 0 || transientCooldown_ > 0 || smoothTimeFactor_ <= Sample(1.01) || channels == 0 || bands < 4) {
-			return;
-		}
-		constexpr Sample BLEND_BASE = Sample(0.28);
-		constexpr Sample MIN_HZ = Sample(1000);
-		constexpr Sample MAX_HZ = Sample(4500);
-		constexpr Sample FLOOR = Sample(1e-18);
-		constexpr Sample ENERGY_FLOOR = Sample(1e-15);
-		Sample speedDose = getSpeedDose();
-		Sample blend = BLEND_BASE * speedDose;
-		int minBand = std::max(2, static_cast<int>(hzToBand(MIN_HZ)));
-		int maxBand = std::min(bands - 1, static_cast<int>(hzToBand(MAX_HZ)));
-		if (minBand >= maxBand) {
-			return;
-		}
-		for (int c = 0; c < channels; ++c) {
-			auto *bins = bandsForChannel(c);
-			for (int pass = 0; pass < 2; ++pass) {
-				for (int b = minBand + pass; b < maxBand; b += 2) {
-					Sample eCur = energy[b];
-				Sample ePrev = energy[b - 1];
-				if (hblLocked_[b] != 0) {
-					continue;
-				}
-				if (eCur <= ENERGY_FLOOR || ePrev <= ENERGY_FLOOR) {
-						continue;
-					}
-					if (eCur > energy[b - 1] && eCur > energy[b + 1] && eCur > smoothedEnergy[b] * Sample(1.8)) {
-						continue;
-					}
-					if (ePrev > energy[b - 2] && ePrev > energy[b] && ePrev > smoothedEnergy[b - 1] * Sample(1.8)) {
-						continue;
-					}
-					const auto &inCur = bins[b].input;
-					const auto &inPrev = bins[b - 1].input;
-					const auto &outCur = bins[b].output;
-					const auto &outPrev = bins[b - 1].output;
-					Sample nOutCur = _impl::norm(outCur);
-					Sample nOutPrev = _impl::norm(outPrev);
-					if (nOutCur <= FLOOR || nOutPrev <= FLOOR) {
-						continue;
-					}
-					Complex rel = _impl::mul<true>(inCur, inPrev);
-					Sample nRel = _impl::norm(rel);
-					if (nRel <= FLOOR) {
-						continue;
-					}
-					Complex relUnit = rel / std::sqrt(nRel);
-					Complex dir = _impl::mul(outPrev, relUnit);
-					Sample magCur = std::sqrt(nOutCur);
-					Sample magPrev = std::sqrt(nOutPrev);
-					Complex target = dir * (magCur / magPrev);
-					Sample taper = getHighFrequencyTaper(bandToHz(Sample(b)));
-					Sample localBlend = blend * taper;
-					Complex mixed = outCur * (Sample(1) - localBlend) + target * localBlend;
-					Sample nMix = _impl::norm(mixed);
-					if (nMix <= FLOOR) {
-						continue;
-					}
-					bins[b].output = mixed * (magCur / std::sqrt(nMix));
-					hblLocked_[b] = 1;
-				}
-			}
-		}
-	}
-
-	void applyVocalBite() {
-		if (blockProcess.mappedFrequencies || transientSamples_ > 0 || transientCooldown_ > 0 || smoothTimeFactor_ <= Sample(1.01) || channels == 0 || bands < 4) {
-			return;
-		}
-		constexpr Sample BLEND_BASE = Sample(0.28);
-		constexpr Sample TARGET_MIN_HZ = Sample(1500);
-		constexpr Sample SEARCH_MAX_HZ = Sample(4500);
-		constexpr Sample DRIVER_MIN_HZ = Sample(350);
-		constexpr Sample FLOOR = Sample(1e-18);
-		constexpr int MAX_PEAKS = 12;
-		Sample speedDose = getSpeedDose();
-		Sample blend = BLEND_BASE * speedDose;
-		int minSearch = std::max(2, static_cast<int>(hzToBand(DRIVER_MIN_HZ)));
-		int maxSearch = std::min(bands - 1, static_cast<int>(hzToBand(SEARCH_MAX_HZ)));
-		int minTarget = std::max(2, static_cast<int>(hzToBand(TARGET_MIN_HZ)));
-		if (minSearch >= maxSearch || minTarget >= bands - 1) {
-			return;
-		}
-		int peaks[MAX_PEAKS];
-		int numPeaks = 0;
-		for (int b = minSearch; b < maxSearch && numPeaks < MAX_PEAKS; ++b) {
-			if (energy[b] > energy[b - 1] && energy[b] > energy[b + 1] && energy[b] > smoothedEnergy[b] * Sample(2.2)) {
-				peaks[numPeaks++] = b;
-			}
-		}
-		if (numPeaks < 2) {
-			return;
-		}
-		std::sort(peaks, peaks + numPeaks, [&](int a, int b) {
-			return energy[a] > energy[b];
-		});
-		uint64_t locked[64] = {0};
-		for (int i = 0; i < numPeaks; ++i) {
-			for (int j = i; j < numPeaks; ++j) {
-				int targetBin = peaks[i] + peaks[j];
-				if (targetBin < minTarget || targetBin >= bands - 1 || targetBin >= 4096 || bandToHz(Sample(targetBin)) > Sample(4800)) {
-					continue;
-				}
-				int bestK = targetBin;
-				Sample bestEnergy = energy[targetBin];
-				for (int k = targetBin - 1; k <= targetBin + 1; ++k) {
-					if (k > 0 && k < bands && energy[k] > bestEnergy) {
-						bestEnergy = energy[k];
-						bestK = k;
-					}
-				}
-				if (bestK <= 0 || bestK >= bands - 1) {
-					continue;
-				}
-				if (energy[bestK] <= energy[bestK - 1] || energy[bestK] <= energy[bestK + 1]) {
-					continue;
-				}
-				if (bestEnergy <= smoothedEnergy[bestK] * Sample(1.8)) {
-					continue;
-				}
-				int word = bestK >> 6;
-				uint64_t mask = uint64_t(1) << (bestK & 63);
-				if ((locked[word] & mask) != 0) {
-					continue;
-				}
-				if (hblLocked_[bestK] != 0) {
-					continue;
-				}
-				for (int c = 0; c < channels; ++c) {
-					auto *bins = bandsForChannel(c);
-					const auto &in1 = bins[peaks[i]].input;
-					const auto &in2 = bins[peaks[j]].input;
-					const auto &in3 = bins[bestK].input;
-					const auto &out1 = bins[peaks[i]].output;
-					const auto &out2 = bins[peaks[j]].output;
-					const auto &out3 = bins[bestK].output;
-					Sample nIn = _impl::norm(in1) * _impl::norm(in2) * _impl::norm(in3);
-					Sample nOut = _impl::norm(out1) * _impl::norm(out2) * _impl::norm(out3);
-					if (nIn <= Sample(1e-24) || nOut <= Sample(1e-24)) {
-						continue;
-					}
-					Complex inProd = _impl::mul(in1, in2);
-					Complex inBi = _impl::mul<true>(inProd, in3);
-					Complex outProd = _impl::mul(out1, out2);
-					Complex outBi = _impl::mul<true>(outProd, out3);
-					Complex err = _impl::mul<true>(outBi, inBi);
-					Sample nErr = _impl::norm(err);
-					if (nErr <= FLOOR) {
-						continue;
-					}
-					Complex fix = std::conj(err / std::sqrt(nErr));
-					Sample nOut3 = _impl::norm(out3);
-					Complex target = _impl::mul(out3, fix);
-					Complex mixed = out3 * (Sample(1) - blend) + target * blend;
-					Sample nMix = _impl::norm(mixed);
-					if (nMix <= FLOOR) {
-						continue;
-					}
-					bins[bestK].output = mixed * (std::sqrt(nOut3) / std::sqrt(nMix));
-				}
-				locked[word] |= mask;
-			}
 		}
 	}
 
@@ -1989,82 +1856,6 @@ private:
 			attackGain = std::clamp(attackGain, Sample(1), OVERDRIVE_GAIN);
 			for (int c = 0; c < channels; ++c) {
 				bandsForChannel(c)[b].output *= attackGain;
-			}
-		}
-	}
-
-	void applySidelobeLock() {
-		if (blockProcess.mappedFrequencies || transientSamples_ > 0 || smoothTimeFactor_ <= Sample(1.01) || channels == 0 || bands < 4) {
-			return;
-		}
-		constexpr Sample BLEND_BASE = Sample(0.24);
-		constexpr Sample MIN_HZ = Sample(800);
-		constexpr Sample FLOOR = Sample(1e-18);
-		Sample speedDose = getSpeedDose();
-		Sample blend = BLEND_BASE * speedDose;
-		int minBand = std::max(1, static_cast<int>(hzToBand(MIN_HZ)));
-		if (minBand >= bands) {
-			return;
-		}
-		std::fill(hblLocked_.begin(), hblLocked_.end(), 0);
-		for (int i = 0; i < bands; ++i) {
-			int b = pvdrOrder[i];
-			if (b < minBand) {
-				continue;
-			}
-			int p = pvdrParent[b];
-			if (p < 0) {
-				continue;
-			}
-			Sample localBlend = blend;
-			if (energy[b] >= smoothedEnergy[b]) {
-				if (b == p - 1 || b == p + 1) {
-					Sample ratio = std::clamp(energy[b] / (energy[p] + Sample(1e-12)), Sample(0), Sample(1));
-					localBlend = blend * Sample(0.5) * (Sample(1) - ratio * Sample(0.5));
-				} else {
-					continue;
-				}
-			}
-			Sample freqHz = bandToHz(Sample(b));
-			Sample highWeight = std::clamp((freqHz - Sample(2000)) / Sample(2000), Sample(0), Sample(1));
-			localBlend = std::clamp(localBlend * (Sample(1) + highWeight * Sample(0.5)), Sample(0), Sample(0.35));
-			Sample prom = energy[b] / (smoothedEnergy[b] + FLOOR);
-			if (b > 0) {
-				prom = std::max(prom, energy[b - 1] / (smoothedEnergy[b - 1] + FLOOR));
-			}
-			if (b + 1 < bands) {
-				prom = std::max(prom, energy[b + 1] / (smoothedEnergy[b + 1] + FLOOR));
-			}
-			Sample tonal = std::clamp((prom - Sample(2)) / Sample(2), Sample(0), Sample(1));
-			localBlend *= (Sample(1) - Sample(0.7) * tonal);
-			hblLocked_[b] = 1;
-			for (int c = 0; c < channels; ++c) {
-				auto *bins = bandsForChannel(c);
-				const auto &inB = bins[b].input;
-				const auto &inP = bins[p].input;
-				const auto outB = bins[b].output;
-				const auto &outP = bins[p].output;
-				Sample nOutB = _impl::norm(outB);
-				Sample nOutP = _impl::norm(outP);
-				if (nOutB <= FLOOR || nOutP <= FLOOR) {
-					continue;
-				}
-				Complex rel = _impl::mul<true>(inB, inP);
-				Sample nRel = _impl::norm(rel);
-				if (nRel <= FLOOR) {
-					continue;
-				}
-				Complex relUnit = rel / std::sqrt(nRel);
-				Complex dir = _impl::mul(outP, relUnit);
-				Sample magOut = std::sqrt(nOutB);
-				Sample magPar = std::sqrt(nOutP);
-				Complex target = dir * (magOut / magPar);
-				Complex mixed = outB * (Sample(1) - localBlend) + target * localBlend;
-				Sample nMix = _impl::norm(mixed);
-				if (nMix <= FLOOR) {
-					continue;
-				}
-				bins[b].output = mixed * (magOut / std::sqrt(nMix));
 			}
 		}
 	}
@@ -2119,154 +1910,24 @@ private:
 
 				Sample norm0 = _impl::norm(bins0[b].output);
 				Sample norm1 = _impl::norm(bins1[b].output);
-				if (norm0 <= Sample(1e-18) || norm1 <= Sample(1e-18)) {
+				Sample inputNorm0 = _impl::norm(bins0[b].input);
+				Sample inputNorm1 = _impl::norm(bins1[b].input);
+				if (norm0 <= Sample(1e-18) || norm1 <= Sample(1e-18) ||
+					inputNorm0 <= Sample(1e-18) || inputNorm1 <= Sample(1e-18)) {
 					continue;
 				}
 
 				Complex stereoTwist = _impl::mul<true>(bins1[b].output, bins0[b].output);
-				Sample angleDiff = std::atan2(stereoTwist.imag(), stereoTwist.real());
-				Sample weight = (Sample(1) - (freq / Sample(100))) * speedDose * Sample(0.6);
-				Complex rotator = _impl::fastPolar(Sample(1), -angleDiff * weight);
+				Complex inputTwist = _impl::mul<true>(bins1[b].input, bins0[b].input);
+				Sample phaseError = std::atan2(stereoTwist.imag(), stereoTwist.real()) -
+					std::atan2(inputTwist.imag(), inputTwist.real());
+				phaseError -= Sample(2*M_PI) * std::round(phaseError / Sample(2*M_PI));
+				Sample powerRatio = std::min(inputNorm0, inputNorm1) / std::max(inputNorm0, inputNorm1);
+				Sample confidence = Sample(2) * std::sqrt(powerRatio) / (Sample(1) + powerRatio);
+				Sample weight = (Sample(1) - (freq / Sample(100))) * speedDose * Sample(0.6) * confidence;
+				Complex rotator = _impl::fastPolar(Sample(1), -phaseError * weight);
 				bins1[b].output = _impl::mul(bins1[b].output, rotator);
 			}
-		}
-
-		int bestB = minBassBin;
-		Sample maxEnergy = energy[minBassBin];
-		for (int b = minBassBin + 1; b <= maxBassBin; ++b) {
-			if (energy[b] > maxEnergy) {
-				maxEnergy = energy[b];
-				bestB = b;
-			}
-		}
-
-		if (maxEnergy > smoothedEnergy[bestB] * Sample(1.5) && bestB > 0 && bestB + 1 < bands) {
-			Sample e0 = energy[bestB - 1];
-			Sample e1 = energy[bestB];
-			Sample e2 = energy[bestB + 1];
-			Sample denom = 2 * e1 - e0 - e2;
-			Sample delta = denom > Sample(1e-12) ? Sample(0.5) * (e2 - e0) / denom : Sample(0);
-			delta = std::clamp(delta, Sample(-0.5), Sample(0.5));
-			Sample bStar = Sample(bestB) + delta;
-
-			Sample idealAdvance = Sample(2 * M_PI) * bandToFreq(bStar) * Sample(stft.defaultInterval());
-			idealAdvance = idealAdvance - Sample(2 * M_PI) * std::round(idealAdvance / Sample(2 * M_PI));
-
-			for (int c = 0; c < channels; ++c) {
-				auto *bins = bandsForChannel(c);
-				Sample curNorm = _impl::norm(bins[bestB].output);
-				Sample prevNorm = _impl::norm(bins[bestB].prevOutput);
-				if (curNorm <= Sample(1e-18) || prevNorm <= Sample(1e-18)) {
-					continue;
-				}
-
-				Complex advanceTwist = _impl::mul<true>(bins[bestB].output, bins[bestB].prevOutput);
-				Sample measuredAdvance = std::atan2(advanceTwist.imag(), advanceTwist.real());
-				Sample error = measuredAdvance - idealAdvance;
-				error = error - Sample(2 * M_PI) * std::round(error / Sample(2 * M_PI));
-
-				Sample damp = -error * speedDose * Sample(0.35);
-				Complex flywheelRotator = _impl::fastPolar(Sample(1), damp);
-
-				bins[bestB].output = _impl::mul(bins[bestB].output, flywheelRotator);
-				if (bestB > 0 && pvdrParent[bestB - 1] == bestB) {
-					bins[bestB - 1].output = _impl::mul(bins[bestB - 1].output, flywheelRotator);
-				}
-				if (bestB + 1 < bands && pvdrParent[bestB + 1] == bestB) {
-					bins[bestB + 1].output = _impl::mul(bins[bestB + 1].output, flywheelRotator);
-				}
-			}
-		}
-	}
-
-	void applyInterHopCancellationCompensation() {
-		if (!blockProcess.newSpectrum || blockProcess.mappedFrequencies || transientSamples_ > 0 || smoothTimeFactor_ <= Sample(1.01) || channels == 0 || bands == 0) {
-			return;
-		}
-
-		Sample speedDose = getSpeedDose();
-
-		for (int c = 0; c < channels; ++c) {
-			auto *bins = bandsForChannel(c);
-			for (int b = 0; b < bands; ++b) {
-				const auto &outNow = bins[b].output;
-				const auto &outPrev = bins[b].prevOutput;
-
-				if (_impl::norm(outNow) <= Sample(1e-18) || _impl::norm(outPrev) <= Sample(1e-18)) {
-					continue;
-				}
-
-				Complex outAdvance = _impl::mul<true>(outNow, outPrev);
-				Sample nominalAdvance = Sample(2 * M_PI) * bandToFreq(b) * Sample(stft.defaultInterval());
-				Complex targetAdvance = _impl::fastPolar(Sample(1), nominalAdvance);
-				Complex errorPhasor = _impl::mul<true>(outAdvance, targetAdvance);
-
-				Sample normErr = _impl::norm(errorPhasor);
-				if (normErr <= Sample(1e-18)) {
-					continue;
-				}
-
-				Sample cosErr = errorPhasor.real() / std::sqrt(normErr);
-				cosErr = std::clamp(cosErr, Sample(-1), Sample(1));
-
-				Sample cancel = Sample(1) - cosErr;
-				Sample compGain = Sample(1) + speedDose * Sample(0.06) * cancel;
-
-				bins[b].output *= compGain;
-			}
-		}
-	}
-
-	void applyMidSideStereoAlignment() {
-		if (transientSamples_ > 0 || smoothTimeFactor_ <= Sample(1.01) || channels != 2 || bands == 0) {
-			return;
-		}
-
-		Sample speedDose = getSpeedDose();
-		auto *binsL = bandsForChannel(0);
-		auto *binsR = bandsForChannel(1);
-
-		int maxBand = std::min(bands, static_cast<int>(hzToBand(Sample(5000))));
-		for (int b = 0; b < maxBand; ++b) {
-			const auto &inL = binsL[b].input;
-			const auto &inR = binsR[b].input;
-			const auto &outL = binsL[b].output;
-			const auto &outR = binsR[b].output;
-
-			Complex inM = (inL + inR) * Sample(0.5);
-			Complex inS = (inL - inR) * Sample(0.5);
-			Complex outM = (outL + outR) * Sample(0.5);
-			Complex outS = (outL - outR) * Sample(0.5);
-
-			Sample nInM = _impl::norm(inM);
-			Sample nInS = _impl::norm(inS);
-			Sample nOutM = _impl::norm(outM);
-			Sample nOutS = _impl::norm(outS);
-
-			if (nInM <= Sample(1e-18) || nInS <= Sample(1e-18) || nOutM <= Sample(1e-18) || nOutS <= Sample(1e-18)) {
-				continue;
-			}
-
-			Complex inCross = _impl::mul<true>(inS, inM);
-			Complex outCross = _impl::mul<true>(outS, outM);
-			Complex errPhasor = _impl::mul<true>(outCross, inCross);
-
-			Sample errAngle = std::atan2(errPhasor.imag(), errPhasor.real());
-			Sample taper = getHighFrequencyTaper(bandToHz(Sample(b)));
-			Sample corrAngle = -errAngle * speedDose * Sample(0.45) * taper;
-			Complex rotator = _impl::fastPolar(Sample(1), corrAngle);
-
-			Sample rIn = nInS / (nInM + Sample(1e-18));
-			Sample rOut = nOutS / (nOutM + Sample(1e-18));
-			Sample kRatio = std::sqrt(rIn / (rOut + Sample(1e-18)));
-			kRatio = std::clamp(kRatio, Sample(0.75), Sample(1.33));
-			Sample kScale = Sample(1) + speedDose * Sample(0.35) * (kRatio - Sample(1)) * taper;
-
-			Complex sCorrected = _impl::mul(outS, rotator) * kScale;
-			Sample powerScale = std::sqrt((nOutM + nOutS) / (nOutM + _impl::norm(sCorrected)));
-
-			binsL[b].output = (outM + sCorrected) * powerScale;
-			binsR[b].output = (outM - sCorrected) * powerScale;
 		}
 	}
 
@@ -2276,13 +1937,13 @@ private:
 		}
 
 		Sample speedDose = getSpeedDose();
-		Sample qExp = speedDose * Sample(0.12);
 
 		for (int b = 2; b < bands - 2; ++b) {
 			if (energy[b] <= energy[b - 1] || energy[b] <= energy[b + 1] || energy[b] <= smoothedEnergy[b] * Sample(2.0)) {
 				continue;
 			}
 
+			Sample qExp = speedDose * Sample(0.12) * getHighFrequencyTaper(bandToHz(Sample(b)));
 			Sample peakEnergy = energy[b];
 			Sample lostEnergy = 0;
 
@@ -2309,7 +1970,8 @@ private:
 				}
 
 				Sample ratio = (skirtEnergy + Sample(1e-12)) / (peakEnergy + Sample(1e-12));
-				Sample g = std::pow(ratio, qExp);
+				Sample taper = getHighFrequencyTaper(bandToHz(Sample(k)));
+				Sample g = std::pow(ratio, qExp * taper);
 				g = std::clamp(g, Sample(0.80), Sample(1.0));
 
 				lostEnergy += skirtEnergy * (Sample(1) - g * g);
@@ -2401,117 +2063,6 @@ private:
 
 			for (int c = 0; c < channels; ++c) {
 				bandsForChannel(c)[b].output *= atten;
-			}
-		}
-	}
-
-	void applySumFrequencyPhaseLocking() {
-		if (blockProcess.mappedFrequencies || transientSamples_ > 0 || transientCooldown_ > 0 || smoothTimeFactor_ <= Sample(1.01) || channels == 0 || bands < 4) {
-			return;
-		}
-
-		Sample speedDose = getSpeedDose();
-		constexpr int MAX_PEAKS = 24;
-		int peaks[MAX_PEAKS];
-		int numPeaks = 0;
-
-		int maxSearchBand = std::min(bands - 1, static_cast<int>(hzToBand(Sample(2200))));
-		int minSearchBand = std::max(2, static_cast<int>(hzToBand(Sample(350))));
-
-		for (int b = minSearchBand; b < maxSearchBand && numPeaks < MAX_PEAKS; ++b) {
-			if (energy[b] > energy[b - 1] && energy[b] > energy[b + 1] && energy[b] > smoothedEnergy[b] * Sample(2.2)) {
-				peaks[numPeaks++] = b;
-			}
-		}
-
-		if (numPeaks < 2) {
-			return;
-		}
-
-		std::sort(peaks, peaks + numPeaks, [&](int a, int b) {
-			return energy[a] > energy[b];
-		});
-
-		int domChannel = 0;
-		if (channels > 1 && predictionsForChannel(1)[bands / 4].energy > predictionsForChannel(0)[bands / 4].energy) {
-			domChannel = 1;
-		}
-		auto *domBands = bandsForChannel(domChannel);
-
-		uint64_t b3Locked[64] = {0};
-
-		for (int i = 0; i < numPeaks; ++i) {
-			int b1 = peaks[i];
-			for (int j = i; j < numPeaks; ++j) {
-				int b2 = peaks[j];
-				int targetBin = b1 + b2;
-				if (targetBin >= bands - 1 || targetBin >= 4096 || bandToHz(Sample(targetBin)) > Sample(4400)) {
-					continue;
-				}
-
-				int bestK = targetBin;
-				Sample bestEnergy = energy[targetBin];
-				for (int k = targetBin - 1; k <= targetBin + 1; ++k) {
-					if (k > 0 && k < bands && energy[k] > bestEnergy) {
-						bestEnergy = energy[k];
-						bestK = k;
-					}
-				}
-
-				if (bestK <= 0 || bestK >= bands - 1) {
-					continue;
-				}
-				if (energy[bestK] <= energy[bestK - 1] || energy[bestK] <= energy[bestK + 1]) {
-					continue;
-				}
-				if (bestEnergy <= smoothedEnergy[bestK] * Sample(1.8)) {
-					continue;
-				}
-				if (hblLocked_[bestK] != 0) {
-					continue;
-				}
-
-				int word = bestK >> 6;
-				uint64_t mask = uint64_t(1) << (bestK & 63);
-				if ((b3Locked[word] & mask) != 0) {
-					continue;
-				}
-
-				const auto &in1 = domBands[b1].input;
-				const auto &in2 = domBands[b2].input;
-				const auto &in3 = domBands[bestK].input;
-
-				const auto &out1 = domBands[b1].output;
-				const auto &out2 = domBands[b2].output;
-				const auto &out3 = domBands[bestK].output;
-
-				Sample nIn = _impl::norm(in1) * _impl::norm(in2) * _impl::norm(in3);
-				Sample nOut = _impl::norm(out1) * _impl::norm(out2) * _impl::norm(out3);
-				if (nIn <= Sample(1e-24) || nOut <= Sample(1e-24)) {
-					continue;
-				}
-
-				Complex inProd = _impl::mul(in1, in2);
-				Complex inBi = _impl::mul<true>(inProd, in3);
-
-				Complex outProd = _impl::mul(out1, out2);
-				Complex outBi = _impl::mul<true>(outProd, out3);
-
-				Complex errPhasor = _impl::mul<true>(outBi, inBi);
-				Sample normErr = _impl::norm(errPhasor);
-				if (normErr <= Sample(1e-18)) {
-					continue;
-				}
-
-				Sample errAngle = std::atan2(errPhasor.imag(), errPhasor.real());
-				Sample corrAngle = std::clamp(errAngle * speedDose * Sample(0.30), Sample(-0.15), Sample(0.15));
-
-				Complex rotator = _impl::fastPolar(Sample(1), corrAngle);
-				for (int c = 0; c < channels; ++c) {
-					bandsForChannel(c)[bestK].output = _impl::mul(bandsForChannel(c)[bestK].output, rotator);
-				}
-
-				b3Locked[word] |= mask;
 			}
 		}
 	}
@@ -2877,50 +2428,6 @@ private:
 				if (out < floorPower) {
 					bandsForChannel(c)[b].output *= std::sqrt(floorPower / out);
 				}
-			}
-		}
-	}
-
-	void applyReverbTailDamping() {
-		if (blockProcess.mappedFrequencies || transientSamples_ > 0 || transientCooldown_ > 0 || smoothTimeFactor_ <= Sample(1.01) || channels == 0 || bands < 4) {
-			return;
-		}
-
-		Sample speedDose = getSpeedDose();
-		int minBand = std::max(1, static_cast<int>(hzToBand(Sample(120))));
-		int maxBand = std::min(bands - 1, static_cast<int>(hzToBand(Sample(6500))));
-		if (minBand >= maxBand) {
-			return;
-		}
-
-		for (int b = minBand; b < maxBand; ++b) {
-			Sample freq = bandToHz(Sample(b));
-			Sample wLow = std::clamp((freq - Sample(120)) * Sample(1.0 / 130.0), Sample(0), Sample(1));
-			Sample wHigh = std::clamp((Sample(6500) - freq) * Sample(1.0 / 2000.0), Sample(0), Sample(1));
-			Sample wFreq = wLow * wHigh;
-
-			Sample e = energy[b];
-			Sample smooth = smoothedEnergy[b] + Sample(1e-12);
-			Sample etaSpectral = e > smooth ? (e - smooth) / (e + Sample(1e-12)) : Sample(0);
-			etaSpectral = std::clamp(etaSpectral, Sample(0), Sample(1));
-
-			Sample eta = etaSpectral;
-			if (channels == 2) {
-				const auto &inL = bandsForChannel(0)[b].input;
-				const auto &inR = bandsForChannel(1)[b].input;
-				Complex cross = _impl::mul<true>(inL, inR);
-				Sample crossMag = std::sqrt(_impl::norm(cross));
-				Sample totalPower = (_impl::norm(inL) + _impl::norm(inR)) * Sample(0.5) + Sample(1e-12);
-				Sample gammaBinaural = std::clamp(crossMag / totalPower, Sample(0), Sample(1));
-				eta = std::max(etaSpectral, gammaBinaural);
-			}
-
-			Sample diffuseFactor = Sample(1) - eta;
-			Sample maxAtten = speedDose * Sample(0.24) * wFreq;
-			Sample gain = std::max(Sample(0.76), Sample(1) - diffuseFactor * maxAtten);
-
-			for (int c = 0; c < channels; ++c) {
-				bandsForChannel(c)[b].output *= gain;
 			}
 		}
 	}

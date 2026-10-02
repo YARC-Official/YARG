@@ -38,7 +38,7 @@ namespace YARG.Editor
             _sourcePath = sourcePath;
             if (SettingsManager.SettingContainer.IsInitialized)
             {
-                _activeTempoEngine = SettingsManager.Settings.TempoImplementation.Value;
+                _activeTempoEngine = SettingsManager.Settings.CurrentTempoEngine;
             }
             _playbackClock = 0;
             _simulatedClockDisturbance = 0;

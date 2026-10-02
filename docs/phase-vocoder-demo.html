@@ -1,0 +1,1433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phase Vocoder Interactive Lab</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --card: #181b24;
+    --card-border: #282d3d;
+    --text: #e6e9f0;
+    --muted: #949db2;
+    --accent: #3b82f6;
+    --bass: #38bdf8;
+    --lead: #fbbf24;
+    --red: #f43f5e;
+    --green: #10b981;
+    --purple: #c084fc;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  body { background: var(--bg); color: var(--text); padding: 24px; line-height: 1.5; }
+  .container { max-width: 980px; margin: 0 auto; }
+
+  header { margin-bottom: 24px; text-align: center; }
+  h1 { font-size: 2rem; color: #fff; margin-bottom: 6px; }
+  .subtitle { color: var(--muted); font-size: 0.95rem; max-width: 760px; margin: 0 auto; }
+
+  .summary-banner {
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.1), rgba(16, 185, 129, 0.08));
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    font-size: 0.95rem;
+  }
+
+  .controls-panel {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .control-item { flex: 1; min-width: 220px; }
+  .control-item label { display: block; font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  .slider-row { display: flex; align-items: center; gap: 14px; }
+  .slider-row span { font-family: monospace; font-size: 1.25rem; font-weight: 700; color: var(--accent); min-width: 60px; }
+  input[type="range"] { flex: 1; accent-color: var(--accent); cursor: pointer; height: 6px; }
+
+  .btn-audio {
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+  }
+  .btn-audio:hover { filter: brightness(1.1); transform: translateY(-1px); }
+
+  .section-card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .card-title { font-size: 1.15rem; font-weight: 700; color: #fff; }
+
+  .phase-lab {
+    background: #11131a;
+    border: 1px solid #232838;
+    border-radius: 10px;
+    padding: 18px;
+    margin-bottom: 18px;
+  }
+
+  .knobs-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 16px;
+  }
+  @media(max-width: 650px) { .knobs-grid { grid-template-columns: 1fr; } }
+
+  .knob-box {
+    background: #161922;
+    border: 1px solid #282d3d;
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .dial-wrap {
+    width: 80px;
+    height: 80px;
+    flex-shrink: 0;
+  }
+  .dial-wrap canvas {
+    width: 80px;
+    height: 80px;
+    background: transparent;
+  }
+
+  .knob-sliders { flex: 1; }
+  .knob-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .knob-title { font-weight: 700; font-size: 0.95rem; }
+  .knob-val { font-family: monospace; font-size: 1.1rem; font-weight: 700; }
+
+  canvas.main-wave {
+    width: 100%;
+    height: 160px;
+    background: #090b0e;
+    border-radius: 6px;
+    display: block;
+  }
+
+  .actions-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+  }
+
+  button.sub-btn {
+    background: #232838;
+    color: #fff;
+    border: 1px solid #333a50;
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  button.sub-btn:hover { background: #2f364c; }
+  button.sub-btn.primary { background: #10b981; color: #000; font-weight: 700; border: none; }
+  button.sub-btn.danger { background: #f43f5e; color: #fff; font-weight: 700; border: none; }
+
+  .status-badge {
+    font-family: monospace;
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 6px;
+  }
+  .status-good { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+  .status-bad { background: rgba(244, 63, 94, 0.2); color: #f43f5e; }
+
+  .layer-toggles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    margin-bottom: 12px;
+    padding: 8px 12px;
+    background: #11131a;
+    border-radius: 6px;
+    border: 1px solid #232838;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+  .layer-toggles label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+  }
+
+  /* Section 2 Metric Cards & Buttons */
+  .bin-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+    margin-bottom: 16px;
+  }
+  .metric-card {
+    background: #11131a;
+    border: 1px solid #232838;
+    border-radius: 8px;
+    padding: 14px;
+  }
+  .metric-card-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .metric-value {
+    font-family: monospace;
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .metric-detail {
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+  .btn-preset {
+    background: #1f2433;
+    color: #cbd5e1;
+    border: 1px solid #333a50;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-preset:hover {
+    background: #2a3247;
+    color: #fff;
+  }
+  .btn-preset.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+  .audio-listen-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 12px;
+    margin-top: 10px;
+  }
+  .audio-test-btn {
+    background: #161922;
+    border: 1px solid #282d3d;
+    border-radius: 8px;
+    padding: 12px;
+    color: var(--text);
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .audio-test-btn:hover {
+    border-color: var(--accent);
+    background: #1e2230;
+  }
+  .audio-test-btn.active {
+    border-color: var(--green);
+    background: rgba(16, 185, 129, 0.12);
+  }
+  .audio-test-btn.active.bad {
+    border-color: var(--red);
+    background: rgba(244, 63, 94, 0.12);
+  }
+  .audio-test-title {
+    font-weight: 700;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+  }
+  .audio-test-desc {
+    font-size: 0.75rem;
+    color: var(--muted);
+    line-height: 1.3;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Phase Vocoder Audio Lab</h1>
+    <p class="subtitle">Interactive visualizer demonstrating frequency-domain phase rotation, sub-bin pitch tracking, and transient preservation.</p>
+  </header>
+
+  <div class="summary-banner">
+    🎯 <strong>The Big Picture:</strong><br>
+    • <strong>Sustained Tones & Overlap-Add (Section 1):</strong> Rotating starting phase at slice boundaries prevents wave cancellation across overlapping frames.<br>
+    • <strong>Frequency Bins & Sub-Bin Tracking (Section 2):</strong> An FFT bin is ~21.5 Hz wide. Comparing phase change across consecutive frames calculates exact sub-bin pitch.<br>
+    • <strong>Acoustic Drum Transients (Section 3):</strong> Transients are sharp attacks with aligned phase across all frequencies. Phase snapping prevents dispersion and pre-echo smearing.
+  </div>
+
+  <div class="controls-panel">
+    <div class="control-item">
+      <label>Playback Speed</label>
+      <div class="slider-row">
+        <input type="range" id="speed" min="10" max="100" step="5" value="50">
+        <span id="speedVal">50%</span>
+      </div>
+    </div>
+    <button id="btnPlay" class="btn-audio">▶ Play Live Audio Tone</button>
+  </div>
+
+  <!-- SECTION 1: Overlap-Add & Dials -->
+  <div class="section-card">
+    <div class="card-top">
+      <div class="card-title">1. Frequency Bins & Phase Rotation (Tonal Audio)</div>
+      <span id="seamBadge" class="status-badge status-good">✓ Smooth Overlap-Add</span>
+    </div>
+
+    <div class="phase-lab">
+      <div class="knobs-grid">
+        <!-- Bass Knob -->
+        <div class="knob-box">
+          <div class="dial-wrap">
+            <canvas id="clockBass" width="160" height="160"></canvas>
+          </div>
+          <div class="knob-sliders">
+            <div class="knob-header">
+              <span class="knob-title" style="color:var(--bass)">Bin 1: Bass (80 Hz)</span>
+              <span class="knob-val" style="color:var(--bass)" id="valBassDeg">0°</span>
+            </div>
+            <input type="range" id="sliderBass" min="0" max="360" step="5" value="0" style="width:100%; accent-color:var(--bass);">
+            <div style="font-size:0.75rem; color:var(--muted); margin-top:4px;">Rotate Bass wave phase angle</div>
+          </div>
+        </div>
+
+        <!-- Guitar Knob -->
+        <div class="knob-box">
+          <div class="dial-wrap">
+            <canvas id="clockLead" width="160" height="160"></canvas>
+          </div>
+          <div class="knob-sliders">
+            <div class="knob-header">
+              <span class="knob-title" style="color:var(--lead)">Bin 2: Guitar (240 Hz)</span>
+              <span class="knob-val" style="color:var(--lead)" id="valLeadDeg">0°</span>
+            </div>
+            <input type="range" id="sliderLead" min="0" max="360" step="5" value="0" style="width:100%; accent-color:var(--lead);">
+            <div style="font-size:0.75rem; color:var(--muted); margin-top:4px;">Rotate Guitar wave phase angle</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions-row">
+        <div style="font-size:0.85rem; color:var(--muted);">
+          Compare scrambled phase (cancellation dip) vs aligned phase:
+        </div>
+        <div style="display:flex; gap:10px;">
+          <button id="btnScramble" class="sub-btn">Scramble (Clash)</button>
+          <button id="btnAutoVocoder" class="sub-btn primary">Auto-Align (Phase Vocoder)</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Layer Toggles -->
+    <div class="layer-toggles">
+      <label style="color:var(--bass)">
+        <input type="checkbox" id="chkShowBass" checked> Show 80 Hz Bass (Blue)
+      </label>
+      <label style="color:var(--lead)">
+        <input type="checkbox" id="chkShowLead" checked> Show 240 Hz Guitar (Yellow)
+      </label>
+      <label style="color:#ffffff">
+        <input type="checkbox" id="chkShowCombined" checked> Show Combined Reconstructed Wave (White)
+      </label>
+      <label style="color:var(--purple)">
+        <input type="checkbox" id="chkShowEnvelopes"> Show 60 ms Hann Window Crossfade
+      </label>
+    </div>
+
+    <div style="position:relative;">
+      <canvas id="canvasWave" class="main-wave"></canvas>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.85rem; color:var(--muted); flex-wrap:wrap; gap:8px;">
+      <div>
+        <span style="color:var(--bass)">■ 80 Hz Bass</span> &nbsp;
+        <span style="color:var(--lead)">■ 240 Hz Guitar</span> &nbsp;
+        <span style="color:#ffffff">■ Combined Sum (White)</span>
+      </div>
+      <div id="seamText">Seam at 15.0 ms: In Phase</div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: Frequency Bins & Sub-Bin Pitch Tracking -->
+  <div class="section-card">
+    <div class="card-top">
+      <div class="card-title">2. The 21.5 Hz Bin Ambiguity & Sub-Bin Phase Tracking</div>
+      <span id="sec2Badge" class="status-badge status-good">Phase Tracking: 0.00 Hz Error</span>
+    </div>
+
+    <p style="font-size:0.95rem; color:var(--text); margin-bottom:14px;">
+      At 44.1 kHz with a 2048-point FFT, bin spacing is <strong>21.53 Hz</strong> (44100 / 2048). A musical note like Concert A (440.0 Hz) lands between Bin 20 (430.66 Hz) and Bin 21 (452.19 Hz). Magnitude alone cannot identify the exact frequency inside the 21.5 Hz band. The phase vocoder tracks phase advance from one window to the next to resolve continuous physical pitch.
+    </p>
+
+    <!-- Pitch Slider & Presets -->
+    <div style="background:#11131a; border:1px solid #232838; border-radius:10px; padding:16px; margin-bottom:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:10px;">
+        <div>
+          <span style="font-weight:700; font-size:0.9rem; color:var(--text);">Input Tone Frequency:</span>
+          <span id="sec2PitchVal" style="font-family:monospace; font-size:1.3rem; font-weight:700; color:var(--accent); margin-left:8px;">440.0 Hz</span>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn-preset active" data-freq="440.0">440.0 Hz (Concert A)</button>
+          <button class="btn-preset" data-freq="430.66">430.66 Hz (Bin 20 Center)</button>
+          <button class="btn-preset" data-freq="441.43">441.43 Hz (Bin Edge)</button>
+          <button class="btn-preset" data-freq="452.19">452.19 Hz (Bin 21 Center)</button>
+        </div>
+      </div>
+      <input type="range" id="sec2PitchSlider" min="420.0" max="460.0" step="0.1" value="440.0" style="width:100%; accent-color:var(--accent);">
+    </div>
+
+    <!-- Canvas 1: Spectrum Grid -->
+    <div style="margin-bottom:14px;">
+      <div style="display:flex; justify-content:space-between; font-size:0.85rem; font-weight:700; margin-bottom:6px; color:var(--muted);">
+        <span>FFT SPECTRUM GRID (21.53 Hz COARSE BINS)</span>
+        <span id="sec2BinDistText" style="color:var(--lead);">Offset from Bin 20 Center: +9.34 Hz</span>
+      </div>
+      <canvas id="canvasBinSpectrum" class="main-wave" style="height:170px;"></canvas>
+    </div>
+
+    <!-- Canvas 2: Phase Advance Across Frames -->
+    <div style="margin-bottom:14px;">
+      <div style="display:flex; justify-content:space-between; font-size:0.85rem; font-weight:700; margin-bottom:6px; color:var(--muted);">
+        <span>PHASE ADVANCE ACROSS CONSECUTIVE FRAMES (15 ms HOP)</span>
+        <span id="sec2PhaseDevText" style="color:var(--green);">Phase Discrepancy: +50.4° (+0.88 rad)</span>
+      </div>
+      <canvas id="canvasPhaseAdvance" class="main-wave" style="height:140px;"></canvas>
+    </div>
+
+    <!-- Live Readout Cards -->
+    <div class="bin-metrics-grid">
+      <div class="metric-card">
+        <div class="metric-card-title">1. Coarse FFT Bin Snapping</div>
+        <div class="metric-value" id="cardBinCenter" style="color:var(--muted);">430.66 Hz</div>
+        <div class="metric-detail" id="cardBinError" style="color:var(--red);">Error: -9.34 Hz (-37.1 cents flat)</div>
+        <div class="metric-detail" style="margin-top:6px;">If an engine snaps pitch to the bin center, musical pitch is distorted.</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-card-title">2. Frame-to-Frame Phase Step</div>
+        <div class="metric-value" id="cardPhaseStep" style="color:var(--lead);">216.0° (Actual)</div>
+        <div class="metric-detail" id="cardNominalStep">Nominal Bin Step: 165.6°</div>
+        <div class="metric-detail" style="margin-top:6px;">Advance discrepancy in 15 ms: <strong id="cardPhaseDelta" style="color:var(--lead);">+50.4°</strong></div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-card-title">3. Phase Vocoder Recovered Pitch</div>
+        <div class="metric-value" id="cardRecoveredPitch" style="color:var(--green);">440.00 Hz</div>
+        <div class="metric-detail" style="color:var(--green);">Error: 0.00 Hz (Sub-Hertz Accuracy)</div>
+        <div class="metric-detail" style="margin-top:6px;">Discrepancy / (2π · 15 ms) resolves exact frequency offset.</div>
+      </div>
+    </div>
+
+    <!-- Vector Sum & Windowing Explanation Card -->
+    <div style="background:#11131a; border:1px solid #232838; border-radius:8px; padding:14px; margin-bottom:16px; font-size:0.85rem; line-height:1.5;">
+      <div style="font-weight:700; color:#fff; margin-bottom:6px;">📐 Magnitude, Phase, and the STFT Vector Sum:</div>
+      <div style="color:var(--muted); margin-bottom:6px;">
+        • <strong>Magnitude (Vector Length):</strong> Over the 60 ms window, the FFT integrates the signal against reference cosine and sine basis waves. In-phase energy adds constructively into a 2D complex vector (Real, Imaginary). Magnitude = √(R² + I²).<br>
+        • <strong>Phase (Vector Angle):</strong> The angle θ = atan2(Imag, Real) specifies the wave's peak position relative to the center of the 60 ms window.<br>
+        • <strong>Sub-Bin Tracking:</strong> A single 60 ms window cannot separate 440 Hz from 443 Hz with precision. Comparing phase between Frame 1 and Frame 2 across the 15 ms hop interval resolves exact frequency continuously.
+      </div>
+    </div>
+
+    <!-- Audio Listening Comparisons -->
+    <div style="font-size:0.9rem; font-weight:700; color:#fff; margin-bottom:8px;">
+      🎧 Auditory Listening Tests (Hear the Math in Action):
+    </div>
+    <div class="audio-listen-grid">
+      <button id="btnAudTrue" class="audio-test-btn">
+        <div class="audio-test-title">▶ Play Selected Pitch</div>
+        <div class="audio-test-desc">Pure tone at exact physical frequency (<span class="sec2-listen-freq">440.0 Hz</span>).</div>
+      </button>
+
+      <button id="btnAudBin" class="audio-test-btn">
+        <div class="audio-test-title">▶ Play Coarse Bin Center</div>
+        <div class="audio-test-desc">Tone at 430.7 Hz. Hear the audible flat pitch shift (-37 cents).</div>
+      </button>
+
+      <button id="btnAudStretchedGood" class="audio-test-btn">
+        <div class="audio-test-title">▶ 50% Speed (Phase Vocoder)</div>
+        <div class="audio-test-desc">Sub-bin phase preserved across hops. Pitch is rock-solid.</div>
+      </button>
+
+      <button id="btnAudStretchedBad" class="audio-test-btn">
+        <div class="audio-test-title">▶ 50% Speed (No Sub-Bin Phase)</div>
+        <div class="audio-test-desc">Phase jumps by 50° each hop, causing violent amplitude beating.</div>
+      </button>
+    </div>
+  </div>
+
+  <!-- SECTION 3: Real Drum Transient Waveform -->
+  <div class="section-card">
+    <div class="card-top">
+      <div class="card-title">3. Real Drum Transient Waveform (The Snare Attack)</div>
+      <span id="transientBadge" class="status-badge status-good">YARG Phase Snapping: ACTIVE</span>
+    </div>
+
+    <p style="font-size:0.95rem; color:var(--text); margin-bottom:14px;">
+      Below is an actual acoustic drum waveform. When stretched with continuous sine waves, energy leaks backwards into a pre-echo "swish". Phase snapping keeps silence before the hit and full attack punch.
+    </p>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; background:#11131a; padding:12px 16px; border-radius:8px; border:1px solid #232838; margin-bottom:14px; flex-wrap:wrap; gap:12px;">
+      <div style="display:flex; gap:12px; align-items:center;">
+        <button id="btnToggleTransient" class="sub-btn primary">Toggle: YARG Protected</button>
+        <span id="transientModeText" style="font-size:0.85rem; color:var(--green); font-weight:600;">Attack stays sharp, zero pre-echo</span>
+      </div>
+      <button id="btnPlayDrum" class="btn-audio" style="padding:8px 16px; font-size:0.85rem;">🥁 Play Stretched Drum Hit</button>
+    </div>
+
+    <canvas id="canvasTransient" class="main-wave"></canvas>
+
+    <div style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.85rem; color:var(--muted); flex-wrap:wrap; gap:8px;">
+      <div>
+        <span style="color:#64748b">■ Original Hit Timing (18 ms)</span> &nbsp;
+        <span id="legendTransientColor" style="color:var(--green)">■ Stretched Output Waveform</span>
+      </div>
+      <div id="transientExplainerText" style="color:var(--green); font-weight:600;">
+        YARG Phase Snapping: Instant attack, zero pre-echo.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Section 1 State & Elements
+  const speedSlider = document.getElementById('speed');
+  const speedVal = document.getElementById('speedVal');
+  const sliderBass = document.getElementById('sliderBass');
+  const sliderLead = document.getElementById('sliderLead');
+  const valBassDeg = document.getElementById('valBassDeg');
+  const valLeadDeg = document.getElementById('valLeadDeg');
+
+  const clockBass = document.getElementById('clockBass');
+  const clockLead = document.getElementById('clockLead');
+  const canvasWave = document.getElementById('canvasWave');
+
+  const chkShowBass = document.getElementById('chkShowBass');
+  const chkShowLead = document.getElementById('chkShowLead');
+  const chkShowCombined = document.getElementById('chkShowCombined');
+  const chkShowEnvelopes = document.getElementById('chkShowEnvelopes');
+
+  const btnAutoVocoder = document.getElementById('btnAutoVocoder');
+  const btnScramble = document.getElementById('btnScramble');
+  const btnPlay = document.getElementById('btnPlay');
+  const seamBadge = document.getElementById('seamBadge');
+  const seamText = document.getElementById('seamText');
+
+  const F_BASS = 80;
+  const F_LEAD = 240;
+  const VIEW_MS = 60.0;
+  const SEAM_MS = 15.0; // The slice boundary
+
+  function setupDpr(canvas) {
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    return { ctx, w: rect.width, h: rect.height };
+  }
+
+  function drawPhaseDial(canvas, deg, hexColor) {
+    const dpr = window.devicePixelRatio || 1;
+    const w = canvas.width / dpr;
+    const h = canvas.height / dpr;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const cx = w / 2;
+    const cy = h / 2;
+    const r = Math.min(cx, cy) - 6;
+
+    ctx.strokeStyle = '#282d3d';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, 2 * Math.PI);
+    ctx.stroke();
+
+    ctx.fillStyle = '#64748b';
+    ctx.beginPath();
+    ctx.arc(cx, cy - r + 4, 3, 0, 2 * Math.PI);
+    ctx.fill();
+
+    const rad = (deg - 90) * Math.PI / 180;
+    const hx = cx + Math.cos(rad) * (r - 10);
+    const hy = cy + Math.sin(rad) * (r - 10);
+
+    ctx.strokeStyle = hexColor;
+    ctx.lineWidth = 4;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(hx, hy);
+    ctx.stroke();
+
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(cx, cy, 4, 0, 2 * Math.PI);
+    ctx.fill();
+  }
+
+  function autoVocoderAlign() {
+    const speed = parseFloat(speedSlider.value) / 100.0;
+    const timeLagMs = SEAM_MS * (1.0 - speed);
+    const bassRotRad = 2 * Math.PI * F_BASS * (timeLagMs / 1000);
+    const leadRotRad = 2 * Math.PI * F_LEAD * (timeLagMs / 1000);
+
+    const bassDeg = Math.round((bassRotRad * 180 / Math.PI) % 360);
+    const leadDeg = Math.round((leadRotRad * 180 / Math.PI) % 360);
+
+    sliderBass.value = (bassDeg + 360) % 360;
+    sliderLead.value = (leadDeg + 360) % 360;
+    render();
+    updateLiveAudio();
+  }
+
+  function render() {
+    const speed = parseFloat(speedSlider.value) / 100.0;
+    speedVal.textContent = Math.round(speed * 100) + '%';
+
+    const bDeg = parseFloat(sliderBass.value);
+    const lDeg = parseFloat(sliderLead.value);
+
+    valBassDeg.textContent = bDeg + '°';
+    valLeadDeg.textContent = lDeg + '°';
+
+    drawPhaseDial(clockBass, bDeg, '#38bdf8');
+    drawPhaseDial(clockLead, lDeg, '#fbbf24');
+
+    const bRad = bDeg * Math.PI / 180;
+    const lRad = lDeg * Math.PI / 180;
+
+    const timeLagMs = SEAM_MS * (1.0 - speed);
+    const targetBRad = 2 * Math.PI * F_BASS * (timeLagMs / 1000);
+    const targetLRad = 2 * Math.PI * F_LEAD * (timeLagMs / 1000);
+
+    const bDiff = Math.abs(Math.sin((bRad - targetBRad) / 2));
+    const lDiff = Math.abs(Math.sin((lRad - targetLRad) / 2));
+    const totalError = (bDiff + lDiff) / 2;
+
+    if (totalError < 0.15) {
+      seamBadge.textContent = '✓ Smooth Seam (Phase Aligned)';
+      seamBadge.className = 'status-badge status-good';
+      seamText.textContent = 'Waves flow seamlessly across slice boundaries with full punch.';
+    } else {
+      seamBadge.textContent = '✗ Phase Clash (Discontinuity)';
+      seamBadge.className = 'status-badge status-bad';
+      seamText.textContent = `Seam clash: Waves misaligned by ${Math.round(totalError*100)}%! Sound is comb-filtered.`;
+    }
+
+    const { ctx, w, h } = setupDpr(canvasWave);
+    const midY = h / 2;
+    const msToX = w / VIEW_MS;
+
+    ctx.strokeStyle = '#1b1f2b';
+    for (let t = 0; t <= VIEW_MS; t += 10) {
+      const x = t * msToX;
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+      ctx.fillStyle = '#555e75'; ctx.font = '10px monospace';
+      ctx.fillText(t + 'ms', x + 2, h - 4);
+    }
+
+    const seamX = SEAM_MS * msToX;
+    ctx.strokeStyle = totalError < 0.15 ? 'rgba(16, 185, 129, 0.6)' : 'rgba(244, 63, 94, 0.8)';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath(); ctx.moveTo(seamX, 6); ctx.lineTo(seamX, h - 6); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = totalError < 0.15 ? '#10b981' : '#f43f5e';
+    ctx.font = '11px sans-serif';
+    ctx.fillText('Slice Hop (15.0 ms)', seamX + 4, 16);
+
+    // Overlapping 60 ms Hann Envelopes
+    if (chkShowEnvelopes && chkShowEnvelopes.checked) {
+      const winDurMs = 60.0;
+      const maxAmp = 50.0;
+
+      // Window 1: 0 to 60 ms
+      ctx.strokeStyle = 'rgba(192, 132, 252, 0.6)';
+      ctx.fillStyle = 'rgba(192, 132, 252, 0.05)';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([3, 3]);
+
+      ctx.beginPath();
+      for (let x = 0; x <= w; x++) {
+        const tMs = x / msToX;
+        if (tMs <= winDurMs) {
+          const env = 0.5 * (1 - Math.cos(2 * Math.PI * tMs / winDurMs));
+          const y = midY - env * maxAmp;
+          if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+      }
+      for (let x = Math.min(w, Math.floor(winDurMs * msToX)); x >= 0; x--) {
+        const tMs = x / msToX;
+        const env = 0.5 * (1 - Math.cos(2 * Math.PI * tMs / winDurMs));
+        const y = midY + env * maxAmp;
+        ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Window 2: 15 to 75 ms (visible up to 60 ms)
+      const hopX = SEAM_MS * msToX;
+      ctx.strokeStyle = 'rgba(251, 191, 36, 0.6)';
+      ctx.fillStyle = 'rgba(251, 191, 36, 0.05)';
+
+      ctx.beginPath();
+      for (let x = hopX; x <= w; x++) {
+        const tMs = x / msToX;
+        const env = 0.5 * (1 - Math.cos(2 * Math.PI * (tMs - SEAM_MS) / winDurMs));
+        const y = midY - env * maxAmp;
+        if (x === hopX) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      for (let x = w; x >= hopX; x--) {
+        const tMs = x / msToX;
+        const env = 0.5 * (1 - Math.cos(2 * Math.PI * (tMs - SEAM_MS) / winDurMs));
+        const y = midY + env * maxAmp;
+        ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = '#c084fc';
+      ctx.font = '11px sans-serif';
+      ctx.fillText('Window 1 Envelope (0–60 ms, Peak at 30 ms)', 8, 30);
+      ctx.fillStyle = '#fbbf24';
+      ctx.fillText('Window 2 Envelope (Hop at 15 ms, Crossfading)', hopX + 8, 44);
+    }
+
+    if (chkShowBass.checked) {
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (let x = 0; x < w; x++) {
+        const tMs = x / msToX;
+        const phase = (tMs >= SEAM_MS) ? bRad : 0;
+        const t = tMs / 1000;
+        const y = midY + Math.sin(2 * Math.PI * F_BASS * t + phase) * 26;
+        if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+
+    if (chkShowLead.checked) {
+      ctx.strokeStyle = '#fbbf24';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (let x = 0; x < w; x++) {
+        const tMs = x / msToX;
+        const phase = (tMs >= SEAM_MS) ? lRad : 0;
+        const t = tMs / 1000;
+        const y = midY + Math.sin(2 * Math.PI * F_LEAD * t + phase) * 18;
+        if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+
+    if (chkShowCombined.checked) {
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      for (let x = 0; x < w; x++) {
+        const tMs = x / msToX;
+        const bP = (tMs >= SEAM_MS) ? bRad : 0;
+        const lP = (tMs >= SEAM_MS) ? lRad : 0;
+        const t = tMs / 1000;
+        const bWave = Math.sin(2 * Math.PI * F_BASS * t + bP) * 26;
+        const lWave = Math.sin(2 * Math.PI * F_LEAD * t + lP) * 18;
+        const y = midY + bWave + lWave;
+        if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+  }
+
+  // SECTION 2: Frequency Bins & Sub-Bin Pitch Tracking
+  const FS = 44100;
+  const N_FFT = 2048;
+  const BIN_WIDTH = FS / N_FFT; // 21.5332 Hz
+  const HOP_SEC = 0.015; // 15 ms analysis hop
+
+  const sec2Slider = document.getElementById('sec2PitchSlider');
+  const sec2PitchVal = document.getElementById('sec2PitchVal');
+  const sec2BinDistText = document.getElementById('sec2BinDistText');
+  const sec2PhaseDevText = document.getElementById('sec2PhaseDevText');
+  const sec2Badge = document.getElementById('sec2Badge');
+
+  const cardBinCenter = document.getElementById('cardBinCenter');
+  const cardBinError = document.getElementById('cardBinError');
+  const cardPhaseStep = document.getElementById('cardPhaseStep');
+  const cardNominalStep = document.getElementById('cardNominalStep');
+  const cardPhaseDelta = document.getElementById('cardPhaseDelta');
+  const cardRecoveredPitch = document.getElementById('cardRecoveredPitch');
+
+  const canvasBinSpectrum = document.getElementById('canvasBinSpectrum');
+  const canvasPhaseAdvance = document.getElementById('canvasPhaseAdvance');
+
+  function sinc(x) {
+    if (Math.abs(x) < 1e-6) return 1.0;
+    const px = Math.PI * x;
+    return Math.sin(px) / px;
+  }
+
+  function renderBinSpectrum(fInput) {
+    const { ctx, w, h } = setupDpr(canvasBinSpectrum);
+    const fMin = 395.0;
+    const fMax = 485.0;
+    const pad = 44;
+
+    function hzToX(f) {
+      return pad + ((f - fMin) / (fMax - fMin)) * (w - 2 * pad);
+    }
+
+    ctx.clearRect(0, 0, w, h);
+
+    const nearestBin = Math.round(fInput / BIN_WIDTH);
+    const fNearest = nearestBin * BIN_WIDTH;
+
+    // Draw bins 19 to 22
+    for (let k = 19; k <= 22; k++) {
+      const fCenter = k * BIN_WIDTH;
+      const fLeft = fCenter - BIN_WIDTH / 2;
+      const fRight = fCenter + BIN_WIDTH / 2;
+      const xLeft = hzToX(fLeft);
+      const xRight = hzToX(fRight);
+      const xCenter = hzToX(fCenter);
+
+      if (k === nearestBin) {
+        ctx.fillStyle = 'rgba(59, 130, 246, 0.12)';
+        ctx.strokeStyle = 'rgba(59, 130, 246, 0.4)';
+      } else {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.02)';
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+      }
+      ctx.lineWidth = 1;
+      ctx.fillRect(xLeft, 22, xRight - xLeft, h - 44);
+      ctx.strokeRect(xLeft, 22, xRight - xLeft, h - 44);
+
+      // Center dashed line
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath();
+      ctx.moveTo(xCenter, 22);
+      ctx.lineTo(xCenter, h - 22);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Bin labels
+      ctx.fillStyle = (k === nearestBin) ? '#60a5fa' : '#94a3b8';
+      ctx.font = 'bold 11px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Bin ' + k, xCenter, 16);
+
+      ctx.font = '10px monospace';
+      ctx.fillText(fCenter.toFixed(1) + ' Hz', xCenter, h - 6);
+
+      // Hann window spectral response bar
+      const delta = (fInput - fCenter) / BIN_WIDTH;
+      const resp = Math.abs(0.5 * sinc(delta) + 0.25 * sinc(delta - 1) + 0.25 * sinc(delta + 1));
+      const barH = Math.max(3, resp * (h - 75));
+      const barW = 16;
+      ctx.fillStyle = (k === nearestBin) ? '#3b82f6' : '#475569';
+      ctx.fillRect(xCenter - barW / 2, h - 22 - barH, barW, barH);
+    }
+
+    // Draw True Tone marker
+    const xInput = hzToX(fInput);
+    ctx.strokeStyle = '#fbbf24';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(xInput, 18);
+    ctx.lineTo(xInput, h - 20);
+    ctx.stroke();
+
+    // Flag label
+    ctx.fillStyle = '#fbbf24';
+    ctx.font = 'bold 11px sans-serif';
+    ctx.textAlign = (xInput > w - 110) ? 'right' : (xInput < 110 ? 'left' : 'center');
+    ctx.fillText('▲ True Tone: ' + fInput.toFixed(1) + ' Hz', xInput, 32);
+
+    // Error bracket from nearest bin center to input pitch
+    const xNear = hzToX(fNearest);
+    const bracketY = h - 34;
+    ctx.strokeStyle = '#f43f5e';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(xNear, bracketY);
+    ctx.lineTo(xInput, bracketY);
+    ctx.stroke();
+
+    const diffHz = fInput - fNearest;
+    ctx.fillStyle = '#f43f5e';
+    ctx.font = '10px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText((diffHz >= 0 ? '+' : '') + diffHz.toFixed(2) + ' Hz error', (xNear + xInput) / 2, bracketY - 4);
+  }
+
+  function renderPhaseAdvance(fInput) {
+    const { ctx, w, h } = setupDpr(canvasPhaseAdvance);
+    ctx.clearRect(0, 0, w, h);
+
+    const nearestBin = Math.round(fInput / BIN_WIDTH);
+    const fBin = nearestBin * BIN_WIDTH;
+
+    // Nominal phase advance in 15 ms
+    const cyclesNom = fBin * HOP_SEC;
+    const phiNomRad = (cyclesNom % 1) * 2 * Math.PI;
+
+    // Actual wave phase advance in 15 ms
+    const cyclesAct = fInput * HOP_SEC;
+    const phiActRad = (cyclesAct % 1) * 2 * Math.PI;
+
+    // Discrepancy
+    let deltaPhiRad = phiActRad - phiNomRad;
+    while (deltaPhiRad > Math.PI) deltaPhiRad -= 2 * Math.PI;
+    while (deltaPhiRad < -Math.PI) deltaPhiRad += 2 * Math.PI;
+
+    const r = 36;
+    const cy = h / 2;
+
+    // Frame k Dial (t = 0 ms)
+    const cx1 = Math.min(100, w * 0.16);
+    ctx.strokeStyle = '#282d3d';
+    ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(cx1, cy, r, 0, 2 * Math.PI); ctx.stroke();
+    // Reference arrow at 0 deg (pointing up)
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(cx1, cy); ctx.lineTo(cx1, cy - r + 8); ctx.stroke();
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(cx1, cy, 3, 0, 2 * Math.PI); ctx.fill();
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = 'bold 11px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Frame k (t = 0 ms)', cx1, cy - r - 6);
+    ctx.font = '10px monospace';
+    ctx.fillText('Phase: 0.0°', cx1, cy + r + 16);
+
+    // Frame k+1 Dial (t = 15 ms)
+    const cx2 = Math.min(260, w * 0.42);
+    ctx.strokeStyle = '#282d3d';
+    ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(cx2, cy, r, 0, 2 * Math.PI); ctx.stroke();
+
+    // Nominal Vector (dashed gray)
+    const nomAngle = (phiNomRad - Math.PI / 2);
+    const nomX = cx2 + Math.cos(nomAngle) * (r - 8);
+    const nomY = cy + Math.sin(nomAngle) * (r - 8);
+    ctx.strokeStyle = '#64748b';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath(); ctx.moveTo(cx2, cy); ctx.lineTo(nomX, nomY); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Actual Vector (solid yellow)
+    const actAngle = (phiActRad - Math.PI / 2);
+    const actX = cx2 + Math.cos(actAngle) * (r - 8);
+    const actY = cy + Math.sin(actAngle) * (r - 8);
+    ctx.strokeStyle = '#fbbf24';
+    ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(cx2, cy); ctx.lineTo(actX, actY); ctx.stroke();
+
+    // Arc between nominal and actual
+    ctx.strokeStyle = '#10b981';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.arc(cx2, cy, r - 14, nomAngle, actAngle, deltaPhiRad < 0);
+    ctx.stroke();
+
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(cx2, cy, 3, 0, 2 * Math.PI); ctx.fill();
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = 'bold 11px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Frame k+1 (t = 15 ms)', cx2, cy - r - 6);
+    ctx.font = '10px monospace';
+    ctx.fillText('Step: ' + (phiActRad * 180 / Math.PI).toFixed(1) + '°', cx2, cy + r + 16);
+
+    // Mathematical resolution readout on right side
+    const rx = Math.max(cx2 + r + 24, w * 0.62);
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#e2e8f0';
+    ctx.font = '11px monospace';
+
+    const degNom = (phiNomRad * 180 / Math.PI).toFixed(1);
+    const degAct = (phiActRad * 180 / Math.PI).toFixed(1);
+    const degDelta = (deltaPhiRad * 180 / Math.PI);
+    const deltaSign = degDelta >= 0 ? '+' : '';
+    const fRecovered = fBin + deltaPhiRad / (2 * Math.PI * HOP_SEC);
+
+    ctx.fillText(`Nominal Bin Step (430.7 Hz): +${degNom}°`, rx, 28);
+    ctx.fillText(`Actual Wave Step (${fInput.toFixed(1)} Hz):   +${degAct}°`, rx, 46);
+    ctx.fillStyle = '#fbbf24';
+    ctx.fillText(`Phase Discrepancy (Δϕ):       ${deltaSign}${degDelta.toFixed(1)}° (${deltaPhiRad.toFixed(2)} rad)`, rx, 64);
+    ctx.strokeStyle = '#333a50';
+    ctx.beginPath(); ctx.moveTo(rx, 74); ctx.lineTo(w - 12, 74); ctx.stroke();
+
+    ctx.fillStyle = '#10b981';
+    ctx.fillText(`Sub-Bin Shift: Δϕ / (2π · 15ms) = ${deltaSign}${(deltaPhiRad / (2 * Math.PI * HOP_SEC)).toFixed(2)} Hz`, rx, 92);
+    ctx.fillText(`Recovered Pitch: ${fBin.toFixed(1)} + (${deltaSign}${(deltaPhiRad / (2 * Math.PI * HOP_SEC)).toFixed(2)}) = ${fRecovered.toFixed(2)} Hz`, rx, 110);
+  }
+
+  function updateSec2() {
+    const fInput = parseFloat(sec2Slider.value);
+    sec2PitchVal.textContent = fInput.toFixed(1) + ' Hz';
+    document.querySelectorAll('.sec2-listen-freq').forEach(el => el.textContent = fInput.toFixed(1) + ' Hz');
+
+    const nearestBin = Math.round(fInput / BIN_WIDTH);
+    const fBin = nearestBin * BIN_WIDTH;
+    const diffHz = fInput - fBin;
+    const cents = 1200 * Math.log2(fBin / fInput);
+
+    sec2BinDistText.textContent = `Offset from Bin ${nearestBin} Center: ${(diffHz >= 0 ? '+' : '')}${diffHz.toFixed(2)} Hz`;
+
+    const cyclesNom = fBin * HOP_SEC;
+    const phiNomRad = (cyclesNom % 1) * 2 * Math.PI;
+    const cyclesAct = fInput * HOP_SEC;
+    const phiActRad = (cyclesAct % 1) * 2 * Math.PI;
+
+    let deltaPhiRad = phiActRad - phiNomRad;
+    while (deltaPhiRad > Math.PI) deltaPhiRad -= 2 * Math.PI;
+    while (deltaPhiRad < -Math.PI) deltaPhiRad += 2 * Math.PI;
+
+    const degDelta = deltaPhiRad * 180 / Math.PI;
+    const signDelta = degDelta >= 0 ? '+' : '';
+    sec2PhaseDevText.textContent = `Phase Discrepancy: ${signDelta}${degDelta.toFixed(1)}° (${signDelta}${deltaPhiRad.toFixed(2)} rad)`;
+
+    // Update cards
+    cardBinCenter.textContent = fBin.toFixed(2) + ' Hz';
+    cardBinError.textContent = `Error: ${(fBin - fInput).toFixed(2)} Hz (${cents.toFixed(1)} cents flat)`;
+
+    cardPhaseStep.textContent = (phiActRad * 180 / Math.PI).toFixed(1) + '° (Actual)';
+    cardNominalStep.textContent = 'Nominal Bin Step: ' + (phiNomRad * 180 / Math.PI).toFixed(1) + '°';
+    cardPhaseDelta.textContent = signDelta + degDelta.toFixed(1) + '°';
+
+    const fRecovered = fBin + deltaPhiRad / (2 * Math.PI * HOP_SEC);
+    cardRecoveredPitch.textContent = fRecovered.toFixed(2) + ' Hz';
+    sec2Badge.textContent = 'Phase Tracking: ' + Math.abs(fRecovered - fInput).toFixed(2) + ' Hz Error';
+
+    renderBinSpectrum(fInput);
+    renderPhaseAdvance(fInput);
+  }
+
+  // Section 2 Preset buttons
+  document.querySelectorAll('.btn-preset').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.btn-preset').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const freq = parseFloat(btn.getAttribute('data-freq'));
+      sec2Slider.value = freq;
+      updateSec2();
+      if (sec2ActiveBtnId) {
+        const activeBtn = sec2ActiveBtnId;
+        const mode = activeBtn === 'btnAudTrue' ? 'true' : (activeBtn === 'btnAudBin' ? 'bin' : (activeBtn === 'btnAudStretchedGood' ? 'stretch-good' : 'stretch-bad'));
+        stopSec2Audio();
+        playSec2Sound(mode, activeBtn);
+      }
+    });
+  });
+
+  sec2Slider.addEventListener('input', () => {
+    const val = parseFloat(sec2Slider.value);
+    document.querySelectorAll('.btn-preset').forEach(b => {
+      b.classList.toggle('active', Math.abs(parseFloat(b.getAttribute('data-freq')) - val) < 0.05);
+    });
+    updateSec2();
+    if (sec2ActiveBtnId) {
+      const activeBtn = sec2ActiveBtnId;
+      const mode = activeBtn === 'btnAudTrue' ? 'true' : (activeBtn === 'btnAudBin' ? 'bin' : (activeBtn === 'btnAudStretchedGood' ? 'stretch-good' : 'stretch-bad'));
+      stopSec2Audio();
+      playSec2Sound(mode, activeBtn);
+    }
+  });
+
+  // Section 2 Audio Synthesis & Listening Comparisons
+  let sec2AudioCtx = null;
+  let sec2CurrentSource = null;
+  let sec2ActiveBtnId = null;
+
+  function stopSec2Audio() {
+    if (sec2CurrentSource) {
+      try { sec2CurrentSource.stop(); } catch(e){}
+      sec2CurrentSource = null;
+    }
+    if (sec2AudioCtx) {
+      sec2AudioCtx.close();
+      sec2AudioCtx = null;
+    }
+    ['btnAudTrue', 'btnAudBin', 'btnAudStretchedGood', 'btnAudStretchedBad'].forEach(id => {
+      const btn = document.getElementById(id);
+      if (btn) {
+        btn.classList.remove('active', 'bad');
+        const titleEl = btn.querySelector('.audio-test-title');
+        if (titleEl) titleEl.textContent = titleEl.textContent.replace('⏹ Stop', '▶ Play');
+      }
+    });
+    sec2ActiveBtnId = null;
+  }
+
+  function playSec2Sound(mode, btnId) {
+    if (sec2ActiveBtnId === btnId) {
+      stopSec2Audio();
+      return;
+    }
+    stopSec2Audio();
+
+    sec2AudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const sr = sec2AudioCtx.sampleRate;
+    const dur = 2.0;
+    const totalSamples = Math.floor(sr * dur);
+    const buf = sec2AudioCtx.createBuffer(1, totalSamples, sr);
+    const data = buf.getChannelData(0);
+
+    const fInput = parseFloat(sec2Slider.value);
+    const nearestBin = Math.round(fInput / BIN_WIDTH);
+    const fBin = nearestBin * BIN_WIDTH;
+
+    if (mode === 'true') {
+      // Pure reference tone at fInput
+      for (let i = 0; i < totalSamples; i++) {
+        const t = i / sr;
+        const env = Math.min(1, Math.min(i / (sr * 0.02), (totalSamples - i) / (sr * 0.05)));
+        data[i] = Math.sin(2 * Math.PI * fInput * t) * 0.35 * env;
+      }
+    } else if (mode === 'bin') {
+      // Pure tone snapped to coarse bin center
+      for (let i = 0; i < totalSamples; i++) {
+        const t = i / sr;
+        const env = Math.min(1, Math.min(i / (sr * 0.02), (totalSamples - i) / (sr * 0.05)));
+        data[i] = Math.sin(2 * Math.PI * fBin * t) * 0.35 * env;
+      }
+    } else if (mode === 'stretch-good') {
+      // 50% Time-stretch with phase vocoder sub-bin phase rotation
+      const winSamples = Math.floor(sr * 0.060); // 60 ms
+      const hopSynth = Math.floor(sr * 0.015);  // 15 ms
+      const phaseStep = 2 * Math.PI * fInput * (hopSynth / sr);
+      let synthPhase = 0;
+
+      for (let out = 0; out + winSamples < totalSamples; out += hopSynth) {
+        for (let i = 0; i < winSamples; i++) {
+          const hann = 0.5 * (1 - Math.cos(2 * Math.PI * i / winSamples));
+          const t = i / sr;
+          const s = Math.sin(2 * Math.PI * fInput * t + synthPhase) * 0.28;
+          data[out + i] += s * hann;
+        }
+        synthPhase = (synthPhase + phaseStep) % (2 * Math.PI);
+      }
+    } else if (mode === 'stretch-bad') {
+      // 50% Time-stretch WITHOUT sub-bin phase rotation (only nominal bin phase)
+      // Phase discrepancy accumulates each hop, causing severe flutter/beating
+      const winSamples = Math.floor(sr * 0.060); // 60 ms
+      const hopSynth = Math.floor(sr * 0.015);  // 15 ms
+      const phaseStepBin = 2 * Math.PI * fBin * (hopSynth / sr);
+      let synthPhase = 0;
+
+      for (let out = 0; out + winSamples < totalSamples; out += hopSynth) {
+        for (let i = 0; i < winSamples; i++) {
+          const hann = 0.5 * (1 - Math.cos(2 * Math.PI * i / winSamples));
+          const t = i / sr;
+          const s = Math.sin(2 * Math.PI * fInput * t + synthPhase) * 0.28;
+          data[out + i] += s * hann;
+        }
+        synthPhase = (synthPhase + phaseStepBin) % (2 * Math.PI);
+      }
+    }
+
+    const src = sec2AudioCtx.createBufferSource();
+    src.buffer = buf;
+    src.loop = true;
+    src.connect(sec2AudioCtx.destination);
+    src.start();
+    sec2CurrentSource = src;
+    sec2ActiveBtnId = btnId;
+
+    const btn = document.getElementById(btnId);
+    if (btn) {
+      btn.classList.add(mode === 'stretch-bad' || mode === 'bin' ? 'bad' : 'active');
+      btn.classList.add('active');
+      const titleEl = btn.querySelector('.audio-test-title');
+      if (titleEl) titleEl.textContent = titleEl.textContent.replace('▶ Play', '⏹ Stop');
+    }
+  }
+
+  document.getElementById('btnAudTrue').addEventListener('click', () => playSec2Sound('true', 'btnAudTrue'));
+  document.getElementById('btnAudBin').addEventListener('click', () => playSec2Sound('bin', 'btnAudBin'));
+  document.getElementById('btnAudStretchedGood').addEventListener('click', () => playSec2Sound('stretch-good', 'btnAudStretchedGood'));
+  document.getElementById('btnAudStretchedBad').addEventListener('click', () => playSec2Sound('stretch-bad', 'btnAudStretchedBad'));
+
+  // SECTION 3: Real Transient Waveform Render
+  const canvasTransient = document.getElementById('canvasTransient');
+  const btnToggleTransient = document.getElementById('btnToggleTransient');
+  const transientBadge = document.getElementById('transientBadge');
+  const transientModeText = document.getElementById('transientModeText');
+  const legendTransientColor = document.getElementById('legendTransientColor');
+  const transientExplainerText = document.getElementById('transientExplainerText');
+  const btnPlayDrum = document.getElementById('btnPlayDrum');
+
+  let transientProtected = true;
+
+  btnToggleTransient.addEventListener('click', () => {
+    transientProtected = !transientProtected;
+    if (transientProtected) {
+      btnToggleTransient.textContent = 'Toggle: YARG Protected';
+      btnToggleTransient.className = 'sub-btn primary';
+      transientBadge.textContent = 'YARG Phase Snapping: ACTIVE';
+      transientBadge.className = 'status-badge status-good';
+      transientModeText.textContent = 'Attack stays sharp, zero pre-echo';
+      transientModeText.style.color = '#10b981';
+      legendTransientColor.style.color = '#10b981';
+      transientExplainerText.style.color = '#10b981';
+      transientExplainerText.textContent = 'YARG Phase Snapping: High frequencies snap to the hit, keeping silence before the attack.';
+    } else {
+      btnToggleTransient.textContent = 'Toggle: Naive Vocoder';
+      btnToggleTransient.className = 'sub-btn danger';
+      transientBadge.textContent = 'Naive Vocoder: SMEARED';
+      transientBadge.className = 'status-badge status-bad';
+      transientModeText.textContent = 'Pre-echo "swish", softened attack';
+      transientModeText.style.color = '#f43f5e';
+      legendTransientColor.style.color = '#f43f5e';
+      transientExplainerText.style.color = '#f43f5e';
+      transientExplainerText.textContent = 'Naive Vocoder: Sine waves leak backwards in time, creating a soft "swish" before the hit lands.';
+    }
+    renderTransient();
+  });
+
+  function renderTransient() {
+    const { ctx, w, h } = setupDpr(canvasTransient);
+    const midY = h / 2;
+    const T_VIEW = 45.0;
+    const msToX = w / T_VIEW;
+    const HIT_MS = 18.0;
+
+    // Grid
+    ctx.strokeStyle = '#1b1f2b';
+    ctx.lineWidth = 1;
+    for (let t = 0; t <= T_VIEW; t += 5) {
+      const x = t * msToX;
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+      ctx.fillStyle = '#555e75'; ctx.font = '10px monospace';
+      ctx.fillText(t + 'ms', x + 2, h - 4);
+    }
+
+    // Reference Line at 18 ms
+    const hitX = HIT_MS * msToX;
+    ctx.strokeStyle = '#475569';
+    ctx.setLineDash([2, 2]);
+    ctx.beginPath(); ctx.moveTo(hitX, 0); ctx.lineTo(hitX, h); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#94a3b8'; ctx.font = '10px sans-serif';
+    ctx.fillText('Drum Impact (18 ms)', hitX + 4, 14);
+
+    // Realistic acoustic drum waveform synthesis for canvas
+    ctx.strokeStyle = transientProtected ? '#10b981' : '#f43f5e';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+
+    for (let x = 0; x < w; x++) {
+      const tMs = x / msToX;
+      let yVal = 0;
+
+      if (transientProtected) {
+        // Pure silence before 18 ms
+        if (tMs >= HIT_MS) {
+          const dt = (tMs - HIT_MS);
+          const env = Math.exp(-dt / 3.5);
+          const fCrack = Math.sin(2 * Math.PI * 650 * (dt / 1000.0));
+          const fThud = Math.sin(2 * Math.PI * (160 - dt * 2) * (dt / 1000.0));
+          yVal = (fCrack * 0.5 + fThud * 0.7) * env * 50;
+        }
+      } else {
+        // Naive Vocoder: Energy leaks backwards into pre-echo from 6 ms to 18 ms
+        if (tMs >= 6.0 && tMs < HIT_MS) {
+          const dtPre = (HIT_MS - tMs);
+          const preEnv = Math.exp(-dtPre / 4.5) * 0.35;
+          const fLeak = Math.sin(2 * Math.PI * 550 * (tMs / 1000.0));
+          yVal = fLeak * preEnv * 50;
+        } else if (tMs >= HIT_MS) {
+          const dt = (tMs - HIT_MS);
+          const postEnv = Math.exp(-dt / 5.5) * 0.65;
+          const fCrack = Math.sin(2 * Math.PI * 550 * (dt / 1000.0));
+          const fThud = Math.sin(2 * Math.PI * 130 * (dt / 1000.0));
+          yVal = (fCrack * 0.4 + fThud * 0.6) * postEnv * 50;
+        }
+      }
+
+      const y = midY + yVal;
+      if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    if (!transientProtected) {
+      const preX = 6.0 * msToX;
+      ctx.fillStyle = 'rgba(244, 63, 94, 0.12)';
+      ctx.fillRect(preX, 22, hitX - preX, h - 44);
+      ctx.fillStyle = '#f43f5e'; ctx.font = '11px sans-serif';
+      ctx.fillText('← PRE-ECHO ("SWISH"): Energy leaks before hit', preX + 4, 36);
+    }
+  }
+
+  // Audio Playback for Drum
+  btnPlayDrum.addEventListener('click', () => {
+    const actx = new (window.AudioContext || window.webkitAudioContext)();
+    const sr = actx.sampleRate;
+    const dur = 1.0;
+    const buf = actx.createBuffer(1, Math.floor(sr * dur), sr);
+    const data = buf.getChannelData(0);
+    const hitSample = Math.floor(sr * 0.35);
+
+    if (!transientProtected) {
+      const preStart = Math.floor(sr * 0.18);
+      for (let i = preStart; i < hitSample; i++) {
+        const p = (i - preStart) / (hitSample - preStart);
+        data[i] = (Math.random() * 2 - 1) * Math.pow(p, 2.5) * 0.25;
+      }
+      for (let i = hitSample; i < hitSample + Math.floor(sr * 0.25); i++) {
+        const dt = (i - hitSample) / sr;
+        const env = Math.exp(-dt * 20);
+        data[i] = ((Math.random() * 2 - 1) * 0.4 + Math.sin(2 * Math.PI * 120 * dt) * 0.5) * env;
+      }
+    } else {
+      for (let i = hitSample; i < hitSample + Math.floor(sr * 0.25); i++) {
+        const dt = (i - hitSample) / sr;
+        const env = Math.exp(-dt * 30);
+        const noise = (Math.random() * 2 - 1) * (dt < 0.015 ? 0.95 : 0.2);
+        data[i] = (noise + Math.sin(2 * Math.PI * 160 * dt) * 0.6) * env;
+      }
+    }
+
+    const src = actx.createBufferSource();
+    src.buffer = buf;
+    src.connect(actx.destination);
+    src.start();
+  });
+
+  // Section 1 Listeners
+  sliderBass.addEventListener('input', () => { render(); updateLiveAudio(); });
+  sliderLead.addEventListener('input', () => { render(); updateLiveAudio(); });
+  speedSlider.addEventListener('input', () => { autoVocoderAlign(); });
+  btnAutoVocoder.addEventListener('click', () => { autoVocoderAlign(); });
+  btnScramble.addEventListener('click', () => {
+    sliderBass.value = 180;
+    sliderLead.value = 90;
+    render();
+    updateLiveAudio();
+  });
+
+  chkShowBass.addEventListener('change', render);
+  chkShowLead.addEventListener('change', render);
+  chkShowCombined.addEventListener('change', render);
+  if (chkShowEnvelopes) chkShowEnvelopes.addEventListener('change', render);
+
+  window.addEventListener('resize', () => {
+    render();
+    updateSec2();
+    renderTransient();
+  });
+
+  // Audio Playback for Section 1 Tone
+  let audioCtx = null;
+  let isPlaying = false;
+  let currentSource = null;
+
+  function updateLiveAudio() {
+    if (!isPlaying || !audioCtx) return;
+    startAudio();
+  }
+
+  function startAudio() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (currentSource) {
+      try { currentSource.stop(); } catch(e){}
+    }
+
+    const sampleRate = audioCtx.sampleRate;
+    const dur = 2.0;
+    const numSamples = Math.floor(sampleRate * dur);
+    const buffer = audioCtx.createBuffer(1, numSamples, sampleRate);
+    const data = buffer.getChannelData(0);
+
+    const bRad = parseFloat(sliderBass.value) * Math.PI / 180;
+    const lRad = parseFloat(sliderLead.value) * Math.PI / 180;
+
+    const win = Math.floor(sampleRate * 0.060);
+    const outStep = Math.floor(sampleRate * 0.015);
+
+    for (let out = 0; out + win < numSamples; out += outStep) {
+      for (let i = 0; i < win; i++) {
+        const hann = 0.5 * (1 - Math.cos(2 * Math.PI * i / win));
+        const t = (out + i) / sampleRate;
+        const b = Math.sin(2 * Math.PI * F_BASS * t + bRad) * 0.3;
+        const l = Math.sin(2 * Math.PI * F_LEAD * t + lRad) * 0.2;
+        data[out + i] += (b + l) * hann;
+      }
+    }
+
+    const src = audioCtx.createBufferSource();
+    src.buffer = buffer;
+    src.loop = true;
+    src.connect(audioCtx.destination);
+    src.start();
+    currentSource = src;
+    isPlaying = true;
+    btnPlay.textContent = '⏹ Stop Audio';
+  }
+
+  btnPlay.addEventListener('click', () => {
+    if (isPlaying) {
+      if (currentSource) try { currentSource.stop(); } catch(e){}
+      if (audioCtx) { audioCtx.close(); audioCtx = null; }
+      isPlaying = false;
+      btnPlay.textContent = '▶ Play Live Audio Tone';
+    } else {
+      startAudio();
+    }
+  });
+
+  // Initial runs
+  autoVocoderAlign();
+  updateSec2();
+  renderTransient();
+</script>
+</body>
+</html>

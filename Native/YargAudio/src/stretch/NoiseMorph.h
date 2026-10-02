@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <random>
 #include <vector>
 
 // NoiseMorph - splits each band into keep and replace parts so attacks stay sharp
@@ -24,9 +25,16 @@ namespace yarg::audio {
 template<typename Sample>
 class NoiseMorph {
     using STFT = signalsmith::linear::DynamicSTFT<Sample, false, true>;
+    using Complex = std::complex<Sample>;
+    static constexpr Sample PI{Sample(3.14159265358979323846)};
+    static constexpr unsigned DEFAULT_SEED = 1;
     static constexpr int HISTORY = 17;
     static constexpr int RADIUS = 16;
-    static constexpr int SHELTER = 24;
+    static constexpr Sample REPLACEMENT_RISE_SECONDS{Sample(0.030)};
+    static constexpr Sample REPLACEMENT_RELEASE_SECONDS{Sample(0.015)};
+    static constexpr Sample NOISE_CONFIDENCE_START{Sample(0.85)};
+    static constexpr Sample NOISE_CONFIDENCE_RANGE{Sample(0.15)};
+    static constexpr Sample TREBLE_DECORRELATION_RATE{Sample(2.5)};
     // Detection cutoffs: tone/attack ratio boundaries, peak-to-background ratio,
     // and the low-frequency fade-in for resynthesis.
     static constexpr Sample TONE_LOW{Sample(0.65)};
@@ -39,20 +47,22 @@ class NoiseMorph {
     TextureGrains<Sample> grains;
     bool useGrains = false;
     std::vector<Sample> grainMask;
-    std::vector<char> peakFlag, nearFlag;
+    std::vector<Complex> grainPhase;
+    std::minstd_rand randomEngine{DEFAULT_SEED};
+    Sample replacementStep = 0;
     std::vector<double> sumPrefix;
-    std::vector<int> countPrefix;
-    std::vector<Sample> history, magnitude, mask, tonal;
+    std::vector<Sample> history, magnitude, mask, tonal, protection;
     int channels = 0;
     int bands = 0;
     int historyIndex = 0;
     int historyCount = 0;
 
 public:
-    void configure(const STFT &analysis, int count, bool grainPath) {
+    void configure(const STFT &analysis, int count, Sample sampleRate, bool grainPath) {
         useGrains = grainPath;
         channels = std::min(count, 2);
         bands = int(analysis.bands());
+        replacementStep = Sample(analysis.defaultInterval()) / (sampleRate * REPLACEMENT_RISE_SECONDS);
         history.assign(bands * HISTORY, Sample(0));
         magnitude.assign(bands, Sample(0));
         mask.assign(bands, Sample(0));
@@ -60,24 +70,26 @@ public:
         if (useGrains) {
             grains.configure(analysis, channels, true);
             grainMask.assign(bands, Sample(0));
-            peakFlag.assign(bands, 0);
-            nearFlag.assign(bands, 0);
+            grainPhase.assign(bands, Complex{Sample(1), Sample(0)});
+            protection.assign(bands, Sample(0));
             sumPrefix.assign(bands + 1, 0);
-            countPrefix.assign(bands + 1, 0);
         }
         clearHistory();
     }
 
     void clearHistory() {
         historyIndex = historyCount = 0;
+        randomEngine.seed(DEFAULT_SEED);
         std::fill(history.begin(), history.end(), Sample(0));
+        std::fill(grainMask.begin(), grainMask.end(), Sample(0));
         if (useGrains) {
             grains.reset();
         }
     }
 
-    void reset(long) {
+    void reset(long seed) {
         clearHistory();
+        randomEngine.seed(static_cast<std::minstd_rand::result_type>(seed));
     }
 
     bool usesGrains() const {
@@ -95,7 +107,7 @@ public:
     // Per-block split: measure bands, detect tones/transients, shelter music,
     // move texture to the grains.
     template<class Input>
-    void apply(STFT &output, Input input, Sample strength, Sample minimumFrequency) {
+    void apply(STFT &output, Input input, Sample strength, Sample minimumFrequency, Sample decorrelation) {
         pushMagnitudes(input);
         if (historyCount < HISTORY || strength == 0) {
             std::fill(grainMask.begin(), grainMask.end(), Sample(0));
@@ -104,7 +116,7 @@ public:
         }
         detectTonesAndAttacks();
         markProtectedPeaks();
-        shelterAndApply(output, input, strength, minimumFrequency);
+        shelterAndApply(output, input, strength, minimumFrequency, decorrelation);
     }
 
 private:
@@ -148,51 +160,84 @@ private:
 
     // Flags bands above background plus their neighbourhood as protected.
     void markProtectedPeaks() {
+        std::fill(protection.begin(), protection.end(), Sample(0));
         sumPrefix[0] = 0;
         for (int b = 0; b < bands; ++b) {
             sumPrefix[b + 1] = sumPrefix[b] + double(magnitude[b]);
         }
         for (int b = 0; b < bands; ++b) {
+            if ((b > 0 && magnitude[b] < magnitude[b - 1]) ||
+                (b + 1 < bands && magnitude[b] < magnitude[b + 1])) {
+                continue;
+            }
             int low = std::max(0, b - RADIUS);
             int high = std::min(bands - 1, b + RADIUS);
             double background = (sumPrefix[high + 1] - sumPrefix[low]) / double(high - low + 1);
-            peakFlag[b] = double(magnitude[b]) > background * PEAK_TIMES_BACKGROUND;
-        }
-        countPrefix[0] = 0;
-        for (int b = 0; b < bands; ++b) {
-            countPrefix[b + 1] = countPrefix[b] + (peakFlag[b] ? 1 : 0);
-        }
-        const int shelterRadius = SHELTER * 2;
-        for (int b = 0; b < bands; ++b) {
-            int low = std::max(0, b - shelterRadius);
-            int high = std::min(bands - 1, b + shelterRadius);
-            nearFlag[b] = (countPrefix[high + 1] - countPrefix[low]) > 0;
+            Sample shelter = double(magnitude[b]) > background * PEAK_TIMES_BACKGROUND ?
+                Sample(1) : tonal[b];
+            if (shelter == Sample(0)) {
+                continue;
+            }
+            protection[b] = std::max(protection[b], shelter);
+            for (int i = b - 1; i >= 0 && magnitude[i] < magnitude[i + 1]; --i) {
+                protection[i] = std::max(protection[i], shelter);
+            }
+            for (int i = b + 1; i < bands && magnitude[i] < magnitude[i - 1]; ++i) {
+                protection[i] = std::max(protection[i], shelter);
+            }
         }
     }
 
     // Extends tone protection to neighbouring bands, removes texture from the main
     // spectrum, and hands it to the grains.
     template<class Input>
-    void shelterAndApply(STFT &output, Input input, Sample strength, Sample minimumFrequency) {
-        const int shelterRadius = SHELTER * 2;
+    void shelterAndApply(STFT &output, Input input, Sample strength, Sample minimumFrequency, Sample decorrelation) {
         const Sample cutoff = minimumFrequency * CUTOFF_TIMES_MINIMUM;
+        const Sample releaseStep = replacementStep * REPLACEMENT_RISE_SECONDS / REPLACEMENT_RELEASE_SECONDS;
+        const Sample trebleDecorrelation = std::min(Sample(1), decorrelation * TREBLE_DECORRELATION_RATE);
+        std::uniform_real_distribution<Sample> phaseDistribution(-PI, PI);
+        double coherentPower = 0;
+        double totalPower = 0;
         for (int b = 0; b < bands; ++b) {
-            Sample shelter = 0;
-            for (int i = std::max(0, b - shelterRadius); i <= std::min(bands - 1, b + shelterRadius); ++i) {
-                shelter = std::max(shelter, tonal[i]);
-            }
-            if (nearFlag[b]) {
-                shelter = Sample(1);
-            }
-            const Sample amount = strength * std::max(Sample(0), mask[b] - shelter) *
+            const Sample shelter = std::max(tonal[b], protection[b]);
+            const Sample texture = std::max(Sample(0), mask[b] - shelter);
+            const Sample target = strength * texture *
                 std::clamp((output.binToFreq(b) - cutoff) / cutoff, Sample(0), Sample(1));
+            const Sample amount = std::clamp(target, grainMask[b] - releaseStep, grainMask[b] + replacementStep);
             grainMask[b] = amount;
             const Sample keep = std::sqrt(Sample(1) - amount);
             for (int c = 0; c < channels; ++c) {
                 output.spectrum(c)[b] *= keep;
             }
+            if (decorrelation > Sample(0)) {
+                grainPhase[b] = Complex{Sample(1), Sample(0)};
+                Sample meanRotation = Sample(1);
+                const Sample noiseConfidence = std::clamp(
+                    (texture - NOISE_CONFIDENCE_START) / NOISE_CONFIDENCE_RANGE, Sample(0), Sample(1));
+                const Sample trebleWeight = std::clamp(
+                    (output.binToFreq(b) - Sample(2) * cutoff) / cutoff, Sample(0), Sample(1));
+                const Sample phaseDose = decorrelation + (Sample(1) - decorrelation) *
+                    trebleDecorrelation * noiseConfidence * trebleWeight;
+                const Sample phaseAmount = phaseDose * target;
+                if (phaseAmount > Sample(0)) {
+                    const Sample phaseRange = PI * phaseAmount;
+                    grainPhase[b] = std::polar(Sample(1), phaseDistribution(randomEngine) * phaseAmount);
+                    meanRotation = std::sin(phaseRange) / phaseRange;
+                }
+                for (int c = 0; c < channels; ++c) {
+                    const double power = double(std::norm(input(c, b))) * amount;
+                    totalPower += power;
+                    coherentPower += power * meanRotation * meanRotation;
+                }
+            }
         }
-        grains.add(output, input, grainMask);
+        if (decorrelation > Sample(0)) {
+            const Sample windowCoherence = std::clamp(
+                Sample(coherentPower / (totalPower + 1e-30)), Sample(0), Sample(1));
+            grains.add(output, [&](int c, int b) { return input(c, b) * grainPhase[b]; }, grainMask, windowCoherence);
+        } else {
+            grains.add(output, input, grainMask);
+        }
     }
 };
 

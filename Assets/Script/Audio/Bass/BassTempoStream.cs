@@ -2,6 +2,7 @@
 using System;
 using ManagedBass;
 using ManagedBass.Fx;
+using YARG.Core.Audio;
 using YARG.Core.Logging;
 using YARG.Settings;
 

@@ -27,9 +27,11 @@ class TextureGrains {
     using STFT = signalsmith::linear::DynamicSTFT<Sample, false, true>;
     // Search range for grain alignment, as a share of the hop.
     static constexpr int SEARCH_DIVISOR = 4;
+    static constexpr double SHIFT_PENALTY = 0.05;
     signalsmith::linear::RealFFT<Sample, false, true> fft;
     std::vector<Complex> spectrum;
     std::vector<Sample> waveform, previous, fade, inverseWindow, output;
+    Sample meanWindowPower = 0;
     int channels = 0;
     int hop = 0;
     int outputPosition = 0;
@@ -51,9 +53,13 @@ public:
         for (int i = 0; i < hop; ++i) {
             fade[i] = std::sin((i + Sample(0.5)) * Sample(1.5707963267948966) / hop);
         }
+        double windowPower = 0;
         for (int i = 0; i < int(analysis.blockSamples()); ++i) {
-            inverseWindow[i] = Sample(1) / (analysis.fftSamples() * analysis.analysisWindow()[i]);
+            const Sample window = analysis.analysisWindow()[i];
+            inverseWindow[i] = Sample(1) / (analysis.fftSamples() * window);
+            windowPower += double(window) * window;
         }
+        meanWindowPower = Sample(windowPower / analysis.fftSamples());
     }
 
     void reset() {
@@ -64,8 +70,21 @@ public:
 
     // Renders texture to waveform, aligns one grain, blends it in.
     template<class Input>
-    void add(const STFT &analysis, Input input, const std::vector<Sample> &mask) {
-        renderWaveform(analysis, input, mask);
+    void add(const STFT &analysis, Input input, const std::vector<Sample> &mask, Sample windowCoherence = Sample(1)) {
+        if (std::all_of(mask.begin(), mask.end(), [](Sample amount) { return amount == Sample(0); })) {
+            const int block = int(analysis.blockSamples());
+            const int start = outputPosition + int(analysis.synthesisOffset()) - hop;
+            for (int c = 0; c < channels; ++c) {
+                auto *tail = previous.data() + c * hop;
+                auto *buffer = output.data() + c * block;
+                for (int i = 0; i < hop; ++i) {
+                    buffer[(start + i) % block] += tail[i] * fade[hop - 1 - i];
+                    tail[i] = Sample(0);
+                }
+            }
+            return;
+        }
+        renderWaveform(analysis, input, mask, windowCoherence);
         Sample correlation = 0;
         int bestOffset = findBestOffset(analysis, correlation);
         blendGrains(analysis, bestOffset, correlation);
@@ -85,7 +104,7 @@ public:
 private:
     // Inverse FFT of the masked spectrum per channel; compensates the analysis window.
     template<class Input>
-    void renderWaveform(const STFT &analysis, Input input, const std::vector<Sample> &mask) {
+    void renderWaveform(const STFT &analysis, Input input, const std::vector<Sample> &mask, Sample windowCoherence) {
         const int size = int(analysis.fftSamples());
         const int center = int(analysis.analysisOffset());
         const int range = hop + hop / SEARCH_DIVISOR;
@@ -97,7 +116,13 @@ private:
             fft.ifft(spectrum.data(), wave);
             for (int i = -range; i < range; ++i) {
                 const int index = i < 0 ? size + i : i;
-                wave[index] *= (i < 0 ? -1 : 1) * inverseWindow[center + i];
+                if (windowCoherence == Sample(1)) {
+                    wave[index] *= (i < 0 ? -1 : 1) * inverseWindow[center + i];
+                } else {
+                    const Sample window = analysis.analysisWindow()[center + i];
+                    const Sample power = windowCoherence * window * window + (Sample(1) - windowCoherence) * meanWindowPower;
+                    wave[index] *= (i < 0 ? -1 : 1) / (size * std::sqrt(power));
+                }
             }
         }
     }
@@ -108,10 +133,18 @@ private:
         const int size = int(analysis.fftSamples());
         int bestOffset = 0;
         double bestScore = 0;
+        double bestCorrelation = 0;
+        double oldPower = 0;
+        for (Sample value : previous) {
+            oldPower += double(value) * value;
+        }
         const int searchStep = fullSearch ? 1 : std::max(1, hop / 16);
-        for (int offset = -hop / SEARCH_DIVISOR; offset <= hop / SEARCH_DIVISOR; offset += searchStep) {
+        const int searchRange = hop / SEARCH_DIVISOR;
+        const int searchCount = 2 * searchRange / searchStep + 1;
+        const double shiftPenalty = SHIFT_PENALTY * SEARCH_DIVISOR / double(hop);
+        for (int candidate = -1; candidate < searchCount; ++candidate) {
+            const int offset = candidate < 0 ? 0 : -searchRange + candidate * searchStep;
             double cross = 0;
-            double oldPower = 0;
             double newPower = 0;
             for (int c = 0; c < channels; ++c) {
                 const auto *wave = waveform.data() + c * size;
@@ -120,17 +153,18 @@ private:
                     const int index = (size - hop + offset + i) % size;
                     const double next = wave[index];
                     cross += tail[i] * next;
-                    oldPower += double(tail[i]) * tail[i];
                     newPower += next * next;
                 }
             }
-            const double score = cross / std::sqrt(oldPower * newPower + 1e-60);
-            if (score > bestScore) {
+            const double match = cross / std::sqrt(oldPower * newPower + 1e-60);
+            const double score = match - shiftPenalty * std::abs(offset);
+            if (score > bestScore || (score == bestScore && std::abs(offset) < std::abs(bestOffset))) {
                 bestScore = score;
+                bestCorrelation = match;
                 bestOffset = offset;
             }
         }
-        correlation = Sample(std::clamp(bestScore, 0.0, 1.0));
+        correlation = Sample(std::clamp(bestCorrelation, 0.0, 1.0));
         return bestOffset;
     }
 
