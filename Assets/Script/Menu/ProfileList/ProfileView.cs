@@ -12,7 +12,6 @@ using YARG.Core.Game;
 using YARG.Core.Logging;
 using YARG.Input;
 using YARG.Localization;
-using YARG.Menu;
 using YARG.Menu.Data;
 using YARG.Menu.Dialogs;
 using YARG.Menu.Navigation;
