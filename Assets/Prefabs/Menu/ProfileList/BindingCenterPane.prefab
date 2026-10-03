@@ -2696,6 +2696,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6406703705636884596}
   - component: {fileID: 8709012260443938323}
+  - component: {fileID: 1331183267284331189}
   m_Layer: 5
   m_Name: Unlock
   m_TagString: Untagged
@@ -2739,6 +2740,19 @@ MonoBehaviour:
   _button: {fileID: 571721734835080690}
   _background: {fileID: 7845354351795215336}
   _icon: {fileID: 2992603839796605358}
+--- !u!114 &1331183267284331189
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8192298306226586296}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
+  _localizationKey: UnlockBindingSet
 --- !u!1 &8321823407659492227
 GameObject:
   m_ObjectHideFlags: 0

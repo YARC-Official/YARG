@@ -200,10 +200,10 @@ namespace YARG.Menu.ProfileList
             var activeProfiles = PlayerContainer.Players.Select(e => e.Profile).ToArray();
             var otherProfiles = PlayerContainer.Profiles.Except(activeProfiles).OrderBy(e => e.Name).ToArray();
 
-            AddProfileListGroup(Localize.Key("Menu.ProfileList.ActiveProfiles"), activeProfiles);
-            AddProfileListGroup(Localize.Key("Menu.ProfileList.Players"), otherProfiles.Where(e => !e.IsBot));
-            AddProfileListGroup(Localize.Key("Menu.ProfileList.Bots"), otherProfiles.Where(e => e.IsBot));
-            AddUnloadedGroup(Localize.Key("Menu.ProfileList.CouldNotLoad"));
+            AddProfileListGroup("ActiveProfiles", activeProfiles);
+            AddProfileListGroup("Players", otherProfiles.Where(e => !e.IsBot));
+            AddProfileListGroup("Bots", otherProfiles.Where(e => e.IsBot));
+            AddUnloadedGroup("Menu");
 
             if (selectedProfile == null)
             {

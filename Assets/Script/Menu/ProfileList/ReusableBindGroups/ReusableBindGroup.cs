@@ -85,6 +85,14 @@ namespace YARG.Menu.ProfileList
             RefreshBindings();
         }
 
+        public void OnDestroy()
+        {
+            _header.BindingsClicked -= ToggleBindingsDrawer;
+            _header.SettingsClicked -= ToggleSettingsDrawer;
+            _centerPane.HandednessChanged -= RefreshHandedness;
+            _settingsPanel.Unlocked -= OnUnlocked;
+        }
+
         public void RefreshBindings()
         {
             _bindingList.ClearDrawer();
@@ -153,10 +161,6 @@ namespace YARG.Menu.ProfileList
 
         public void ToggleSettingsDrawer() => SetSettingsDrawer(!_settingsList.DrawerOpened);
 
-        private void OnDestroy()
-        {
-            _centerPane.HandednessChanged -= RefreshHandedness;
-        }
 
         private void RefreshHandedness(bool lefty)
         {
