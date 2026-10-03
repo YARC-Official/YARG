@@ -22,7 +22,11 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private GameObject _userCountGroup;
         [SerializeField]
+        private Image _userCountBackground;
+        [SerializeField]
         private TextMeshProUGUI _userCountText;
+        [SerializeField]
+        private GameObject _unlockButton;
         [SerializeField]
         private BindingSetsCenterPane _centerPane;
 
@@ -33,12 +37,20 @@ namespace YARG.Menu.ProfileList
         public IReadOnlyList<YargProfile> ActiveUsers => _activeUsers;
 
         public bool Locked { get; private set; }
+        private bool _explicitlyUnlocked = false;
 
         public void OnEnable()
         {
+            Refresh();
             _centerPane.HandednessChanged += (_) => Refresh();
         }
 
+        public void Unlock()
+        {
+            Locked = false;
+            _explicitlyUnlocked = true;
+            Refresh();
+        }
         public void Refresh()
         {
             _leftyToggle.SetIsOnWithoutNotify(_centerPane.ShowLeftyNames);
@@ -57,7 +69,7 @@ namespace YARG.Menu.ProfileList
 
                 GetUserCounts(bindingSet);
 
-                Locked = _allUsers.Count > 1;
+                Locked = !_explicitlyUnlocked && _allUsers.Count > 1;
 
                 const string localizationKeyPrefix = "Menu.ProfileList.UserCount.";
 
@@ -65,8 +77,11 @@ namespace YARG.Menu.ProfileList
                 {
                     0 => Localize.Key($"{localizationKeyPrefix}Zero"),
                     1 => Localize.KeyFormat($"{localizationKeyPrefix}One", _allUsers[0].Name),
-                    _ => Localize.KeyFormat($"{localizationKeyPrefix}Multiple", _allUsers.Count)
+                    _ => Localize.KeyFormat($"{localizationKeyPrefix}Multiple{(Locked ? "Locked" : "Unlocked")}", _allUsers.Count)
                 };
+
+                _unlockButton.SetActive(Locked);
+                _userCountBackground.color = _userCountBackground.color.WithAlpha(Locked ? 1 : 0);
             }
         }
 
