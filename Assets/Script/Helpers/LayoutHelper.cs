@@ -91,7 +91,7 @@ namespace YARG.Helpers
                 case LayoutStrings.PRO_KEYBOARD:            return ControllerFamily.ProKeyboard;
                 case LayoutStrings.PRO_GUITAR:              return ControllerFamily.ProGuitar;
                 case LayoutStrings.KEYBOARD:                return ControllerFamily.ComputerKeyboard;
-                //case LayoutStrings.MOUSE:                   return ControllerFamily.Mouse;
+                case LayoutStrings.MOUSE:                   return ControllerFamily.Mouse;
                 case LayoutStrings.GAMEPAD:                 return ControllerFamily.Gamepad;
                 case LayoutStrings.MIDI_DEVICE:             return ControllerFamily.MidiDevice;
                 case LayoutStrings.INPUT_DEVICE or null:    return ControllerFamily.Other;
