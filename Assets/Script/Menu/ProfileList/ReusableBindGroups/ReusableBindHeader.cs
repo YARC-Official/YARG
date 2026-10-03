@@ -88,6 +88,11 @@ namespace YARG.Menu.ProfileList
             _bindingNameText.text = Localize.Key(lefty ? _binding.NameLefty : _binding.Name);
         }
 
+        public void SetInteractable(bool interactable)
+        {
+            _addNewButton.interactable = interactable;
+        }
+
         private void OnDestroy()
         {
             _group.HandednessChanged -= RefreshHandedness;

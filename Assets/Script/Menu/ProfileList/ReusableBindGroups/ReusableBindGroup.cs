@@ -12,7 +12,19 @@ namespace YARG.Menu.ProfileList
 {
     public abstract class ReusableBindGroup : MonoBehaviour
     {
+        [SerializeField]
+        protected ReusableBindHeader _header;
+
+        protected ReusableBindingSet _bindingSet;
+
         public event Action<bool> HandednessChanged;
+        public event Action Unlocked;
+
+        protected void OnUnlocked()
+        {
+            _header.SetInteractable(!_bindingSet.IsHardcoded);
+            Unlocked?.Invoke();
+        }
     }
 
     public abstract class ReusableBindGroup<TSingleView, TBinding, TSingle, TSingleState> : ReusableBindGroup
@@ -21,8 +33,7 @@ namespace YARG.Menu.ProfileList
         where TSingle : ReusableSingleBinding<TSingleState>, new()
         where TSingleState : struct
     {
-        [SerializeField]
-        protected ReusableBindHeader _header;
+        
         [SerializeField]
         protected DropdownDrawer _bindingList;
         [SerializeField]
@@ -36,6 +47,7 @@ namespace YARG.Menu.ProfileList
 
         protected ProfilesMenu _profilesMenu;
         protected BindingSetsCenterPane _centerPane;
+        protected BindingsCenterPaneSettingsPanel _settingsPanel;
         protected DummyControllerQuickBindDialogMenu _quickBindDialog;
         protected bool _interactable;
         protected bool _showLeftyNames;
@@ -43,6 +55,7 @@ namespace YARG.Menu.ProfileList
         public virtual void Init(
             ProfilesMenu profilesMenu,
             BindingSetsCenterPane centerPane,
+            BindingsCenterPaneSettingsPanel settingsPanel,
             DummyControllerQuickBindDialogMenu quickBindDialog,
             ReusableBindingSet bindingSet,
             TBinding binding,
@@ -51,8 +64,10 @@ namespace YARG.Menu.ProfileList
         {
             _profilesMenu = profilesMenu;
             _centerPane = centerPane;
+            _settingsPanel = settingsPanel;
             _quickBindDialog = quickBindDialog;
-            _interactable = !bindingSet.IsHardcoded;
+            _bindingSet = bindingSet;
+            _interactable = !bindingSet.IsHardcoded && !settingsPanel.Locked;
 
             Binding = binding;
             _controls = controls;
@@ -65,9 +80,8 @@ namespace YARG.Menu.ProfileList
             _settingsList.SetDrawerWithoutRebuild(false);
             _header.SetSettingsButtonActive(false);
             _header.SetArrowOpen(true);
-
             _centerPane.HandednessChanged += RefreshHandedness;
-
+            _settingsPanel.Unlocked += OnUnlocked;
             RefreshBindings();
         }
 
@@ -94,7 +108,7 @@ namespace YARG.Menu.ProfileList
         protected void AddBindingView(TSingle control)
         {
             var bindView = _bindingList.AddNewWithoutRebuild(_viewPrefab);
-            bindView.Init(Binding, control, _controls, _profilesMenu, _centerPane, _quickBindDialog, _interactable);
+            bindView.Init(this, Binding, control, _controls, _profilesMenu, _centerPane, _quickBindDialog, _interactable);
 
             bindView.DeleteRequested += DeleteBinding;
         }
