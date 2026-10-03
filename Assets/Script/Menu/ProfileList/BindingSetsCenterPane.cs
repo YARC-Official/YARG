@@ -205,6 +205,7 @@ namespace YARG.Menu.ProfileList
                         buttonGroup.Init(
                             _profilesMenu,
                             this,
+                            _settingsPanel,
                             _quickBindDialog,
                             bindingSet,
                             bindingSet.Bindings[action] as ReusableButtonBinding,
@@ -216,6 +217,7 @@ namespace YARG.Menu.ProfileList
                         axisGroup.Init(
                             _profilesMenu,
                             this,
+                            _settingsPanel,
                             _quickBindDialog,
                             bindingSet,
                             bindingSet.Bindings[action] as ReusableAxisBinding,

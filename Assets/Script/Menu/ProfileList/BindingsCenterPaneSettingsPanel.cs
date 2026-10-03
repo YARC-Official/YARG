@@ -45,17 +45,27 @@ namespace YARG.Menu.ProfileList
             _centerPane.HandednessChanged += (_) => Refresh();
         }
 
+        public event Action Unlocked;
+
         public void Unlock()
         {
             Locked = false;
             _explicitlyUnlocked = true;
             Refresh();
+            Unlocked?.Invoke();
         }
         public void Refresh()
         {
             _leftyToggle.SetIsOnWithoutNotify(_centerPane.ShowLeftyNames);
 
             var bindingSet = _centerPane.BindingSet;
+
+            if (bindingSet is null)
+            {
+                _leftyNamesGroup.SetActive(false);
+                _userCountGroup.SetActive(false);
+                return;
+            }
 
             _leftyNamesGroup.SetActive(bindingSet.Mode.HasLeftyNames());
 

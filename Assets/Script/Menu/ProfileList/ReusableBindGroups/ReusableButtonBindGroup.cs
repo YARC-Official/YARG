@@ -29,13 +29,14 @@ namespace YARG.Menu.ProfileList
         public override void Init(
             ProfilesMenu profilesMenu,
             BindingSetsCenterPane centerPane,
+            BindingsCenterPaneSettingsPanel settingsPanel,
             DummyControllerQuickBindDialogMenu quickBindDialog,
             ReusableBindingSet bindingSet,
             ReusableButtonBinding binding,
             List<ControlItemInfo> controls
         )
         {
-            base.Init(profilesMenu, centerPane, quickBindDialog, bindingSet, binding, controls);
+            base.Init(profilesMenu, centerPane, settingsPanel, quickBindDialog, bindingSet, binding, controls);
 
             _debounceSlider.SetValueWithoutNotify(binding.DebounceThreshold);
             _debounceSlider.SetInteractable(!bindingSet.IsHardcoded);

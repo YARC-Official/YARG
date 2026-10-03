@@ -31,6 +31,7 @@ namespace YARG.Menu.ProfileList
         private ValueSlider _lowerDeadzoneSlider;
 
         public override void Init(
+            ReusableBindGroup bindGroup,
             ReusableAxisBinding binding,
             ReusableSingleAxisBinding singleBinding,
             List<ControlItemInfo> controls,
@@ -40,7 +41,7 @@ namespace YARG.Menu.ProfileList
             bool interactable
         )
         {
-            base.Init(binding, singleBinding, controls, profilesMenu, centerPane, quickBindDialog, interactable);
+            base.Init(bindGroup, binding, singleBinding, controls, profilesMenu, centerPane, quickBindDialog, interactable);
 
             // Set with notify for value corrections and propogation to other components
             _invertToggle.isOn = singleBinding.Inverted;

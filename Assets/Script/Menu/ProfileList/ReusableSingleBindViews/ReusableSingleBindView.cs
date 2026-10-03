@@ -43,6 +43,7 @@ namespace YARG.Menu.ProfileList
         protected InputControl _dummyInputControl;
 
         public virtual void Init(
+            ReusableBindGroup bindGroup,
             TBinding binding,
             TSingle singleBinding,
             List<ControlItemInfo> controls,
@@ -59,6 +60,8 @@ namespace YARG.Menu.ProfileList
             SingleBinding = singleBinding;
             _allControls = controls;
             _interactable = interactable;
+
+            bindGroup.Unlocked += OnUnlocked;
 
             UpdateDummyInputControl();
             PopulateControlDropdown();
@@ -191,6 +194,15 @@ namespace YARG.Menu.ProfileList
                     _controlDropdown.RefreshShownValue();
                 }
             }
+        }
+
+        public void OnUnlocked()
+        {
+            _interactable = true;
+            _recordButton.interactable = _centerPane.DummyController is not null;
+            _controlDropdown.interactable = true;
+            _deleteButton.interactable = true;
+
         }
 
         private void Update()

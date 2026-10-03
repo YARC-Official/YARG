@@ -36,6 +36,7 @@ namespace YARG.Menu.ProfileList
         private ValueSlider _debounceSlider;
 
         public override void Init(
+            ReusableBindGroup bindGroup,
             ReusableButtonBinding binding,
             ReusableSingleButtonBinding singleBinding,
             List<ControlItemInfo> controls,
@@ -45,7 +46,7 @@ namespace YARG.Menu.ProfileList
             bool interactable
         )
         {
-            base.Init(binding, singleBinding, controls, profilesMenu, centerPane, quickBindDialog, interactable);
+            base.Init(bindGroup, binding, singleBinding, controls, profilesMenu, centerPane, quickBindDialog, interactable);
 
             // Set with notify for propogation to other components
             _invertToggle.isOn = singleBinding.Inverted;
