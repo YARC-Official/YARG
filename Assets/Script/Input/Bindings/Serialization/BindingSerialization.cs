@@ -62,7 +62,7 @@ namespace YARG.Input.Serialization
         }
 
         public string Name;
-        public Guid Guid;
+        public Guid? Guid;
         public GameMode GameMode;
         public string BaseLayout;
 

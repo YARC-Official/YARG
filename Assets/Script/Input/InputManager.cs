@@ -66,6 +66,8 @@ namespace YARG.Input
         private static bool _focusChanged;
         private static HashSet<InputDevice> _backgroundDisabledDevices = new();
 
+        public static bool SuppressDeviceToasts { get; set; } = false;
+
         public static void Initialize()
         {
             InputSystem.pollingFrequency = SettingsManager.Settings.InputPollingFrequency.Value;
@@ -309,6 +311,11 @@ namespace YARG.Input
 
         private static void OnDeviceChange(InputDevice device, InputDeviceChange change)
         {
+            if (SuppressDeviceToasts)
+            {
+                return;
+            }
+
             switch (change)
             {
                 case InputDeviceChange.Added:

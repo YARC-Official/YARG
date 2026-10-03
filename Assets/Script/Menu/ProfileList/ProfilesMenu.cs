@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using TMPro;
 using UnityEngine;
@@ -9,6 +11,7 @@ using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Game;
 using YARG.Core.Input;
+using YARG.Core.Logging;
 using YARG.Gameplay.Visuals;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
@@ -518,6 +521,26 @@ namespace YARG.Menu.ProfileList
             RefreshBindingSetList();
             _bindingSetsCenterPane.RefreshDummyControllers();
             _bindingSetsCenterPane.HideContents();
+        }
+
+        public void ImportBindingSet()
+        {
+            FileExplorerHelper.OpenChooseFile(null, "binds", path =>
+            {
+                try
+                {
+                    var text = File.ReadAllText(path);
+                    var deserialized = JsonConvert.DeserializeObject<SerializedReusableBindingSet>(text);
+                    var bindingSet = new ReusableBindingSet(deserialized);
+                    BindingsContainer.AddBindingSet(bindingSet);
+                    CurrentBindingSetFilter = bindingSet.ControllerFamily;
+                    RefreshBindingSetList(bindingSet);
+                }
+                catch (Exception)
+                {
+                    YargLogger.LogError("Failed to import binding set.");
+                }
+            });
         }
     }
 }

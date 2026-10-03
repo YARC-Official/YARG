@@ -299,8 +299,14 @@ namespace YARG.Menu.ProfileList
 
                 try
                 {
-                    var serializable = BindingSet.Serialize();
-                    var text = JsonConvert.SerializeObject(serializable, formatting: Formatting.Indented);
+                    var serializable = BindingSet.Serialize(export: true);
+                    var text = JsonConvert.SerializeObject(
+                        serializable,
+                        new JsonSerializerSettings() {
+                            Formatting = Formatting.Indented,
+                            NullValueHandling = NullValueHandling.Ignore
+                        }
+                    );
                     File.WriteAllText(path, text);
                 }
                 catch (Exception) {

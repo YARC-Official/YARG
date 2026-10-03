@@ -56,7 +56,7 @@ namespace YARG.Input.Bindings
         public ReusableBindingSet(SerializedReusableBindingSet serialized)
         {
             Name = serialized.Name;
-            Guid = serialized.Guid;
+            Guid = serialized.Guid ?? Guid.NewGuid();
             Mode = serialized.GameMode;
             ControllerFamily = LayoutHelper.LayoutStringToControllerFamily(serialized.BaseLayout);
 
@@ -95,7 +95,7 @@ namespace YARG.Input.Bindings
 
 
 #nullable enable
-        public SerializedReusableBindingSet? Serialize()
+        public SerializedReusableBindingSet? Serialize(bool export = false)
         {
             if (Bindings.Count < 1)
             {
@@ -110,7 +110,7 @@ namespace YARG.Input.Bindings
             }
 
             return new SerializedReusableBindingSet(Name, LayoutHelper.ControllerFamilyToLayoutString(ControllerFamily)) {
-                Guid = Guid,
+                Guid = export ? null : Guid, // When exporting, don't include a GUID; we'll make a fresh one on import
                 GameMode = Mode,
                 BaseLayout = LayoutHelper.ControllerFamilyToLayoutString(ControllerFamily),
 
