@@ -46,21 +46,38 @@ namespace YARG.Menu.ProfileList
             {
                 _userCountGroup.SetActive(true);
 
-                var userCount = 0;
-
-                foreach (var deviceInfo in BindingsContainer.AllPlayerDeviceInfo)
-                {
-                    var profileBindings = deviceInfo.AllPreferredBindingSets;
-                    if (profileBindings.Contains(bindingSet))
-                    {
-                        userCount++;
-                    }
-                }
+                var userCount = GetUserCount(bindingSet);
 
                 var userCountNumText = $"<color=#{(userCount > 1 ? "FF0000" : "FFFFFF")}>{userCount}</color>";
 
                 _userCountText.text = Localize.KeyFormat("Menu.ProfileList.UserCount", userCountNumText);
             }
+        }
+
+        private int GetUserCount(ReusableBindingSet bindingSet)
+        {
+            var userCount = 0;
+
+            foreach (var deviceInfo in BindingsContainer.AllPlayerDeviceInfo)
+            {
+                // Check preferred binding sets (one per (ControllerFamily,GameMode) tuple)
+                var profileBindings = deviceInfo.AllPreferredBindingSets;
+                if (profileBindings.Contains(bindingSet))
+                {
+                    userCount++;
+                    continue;
+                }
+
+                // If a connected player has multiple controllers of the same family at the same
+                // time, then some of them might be using other binding sets besides that player's
+                // general (ControllerFamily,GameMode)-wide preference
+                if (deviceInfo.BindingSetsInUse.Contains(bindingSet))
+                {
+                    userCount++;
+                }
+            }
+
+            return userCount;
         }
     }
 }

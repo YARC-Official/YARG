@@ -42,6 +42,17 @@ namespace YARG.Input
         private readonly Dictionary<InputDevice, RuntimeBindingSet> _activeMenuRuntimeBindings = new();
         private readonly Dictionary<(GameMode mode, ControllerFamily controllerFamily), ReusableBindingSet> _preferredBindsByContext = new();
         public IEnumerable<ReusableBindingSet> AllPreferredBindingSets => _preferredBindsByContext.Values;
+        public IEnumerable<ReusableBindingSet> BindingSetsInUse {
+            get
+            {
+                var list = _selectedGameplayBindings.Values.ToList();
+                foreach (var activeMenuBinding in _activeMenuRuntimeBindings.Values)
+                {
+                    list.Add(activeMenuBinding.Source);
+                }
+                return list;
+            }
+        }
 
         private readonly RuntimeInputAggregator _gameplayInputAggregator = new();
         private readonly RuntimeInputAggregator _menuInputAggregator = new();
