@@ -644,7 +644,12 @@
 				"Vocals": "Vocals Gameplay Bindings",
 				"Menu": "Menu Navigation Bindings"
 			},
-			"UserCount": "Profiles Using This Binding Set: {0} ({1} active)",
+			"UserCount": {
+				"Zero": "Used by no profiles",
+				"One": "Used by <color=#2DD9FE>{0}</color>",
+				"MultipleLocked": "Used by {0} profiles",
+				"MultipleUnlocked": "Used by <color=yellow>{0} profiles</color>",
+			},
 			"Tooltip": {
 			    "InputMode": {
 				    "Title": "Input Mode",
@@ -821,6 +826,15 @@
 			  "ShowLeftyFlipNames": {
 				  "Title": "Show Lefty Flip Names",
 				  "Text": "Display action names as they relate to lefty-flipped gameplay."
+			  },
+			  "UserCount": {
+				  "Title": "User Count",
+				  "Text": "{0}",
+				  "Zero": "No profiles currently use this binding set.",
+				  "OneActive": "One profile ({0}) is currently using this binding set. If you edit these bindings, your changes will affect that profile immediately.",
+				  "OneInactive": "One profile ({0}) defaults to this binding set, but that profile is not currently connected. If you edit these bindings, your changes will affect that profile in the future.",
+				  "MultipleLocked": "Multiple profiles use this binding set. <color=yellow>To prevent unintentionally editing someone else's bindings, you must click the <b>Unlock</b> button to enable editing this binding set.</color>",
+				  "MultipleUnlocked": "Multiple profiles use this binding set. <color=yellow>Editing this binding set will affect all of them! If you're making these changes just for yourself, consider making and editing a duplicate./color>",
 			  },
 			  "RecordBinding": {
 				  "Title": "Record Binding",

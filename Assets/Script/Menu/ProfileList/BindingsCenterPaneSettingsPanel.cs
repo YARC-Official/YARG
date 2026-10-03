@@ -5,6 +5,7 @@ using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YARG.Core.Game;
 using YARG.Helpers.Extensions;
 using YARG.Input.Bindings;
 using YARG.Localization;
@@ -24,6 +25,14 @@ namespace YARG.Menu.ProfileList
         private TextMeshProUGUI _userCountText;
         [SerializeField]
         private BindingSetsCenterPane _centerPane;
+
+        private List<YargProfile> _allUsers = new();
+        public IReadOnlyList<YargProfile> AllUsers => _allUsers;
+
+        private List<YargProfile> _activeUsers = new();
+        public IReadOnlyList<YargProfile> ActiveUsers => _activeUsers;
+
+        public bool Locked { get; private set; }
 
         public void OnEnable()
         {
@@ -46,16 +55,25 @@ namespace YARG.Menu.ProfileList
             {
                 _userCountGroup.SetActive(true);
 
-                var (totalUserCount, activeUserCount) = GetUserCount(bindingSet);
+                GetUserCounts(bindingSet);
 
-                _userCountText.text = Localize.KeyFormat("Menu.ProfileList.UserCount", totalUserCount, activeUserCount);
+                Locked = _allUsers.Count > 1;
+
+                const string localizationKeyPrefix = "Menu.ProfileList.UserCount.";
+
+                _userCountText.text = _allUsers.Count switch
+                {
+                    0 => Localize.Key($"{localizationKeyPrefix}Zero"),
+                    1 => Localize.KeyFormat($"{localizationKeyPrefix}One", _allUsers[0].Name),
+                    _ => Localize.KeyFormat($"{localizationKeyPrefix}Multiple", _allUsers.Count)
+                };
             }
         }
 
-        private (int total, int active) GetUserCount(ReusableBindingSet bindingSet)
+        private (List<YargProfile> allUsers, List<YargProfile> activeUsers) GetUserCounts(ReusableBindingSet bindingSet)
         {
-            var userCount = 0;
-            var activeUserCount = 0;
+            _allUsers.Clear();
+            _activeUsers.Clear();
 
             foreach (var deviceInfo in BindingsContainer.AllPlayerDeviceInfo)
             {
@@ -63,10 +81,10 @@ namespace YARG.Menu.ProfileList
                 var profileBindings = deviceInfo.AllPreferredBindingSets;
                 if (profileBindings.Contains(bindingSet))
                 {
-                    userCount++;
+                    _allUsers.Add(deviceInfo.Profile);
 
                     if (PlayerContainer.IsProfileTaken(deviceInfo.Profile)) {
-                        activeUserCount++;
+                        _activeUsers.Add(deviceInfo.Profile);
                     }
 
                     continue;
@@ -77,15 +95,15 @@ namespace YARG.Menu.ProfileList
                 // general (ControllerFamily,GameMode)-wide preference
                 if (deviceInfo.BindingSetsInUse.Contains(bindingSet))
                 {
-                    userCount++;
+                    _allUsers.Add(deviceInfo.Profile);
 
                     // Disconnected profiles will always have an empty BindingSetsInUse, so no need
                     // to check IsProfileTaken
-                    activeUserCount++; 
+                    _activeUsers.Add(deviceInfo.Profile); ;
                 }
             }
 
-            return (userCount, activeUserCount);
+            return (_allUsers, _activeUsers);
         }
     }
 }
