@@ -106,6 +106,7 @@ namespace YARG.Settings
                 nameof(Settings.DifficultyRings),
                 nameof(Settings.HighScoreInfo),
                 nameof(Settings.HighScoreHistory),
+                new FieldMetadata(nameof(Settings.PerEngineHighScores), isAdvanced: true),
                 new FieldMetadata(nameof(Settings.ShowPercentDecimals), isAdvanced: true),
                 new HeaderMetadata("SortingAndFiltering"),
                 nameof(Settings.MaxSongRating),
