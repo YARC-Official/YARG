@@ -3,6 +3,7 @@ using UnityEngine;
 using YARG.Input.Bindings;
 using YARG.Localization;
 using YARG.Menu.Navigation;
+using YARG.Player;
 
 namespace YARG.Menu.ProfileList
 {

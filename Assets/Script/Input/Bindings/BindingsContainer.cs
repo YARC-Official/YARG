@@ -299,6 +299,11 @@ namespace YARG.Input.Bindings
                     _reusableBindingSetsByControllerFamily.Remove(bindingSet.ControllerFamily);
                 }
             }
+
+            foreach (var deviceInfo in _profileDeviceInfo.Values)
+            {
+                deviceInfo.OnBindingSetDeleted(bindingSet);
+            }
         }
 
         public static void ReleaseMicrophones()

@@ -518,6 +518,50 @@ namespace YARG.Input
             }
         }
 
+        public void OnBindingSetDeleted(ReusableBindingSet deleted)
+        {
+            _preferredBindsByContext.Remove((deleted.Mode, deleted.ControllerFamily));
+
+            // If we deleted a binding set that was being used by an actively-connected player, then
+            // we might have some extra work to do, especially if this was a menu binding set since
+            // those are always wired up
+            if (PlayerContainer.IsProfileTaken(Profile))
+            {
+                if (deleted.Mode is GameMode.Menu)
+                {
+                    foreach (var controller in Controllers)
+                    {
+                        if (_activeMenuRuntimeBindings[controller].Source == deleted)
+                        {
+                            var layout = LayoutHelper.LayoutStringToControllerFamily(controller.layout);
+                            var newMenuBindings = BindingsContainer.GetBindingSetsForControllerInMode(layout, GameMode.Menu).FirstOrDefault();
+
+                            if (newMenuBindings is not null)
+                            {
+                                SetActiveMenuBindingsForController(controller, newMenuBindings);
+                            }
+                        }
+                    }
+                }
+                else if (deleted.Mode == Profile.GameMode)
+                {
+                    foreach (var controller in Controllers)
+                    {
+                        if (_selectedGameplayBindings[controller] == deleted)
+                        {
+                            var layout = LayoutHelper.LayoutStringToControllerFamily(controller.layout);
+                            var newGameplayBindings = BindingsContainer.GetBindingSetsForControllerInMode(layout, Profile.GameMode).FirstOrDefault();
+
+                            if (newGameplayBindings is not null)
+                            {
+                                _selectedGameplayBindings[controller] = newGameplayBindings;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         private void NotifyControllerAdded(InputDevice controller)
         {
             if (!_selectedGameplayBindings.ContainsKey(controller))
