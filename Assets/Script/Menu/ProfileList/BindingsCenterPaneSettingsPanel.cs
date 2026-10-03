@@ -86,7 +86,7 @@ namespace YARG.Menu.ProfileList
                 _userCountText.text = _allUsers.Count switch
                 {
                     0 => Localize.Key($"{localizationKeyPrefix}Zero"),
-                    1 => Localize.KeyFormat($"{localizationKeyPrefix}One", _allUsers[0].Name),
+                    1 => Localize.KeyFormat($"{localizationKeyPrefix}One{(PlayerContainer.IsProfileTaken(_allUsers[0]) ? "Active" : "Inactive")}", _allUsers[0].Name),
                     _ => Localize.KeyFormat($"{localizationKeyPrefix}Multiple{(Locked ? "Locked" : "Unlocked")}", _allUsers.Count)
                 };
 

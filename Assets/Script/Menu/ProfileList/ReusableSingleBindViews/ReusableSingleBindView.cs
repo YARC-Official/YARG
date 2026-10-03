@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using System.Text;
 using TMPro;
 using UnityEngine;
@@ -35,6 +36,7 @@ namespace YARG.Menu.ProfileList
         private DropdownControl _adHocControl;
 
         protected ControlItemInfo? _current;
+        protected ReusableBindGroup _bindGroup;
         protected ProfilesMenu _profilesMenu;
         protected BindingSetsCenterPane _centerPane;
         protected DummyControllerQuickBindDialogMenu _quickBindDialog;
@@ -53,6 +55,7 @@ namespace YARG.Menu.ProfileList
             bool interactable
         )
         {
+            _bindGroup = bindGroup;
             _profilesMenu = profilesMenu;
             _centerPane = centerPane;
             _quickBindDialog = quickBindDialog;
@@ -100,9 +103,10 @@ namespace YARG.Menu.ProfileList
             _centerPane.DummyControllerChanged += OnDummyControllerChanged;
         }
 
-        private void OnDisable()
+        private void OnDestroy()
         {
             _centerPane.DummyControllerChanged -= OnDummyControllerChanged;
+            _bindGroup.Unlocked -= OnUnlocked;
         }
 
         protected virtual void PopulateControlDropdown()
