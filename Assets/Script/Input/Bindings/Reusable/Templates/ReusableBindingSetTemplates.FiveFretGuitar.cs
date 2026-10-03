@@ -26,7 +26,6 @@ namespace YARG.Input.Bindings
             { ControlStrings.FIVE_FRET_SOLO_YELLOW,    new(ControlStrings.FIVE_FRET_SOLO_YELLOW,  BindingType.Button,             (int) GuitarAction.SoloYellowFret) },
             { ControlStrings.FIVE_FRET_SOLO_BLUE,      new(ControlStrings.FIVE_FRET_SOLO_BLUE,    BindingType.Button,             (int) GuitarAction.SoloBlueFret) },
             { ControlStrings.FIVE_FRET_SOLO_ORANGE,    new(ControlStrings.FIVE_FRET_SOLO_ORANGE,  BindingType.Button,             (int) GuitarAction.SoloOrangeFret) },
-
         };
     }
 }

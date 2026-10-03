@@ -2116,7 +2116,7 @@ MonoBehaviour:
   _name: {fileID: 3944416314656293738}
   _buttonGroupPrefab: {fileID: 2112290437380438965, guid: c80fa54dd0546cd45b62feb701421775, type: 3}
   _axisGroupPrefab: {fileID: 2066996443643632486, guid: 617b13d7ce511044480bb2e48739cd6a, type: 3}
-  _integerGroupPrefab: {fileID: 777512555580489659, guid: 2c9b962f8dbdf8947b897c21e3b49819, type: 3}
+  _integerGroupPrefab: {fileID: 3540565692171356423, guid: 6add733aa60600645a250905c07bacc1, type: 3}
   _dummyControllerDropdown: {fileID: 7140282011858445247}
   _nameContainer: {fileID: 613406341123490909}
   _editNameContainer: {fileID: 8608351501547111751}
