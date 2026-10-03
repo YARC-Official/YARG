@@ -520,34 +520,42 @@ namespace YARG.Input
 
         public void OnBindingSetDeleted(ReusableBindingSet deleted)
         {
-            if (deleted.Mode is GameMode.Menu)
-            {
-                foreach (var controller in Controllers)
-                {
-                    if (_activeMenuRuntimeBindings[controller].Source == deleted)
-                    {
-                        var layout = LayoutHelper.LayoutStringToControllerFamily(controller.layout);
-                        var newMenuBindings = BindingsContainer.GetBindingSetsForControllerInMode(layout, GameMode.Menu).FirstOrDefault();
+            _preferredBindsByContext.Remove((deleted.Mode, deleted.ControllerFamily));
 
-                        if (newMenuBindings is not null)
+            // If we deleted a binding set that was being used by an actively-connected player, then
+            // we might have some extra work to do, especially if this was a menu binding set since
+            // those are always wired up
+            if (PlayerContainer.IsProfileTaken(Profile))
+            {
+                if (deleted.Mode is GameMode.Menu)
+                {
+                    foreach (var controller in Controllers)
+                    {
+                        if (_activeMenuRuntimeBindings[controller].Source == deleted)
                         {
-                            SetActiveMenuBindingsForController(controller, newMenuBindings);
+                            var layout = LayoutHelper.LayoutStringToControllerFamily(controller.layout);
+                            var newMenuBindings = BindingsContainer.GetBindingSetsForControllerInMode(layout, GameMode.Menu).FirstOrDefault();
+
+                            if (newMenuBindings is not null)
+                            {
+                                SetActiveMenuBindingsForController(controller, newMenuBindings);
+                            }
                         }
                     }
                 }
-            }
-            else if (deleted.Mode == Profile.GameMode)
-            {
-                foreach (var controller in Controllers)
+                else if (deleted.Mode == Profile.GameMode)
                 {
-                    if (_selectedGameplayBindings[controller] == deleted)
+                    foreach (var controller in Controllers)
                     {
-                        var layout = LayoutHelper.LayoutStringToControllerFamily(controller.layout);
-                        var newGameplayBindings = BindingsContainer.GetBindingSetsForControllerInMode(layout, Profile.GameMode).FirstOrDefault();
-
-                        if (newGameplayBindings is not null)
+                        if (_selectedGameplayBindings[controller] == deleted)
                         {
-                            _selectedGameplayBindings[controller] = newGameplayBindings;
+                            var layout = LayoutHelper.LayoutStringToControllerFamily(controller.layout);
+                            var newGameplayBindings = BindingsContainer.GetBindingSetsForControllerInMode(layout, Profile.GameMode).FirstOrDefault();
+
+                            if (newGameplayBindings is not null)
+                            {
+                                _selectedGameplayBindings[controller] = newGameplayBindings;
+                            }
                         }
                     }
                 }

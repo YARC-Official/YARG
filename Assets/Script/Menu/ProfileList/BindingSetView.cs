@@ -62,11 +62,6 @@ namespace YARG.Menu.ProfileList
             var selectedBindingSet = _profileListMenu.GetSelectedBindingSet();
             var wasSelected = Selected;
 
-            foreach (var player in PlayerContainer.Players)
-            {
-                player.DeviceInfo.OnBindingSetDeleted(BindingSet);
-            }
-
             BindingsContainer.DeleteBindingSet(BindingSet);
 
             if (wasSelected)
