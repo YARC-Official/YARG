@@ -46,17 +46,16 @@ namespace YARG.Menu.ProfileList
             {
                 _userCountGroup.SetActive(true);
 
-                var userCount = GetUserCount(bindingSet);
+                var (totalUserCount, activeUserCount) = GetUserCount(bindingSet);
 
-                var userCountNumText = $"<color=#{(userCount > 1 ? "FF0000" : "FFFFFF")}>{userCount}</color>";
-
-                _userCountText.text = Localize.KeyFormat("Menu.ProfileList.UserCount", userCountNumText);
+                _userCountText.text = Localize.KeyFormat("Menu.ProfileList.UserCount", totalUserCount, activeUserCount);
             }
         }
 
-        private int GetUserCount(ReusableBindingSet bindingSet)
+        private (int total, int active) GetUserCount(ReusableBindingSet bindingSet)
         {
             var userCount = 0;
+            var activeUserCount = 0;
 
             foreach (var deviceInfo in BindingsContainer.AllPlayerDeviceInfo)
             {
@@ -65,6 +64,11 @@ namespace YARG.Menu.ProfileList
                 if (profileBindings.Contains(bindingSet))
                 {
                     userCount++;
+
+                    if (PlayerContainer.IsProfileTaken(deviceInfo.Profile)) {
+                        activeUserCount++;
+                    }
+
                     continue;
                 }
 
@@ -74,10 +78,14 @@ namespace YARG.Menu.ProfileList
                 if (deviceInfo.BindingSetsInUse.Contains(bindingSet))
                 {
                     userCount++;
+
+                    // Disconnected profiles will always have an empty BindingSetsInUse, so no need
+                    // to check IsProfileTaken
+                    activeUserCount++; 
                 }
             }
 
-            return userCount;
+            return (userCount, activeUserCount);
         }
     }
 }

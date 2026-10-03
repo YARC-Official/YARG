@@ -644,7 +644,7 @@
 				"Vocals": "Vocals Gameplay Bindings",
 				"Menu": "Menu Navigation Bindings"
 			},
-			"UserCount": "Profiles Using This Binding Set: {0}",
+			"UserCount": "Profiles Using This Binding Set: {0} ({1} active)",
 			"Tooltip": {
 			    "InputMode": {
 				    "Title": "Input Mode",
