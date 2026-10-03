@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core.Game;
+using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Input.Bindings;
 using YARG.Localization;
@@ -77,7 +77,7 @@ namespace YARG.Menu.ProfileList
             {
                 _userCountGroup.SetActive(true);
 
-                GetUserCounts(bindingSet);
+                (_allUsers, _activeUsers) = BindingSetHelper.GetUsersOfBindingSet(bindingSet);
 
                 Locked = !_explicitlyUnlocked && _allUsers.Count > 1;
 
@@ -93,42 +93,6 @@ namespace YARG.Menu.ProfileList
                 _unlockButton.SetActive(Locked);
                 _userCountBackground.color = _userCountBackground.color.WithAlpha(Locked ? 1 : 0);
             }
-        }
-
-        private (List<YargProfile> allUsers, List<YargProfile> activeUsers) GetUserCounts(ReusableBindingSet bindingSet)
-        {
-            _allUsers.Clear();
-            _activeUsers.Clear();
-
-            foreach (var deviceInfo in BindingsContainer.AllPlayerDeviceInfo)
-            {
-                // Check preferred binding sets (one per (ControllerFamily,GameMode) tuple)
-                var profileBindings = deviceInfo.AllPreferredBindingSets;
-                if (profileBindings.Contains(bindingSet))
-                {
-                    _allUsers.Add(deviceInfo.Profile);
-
-                    if (PlayerContainer.IsProfileTaken(deviceInfo.Profile)) {
-                        _activeUsers.Add(deviceInfo.Profile);
-                    }
-
-                    continue;
-                }
-
-                // If a connected player has multiple controllers of the same family at the same
-                // time, then some of them might be using other binding sets besides that player's
-                // general (ControllerFamily,GameMode)-wide preference
-                if (deviceInfo.BindingSetsInUse.Contains(bindingSet))
-                {
-                    _allUsers.Add(deviceInfo.Profile);
-
-                    // Disconnected profiles will always have an empty BindingSetsInUse, so no need
-                    // to check IsProfileTaken
-                    _activeUsers.Add(deviceInfo.Profile); ;
-                }
-            }
-
-            return (_allUsers, _activeUsers);
         }
     }
 }
