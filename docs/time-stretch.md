@@ -2,333 +2,294 @@
 
 Time stretching allows audio to play slower or faster without altering its pitch. In YARG, this powers Practice Mode (slowing songs down to 10% speed or speeding them up to 200%) as well as micro-adjustments for syncing audio and visuals.
 
-This document explains:
+Choose **Quality** in the **Effects** dropdown under **Experimental** settings to use the native YargStretch engine. **Performance** uses the existing BASS_FX engine. The setting also selects the corresponding reverb mode. Time stretching processes the mixed stem output, not each stem separately.
 
-1. The foundations: Fourier transforms, STFT configuration (window & hop sizes), and how hop ratios dictate speed.
-2. The tradeoffs between time-domain splicing (WSOLA) and phase vocoders on mixed music.
-3. The two axes of alignment: horizontal (over time) vs. vertical (across frequency bins).
-4. The theoretical foundation: Phase Vocoder Done Right (PVDR) and 2D phase gradients.
-5. YARG's native engine: PVDR implementation pipeline and custom enhancements.
+This document explains how speed changes work, why they can affect sound quality, and what YARG does to reduce those effects. The main explanations use plain language; expandable sections contain implementation details.
 
----
+## 1. Breaking Audio into Frequencies
 
-## 1. Bins, Phase, and Step Sizes
+### Frequency Bins, Volume, and Phase
 
-### Frequency Bins: Decomposing the Mix into Sinusoidal Components
+Music combines many overlapping vibrations. A **short-time Fourier transform (STFT)** examines a short section of audio and describes it as a set of frequency ranges called **bins**. Repeating this analysis produces a picture of how the sound changes over time.
 
-The Short-Time Fourier Transform (STFT) decomposes complex audio into hundreds of separate frequency channels called **bins**.
+Each bin records:
 
-Each bin is a complex coefficient on a fixed frequency grid. A source component can contribute to several bins, and several sources can contribute to the same bin. Each coefficient has:
+- **Frequency:** How quickly a vibration repeats, measured in Hertz (Hz). Faster vibrations generally sound higher. Each bin has a fixed center frequency, but the vibration detected there can fall between bin centers.
+- **Magnitude:** How strong that part of the sound is.
+- **Phase:** Where a vibration is in its repeating cycle: for example, at a peak, at a trough, or crossing between them. Phase helps determine how overlapping waves combine.
 
-- **Frequency:** The bin has a fixed center frequency in Hertz. The local frequency estimated from phase progression can differ from that center.
-- **Magnitude:** The amplitude of that component.
-- **Phase ($\phi$):** The angular position within the sinusoidal cycle (from 0 to $2\pi$ radians, or 0° to 360°), determining whether the wave starts at a peak, trough, or zero-crossing.
+A single note can spread across several bins, and several instruments can contribute to the same bin. Bins do not separate the recording into individual instruments.
 
-In YARG's engine configuration:
+### Windows and Overlap
 
-- **Window Duration:** The native stream targets 60 milliseconds and rounds the sample count up to a processing-block boundary. This trades frequency resolution against temporal resolution; overlapping sources are not guaranteed to be separable.
-- **Overlap-Add:** The output hop is one eighth of the window length, giving 87.5% overlap. Window normalization supports continuous reconstruction, but spectral modifications can still introduce artifacts.
+A **window** is a short section of audio used for analysis. Longer windows help distinguish close frequencies, while shorter windows make it easier to locate sharp attacks such as drum hits.
 
----
+The engine fades the edges of each window to avoid abrupt cuts, then overlaps and adds the processed sections to rebuild the waveform. It compensates for these fades so that overlapping windows do not themselves cause regular volume changes. Modifying the sound inside those windows can still introduce artifacts.
 
-### Windowing and Overlap-Add Reconstruction
+<details>
+<summary>Window sizes and overlap</summary>
 
-Abruptly splicing waveform segments can introduce discontinuities and broadband energy. Windowing and overlap-add reduce boundary effects:
+The native stream targets 60 ms, rounds up to a multiple of 512 samples, and uses a minimum of 1024 samples. At 44.1 kHz, this produces a 3072-sample window (approximately 69.7 ms). The output advances by one eighth of the window: 384 samples, or approximately 8.7 ms. Successive windows therefore overlap by 87.5%.
 
-1. **Windowing:** Each block is multiplied by a smooth window that reduces the contribution of its boundaries.
-2. **Overlap-Add:** Successive windowed blocks are staggered in time and summed into the output buffer.
-3. **Window Normalization:** Analysis and synthesis windows are chosen or normalized so their overlapping products provide the required reconstruction gain. For unchanged compatible spectra, this avoids gain variation from window overlap. It does not guarantee flat amplitude or artifact-free output after time stretching. The synthesis-window relationship is described in [Phase Vocoder Done Right](https://www.eurasip.org/Proceedings/Eusipco/Eusipco2017/papers/1570343436.pdf).
+The relationship between analysis and reconstruction windows is described in [Phase Vocoder Done Right](https://www.eurasip.org/Proceedings/Eusipco/Eusipco2017/papers/1570343436.pdf).
 
----
+</details>
 
-### How Step Sizes Control Speed: Input Hop vs. Output Hop
+### How Step Sizes Control Speed
 
-Playback speed is determined by the spacing between successive STFT blocks:
+The distance between successive windows is called a **hop**. The output hop stays fixed. Playback speed changes by adjusting how far the engine advances through the source between output windows:
 
-- **Synthesis Hop ($H_s$):** The fixed time step between consecutive output blocks written to the audio buffer. This output rate remains constant.
-- **Analysis Hop ($H_a$):** The time step between consecutive input blocks read from the source audio file.
+- **100% speed:** Input and output advance by the same amount.
+- **50% speed:** Input advances half as far as output. The same source audio takes twice as long to play.
+- **200% speed:** Input advances twice as far as output. The source audio takes half as long to play.
 
-```
-Output Timeline:   [--- Block 1 ---]
-                          [--- Block 2 ---]
-                                 [--- Block 3 ---]  (Fixed synthesis hop)
+The input step is also called the **analysis hop**, and the output step the **synthesis hop**.
 
-Slowing Down:      Read 1 -> Read 2 -> Read 3       (Smaller analysis hop)
-Speeding Up:       Read 1 ------------> Read 2      (Larger analysis hop)
-```
+### Why Phase Needs Correction
 
-- **Normal Speed (100%):** The analysis hop equals the synthesis hop ($H_a = H_s$). Audio plays at original tempo.
-- **Slowing Down (e.g., 50%):** The analysis hop is shorter than the synthesis hop ($H_a < H_s$). The engine advances through the source audio by fewer samples per block than it writes to the output buffer, taking longer to traverse the input.
-- **Speeding Up (e.g., 200%):** The analysis hop is larger than the synthesis hop ($H_a > H_s$). The engine advances through the source file by more samples per block than it writes to the output buffer, traversing the input in less time.
+Moving windows apart or closer together changes how their vibrations line up. If they no longer line up correctly, overlapping waves can partly cancel each other or create unwanted changes in volume and tone.
 
----
-
-### Why Changing Step Size Requires Phase Correction
-
-Because audio tones are continuous oscillations, altering the analysis hop changes the phase at which each block begins:
-
-1. A tonal instrument produces continuous sinusoidal oscillations over time.
-2. When the analysis hop differs from the synthesis hop, successive input blocks sample the ongoing oscillation at a different phase angle than the synthesis grid expects.
-3. Without appropriate phase adjustment, overlapping blocks can interfere destructively, causing amplitude loss, modulation, or comb filtering.
-
-**The Phase Vocoder's Role:**
-The phase vocoder estimates frequency and phase progression from the analysis, then reconstructs phase for the synthesis hop. Errors in those estimates, interactions between sources, and changes to spectral magnitudes can still produce artifacts.
-
----
+A **phase vocoder** estimates how quickly each vibration is progressing and adjusts its phase for the new window spacing. This helps preserve pitch while changing speed. Estimation errors and overlapping instruments can still affect the result.
 
 ## 2. Phase Vocoder vs. WSOLA
 
-Time stretching algorithms operate either in the **time domain** (splicing raw audio) or the **frequency domain** (manipulating Fourier bins).
+The existing BASS_FX engine uses a **WSOLA-style** approach: it moves short pieces of the waveform and searches for positions where they match well enough to overlap. This is called a **time-domain** method because it works directly on the waveform.
 
-| Feature | WSOLA (Time Domain) | Phase Vocoder (Frequency Domain) |
+A phase vocoder analyzes frequency bins and adjusts them before rebuilding the waveform. This is called a **time-frequency** method because it considers both frequency and how the sound changes over time.
+
+| Feature | WSOLA | Phase vocoder |
 | :--- | :--- | :--- |
-| **Mechanism** | Searches for similar waveform segments and overlaps shifted blocks. | Analyzes frequency bins and reconstructs phase on the synthesis grid. |
-| **Mostly periodic audio** | Can preserve waveform shape when suitable matches exist. | Can preserve pitch, but quality depends on phase estimation and reconstruction. |
-| **Polyphonic mixes** | One shift may not align all overlapping components. | Can adjust spectral regions separately, but overlapping sources can share bins. |
-| **Possible artifacts** | Repetition, discontinuities, or interference between mismatched segments. | Phasiness, transient smearing, metallic noise, or loss of definition. |
+| **Approach** | Moves and overlaps matching waveform segments. | Adjusts frequency bins and their phase. |
+| **Steady, repeating sounds** | Can preserve waveform shape when good matches exist. | Can preserve pitch when frequency and phase estimates are reliable. |
+| **Several instruments at once** | One shift may line up one instrument but misalign another. | Can treat frequency regions differently, but instruments may still share bins. |
+| **Possible artifacts** | Audible repetition, graininess, or rough joins. | Hollow or metallic sound, blurred attacks, or loss of definition. |
 
-### The Single Time-Shift Constraint
+Both methods have limits. Neither can reliably separate every instrument from a mixed recording or guarantee unchanged sound at very slow speeds.
 
-WSOLA applies one shift to a composite waveform segment. A shift that aligns one component may misalign another with a different period. This makes some dense mixes difficult; it does not mean WSOLA always fails on polyphonic audio.
+## 3. Keeping Waves Aligned Over Time and Across Frequencies
 
-A phase vocoder offers more control over separate spectral regions. It does not independently recover every instrument from a mixed signal, and neither method guarantees transparent playback at large slowdown ratios.
+There are two kinds of phase relationship to preserve:
 
----
+1. **Over time (horizontal coherence):** Each vibration should continue smoothly from one window to the next.
+2. **Across frequencies (vertical coherence):** Bins contributing to the same sound should retain the relationships that give it its shape. They do not need identical phases.
 
-## 3. The Two Axes of Alignment: Horizontal vs. Vertical
+Correcting each bin independently can preserve the first relationship while damaging the second:
 
-Aligning audio requires balancing two distinct dimensions on the STFT grid:
+- **Notes can sound hollow:** One tone spreads across neighboring bins. If those bins stop working together, the reconstructed tone can change character.
+- **Drum hits can blur:** A sharp attack combines many frequencies arriving together. Changing their phase relationships can spread the attack over time.
+- **Vocals can sound metallic or robotic:** A voice combines a fundamental pitch, higher overtones, and noise. Errors in pitch, phase, or volume balance can change that texture.
 
-1. **Horizontal Alignment (Over Time):**
-   Making each individual bin's sine wave connect smoothly from slice to slice along the timeline.
-2. **Vertical Alignment (Across Bins at the Same Instant):**
-   Preserving the relative phase relationships that describe a component across neighboring bins; the bins do not need identical phases.
+The goal is to preserve meaningful relationships without forcing unrelated sounds to follow each other.
 
-### The Limitation of Independent Horizontal Alignment
+## 4. Phase Vocoder Done Right (PVDR)
 
-Independent phase advancement can lose relationships that matter to the reconstructed waveform:
+[*Phase Vocoder Done Right*](https://www.eurasip.org/Proceedings/Eusipco/Eusipco2017/papers/1570343436.pdf), by Zdeněk Průša and Nicki Holighaus (EUSIPCO 2017), uses both kinds of relationship. It estimates how phase changes over time and between neighboring frequencies, then builds the output phase through the strongest parts of the sound first. This lets clearer, stronger regions guide weaker ones.
 
-- **Tonal phasiness:** Windowing spreads a tone across neighboring bins. Inconsistent phase reconstruction across that region can change its waveform and apparent definition. The region's width depends on the window and frequency resolution.
-- **Transient smearing:** Broadband phase relationships help localize an attack in time. Changing those relationships can spread its energy over time.
-- **Unnatural vocal texture:** Changes to relationships between partials can alter waveform shape. Pitch estimation, magnitude shaping, and noise processing can also contribute to robotic or metallic sound.
+The technical name for these estimates is **phase gradients**. Changes over time describe frequency; changes across frequency describe where sound falls within a window. Combining them helps address the problems of correcting every bin independently.
 
-Preserving appropriate relationships across time and frequency is the objective. Forcing unrelated bins or instruments into a common phase relationship can itself introduce artifacts.
+YARG follows this approach with its own analysis windows, peak handling, attack protection, stereo corrections, and noise processing. It is an adaptation rather than an exact reproduction of the paper.
 
----
+<details>
+<summary>How the estimates differ from the paper</summary>
 
-## 4. The Theoretical Foundation: Phase Vocoder Done Right (PVDR)
+PVDR uses real-time phase-gradient heap integration and estimates phase derivatives with centered finite differences. YARG uses derivative-window and time-weighted-window estimates. Mathematical relationships derived for Gaussian analysis windows do not automatically apply unchanged to other window shapes.
 
-[*Phase Vocoder Done Right*](https://www.eurasip.org/Proceedings/Eusipco/Eusipco2017/papers/1570343436.pdf) (Zdeněk Průša and Nicki Holighaus, EUSIPCO 2017) reconstructs synthesis phase by integrating estimates of phase change along both time and frequency. It uses real-time phase-gradient heap integration and estimates phase derivatives with centered finite differences.
-
-The temporal derivative describes local frequency progression; the frequency derivative describes local timing. Integrating both addresses limitations of advancing bins independently. The published results motivate the approach, but do not establish artifact-free behavior for every recording or modified implementation.
-
-YARG uses a derived implementation with derivative-window and time-weighted-window estimates, additional peak handling, transient detection, stereo corrections, and texture resynthesis. It should not be described as an exact reproduction of the paper. Gaussian-window identities relating log-magnitude and phase derivatives also should not be assumed to apply unchanged to every analysis window.
+</details>
 
 ---
 
-## 5. YARG's Native Engine: PVDR Implementation & Custom Enhancements
+## 5. How YARG Improves the Sound
 
-YARG stretches the mixed output using a PVDR-derived phase reconstruction pipeline, transient protection, stereo correction, and noise resynthesis. The mechanisms below describe the current implementation. Their effect depends on the recording and playback speed; remaining artifacts require listening comparisons.
+The engine is based on Signalsmith Stretch 1.3.2 by Geraint Luff ([Signalsmith Audio](https://github.com/Signalsmith-Audio/signalsmith-stretch)), with YARG's PVDR-inspired reconstruction and enhancements described below. It stretches the mixed output rather than each stem separately.
 
-### Tier 1: Core Phase Reconstruction
+The native stream keeps track of which source position each 256-frame output block represents and accounts for processing delay when reporting playback position. Attack protection and grain alignment preserve this timing, so they do not insert local speed changes or change the number of output samples.
 
-#### A. Priority Heap Traversal
+Some processing paths differ when applying a separate pitch shift (**pitch mapping**) or changing the resonances that give voices and instruments their character (**formant processing**). The technical sections identify those exceptions. A **spectrum** is the set of frequency-bin measurements for one window; **power** measures their energy and is proportional to magnitude squared.
 
-The engine processes significant spectral regions through an energy-prioritized heap. Strong regions provide phase references for neighboring bins, reducing the influence of weak, unreliable phase estimates. Additional peak protection guides the high-frequency region. Transient frames use the same traversal so each dependent bin follows its phase reference in the processing order.
+### Keeping Pitch and Phase Stable
 
-A new continuity preference favors an established tonal reference in the lower-frequency traversal. A bin qualifies when it was a previous-frame temporal root and local energy peak, remains prominent above the smoothed spectral background, and retains at least half both its previous power and the strongest adjacent-bin power. Its current power must also exceed 0.1% of the strongest current or previous bin power. Qualified references receive a priority multiplier of 1.5 for both their temporal entry and their propagation entry in the heap. This is a soft preference, not a fixed assignment: other references can still outrank it, and parents are rebuilt in processing order every frame.
+#### A. Stable Phase References
 
-The preference uses shared reference decisions across channels and applies only to new input analyses during slowdown without pitch mapping or formant processing. It bypasses active transient protection and pending transient collection. Seeks, resets, sustained silence, and draining invalidate its history. It does not alter phase gradients, freeze frequency estimates, add waveform corrections, or change sample timing. It reuses the previous parent assignments rather than implementing a full spectral-lobe tracker, so it cannot distinguish unresolved sources sharing a spectral region. Listening feedback suggests improved pitch coherence with this preference, although intermittent bass wobble remains and its cause has not been established.
+The engine uses strong, clear parts of the sound as phase references: starting points that guide nearby frequencies. It favors references that stay strong from one window to the next, helping avoid unnecessary changes in which bin leads the reconstruction.
 
-#### B. Reassigned 2D Spectral Gradients
+<details>
+<summary>Technical details</summary>
 
-Each slice is analyzed with the regular window, a derivative window, and a time-weighted window. These evaluations estimate instantaneous frequency and time-of-arrival information. The engine uses those estimates to advance phase over time and propagate phase across neighboring frequencies.
+The engine processes significant spectral regions through an energy-prioritized heap. Strong regions provide phase references for neighboring bins, reducing the influence of weak phase estimates. Additional peak protection guides the high-frequency region. Transient frames use the same traversal so each dependent bin follows its reference in processing order.
 
-These are numerical estimates. Their accuracy depends on the window, signal energy, and overlapping components; no measured percentage improvement is established here.
+The lower-frequency traversal favors established tonal references. A bin qualifies when it was a previous-frame temporal root and local energy peak, remains prominent above the smoothed spectral background, and retains at least half both its previous power and the strongest adjacent-bin power. Its current power must exceed 0.1% of the strongest current or previous bin power. Qualified references receive a priority multiplier of 1.5 for both their temporal and propagation entries. Other references can still outrank them, and parents are rebuilt every frame.
 
+This preference uses shared decisions across channels and applies to new input analyses during slowdown without pitch mapping or formant processing. It bypasses active transient protection and pending transient collection. Seeks, resets, sustained silence, and draining invalidate its history. It reuses previous parent assignments rather than tracking complete spectral lobes, so it cannot distinguish unresolved sources sharing a spectral region.
 
-A new tonal-root frequency cross-check compares the derivative-window temporal phase advance with the measured phase progression between current and earlier source spectra. It applies only on new analyses to temporal roots already qualified by the established-reference preference, below 2500 Hz. That preference excludes active transient protection, pending transient collection, pitch mapping, and formant processing. Its history is invalidated by seeks, resets, silence clearing, and draining, so a fresh frame cannot qualify immediately.
+</details>
 
-The source comparison uses the actual separation of those spectra: one output hop when the earlier source spectrum is reanalysed, or the actual source-hop length when the existing previous spectrum is retained. It subtracts the expected advance at the bin's center frequency, unwraps the residual onto the branch nearest the derivative estimate, and converts the result to an output-hop phase advance. This follows the phase-difference estimation principle described in [Phase Vocoder Done Right](https://www.eurasip.org/Proceedings/Eusipco/Eusipco2017/papers/1570343436.pdf); the blend and eligibility thresholds are experimental additions, not results established by that paper.
+#### B. Pitch and Attack Analysis
 
-A disagreement exceeding 0.025 radians per output hop gradually enables the blend over a further 0.25 radians. Similar current and earlier bin powers increase the weighting; a weak endpoint reduces it. The measured progression receives at most half the weight, and the added root rotation is bounded to 0.12 radians per hop. Only the dominant channel's selected root receives this correction before the existing inter-channel phase transfer and dependent-bin reconstruction. The underlying derivative history and frequency-direction gradients remain unchanged. There is no frequency quantization or long-term pitch smoothing.
+Extra analysis helps estimate both pitch and attack timing. For stable notes below 2500 Hz, the engine cross-checks its pitch estimate against how the source phase actually changed. Nearby bins help judge whether that estimate is trustworthy. Corrections are limited so that uncertain measurements do not cause large pitch changes.
 
-A local agreement check now refines that confidence using up to two adjacent bins on each side of the reference. The scan stops at an edge, plateau, or rise in either the current or earlier source spectrum, and stops when either endpoint falls below 10% of the reference's corresponding power. This confines the comparison to strong descending portions of the same candidate peak. Neighboring source-phase advances are compared with the reference's advance, unwrapped relative to it, and converted to output-hop units. Agreement falls smoothly with squared deviation relative to a 0.1-radian-per-hop tolerance, weighted by the geometric mean of each neighbor's current and earlier powers.
+<details>
+<summary>Technical details</summary>
 
-The result multiplies the previous confidence by a factor between 0.25 and 1. No usable neighboring evidence leaves the prior behavior unchanged; agreement preserves its strength, while disagreement reduces it. The correction cap, reference selection, derivative history, EQ, and phase locks are unchanged. This does not average the neighbors into a replacement frequency or quantize pitch. The comparison reads only source spectra, so its result is independent of the output reconstruction order. Overlapping unresolved notes and genuine frequency motion can still make a candidate peak's bins disagree; the thresholds are experimental.
+Each slice is analyzed with the regular window, a derivative window, and a time-weighted window. These estimate instantaneous frequency and within-window timing for phase advancement over time and propagation across frequency. Accuracy depends on the window, signal energy, and overlapping components.
 
-This targets piano and higher bass notes reported as wobbly or out of tune at 35%, including the listening example of Tiny Dancer. Equal endpoint powers do not establish a single reliable partial, and the two estimators average different source-time intervals during slowdown. Genuine bends and vibrato can also cause disagreement. The limited blend cannot separate unresolved piano unisons. Listening feedback reported a substantial improvement from the original frequency cross-check; the additional local-agreement refinement has not yet been confirmed by listening. Noise resynthesis, EQ matching, phase locks, and sample timing remain unchanged.
+Below 2500 Hz, qualified temporal roots also compare their derivative-window phase advance with measured progression between source spectra. The comparison uses the actual separation of those spectra: one output hop when the earlier spectrum is reanalysed, or the actual source-hop length when the previous spectrum is retained. It subtracts the bin-center advance, unwraps the residual onto the branch nearest the derivative estimate, and converts it to an output-hop phase advance.
 
-#### C. Parent-Child Peak Protection & Vertical Locking
+Disagreement exceeding 0.025 radians per output hop gradually enables a blend over a further 0.25 radians. Similar endpoint powers increase confidence. The measured progression receives at most half the weight, and the added root rotation is bounded to 0.12 radians per hop. Only the dominant channel's selected root receives the correction before inter-channel phase transfer and dependent-bin reconstruction.
 
-Windowing spreads a tone across neighboring frequency bins. The reconstruction assigns parent references and propagates phase to dependent bins, helping preserve the tone's spectral shape. Strong high-frequency peaks also protect nearby bins from arbitrary phase changes.
+Confidence also considers up to two adjacent bins on each side. The scan follows descending portions of the candidate peak in both source spectra and stops when either endpoint falls below 10% of the reference's corresponding power. Neighboring phase advances are compared with a 0.1-radian-per-hop tolerance and weighted by their endpoint powers. This multiplies confidence by a factor between 0.25 and 1; no usable neighbors leave confidence unchanged.
 
-Without pitch mapping, dependent bins in the lower-frequency region use scaled frequency-gradient integration through a stretch factor of 6, and preserve their current input phase relationship to the already-processed parent above that factor. The crossover is approximately 11% of the sample rate, or 4850 Hz at 44.1 kHz. The parent comes from the energy-prioritized traversal and is not necessarily a tracked spectral peak. A proposed experiment extending input-relative propagation to moderate slowdowns was briefly edited into the source, then withdrawn before listening feedback on that specific change was established.
+These checks use the tonal-reference eligibility and reset rules above. They do not quantize pitch or apply long-term frequency smoothing. Genuine bends, vibrato, beating partials, and unresolved sources can make the estimates disagree; the bounded correction cannot separate those sources.
 
-This protection belongs to the phase reconstruction. The separate noise classifier uses the lobe-based protection described below.
+</details>
 
-#### D. Noise Floor Phase Randomization
+#### C. Keeping Related Frequencies Together
 
-Bins below an energy threshold relative to the strongest spectral region receive randomized phase. This handles very weak regions whose phase is unreliable. Audible broadband texture is handled separately by noise resynthesis.
+A single tone spreads across neighboring bins. The engine gives these bins phase references to follow, helping them rebuild the tone together. A reference bin is called a **parent**, and bins following it are its **children**. Strong high-frequency regions also protect nearby bins from arbitrary phase changes.
 
----
+When no separate pitch shift is applied, bins below about 4850 Hz at a 44.1 kHz sample rate use the estimated phase changes between frequencies up to a sixfold stretch (about 16.7% playback speed). At greater slowdowns, they keep their source phase relationship to their parent instead. The parent is chosen by reconstruction priority and is not necessarily the center of a note.
 
-### Tier 2: Custom Audio Enhancements
+#### D. Handling Very Quiet Frequencies
 
-#### E. Transient Detection & Phase Snapping
+Very quiet bins have unreliable phase estimates, so the engine assigns them random phase. Louder noise textures use the separate grain processing described below.
 
-The onset detector measures energy increases across frequency regions. It compares each bin with the strongest nearby bin in the previous analysis to reduce false triggers from pitch movement. A separate low-frequency detector also considers bass attacks.
+### Preserving Attacks and Stereo Sound
 
-During slowdown without pitch mapping or formant processing, a detected onset starts collecting rising spectral lobes rather than immediately resetting every bin above 1500 Hz. The lobes are separated at amplitude minima. Their energy position is estimated from the time-weighted analysis, combining all channels. The timing threshold is calibrated from the actual analysis window using the energy center of a windowed linear ramp.
+#### E. Attack Timing and Protection
 
-The collected regions reset to their input phase together when at least half their current energy belongs to lobes whose estimated position has passed the timing threshold. Both channels use the same event and reset hop, while retaining their own input phase. Collection and the event's repeat suppression are bounded by one analysis-window length of source audio, so they remain active long enough at 10% speed without depending on output-buffer boundaries. Seeks, resets, sustained silence, draining, and leaving this processing path clear the pending event.
+A **transient** is a sharp attack, such as the start of a drum hit. The engine detects sudden increases in energy, identifies the frequencies involved, and waits until the attack reaches the appropriate point in the analysis window. It then resets their phase together, using one timing decision for both stereo channels.
 
-This follows the center-timed reset and synchronized transient-set ideas in [Röbel's transient-processing paper](https://dafx.de/paper-archive/2003/pdfs/dafx32.pdf), while retaining the existing energy-rise onset detector. It operates during eligible slowdowns, including 35% and 50%, and leaves the overall time mapping unchanged. Pitch mapping and formant processing retain the earlier immediate onset reset: bins above 1500 Hz snap, along with lower bins exhibiting a strong individual energy rise.
+Those frequencies are also protected from later processing that would soften their decay. This helps retain attack definition while keeping the requested playback speed. It cannot guarantee perfectly unchanged attacks, especially when several hits or instruments overlap.
 
-Noise replacement pauses during the brief initial transient protection and again around a delayed reset; it does not pause throughout the pending event. This also pauses texture processing for simultaneous sustained noise, such as distorted guitars under blastbeats. Selective, synchronized resets target attack smearing without forcing a local playback speed of 100%. They do not guarantee unstretched attack envelopes, and multiple attacks inside one analysis window or unresolved overlapping sources remain limitations.
+<details>
+<summary>Technical details</summary>
 
-After a synchronized reset, the collected attack-bin markings now remain until the existing source-timed event expires. Those bins are exempt from high-frequency decay damping and post-transient midrange damping during the event's cooldown state, including high-frequency damping on held spectra. Previously the markings were cleared at the reset, allowing these stages to attenuate the detected attack's subsequent body and high-frequency decay once their global bypasses ended. Other bins retain their existing treatment. Event expiry, leaving the eligible processing path, seeks, resets, sustained silence clearing, and draining clear the markings; immediate resets for pitch mapping or formant processing retain their earlier lifecycle. This changes neither phase-reset timing nor playback duration, adds no state or allocation, and uses the same selection for every channel. It targets reported loss of snare prominence without adding attack gain or changing the source-coherence experiment. Audible improvement is unverified; retaining more decay may also increase ringing or smearing, and overlapping sources within a selected bin receive the exemption together.
+The onset detector measures regional energy increases. It compares each bin with the strongest nearby bin in the previous analysis to reduce false triggers from pitch movement. A separate low-frequency detector considers bass attacks.
 
-#### F. Attack Gain Restoration
+During slowdown without pitch mapping or formant processing, an onset starts collecting rising spectral lobes separated at amplitude minima. Their energy positions are estimated from the time-weighted analysis across all channels. The timing threshold is calibrated from the actual analysis window using the energy center of a windowed linear ramp.
 
-Bins above 250 Hz with a strong energy increase receive a bounded gain increase. A separately configured, gentler path handles medium attacks. Both use one gain for all channels, with a maximum amplitude multiplier of 1.25. This is intended to preserve attack prominence; later dynamics stages can modify the result.
+The collected regions reset to their input phase together when at least half their current energy belongs to lobes whose estimated position has passed the threshold. Channels share the event and reset hop while retaining their own input phase. Collection and repeat suppression are bounded by one analysis-window length of source audio, including at 10% speed. Seeks, resets, sustained silence, draining, and leaving the eligible path clear the event.
 
-#### G. Stereo Coherence & Bass Phase Preservation
+This uses the center-timed reset and synchronized transient-set ideas in [Röbel's transient-processing paper](https://dafx.de/paper-archive/2003/pdfs/dafx32.pdf). Pitch mapping and formant processing use an immediate reset: bins above 1500 Hz snap, along with lower bins exhibiting a strong individual energy rise.
 
-The main reconstruction uses a dominant channel as a phase reference and transfers the input's relative channel phase to the other channels. During transient phase resetting, each channel retains its own input phase.
+Noise replacement pauses during initial transient protection and around the delayed reset, rather than throughout collection. After the synchronized reset, selected attack bins remain marked until the source-timed event expires. During event cooldown they are exempt from high-frequency decay damping and post-transient midrange damping, including on held spectra. All channels use the same selection.
 
-An additional stereo correction between approximately 800 and 5000 Hz steers the weaker output channel toward the input's relative phase while preserving that channel's spectral magnitude. Its correction fades from 3500 to 5000 Hz.
+These resets preserve the requested time mapping rather than playing attacks at a different local speed. They do not guarantee unstretched attack envelopes. Multiple attacks within a window and overlapping sources within selected bins remain limitations.
 
-Further stereo processing targets the input's channel relationships. Below 100 Hz, bass correction targets drift from the input stereo phase difference. Its strength decreases when the input channel levels are very unequal, and effectively silent channels receive no correction.
+</details>
 
-#### H. Remaining Local Phase Locking
+#### F. Attack Reinforcement
 
-Neighboring-bin locking adjusts the immediate neighbors of prominent peaks using a shared phase rotation across channels. Main-lobe locking adjusts nearby descending peak regions separately by channel. These corrections are restricted below approximately 5000 Hz and fade from 3500 to 5000 Hz. Both remain active alongside the core phase reconstruction.
+Frequencies above 250 Hz receive a limited volume boost when their energy rises sharply. Every channel gets the same boost. This stage limits the amplitude multiplier to 1.25, though later processing can change the result. A separate option for reinforcing weaker attacks is disabled in the native configuration.
 
-Both stages were temporarily removed to target slight piano pitch wobble reported at 60% speed. Listening feedback suggested possibly more coherent pitch, but much stronger bass wobble and less sharpness than the previous version. Both were restored after that comparison. Removing only the main-lobe correction subsequently received feedback that pitch sounded good, with occasional low-frequency wobble still present. Later feedback reported wobbly, slightly detuned bass guitar and a possible increase in metallic coloration following recent changes. Both stages and the original low-frequency propagation condition have now been restored. The feedback does not isolate which change affected each artifact or establish the cause of the remaining wobble.
+#### G. Stereo Preservation
 
-The remaining vocal-presence correction has been removed to target persistent vocal graininess at 35% speed. It steered adjacent-bin phases toward the current input relationship, which can vary between hops for irregular vocal texture. The audible effect of this removal remains unconfirmed.
+The stronger channel at each frequency provides the main phase reference. The other channels follow it while keeping their original phase differences. This helps preserve where sounds appear between the left and right speakers. During an attack reset, each channel uses its own source phase.
 
-Additional sidelobe phase steering has been removed. Its exclusion marking has now also been removed because the vocal-presence stage was its only consumer. The additional vocal correction that linked peaks near summed frequencies has been removed; frequency proximity alone does not establish that peaks belong to the same source in the mixed output.
+Between approximately 800 and 5000 Hz, an extra correction helps the quieter channel retain its original phase relationship to the louder one without changing the quieter channel's magnitude. The correction gradually decreases from 3500 to 5000 Hz.
 
-#### I. Noise Classification & Grain-Based Texture Resynthesis
+Below 100 Hz, bass correction reduces changes to the original phase difference between channels. It weakens when their levels are very unequal and leaves effectively silent channels alone.
 
-The classifier uses temporal and spectral medians to distinguish sustained tones, attacks, and texture. It waits for 17 analysis-history entries before replacement begins. The grain path is used for mono or stereo processing with sufficient window overlap and without split computation. Texture is reconstructed from short waveform grains, aligned against the previous tail and crossfaded into the output. Alignment now favors smaller shifts: a shift at the search boundary must improve normalized correlation by approximately 0.05 over zero shift to be selected. Zero shift is always evaluated, and exact score ties favor the smaller shift. Nonzero shifts now also require normalized correlation of at least 0.35 over the whole overlap and at least 0.20 in each temporal half, measured across the combined channel powers. Only candidates that could beat the current penalized score receive the additional half-overlap checks. Weakly supported shifts are rejected in favor of zero offset or another supported candidate. The zero-offset correlation is recorded explicitly even when it is negative; the existing crossfade calculation continues to clamp the selected correlation to the range zero to one. Both channels share the selected offset; crossfade normalization uses the correlation at that selected offset rather than the penalized selection score. Listening feedback reported less metallic vocal coloration after the earlier shift-penalty alignment change, with residual drum and vocal artifacts. This is not a benchmark establishing general improvement.
+#### H. Aligning the Bins Around a Note
 
-The two-half requirement is a heuristic confidence check, not a statistical proof that a match represents real continuity. It targets accidental matches that may contribute to residual metallic texture at 35%. It introduces no state, allocation, change in grain length, or change in output timing. Startup with an empty tail retains zero offset, and all-zero replacement masks still use the existing tail fade without an alignment search. The pitch corrections, EQ, and noise-classifier decisions remain active and unchanged. Listening feedback reported a strong improvement after this alignment confidence change; broader benefit and possible regressions remain unverified.
+A **spectral peak** is a strong frequency region that may represent a note or part of one. **Phase locking** helps nearby bins keep their source relationship to that peak. One stage adjusts the immediate neighbors with the same rotation in every channel. Another adjusts a wider region around the peak, called its **main lobe**, separately for each channel. Both work below approximately 5000 Hz and gradually weaken between 3500 and 5000 Hz.
 
-During slowdown, the grain path adds controlled phase decorrelation. Its amount rises smoothly with the smoothed stretch ratio from zero at 50% playback speed toward its maximum at 25%; at 35%, the overall amount is approximately 43% before per-bin protection and frequency weighting. There is no separate preset or toggle. Each bin's current noise-replacement target further scales the amount, so fully tone-protected bins receive no new randomization even while an earlier replacement mask is releasing. Each eligible bin receives a unit phase rotation shared by both channels, retaining its spectral magnitude and input inter-channel phase relationship in the calculation. This extends decorrelation to 35% playback to target persistent correlated, buzzy cymbal texture; it does not apply a general treble cut.
+### Preserving Noise Textures
 
-A selective treble increase now raises decorrelation for bins where the existing classifier strongly favors unprotected texture. Confidence rises as the attack-aware texture weight after tonal shelter increases from 0.85 to 1. The added frequency weight rises from zero at approximately 4500 Hz to full at 6750 Hz with the current crossover configuration. Its speed weight reaches full by approximately 35.7% playback; at 35%, fully eligible bins receive full decorrelation before replacement-target weighting. Ambiguous bins retain the base amount, and fully protected bins receive no new randomization. This changes phase statistics rather than applying treble attenuation or changing the replacement mask. Stereo rotations and the normalization calculation use the same final phase amount. The classifier remains a heuristic and can misclassify dense guitar harmonics. Grain-window normalization uses a shared power-weighted coherence estimate, so changing treble phase statistics can also affect the reconstructed grain envelope outside the increased-decorrelation region; unchanged per-bin phase amounts do not guarantee identical output there. Listening feedback also reports that noisy material sounds more hollow at 35% than at normal speed. This treble experiment has not established a remedy for that loss of body.
+#### I. Noise Detection and Grain Blending
 
-Randomized phases change the expected within-frame noise envelope. Grain normalization therefore blends the original window compensation with compensation based on mean analysis-window power, using a power-weighted estimate of phase coherence. This avoids applying the full inverse-window edge boost to decorrelated noise. The estimate assumes noise-like content; it does not guarantee constant output power or correct treatment of misclassified harmonics. These normalization calculations do not change grain duration; offset selection uses the alignment confidence check described above.
+The engine compares how sound varies over time and across nearby frequencies to distinguish notes, attacks, and noise textures. Notes and attacks receive protection. Suitable noisy regions, such as cymbal texture, are rebuilt from short waveform pieces called **grains**.
 
-Decorrelation uses a separate reproducible random sequence. Seeks, resets, and silence clearing restart that sequence, and explicit seeded resets seed it. Startup and transient, pitch-mapping, and formant bypasses generate no new randomized grains; the existing previous-tail fade remains. The classifier is only called when the grain path was configured, including its channel-count, computation, and overlap requirements.
+Each grain is compared with the previous grain so their overlap lines up as well as possible. Both stereo channels use the same shift. A **crossfade** gradually blends one grain into the next, with volume compensation based on how similar they are. Changes between the grain and vocoder paths are also gradual to avoid abrupt texture changes.
 
-- **Lobe-based protection:** Strong or tonal peaks protect neighboring bins along descending spectral slopes. Protection stops at valleys or plateaus, while each bin retains its own tonal confidence. This replaces the former broad fixed-radius sheltering.
-- **Full replacement at 50%:** Maximum replacement reaches 100% at 50% playback speed and below. Actual replacement still depends on classification, tonal protection, and the frequency taper.
-- **Frequency transition:** Replacement begins above 2250 Hz and reaches its full frequency weight at 4500 Hz. Lower-frequency texture remains on the vocoder path.
-- **Replacement transitions:** A full increase from zero to 100% is limited to approximately 30 ms of output time. Ordinary classification decreases now have a full-scale release of approximately 15 ms, rounded to output hops; smaller changes settle sooner. This reduces abrupt switching but can briefly retain replacement after a bin becomes tone-protected. Detected-transient, pitch-mapping, and formant bypasses still clear the mask immediately. Vocoder attenuation and grain synthesis use the same replacement amount, retaining complementary power weights.
-- **Lifecycle:** Pitch mapping, formant processing, and transient protection bypass replacement. Seeks and resets clear history and grain state; a bypass clears the replacement mask. The previous grain tail fades through the existing output path when replacement is bypassed.
+<details>
+<summary>Technical details</summary>
 
-The region-level replacement-ceiling experiment has been removed. It capped stronger replacement targets using a source-power-weighted mean across neighboring noise bins. Listening feedback preferred the original independent targets and reported a duller sound with the ceiling enabled.
+Temporal and spectral medians classify sustained tones, attacks, and texture after 17 analysis-history entries. Strong or tonal peaks protect neighboring bins along descending spectral slopes, stopping at valleys or plateaus. Each bin also retains its own tonal confidence.
 
-An experimental source-coherence adjustment now reduces phase randomization where source phase progression remains predictable. Measurements use existing, unmodified source spectra separated by at least one complete analysis window in source time, so the measurement pair shares no windowed samples. Held spectra do not count as fresh evidence, and the interval follows actual source advancement rather than the output hop or the reanalysed phase-reference interval. Each progression is demodulated by the bin-center advance for that measured interval. Exponentially averaged complex cross-products and endpoint powers estimate coherence separately per channel; endpoint powers weight the shared channel decision without cancelling opposite stereo phases.
+For mono or stereo with sufficient window overlap and without split computation, eligible texture is reconstructed from short waveform grains. Each grain spans two output hops with one hop of overlap. At 44.1 kHz in the native configuration, this is approximately 17.4 ms per grain with 8.7 ms of overlap. Alignment searches up to one quarter-hop in either direction.
 
-The adjustment waits for eight measurement pairs, subtracts an approximate finite-history noise bias, and acts only above corrected coherence of 0.5. At full confidence it halves the existing randomization amount; unpredictable regions retain the existing target. The phase multiplier has a full-scale transition limit of 50 ms in output time. Replacement targets, frequency tapers, tonal and transient protection, grain alignment, and EQ remain unchanged. The final phase amount also feeds the existing grain-window normalization. This is a heuristic estimator, not an exact noise model: colored noise, changing frequencies, beating partials, and changing measurement intervals can affect its confidence. Reducing randomization can restore metallic coloration, so listening comparison is still required. It does not preserve unstretched drum attack envelopes.
+Zero offset is evaluated first. Candidate scores subtract a shift penalty that reaches 0.05 at the search boundary; ties favor smaller shifts. Nonzero shifts require normalized correlation of at least 0.35 over the whole overlap and 0.20 in each temporal half, measured across the combined channels. Only candidates that could beat the current score receive the half-overlap checks. These checks are heuristic and cannot prove that a match represents genuine continuity.
 
-Source-coherence history continues to observe raw input while replacement is bypassed. Seeks, resets, sustained silence clearing, and draining invalidate it. Measurements add no FFT or buffering delay and allocate their arrays only during configuration. They add per-bin work once per source window and a small per-hop phase-multiplier update; CPU impact has not been measured.
+Both channels share the selected offset. Equal-power crossfades are normalized using the selected correlation, clamped to zero through one, rather than the penalized alignment score. Startup with an empty tail retains zero offset. An all-zero replacement mask skips inverse FFTs and alignment searches while fading and clearing the previous tail.
 
-Listening feedback reported a slight, almost imperceptible improvement from the source-coherence adjustment. It remains active; the region-level ceiling has been removed. The gameplay F8 comparison shortcut has been removed following the noise-envelope experiment.
+Maximum replacement reaches 100% at 50% playback speed and below; the actual amount depends on classification, peak protection, and frequency weighting. Replacement begins above 2250 Hz and reaches full frequency weight at 4500 Hz. Lower-frequency texture stays on the vocoder path.
 
-The classifier is a heuristic. Dense distorted guitar harmonics can resemble noise, so stronger replacement can reduce phasiness while changing guitar body. Listening feedback reports a substantial improvement at 10% after grain-phase decorrelation, with smeared and grainy transients still present. The replacement ramp smooths changes in the mask; once the mask is steady, grain duration and alignment continue to determine the texture's continuity.
+A full-scale replacement increase takes approximately 30 ms of output time; ordinary decreases take approximately 15 ms, rounded to output hops. Smaller changes settle sooner. Transient protection, pitch mapping, and formant processing clear the mask immediately. Vocoder attenuation and grain synthesis use the same mask with complementary power weights. Seeks and resets clear history and grain state; bypassed grains fade their previous tail.
 
-The noise-envelope contrast experiment was removed after listening feedback found almost no difference with it enabled or disabled. Its extra inverse FFT, measurement buffers, statistics, gain correction, and gameplay F8 toggle are removed. The earlier grain alignment, normalization, and source-coherence adjustment remain active.
+</details>
 
-#### J. Spectral Shaping & Slowdown Safeguards
+#### J. Reducing Repetition in Noise
 
-The following magnitude adjustments remain active. Values below describe individual stages, not guaranteed final-output bounds; later processing and overlap-add can change the result. “Shared” means the stage applies the same gain to every channel at a bin.
+Repeated noise grains can develop an unwanted repeating, buzzy character. **Phase decorrelation** introduces controlled random phase changes to reduce that repetition. It becomes stronger at slower speeds and in confidently identified treble noise. Both stereo channels receive the same changes.
+
+The engine also measures **source coherence**: how predictably phase progresses in the original audio. Where progression is predictable, it uses less randomization to retain more of the source character. Volume compensation accounts for how randomization changes the grain waveform. These are estimates; dense distorted guitar and other complex sounds can be misclassified.
+
+<details>
+<summary>Technical details</summary>
+
+Phase decorrelation increases with the smoothed stretch ratio from zero at 50% speed to full strength at 25%. At 35%, the base amount is approximately 43% before per-bin weighting. Each bin's current replacement target scales the amount, so fully tone-protected bins receive no new randomization while an older mask releases. Rotations are shared across stereo channels and preserve each bin's magnitude and input inter-channel phase relationship.
+
+Confident treble texture receives additional decorrelation. Texture confidence rises from 0.85 to 1, frequency weight rises from approximately 4500 to 6750 Hz, and speed weight reaches full at approximately 35.7% playback. Ambiguous regions retain the base amount.
+
+A source-coherence estimate reduces randomization where source phase progression is predictable. It uses unmodified spectra separated by at least one complete source-analysis window, excludes held spectra, and demodulates progression by the bin-center advance for the actual interval. Averaged complex cross-products and endpoint powers estimate coherence per channel; powers weight the shared decision without cancelling opposite stereo phases.
+
+After eight measurement pairs, an approximate finite-history noise bias is subtracted. Corrected coherence above 0.5 progressively reduces randomization, by at most half. The phase multiplier changes with a full-scale limit of 50 ms in output time. This adjustment changes phase randomization rather than classification or replacement targets. It observes raw input while replacement is bypassed; seeks, resets, sustained silence, and draining invalidate its history.
+
+Grain-window normalization blends original window compensation with compensation based on mean analysis-window power, using shared power-weighted phase coherence. This avoids applying the full inverse-window edge boost to decorrelated noise. Randomization uses a reproducible sequence restarted on seeks, resets, and silence clearing; explicit seeded resets provide its seed.
+
+Classification and coherence are heuristic. Dense guitar harmonics can resemble noise, and colored noise, frequency motion, and beating partials can affect coherence. Normalization assumes noise-like content and does not guarantee constant output power or correct treatment of misclassified harmonics.
+
+</details>
+
+### Preserving Tone and Volume
+
+#### K. Controlling Unwanted Sound
+
+The engine also adjusts the strength of individual frequency regions to control harshness, ringing, and unwanted volume changes. The limits below apply to each stage, not to the final output. **Gain** means a volume multiplier: 1 leaves amplitude unchanged, 0.8 reduces it to 80%, and 1.2 raises it to 120%. “Shared” means every channel gets the same multiplier; “Separate” means each channel is calculated individually.
 
 | Enhancement | Current behavior | Channel gains |
 | :--- | :--- | :--- |
-| Spectral contrast and anti-ringing | Attenuates input bins below the smoothed spectral background, with an amplitude floor of 0.88 for this stage. | Separate |
-| Causal pre-echo suppression | Uses measured within-window timing and rising energy to attenuate content associated with an upcoming attack; gain is at least 0.70. | Shared |
-| Peak sharpening | Reduces neighboring peak skirts, with gain at least 0.80, and boosts peak centers by at most 2%. Its frequency taper is described below. | Shared |
-| Bark-band valley suppression | Attenuates weak, non-prominent regions below a frequency-band masking estimate between approximately 350 and 16000 Hz; nearby prominent peaks are protected and gain is at least 0.82. | Shared |
-| De-essing | Attenuates prominent spectral regions between 5000 and 12000 Hz, with gain at least 0.85. This is a spectral heuristic, not a vocal-source detector. | Shared |
-| Extreme-slowdown attenuation | Begins below approximately 45% speed and increasingly attenuates bins below the smoothed background. | Separate |
-| Dynamic modulation restoration | Scales magnitudes using their energy relative to the smoothed spectral background; amplitude gain is limited to 0.86–1.16. The recent high-frequency taper on added gain has been withdrawn after listening feedback. | Shared |
-| High-frequency decay damping | Attenuates falling input energy with increasing frequency weight. On output hops without a new spectrum, it applies gentler damping above 4000 Hz. | Separate |
-| Post-transient midrange damping | During cooldown after an attack, attenuates falling energy between approximately 260 and 1350 Hz, with frequency fades and gain at least 0.78. | Shared |
-| Spectral boost limiting | Softly limits power above 1.25 times the predicted reference power, approaching a maximum ratio of 2. | Shared |
-| Spectral gain diffusion | Redistributes power between neighboring bins toward their predicted reference proportions, preserving the pair's summed spectral power in the calculation. | Shared |
-| Gain floor | Raises nonzero output bins below a slowdown-dependent fraction of predicted reference power, reaching a reference-power fraction of 0.25. It does not restore an exactly zero bin. | Separate |
+| Spectral contrast and anti-ringing | Turns down bins weaker than the local average, keeping at least 88% of their amplitude. | Separate |
+| Causal pre-echo suppression | Reduces sound spreading ahead of an attack, keeping at least 70% of amplitude. | Shared |
+| Peak sharpening | Turns down the edges around strong peaks to at least 80% of amplitude and boosts their centers by at most 2%. | Shared |
+| Bark-band valley suppression | Turns down weak regions near stronger sounds between approximately 350 and 16000 Hz. Strong peaks are protected; at least 82% of amplitude is retained. | Shared |
+| De-essing | Softens strong regions between 5000 and 12000 Hz, retaining at least 85% of amplitude. It responds to frequencies rather than detecting a voice. | Shared |
+| Extreme-slowdown attenuation | Below approximately 45% speed, increasingly turns down bins weaker than the local average. | Separate |
+| Dynamic modulation restoration | Adjusts bins according to their strength relative to the local average, with amplitude multipliers from 0.86 to 1.16. | Shared |
+| High-frequency decay damping | Softens fading sound more strongly at higher frequencies. When an analysis is reused, gentler softening applies above 4000 Hz. | Separate |
+| Post-transient midrange damping | After an attack, softens fading sound between approximately 260 and 1350 Hz, retaining at least 78% of amplitude. Selected attack bins are protected. | Shared |
+| Spectral boost limiting | Gradually limits excessive energy above 1.25 times the reconstruction estimate, approaching a ceiling of twice that estimate. | Shared |
+| Spectral gain diffusion | Shares energy between neighboring bins to bring their balance closer to the reconstruction estimate, keeping their combined energy unchanged. | Shared |
+| Gain floor | Raises bins that have become too weak relative to the reconstruction estimate. At strong slowdowns, the floor reaches 25% of estimated power; silent bins stay silent. | Separate |
 
-Peak sharpening fades above 3500 Hz and is inactive at 5000 Hz and above. The taper applies to both the peak frequency and neighboring-bin frequency, so sharpening cannot attenuate a neighbor at or above the cutoff. Peak boosts derive from the reduced skirt attenuation and retain their existing limit. This targets piercing cymbal coloration without a general treble cut. Listening feedback reported little improvement from this change.
+Peak sharpening fades above 3500 Hz and is inactive at 5000 Hz and above. The taper applies to both peak and neighboring-bin frequencies. The stage named dynamic modulation restoration measures spectral contrast rather than modulation over time.
 
-The stage labeled dynamic modulation restoration measures spectral contrast rather than modulation over time. Its recent high-frequency added-gain taper was withdrawn after listening feedback found no improvement in piercing, grainy cymbals at 35%. The original amplitude-gain range of 0.86–1.16 is restored. This stage does not cap the combined gain of every stage or correct phase-related coloration.
+Most strengths increase with the smoothed slowdown ratio. Bypass conditions vary: many stages pause during transient protection, some also pause during cooldown or pitch mapping, and some require a new input spectrum. Post-transient midrange damping runs during cooldown outside active protection, with the selected-attack exemptions described above.
 
-Most enhancement strengths increase with the smoothed slowdown ratio. They use individual bypass conditions: many pause during transient protection, some also pause during cooldown or pitch mapping, and some require a new input spectrum. There is no single bypass condition shared by every stage. The post-transient midrange stage specifically runs during cooldown, outside active transient protection.
+Shared gains preserve the per-bin channel ratio at that stage; separate gains can change it. Later phase processing, overlap-add, and grain mixing affect the final sound and stereo image. Complementary vocoder/grain power weights do not guarantee constant waveform power when the paths are correlated.
 
-A high-frequency decay damping bypass comparison did not restore the reported loss of brightness. Damping remains enabled by default. Its temporary native toggle and the gameplay F8 shortcut have been removed.
+#### L. Matching the Original Tonal Balance
 
-Shared gains preserve the per-bin channel ratio at that stage; separately calculated gains can change it. Phase stages and the later mixture of vocoder output and grains also influence the final stereo image. Complementary vocoder/grain power weights do not guarantee constant waveform power when the two paths are correlated.
+Gentle **EQ** adjustments help the stretched audio retain the source balance of bass, mids, and highs. The engine compares the source with the rebuilt waveform and slowly adjusts three broad bands, using the same settings for both stereo channels. Each band can be reduced by up to about 2 dB or boosted by up to about 1 dB. This changes tonal balance; it does not repair pitch errors or phase cancellation.
 
-Practice playback extends down to 10% speed, with recording-dependent quality. These mechanisms are intended to control artifacts and dynamics; their combined effect remains subject to listening evaluation.
+<details>
+<summary>Technical details</summary>
 
-#### K. Grain Processing CPU Optimizations
+Gentle EQ compares broad source-band power with reconstructed audio after overlap-add and grain mixing, before applying its own correction. The source reference reuses the analysis spectrum and accounts for the same two low-pass filters used to split and reconstruct three waveform bands. Nominal crossovers are 2000 and 6000 Hz, scaled down at low sample rates. Spectral power is normalized by transform length and analysis-window power.
 
-The main alignment search computes the previous tail's power once and reuses it across candidate offsets. Candidate waveform power retains its original summation order. A provisionally better nonzero candidate that passes the whole-overlap threshold also computes correlation separately in both temporal halves; the second half is skipped if the first fails. The added CPU cost has not been benchmarked.
+Each reference is queued for its synthesis-center position and held for one output hop. Alignment follows the source-frame mapping. The windowed source estimate and reconstructed audio have different temporal support during stretching, so matching is approximate, especially near attacks and speed changes.
 
-An all-zero replacement mask skips inverse FFTs and alignment searches. The previous tail still fades into queued output and is then cleared. CPU savings have not been benchmarked.
+Source and pre-correction output powers are averaged over approximately 250 ms of output time. Matching starts after 250 ms of continuous eligibility. Gain targets update once per output hop using regularized square-root power ratios, bounded to approximately -2 dB through +1 dB per band. Gains approach their targets over approximately 150 ms. Channels share gains and filter responses. Unity gains reconstruct the waveform through a complementary split; other gains introduce the EQ's frequency and phase response. Per-band bounds are not bounds on the combined response.
 
-### Source-to-Output Tonal Balance
+Matching operates on the configured mono/stereo grain path during slowdown without pitch mapping or formant processing. Other speeds and modes relax gains toward unity after queued references arrive. Seeks, resets, and sustained silence clear filters, gains, power estimates, and references. Final draining applies current gains after tail mixing and cancellation, freezes adaptation, and clears history. EQ changes broad spectral balance rather than frequencies or phase cancellation.
 
-A new EQ experiment compares broad source-band power with the reconstructed waveform after overlap-add and grain mixing, before this EQ applies its own correction. The source reference reuses the existing analysis spectrum. Its weights include the frequency responses of the same two low-pass filters used to measure and reconstruct three broad waveform bands, with nominal crossover frequencies of 2000 and 6000 Hz. The crossovers scale down at low sample rates. Spectral power is normalized using the transform length and analysis-window power.
+</details>
 
-Each source-analysis reference is queued for the corresponding synthesis-center position in output time, then held for one output hop. This follows the engine's source-frame mapping rather than comparing the latest incoming chunk with delayed output. Alignment is at the analysis-frame center; the windowed source estimate and reconstructed waveform do not have identical temporal support during stretching, so matching is approximate, particularly near attacks and speed changes.
+### Processing Cost & Limitations
 
-Both source and pre-correction output power are averaged over approximately 250 ms of output time. Matching starts after 250 ms of continuous eligibility. Gain targets update once per output hop, use square-root power ratios with a small regularization term for weak bands, and are bounded to approximately -2 dB and +1 dB per band. Applied gains approach those targets over approximately 150 ms. Both channels receive the same gains and filter responses. Unity gains reconstruct the original waveform through a complementary split; non-unity gains introduce the frequency and phase response of the broad EQ. The per-band bounds do not guarantee an identical bound on the combined frequency response.
+Grain alignment reuses previous-tail power across offsets and stops half-overlap checks after the first failure. All-zero masks skip grain inverse FFTs and alignment searches. Source-coherence measurements reuse existing spectra without another FFT or buffering delay. EQ adds two low-pass updates per channel per output sample, power averaging, and source-band accumulation per hop. Their arrays are allocated during configuration; CPU savings and added costs have not been benchmarked.
 
-The experiment operates on the configured mono/stereo grain path during slowdown without pitch mapping or formant processing. Other speeds and modes relax gains toward unity after their queued references arrive. It adds no output-buffer delay or FFT, but does add two low-pass updates per channel per output sample, power averaging, and broad-band source-power accumulation per hop. Allocations occur during configuration. Seeks, resets, and sustained-silence clearing reset the filters, gains, power estimates, and queued references. Final draining applies the current gains after tail mixing and cancellation, freezes adaptation, and then clears history.
-
-A gameplay EQ bypass comparison did not restore the missing brightness on the reported passage. This does not establish the cause of the loss. EQ remains enabled by default; the gameplay F8 comparison shortcut has been removed. The temporary native EQ toggle and its separate correction-mix ramp have also been removed; the original EQ gain adaptation remains active.
-
-This targets sharper highs and reduced warmth reported at 35% compared with normal playback. It does not move frequencies or repair phase cancellation, and has not been confirmed to restore body or reduce metallic texture. Listening comparison remains required.
-
-### Current Tuning Decisions
-
-Controlled grain-phase decorrelation originally began below approximately 20% playback speed and received listening feedback of a substantial improvement at 10%, with transients still smeared and grainy. Its transition now begins below 50% speed and reaches full strength at 25%, targeting sharp, buzzy cymbals reported at 35%. Tonal and transient protections and expected grain-window normalization remain active. Listening feedback found cymbals slightly improved at 35%, but still sharper and more metallic than the comparison stretcher. A further selective increase now targets confidently classified treble texture while retaining the base amount for ambiguous regions. Its audible improvement and preservation of dense guitar texture remain unconfirmed.
-
-Selective, center-timed transient phase resetting now collects rising spectral lobes and resets them on a shared hop. Its source-based event lifetime addresses the mismatch between slow source progression and short output-based protection at extreme slowdown. The transient traversal also now rebuilds phase parents instead of sorting bins independently of their references. The existing 10% noise decorrelation remains active. The audible effect of these transient changes is unconfirmed.
-
-Removing additional neighboring-bin and main-lobe phase locking was tried for piano wobble at 60% speed. Listening feedback reported possible pitch-coherence improvement, but much stronger bass wobble and reduced sharpness, so both stages were restored. Removing only main-lobe phase locking subsequently received feedback that pitch sounded good, with occasional low-frequency wobble remaining. Further feedback reported wobbly, slightly detuned bass guitar and a possible increase in metallic coloration following recent changes. Both phase-locking stages are restored; their removal did not establish a satisfactory overall improvement. Spectral-lobe tracking across frames has not been added.
-
-Extending input-relative parent propagation in the lower-frequency region to moderate slowdowns was briefly edited into the source, then withdrawn while the recent phase-locking comparisons were reconsidered. The original propagation condition and minimum stretch-factor clamp remain in place. Listening feedback was not established for that specific experiment, so it should not be treated as a confirmed cause or cure of the bass wobble or metallic coloration.
-
-The traversal-priority preference for established tonal references is retained after listening feedback suggested improved pitch coherence. Its removal for a bass-wobble comparison has been reversed; the preference was not established as a cause of the remaining wobble. Both phase-locking stages and the original phase-propagation formulas remain active. General pitch stability and preservation of sharpness still require broader listening evaluation.
-
-The recent high-frequency taper on added gain in the spectral-contrast-based modulation-restoration stage has been withdrawn. Listening feedback found no improvement and possibly worse piercing, grainy cymbals at 35%, so the prior gain behavior is restored. This feedback does not establish that the taper caused the artifacts. A bounded, broad-band source-to-output EQ experiment is now implemented as described above. It could address tonal-balance differences, but does not correct pitch errors or guarantee removal of phase and texture artifacts.
-
-Ordinary decreases in noise replacement now use a short release, targeting intermittent vocal and transient-like buzziness reported at 50% and below, more audibly at 35%. Global bypass conditions still take effect immediately. The release delays per-bin classifier protection briefly; its audible benefit remains unconfirmed.
-
-Reverb-tail damping has been removed. Its stereo measure depended on channel levels rather than phase or measured temporal coherence, so equal-level noise could receive full protection while a dry panned source could be attenuated. Its spectral heuristic also did not establish that the content was reverberation. Removal avoids this attenuation but may retain more tail energy; its audible effect remains unconfirmed.
-
-Vocal-presence phase correction was first revised to use the same unit rotation on every channel, resolving asymmetric corrections. The stage has now been removed entirely for a comparison targeting persistent graininess in vocals at 35% speed. Its unused exclusion flags and marking pass have also been removed. Core phase reconstruction, neighboring-peak locking, main-lobe locking, stereo corrections, and grain processing remain active. The neighboring-peak and main-lobe stages were temporarily removed and then restored after the piano-wobble comparisons described above.
-
-Overlap-cancellation gain compensation has been removed. It boosted individual bins based on phase advance relative to the bin center frequency, which can differ during valid frequency progression and does not by itself measure cancellation in the overlapping waveforms. Removing it avoids that additional phase-dependent gain modulation. The audible effect on metallic vocals and cymbals at 35% speed remains unconfirmed.
-
-Sidelobe phase steering has been removed to target remaining metallic drum and vocal coloration at 35% speed. Its exclusions were retained initially and removed once vocal-presence processing was also removed. Listening feedback suggested a possible improvement, with metallic cymbals still present at 35% speed.
-
-Local phase-curvature correction has been removed to avoid additional individual-bin rotations after the main phase reconstruction. Listening feedback reported an improvement after removal, with metallic vocal coloration still present at 35% speed.
-
-Strongest-peak bass pitch steering, fixed harmonic phase steering, and the separate sum-frequency steering stage have been removed. Listening comparisons reported less wobble in low distorted guitar and less dissonance in piano chords after removing these corrections. The remaining vocal phase-steering correction has now also been removed to target residual metallic coloration at 35% speed. Its measured-frequency timing, confidence checks, and error bounds did not establish that the linked peaks belonged to the same source. Listening feedback reported an improvement after removal, with slight metallic and grainy growling vocals still present at 35% speed.
-
-The mid/side width and phase correction has also been removed. Listening feedback reported a substantial improvement in stereo coherence. Core channel coupling and bass stereo phase correction remain active. The audit identified channel-dependent spectral contrast, extreme-slowdown attenuation, high-frequency decay damping, and gain-floor adjustments as further possible sources of balance changes; these stages remain active. The overlap-cancellation compensation identified in that audit has now been removed.
-
-The replacement ramp has not been established as a general improvement across a representative song set. Listening observations are subjective comparisons, not controlled measurements. At 35% speed, the latest listening feedback found residual vocal graininess acceptable, although some heavy metal recordings have also exhibited metallic growling vocals and piercing, metallic cymbals. Graininess has also been reported at 10% speed. Piano tuning, distorted-guitar body, transient clarity, and stereo coherence remain useful comparison targets.
-
-Phase-predictability-based noise classification was discussed but has not been implemented. It should not be listed as an active enhancement. The latest overlap-cancellation removal still needs listening confirmation; the source audit does not establish its audible benefit.
+Practice playback extends down to 10% speed. Quality depends on the recording and stretch ratio. Unresolved overlapping sources, heuristic noise classification, and finite analysis windows can still produce pitch wobble, metallic texture, graininess, transient spreading, or reduced attack brightness.
 
 ---
 
@@ -336,4 +297,5 @@ Phase-predictability-based noise classification was discussed but has not been i
 
 - Průša, Z., & Holighaus, N. (2017). *Phase Vocoder Done Right*. 25th European Signal Processing Conference (EUSIPCO 2017). [arXiv:2202.07382](https://arxiv.org/abs/2202.07382).
 - Röbel, A. (2003). *A New Approach to Transient Processing in the Phase Vocoder*. 6th International Conference on Digital Audio Effects (DAFx-03). [Paper](https://dafx.de/paper-archive/2003/pdfs/dafx32.pdf).
-- Průša, Z., Balazs, P., & Søndergaard, P. L. (2017). *A Noniterative Method for Reconstruction of Phase from STFT Magnitude*. IEEE/ACM Transactions on Audio, Speech, and Language Processing. [arXiv:1605.07474](https://arxiv.org/abs/1605.07474).
+- Průša, Z., Balazs, P., & Søndergaard, P. L. (2017). *A Noniterative Method for Reconstruction of Phase from STFT Magnitude*. IEEE/ACM Transactions on Audio, Speech, and Language Processing. [Author research page and preprint](https://ltfat.org/notes/040/).
+- Luff, G. *Signalsmith Stretch*. [Source and documentation](https://github.com/Signalsmith-Audio/signalsmith-stretch). YARG's engine is derived from version 1.3.2.

@@ -5,7 +5,7 @@
 //
 // Based on Signalsmith Stretch 1.3.2 by Geraint Luff (Signalsmith Audio):
 //   https://github.com/Signalsmith-Audio/signalsmith-stretch
-//   Licensed under the MIT License (see third_party/signalsmith-linear/LICENSE.txt).
+//   Licensed under the MIT License (see third_party/signalsmith-stretch-LICENSE.txt).
 //
 // YARG changes on top of upstream:
 //   - Transient detection with phase snapping, so drum hits stay sharp.
