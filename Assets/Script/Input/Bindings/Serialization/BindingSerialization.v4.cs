@@ -10,6 +10,7 @@ using YARG.Core.Logging;
 
 namespace YARG.Input.Serialization
 {
+    using static YARG.Input.Serialization.SerializedBindingsV4;
     // Unchanged data types
     using SerializedMicV4 = SerializedMicV3;
 
@@ -19,7 +20,7 @@ namespace YARG.Input.Serialization
 
         public int Version = VERSION;
         public Dictionary<Guid, SerializedProfileDeviceInfoV4> Profiles = new();
-        public Dictionary<Guid, SerializedBindingCollectionV4> BindingCollections = new();
+        public Dictionary<Guid, SerializedReusableBindingSetV4> BindingCollections = new();
 
         [JsonConstructor]
         public SerializedBindingsV4() { }
@@ -34,7 +35,7 @@ namespace YARG.Input.Serialization
 
             foreach (var (guid, bind) in serialized.ReusableBindingSets)
             {
-                BindingCollections[guid] = new SerializedBindingCollectionV4(bind);
+                BindingCollections[guid] = new SerializedReusableBindingSetV4(bind);
             }
         }
 
@@ -135,17 +136,18 @@ namespace YARG.Input.Serialization
             }
         }
 
-        public class SerializedBindingCollectionV4
+        public class SerializedReusableBindingSetV4
         {
             public string Name;
+            public int? Version; // Populated only in single-set export files
             public Dictionary<string, SerializedControlBindingV4> Bindings = new();
             public GameMode GameMode;
             public string BaseLayout;
 
             [JsonConstructor]
-            public SerializedBindingCollectionV4() { }
+            public SerializedReusableBindingSetV4() { }
 
-            public SerializedBindingCollectionV4(SerializedReusableBindingSet serialized)
+            public SerializedReusableBindingSetV4(SerializedReusableBindingSet serialized)
             {
                 Name = serialized.Name;
                 GameMode = serialized.GameMode;
@@ -289,6 +291,18 @@ namespace YARG.Input.Serialization
             }
 
             return serialized.Deserialize();
+        }
+
+        // For single-set exported files
+        private static SerializedReusableBindingSet? DeserializeBindingSetV4(JObject obj)
+        {
+            var serialized = obj.ToObject<SerializedReusableBindingSetV4>();
+            if (serialized is null || serialized.Version != SerializedBindingsV4.VERSION)
+            {
+                return null;
+            }
+
+            return serialized.Deserialize(Guid.NewGuid());
         }
     }
 }

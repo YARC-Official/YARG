@@ -107,6 +107,7 @@ namespace YARG.Input.Bindings
 
             return new SerializedReusableBindingSet(Name, LayoutHelper.ControllerFamilyToLayoutString(ControllerFamily)) {
                 Guid = export ? null : Guid, // When exporting, don't include a GUID; we'll make a fresh one on import
+                Version = export ? BindingSerialization.CURRENT_VERSION : null, // But DO include a version number, since we'll deserialize this in a vacuum
                 GameMode = Mode,
                 BaseLayout = LayoutHelper.ControllerFamilyToLayoutString(ControllerFamily),
 

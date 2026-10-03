@@ -1,19 +1,21 @@
-﻿using System;
+﻿using DG.Tweening.Plugins.Core.PathCore;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Utilities;
 using YARG.Audio;
 using YARG.Core;
-using YARG.Core.Logging;
 using YARG.Core.Audio;
-using UnityEngine.InputSystem.Utilities;
+using YARG.Core.Logging;
 using YARG.Input.Bindings;
+using static YARG.Input.Serialization.SerializedBindingsV4;
 
 #nullable enable
 
@@ -63,6 +65,7 @@ namespace YARG.Input.Serialization
 
         public string Name;
         public Guid? Guid;
+        public int? Version;
         public GameMode GameMode;
         public string BaseLayout;
 
@@ -123,6 +126,8 @@ namespace YARG.Input.Serialization
 
     public static partial class BindingSerialization
     {
+        public const int CURRENT_VERSION = 4;
+
         private static readonly SHA1 _hashAlgorithm = SHA1.Create();
         private static readonly Regex _xinputUserIndexRegex = new(@"\\""userIndex\\"":\s*\d,");
 
@@ -175,7 +180,9 @@ namespace YARG.Input.Serialization
             try
             {
                 if (!File.Exists(bindingsPath))
+                {
                     return null;
+                }
 
                 string bindingsJson = File.ReadAllText(bindingsPath);
                 var jObject = JObject.Parse(bindingsJson);
@@ -203,6 +210,39 @@ namespace YARG.Input.Serialization
             catch (Exception ex)
             {
                 YargLogger.LogException(ex, "Error while loading bindings!");
+                return null;
+            }
+        }
+
+        public static SerializedReusableBindingSet? DeserializeImport(string importPath)
+        {
+            try
+            {
+                if (!File.Exists(importPath))
+                {
+                    return null;
+                }
+
+                var text = File.ReadAllText(importPath);
+                var jObject = JObject.Parse(text);
+
+                int version = jObject["Version"] switch
+                {
+                    null => 0,
+                    { Type: JTokenType.Integer } versionToken => (int) versionToken,
+                    { } unhandled => throw new InvalidDataException($"Invalid bindings version! Expected JSON type {JTokenType.Integer}, got {unhandled.Type}")
+                };
+
+                var deserialized = version switch {
+                    4 => DeserializeBindingSetV4(jObject),
+                    _ => throw new NotImplementedException($"Unhandled bindings version {version}!")
+                };
+
+                return deserialized;
+            }
+            catch (Exception ex)
+            {
+                YargLogger.LogException(ex, "Failed to import binding set.");
                 return null;
             }
         }
