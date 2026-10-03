@@ -449,6 +449,7 @@ struct YargStretch {
 				}
 
 				blockProcess.newSpectrum = didSeek || (inputInterval > 0);
+				blockProcess.sourceInterval = inputInterval;
 				blockProcess.mappedFrequencies = customFreqMap || freqMultiplier != 1;
 				if (blockProcess.newSpectrum) {
 					// make sure the previous input is the correct distance in the past (give or take 1 sample)
@@ -607,7 +608,8 @@ struct YargStretch {
 						}
 						Sample decorrelation = std::clamp((smoothTimeFactor_ - NOISE_DECORRELATION_START_STRETCH) /
 							(NOISE_DECORRELATION_FULL_STRETCH - NOISE_DECORRELATION_START_STRETCH), Sample(0), Sample(1));
-						noiseMorph.apply(stft, [&](int c, int b) { return bandsForChannel(c)[b].input; }, strength, transientMinFreq_, decorrelation);
+						noiseMorph.apply(stft, [&](int c, int b) { return bandsForChannel(c)[b].input; }, strength, transientMinFreq_, decorrelation,
+							blockProcess.sourceInterval, blockProcess.newSpectrum);
 						envelopeEq.setReference([&](int c, int b) { return bandsForChannel(c)[b].input; },
 							!blockProcess.mappedFrequencies && !blockProcess.processFormants && smoothTimeFactor_ > Sample(1.01));
 					}
@@ -755,6 +757,7 @@ private:
 		bool mappedFrequencies = false;
 		bool processFormants = false;
 		int phaseInterval = 0;
+		int sourceInterval = 0;
 		Sample timeFactor;
 	} blockProcess;
 
@@ -1663,7 +1666,9 @@ private:
 			}
 			if (chunk + 1 == splitMainPrediction && transientState_ == TransientState::RESET) {
 				transientState_ = transientInputSamples_ > 0 ? TransientState::COOLDOWN : TransientState::IDLE;
-				std::fill(transientHold_.begin(), transientHold_.end(), 0);
+				if (transientState_ == TransientState::IDLE) {
+					std::fill(transientHold_.begin(), transientHold_.end(), 0);
+				}
 			}
 			return;
 		}
@@ -2296,6 +2301,9 @@ private:
 			for (int c = 0; c < channels; ++c) {
 				auto *bins = bandsForChannel(c);
 				for (int b = 0; b < bands; ++b) {
+					if (transientState_ == TransientState::COOLDOWN && transientHold_[b] != 0) {
+						continue;
+					}
 					Sample curE = _impl::norm(bins[b].input);
 					Sample prevE = _impl::norm(bins[b].prevInput);
 					if (prevE <= curE || prevE <= Sample(1e-16)) {
@@ -2318,6 +2326,9 @@ private:
 			for (int c = 0; c < channels; ++c) {
 				auto *bins = bandsForChannel(c);
 				for (int b = minDecayBin; b < bands; ++b) {
+					if (transientState_ == TransientState::COOLDOWN && transientHold_[b] != 0) {
+						continue;
+					}
 					Sample freqNorm = Sample(b) / Sample(bands);
 					Sample fSq = freqNorm * freqNorm;
 					Sample atten = coeff * fSq;
@@ -2447,6 +2458,9 @@ private:
 		Sample expVal = speedDose * Sample(0.32);
 
 		for (int b = minBand; b < maxBand; ++b) {
+			if (transientState_ == TransientState::COOLDOWN && transientHold_[b] != 0) {
+				continue;
+			}
 			if (energy[b] > smoothedEnergy[b] * Sample(2.5)) {
 				if (b > 0 && b + 1 < bands && energy[b] > energy[b - 1] && energy[b] > energy[b + 1]) {
 					continue;

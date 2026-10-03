@@ -28,6 +28,8 @@ class TextureGrains {
     // Search range for grain alignment, as a share of the hop.
     static constexpr int SEARCH_DIVISOR = 4;
     static constexpr double SHIFT_PENALTY = 0.05;
+    static constexpr double MIN_ALIGNMENT_CORRELATION = 0.35;
+    static constexpr double MIN_HALF_CORRELATION = 0.20;
     signalsmith::linear::RealFFT<Sample, false, true> fft;
     std::vector<Complex> spectrum;
     std::vector<Sample> waveform, previous, fade, inverseWindow, output;
@@ -127,6 +129,33 @@ private:
         }
     }
 
+    bool hasAlignmentSupport(int size, int offset) const {
+        const int middle = hop / 2;
+        for (int half = 0; half < 2; ++half) {
+            const int start = half == 0 ? 0 : middle;
+            const int end = half == 0 ? middle : hop;
+            double cross = 0;
+            double oldPower = 0;
+            double newPower = 0;
+            for (int c = 0; c < channels; ++c) {
+                const auto *wave = waveform.data() + c * size;
+                const auto *tail = previous.data() + c * hop;
+                for (int i = start; i < end; ++i) {
+                    const double old = tail[i];
+                    const double next = wave[(size - hop + offset + i) % size];
+                    cross += old * next;
+                    oldPower += old * old;
+                    newPower += next * next;
+                }
+            }
+            const double correlation = cross / std::sqrt(oldPower * newPower + 1e-60);
+            if (correlation < MIN_HALF_CORRELATION) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     // Finds the offset with max normalised correlation against the previous tail;
     // returns the offset and writes the score.
     int findBestOffset(const STFT &analysis, Sample &correlation) {
@@ -158,7 +187,10 @@ private:
             }
             const double match = cross / std::sqrt(oldPower * newPower + 1e-60);
             const double score = match - shiftPenalty * std::abs(offset);
-            if (score > bestScore || (score == bestScore && std::abs(offset) < std::abs(bestOffset))) {
+            if (candidate < 0 || score > bestScore || (score == bestScore && std::abs(offset) < std::abs(bestOffset))) {
+                if (offset != 0 && (match < MIN_ALIGNMENT_CORRELATION || !hasAlignmentSupport(size, offset))) {
+                    continue;
+                }
                 bestScore = score;
                 bestCorrelation = match;
                 bestOffset = offset;

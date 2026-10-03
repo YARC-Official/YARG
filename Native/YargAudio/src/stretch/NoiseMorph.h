@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstdint>
 #include <random>
 #include <vector>
 
@@ -35,6 +36,11 @@ class NoiseMorph {
     static constexpr Sample NOISE_CONFIDENCE_START{Sample(0.85)};
     static constexpr Sample NOISE_CONFIDENCE_RANGE{Sample(0.15)};
     static constexpr Sample TREBLE_DECORRELATION_RATE{Sample(2.5)};
+    static constexpr int COHERENCE_WARMUP = 8;
+    static constexpr double COHERENCE_RATE = 0.25;
+    static constexpr Sample COHERENCE_START{Sample(0.5)};
+    static constexpr Sample COHERENCE_MAX_REDUCTION{Sample(0.5)};
+    static constexpr Sample COHERENCE_FADE_SECONDS{Sample(0.05)};
     // Detection cutoffs: tone/attack ratio boundaries, peak-to-background ratio,
     // and the low-frequency fade-in for resynthesis.
     static constexpr Sample TONE_LOW{Sample(0.65)};
@@ -56,6 +62,15 @@ class NoiseMorph {
     int bands = 0;
     int historyIndex = 0;
     int historyCount = 0;
+    std::vector<Complex> coherenceInput;
+    std::vector<std::complex<double>> coherenceCross;
+    std::vector<double> coherencePastPower, coherenceCurrentPower;
+    std::vector<Sample> sourceCoherence, phaseScale;
+    std::int64_t coherenceSamples = 0;
+    int coherenceCount = 0;
+    bool hasCoherenceInput = false;
+    double coherenceWeightSquares = 1;
+    Sample coherenceStep = 0;
 
 public:
     void configure(const STFT &analysis, int count, Sample sampleRate, bool grainPath) {
@@ -73,6 +88,13 @@ public:
             grainPhase.assign(bands, Complex{Sample(1), Sample(0)});
             protection.assign(bands, Sample(0));
             sumPrefix.assign(bands + 1, 0);
+            coherenceInput.assign(channels * bands, Complex{Sample(0), Sample(0)});
+            coherenceCross.assign(channels * bands, std::complex<double>{0, 0});
+            coherencePastPower.assign(channels * bands, 0);
+            coherenceCurrentPower.assign(channels * bands, 0);
+            sourceCoherence.assign(bands, Sample(0));
+            phaseScale.assign(bands, Sample(1));
+            coherenceStep = Sample(analysis.defaultInterval()) / (sampleRate * COHERENCE_FADE_SECONDS);
         }
         clearHistory();
     }
@@ -82,6 +104,11 @@ public:
         randomEngine.seed(DEFAULT_SEED);
         std::fill(history.begin(), history.end(), Sample(0));
         std::fill(grainMask.begin(), grainMask.end(), Sample(0));
+        coherenceSamples = coherenceCount = 0;
+        hasCoherenceInput = false;
+        coherenceWeightSquares = 1;
+        std::fill(sourceCoherence.begin(), sourceCoherence.end(), Sample(0));
+        std::fill(phaseScale.begin(), phaseScale.end(), Sample(1));
         if (useGrains) {
             grains.reset();
         }
@@ -107,7 +134,11 @@ public:
     // Per-block split: measure bands, detect tones/transients, shelter music,
     // move texture to the grains.
     template<class Input>
-    void apply(STFT &output, Input input, Sample strength, Sample minimumFrequency, Sample decorrelation) {
+    void apply(STFT &output, Input input, Sample strength, Sample minimumFrequency, Sample decorrelation,
+        int sourceInterval, bool newSpectrum) {
+        if (newSpectrum) {
+            measureSourceCoherence(output, input, sourceInterval);
+        }
         pushMagnitudes(input);
         if (historyCount < HISTORY || strength == 0) {
             std::fill(grainMask.begin(), grainMask.end(), Sample(0));
@@ -120,6 +151,54 @@ public:
     }
 
 private:
+    template<class Input>
+    void measureSourceCoherence(const STFT &analysis, Input input, int sourceInterval) {
+        if (hasCoherenceInput) {
+            coherenceSamples += sourceInterval;
+            if (coherenceSamples < int(analysis.blockSamples())) {
+                return;
+            }
+            const double rate = coherenceCount == 0 ? 1 : COHERENCE_RATE;
+            const double keep = 1 - rate;
+            coherenceWeightSquares = keep * keep * coherenceWeightSquares + rate * rate;
+            coherenceCount = std::min(coherenceCount + 1, COHERENCE_WARMUP);
+            for (int b = 0; b < bands; ++b) {
+                const std::complex<double> rotation = std::polar(1.0,
+                    -2 * double(PI) * double(analysis.binToFreq(b)) * coherenceSamples);
+                double correlationSum = 0;
+                double powerSum = 0;
+                for (int c = 0; c < channels; ++c) {
+                    const int index = c * bands + b;
+                    const std::complex<double> current = input(c, b);
+                    const std::complex<double> past = coherenceInput[index];
+                    coherenceCross[index] = keep * coherenceCross[index] +
+                        rate * current * std::conj(past) * rotation;
+                    coherencePastPower[index] = keep * coherencePastPower[index] + rate * std::norm(past);
+                    coherenceCurrentPower[index] = keep * coherenceCurrentPower[index] + rate * std::norm(current);
+                    const double product = coherencePastPower[index] * coherenceCurrentPower[index];
+                    const double power = std::sqrt(product);
+                    correlationSum += power * std::clamp(std::norm(coherenceCross[index]) /
+                        (product + 1e-30), 0.0, 1.0);
+                    powerSum += power;
+                }
+                if (coherenceCount == COHERENCE_WARMUP) {
+                    const double measured = correlationSum / (powerSum + 1e-30);
+                    const Sample corrected = Sample(std::clamp((measured - coherenceWeightSquares) /
+                        (1 - coherenceWeightSquares), 0.0, 1.0));
+                    sourceCoherence[b] = std::clamp((corrected - COHERENCE_START) /
+                        (Sample(1) - COHERENCE_START), Sample(0), Sample(1));
+                }
+            }
+        }
+        for (int c = 0; c < channels; ++c) {
+            for (int b = 0; b < bands; ++b) {
+                coherenceInput[c * bands + b] = input(c, b);
+            }
+        }
+        coherenceSamples = 0;
+        hasCoherenceInput = true;
+    }
+
     // Records per-band magnitudes into the history ring.
     template<class Input>
     void pushMagnitudes(Input input) {
@@ -201,6 +280,9 @@ private:
         for (int b = 0; b < bands; ++b) {
             const Sample shelter = std::max(tonal[b], protection[b]);
             const Sample texture = std::max(Sample(0), mask[b] - shelter);
+            const Sample desiredPhaseScale = Sample(1) - COHERENCE_MAX_REDUCTION * sourceCoherence[b];
+            phaseScale[b] = std::clamp(desiredPhaseScale,
+                phaseScale[b] - coherenceStep, phaseScale[b] + coherenceStep);
             const Sample target = strength * texture *
                 std::clamp((output.binToFreq(b) - cutoff) / cutoff, Sample(0), Sample(1));
             const Sample amount = std::clamp(target, grainMask[b] - releaseStep, grainMask[b] + replacementStep);
@@ -218,7 +300,7 @@ private:
                     (output.binToFreq(b) - Sample(2) * cutoff) / cutoff, Sample(0), Sample(1));
                 const Sample phaseDose = decorrelation + (Sample(1) - decorrelation) *
                     trebleDecorrelation * noiseConfidence * trebleWeight;
-                const Sample phaseAmount = phaseDose * target;
+                const Sample phaseAmount = phaseDose * target * phaseScale[b];
                 if (phaseAmount > Sample(0)) {
                     const Sample phaseRange = PI * phaseAmount;
                     grainPhase[b] = std::polar(Sample(1), phaseDistribution(randomEngine) * phaseAmount);
