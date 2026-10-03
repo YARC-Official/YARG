@@ -527,18 +527,14 @@ namespace YARG.Menu.ProfileList
         {
             FileExplorerHelper.OpenChooseFile(null, "binds", path =>
             {
-                try
+                var import = BindingSerialization.DeserializeImport(path);
+
+                if (import is not null)
                 {
-                    var text = File.ReadAllText(path);
-                    var deserialized = JsonConvert.DeserializeObject<SerializedReusableBindingSet>(text);
-                    var bindingSet = new ReusableBindingSet(deserialized);
+                    var bindingSet = new ReusableBindingSet(import);
                     BindingsContainer.AddBindingSet(bindingSet);
                     CurrentBindingSetFilter = bindingSet.ControllerFamily;
                     RefreshBindingSetList(bindingSet);
-                }
-                catch (Exception)
-                {
-                    YargLogger.LogError("Failed to import binding set.");
                 }
             });
         }
