@@ -62,9 +62,9 @@ namespace YARG.Input.Bindings
 
             var template = ReusableBindingSetTemplates.GetTemplate(Mode);
 
-            foreach (var (key, binding) in serialized.Bindings)
+            foreach (var (key, info) in template)
             {
-                if (template.TryGetValue(key, out var info))
+                if (serialized.Bindings.TryGetValue(key, out var binding))
                 {
                     ReusableControlBinding newBinding = info.Type switch
                     {
@@ -84,10 +84,6 @@ namespace YARG.Input.Bindings
                     {
                         YargLogger.LogWarning($"Failed to parse binding with key {key} as any known binding type");
                     }
-                }
-                else
-                {
-                    YargLogger.LogWarning($"Unrecognized input action name {key} for controller family {ControllerFamily}; ignoring");
                 }
             }
         }

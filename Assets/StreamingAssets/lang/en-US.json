@@ -1248,7 +1248,8 @@
             "SoloRed": "Solo Red Fret",
             "SoloYellow": "Solo Yellow Fret",
             "SoloBlue": "Solo Blue Fret",
-            "SoloOrange": "Solo Orange Fret"
+            "SoloOrange": "Solo Orange Fret",
+			"FxSwitch": "FX Switch"
         },
         "SixFret": {
             "Black1": "Black Fret 1 (First)",

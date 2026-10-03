@@ -37,7 +37,7 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private ReusableAxisBindGroup _axisGroupPrefab;
         [SerializeField]
-        private IntegerBindGroup _integerGroupPrefab;
+        private ReusableIntegerBindGroup _integerGroupPrefab;
 
         [Space]
         [SerializeField]
@@ -224,7 +224,18 @@ namespace YARG.Menu.ProfileList
                             controls
                         );
                         break;
-                    // TODO-FRICK: Integer
+                    case BindingType.Integer:
+                        var integerGroup = Instantiate(_integerGroupPrefab, _bindsList);
+                        integerGroup.Init(
+                            _profilesMenu,
+                            this,
+                            _settingsPanel,
+                            _quickBindDialog,
+                            bindingSet,
+                            bindingSet.Bindings[action] as ReusableIntegerBinding,
+                            controls
+                        );
+                        break;
                 }
             }
 
