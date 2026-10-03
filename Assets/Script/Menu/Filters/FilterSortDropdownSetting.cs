@@ -50,7 +50,7 @@ namespace YARG.Menu.Filters
 
         public override string ValueToString(SortAttribute value)
         {
-            return value.ToLocalizedName();
+            return value == SortAttribute.FreeHarmony ? "Free Harmony" : value.ToLocalizedName();
         }
     }
 }
