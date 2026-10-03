@@ -518,6 +518,42 @@ namespace YARG.Input
             }
         }
 
+        public void OnBindingSetDeleted(ReusableBindingSet deleted)
+        {
+            if (deleted.Mode is GameMode.Menu)
+            {
+                foreach (var controller in Controllers)
+                {
+                    if (_activeMenuRuntimeBindings[controller].Source == deleted)
+                    {
+                        var layout = LayoutHelper.LayoutStringToControllerFamily(controller.layout);
+                        var newMenuBindings = BindingsContainer.GetBindingSetsForControllerInMode(layout, GameMode.Menu).FirstOrDefault();
+
+                        if (newMenuBindings is not null)
+                        {
+                            SetActiveMenuBindingsForController(controller, newMenuBindings);
+                        }
+                    }
+                }
+            }
+            else if (deleted.Mode == Profile.GameMode)
+            {
+                foreach (var controller in Controllers)
+                {
+                    if (_selectedGameplayBindings[controller] == deleted)
+                    {
+                        var layout = LayoutHelper.LayoutStringToControllerFamily(controller.layout);
+                        var newGameplayBindings = BindingsContainer.GetBindingSetsForControllerInMode(layout, Profile.GameMode).FirstOrDefault();
+
+                        if (newGameplayBindings is not null)
+                        {
+                            _selectedGameplayBindings[controller] = newGameplayBindings;
+                        }
+                    }
+                }
+            }
+        }
+
         private void NotifyControllerAdded(InputDevice controller)
         {
             if (!_selectedGameplayBindings.ContainsKey(controller))

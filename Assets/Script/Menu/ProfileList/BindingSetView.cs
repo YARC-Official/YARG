@@ -3,6 +3,7 @@ using UnityEngine;
 using YARG.Input.Bindings;
 using YARG.Localization;
 using YARG.Menu.Navigation;
+using YARG.Player;
 
 namespace YARG.Menu.ProfileList
 {
@@ -60,6 +61,11 @@ namespace YARG.Menu.ProfileList
         {
             var selectedBindingSet = _profileListMenu.GetSelectedBindingSet();
             var wasSelected = Selected;
+
+            foreach (var player in PlayerContainer.Players)
+            {
+                player.DeviceInfo.OnBindingSetDeleted(BindingSet);
+            }
 
             BindingsContainer.DeleteBindingSet(BindingSet);
 
