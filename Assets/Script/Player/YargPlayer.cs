@@ -142,6 +142,8 @@ namespace YARG.Player
                 return;
             }
 
+            DeviceInfo.ActivateMenuBindings();
+
             DeviceInfo.EnableInputs();
             DeviceInfo.SubscribeToMenuInputs(OnMenuInput);
             InputManager.RegisterPlayer(this);

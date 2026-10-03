@@ -130,7 +130,7 @@ namespace YARG.Menu.ProfileList
         public void ChangeMenuBindingSet()
         {
             var player = PlayerContainer.GetPlayerFromProfile(Profile);
-            player.DeviceInfo.SetActiveMenuBindingsForController(Controller, _menuBindingSetsByIndex[_menuBindingSetDropdown.value]);
+            player.DeviceInfo.SetMenuBindingsForController(Controller, _menuBindingSetsByIndex[_menuBindingSetDropdown.value]);
             UpdateMenuBindingsStatus();
         }
 

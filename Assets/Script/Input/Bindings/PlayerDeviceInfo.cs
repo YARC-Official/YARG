@@ -344,14 +344,11 @@ namespace YARG.Input
 
         public void SetActiveMenuBindingsForController(InputDevice controller, ReusableBindingSet bindingSet)
         {
-            var family = LayoutHelper.LayoutStringToControllerFamily(controller.layout);
-
             if (_activeMenuRuntimeBindings.Remove(controller, out var oldRuntimeBindings))
             {
                 oldRuntimeBindings.Source.Changed -= OnMenuBindingSetChanged;
                 _menuInputAggregator.Remove(oldRuntimeBindings);
                 oldRuntimeBindings.Dispose();
-                _preferredBindsByContext.Remove((GameMode.Menu, family));
             }
 
             if (bindingSet is null)
@@ -364,7 +361,6 @@ namespace YARG.Input
             var newRuntimeBindings = bindingSet.GetRuntimeBindings(Profile, controller);
 
             _activeMenuRuntimeBindings[controller] = newRuntimeBindings;
-            _preferredBindsByContext[(GameMode.Menu, family)] = bindingSet;
             _menuInputAggregator.Add(newRuntimeBindings);
 
             if (_inputsEnabled)
@@ -593,6 +589,36 @@ namespace YARG.Input
             }
 
             ControllerRemoved?.Invoke(controller);
+        }
+
+        public void ActivateMenuBindings()
+        {
+            foreach (var controller in _controllers)
+            {
+                if (_activeMenuRuntimeBindings.ContainsKey(controller))
+                {
+                    continue;
+                }
+
+                var menuBindings = GetBindingSetForController(controller, menu: true);
+                SetActiveMenuBindingsForController(controller, menuBindings);
+            }
+        }
+
+        public void SetMenuBindingsForController(InputDevice controller, ReusableBindingSet bindingSet)
+        {
+            var family = LayoutHelper.LayoutStringToControllerFamily(controller.layout);
+
+            if (bindingSet is null)
+            {
+                _preferredBindsByContext.Remove((GameMode.Menu, family));
+            }
+            else
+            {
+                _preferredBindsByContext[(GameMode.Menu, family)] = bindingSet;
+            }
+
+            SetActiveMenuBindingsForController(controller, bindingSet);
         }
 
         private ReusableBindingSet GetBindingSetForController(InputDevice controller, bool menu)
