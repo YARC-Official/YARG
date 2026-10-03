@@ -525,17 +525,23 @@ namespace YARG.Song
 
         private static SongCategory[] SearchInstrument(FilterNode filter, SongCategory[] searchList)
         {
-            var songsToMatch = SongContainer.Instruments[filter.Attribute.ToInstrument()]
-                .Where(node =>
-                {
-                    string key = node.Key.ToString();
-                    if (!key.StartsWith(filter.Argument))
-                    {
-                        return false;
-                    }
-                    return key.Length == filter.Argument.Length || filter.Mode != SearchMode.Exact;
-                })
-                .SelectMany(node => node.Value);
+            // Free Harmony uses the harmony part when present, or lead vocals for solo-only songs.
+            // The Core instrument index only contains harmony parts, so it cannot supply this filter.
+            IEnumerable<SongEntry> songsToMatch = filter.Attribute == SortAttribute.FreeHarmony
+                ? searchList.SelectMany(node => node.Songs).Where(song => song.HasInstrument(Instrument.PartyVocals) &&
+                    MatchesIntensity(song[Instrument.Harmony].IsActive()
+                        ? song[Instrument.Harmony].Intensity
+                        : song[Instrument.Vocals].Intensity, filter))
+                : SongContainer.Instruments[filter.Attribute.ToInstrument()]
+                    .Where(node => MatchesIntensity(node.Key, filter))
+                    .SelectMany(node => node.Value);
+
+            static bool MatchesIntensity(int intensity, FilterNode filter)
+            {
+                string key = intensity.ToString();
+                return key.StartsWith(filter.Argument) &&
+                    (key.Length == filter.Argument.Length || filter.Mode != SearchMode.Exact);
+            }
 
             var result = new SongCategory[searchList.Length];
             int count = 0;

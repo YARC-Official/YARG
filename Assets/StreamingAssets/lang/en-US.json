@@ -60,6 +60,7 @@
             "ProKeys": "Pro Keys",
             "Vocals": "Vocals",
             "Harmony": "Harmony",
+            "PartyVocals": "Free Harmonies",
             "Dj": "DJ",
             "Band": "Band"
         },
@@ -117,6 +118,7 @@
             "ProKeys": "Pro Keys",
             "Vocals": "Vocals",
             "Harmony": "Harmony",
+            "FreeHarmony": "Free Harmony",
             "Band": "Band",
             "Playcount": "Play Count",
             "Random": "Random"
@@ -1734,6 +1736,10 @@
             "CensorMatureContent": {
                 "Name": "Censor Mature Content",
                 "Description": "On supported songs, mutes and censors mature content in lyrics and vocals, and downgrades the song's rating to \"Supervision Recommended\"."
+            },
+            "RememberFilters": {
+                "Name": "Remember Filters",
+                "Description": "Saves your Filters Menu selections so they are restored the next time you start the game."
             },
             "MetronomeVolume": {
                 "Name": "Metronome Volume",

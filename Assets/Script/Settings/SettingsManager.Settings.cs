@@ -150,6 +150,10 @@ namespace YARG.Settings
 
             public Dictionary<string, HUDPositionProfile> HUDPositionProfiles = new();
 
+            // Filter selections are stored separately from the toggle setting because their
+            // available values are generated from the user's song library at runtime.
+            public Dictionary<string, Dictionary<string, bool>> RememberedFilters = new();
+
             private static MetronomeSample? _previousMetronomeSound;
 
             public bool ShowCustomCharacterInstructions = true;
@@ -287,6 +291,8 @@ namespace YARG.Settings
             // If MaxSongRating is set to anything other than Family_Friendly,
             // this setting could change the available songs, so we need to refresh the song list
             public ToggleSetting CensorMatureContent { get; } = new(false, _ => RefreshSongs());
+
+            public ToggleSetting RememberFilters { get; } = new(false);
 
             public ToggleSetting AllowDuplicateSongs { get; } = new(true, _ => MusicLibraryMenu.SetReload(MusicLibraryReloadState.Partial));
             public ToggleSetting UseFullDirectoryForPlaylists { get; } = new(false);

@@ -276,13 +276,13 @@ namespace YARG.Scores
             playerScoreRecord = null;
             bandScoreRecord = null;
 
-            if (UseBandHighScoresForCurrentPlayers)
+            var player = PlayerContainer.Players.FirstOrDefault(entry => !entry.Profile.IsBot);
+            if (player is null || UseBandHighScoresForCurrentPlayers)
             {
                 bandScoreRecord = GetBandHighScore(songChecksum);
                 return;
             }
 
-            var player = PlayerContainer.Players.First(entry => !entry.Profile.IsBot);
             var drumInstruments = MidiDrumkitHelper.GetInstruments(player.Profile.GameMode);
             playerScoreRecord = drumInstruments != null
                 ? GetPreferredHighScoreForInstruments(
@@ -457,6 +457,9 @@ namespace YARG.Scores
             float currentPercent = current.GetPercent();
             if (candidatePercent != currentPercent)
                 return candidatePercent > currentPercent;
+
+            if (candidate.Score != current.Score)
+                return candidate.Score > current.Score;
 
             return candidate.IsFc && !current.IsFc;
         }

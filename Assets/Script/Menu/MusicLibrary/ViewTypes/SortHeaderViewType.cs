@@ -25,6 +25,7 @@ namespace YARG.Menu.MusicLibrary
         public readonly  string SubgenreCountText;
         private readonly int    _songCount;
         public           int    TotalStarsCount { get; set; }
+        public           bool   HasGoldStars { get; set; }
         public readonly  bool   Collapsed;
         private readonly Action _onClicked;
 
