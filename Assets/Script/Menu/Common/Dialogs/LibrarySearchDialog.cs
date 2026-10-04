@@ -39,6 +39,7 @@ namespace YARG.Menu.Dialogs
         protected override void OnBeforeClose()
         {
             _searchField.OnSearchQueryUpdated -= OnSearchChanged;
+            _searchField.ClearFilterQueries();
         }
 
         // Currently unused click handler

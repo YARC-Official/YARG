@@ -78,6 +78,9 @@ namespace YARG.Menu.ListMenu
         protected virtual bool CanScroll => true;
         private float _scrollTimer;
 
+        private float _viewObjectHeight;
+        private float _parentHeight;
+
         private int FindSelectableIndex(int startIndex, int direction)
         {
             if (_viewList.Count == 0 || _viewList[startIndex].IsSelectable)
@@ -123,6 +126,10 @@ namespace YARG.Menu.ListMenu
 
         protected virtual void OnEnable()
         {
+            _viewObjectHeight = _viewObjectPrefab.GetComponent<RectTransform>().rect.size.y;
+            _parentHeight = _viewObjectParent.GetComponent<RectTransform>().rect.size.y;
+
+            UpdateScrollbar();
         }
 
         protected virtual void OnDisable()
@@ -184,6 +191,13 @@ namespace YARG.Menu.ListMenu
                 _scrollbar.SetValueWithoutNotify(0f);
                 return;
             }
+
+            var totalHeight = _viewList.Count * _viewObjectHeight;
+            // Make sure handle doesn't become useless when there are multiple songs
+            var clampMax = _viewList.Count < 2 ? 1.0f : 0.9f;
+            var scrollRatio = Mathf.Clamp(_parentHeight / totalHeight, 0.1f, clampMax);
+
+            _scrollbar.size = scrollRatio;
 
             _scrollbar.SetValueWithoutNotify((float) SelectedIndex / _viewList.Count);
         }
