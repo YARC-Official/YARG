@@ -4,9 +4,11 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem.Layouts;
 using UnityEngine.UI;
+using YARG.Core.Input;
 using YARG.Helpers;
 using YARG.Input.Bindings;
 using YARG.Localization;
+using YARG.Menu.Data;
 
 namespace YARG.Menu.ProfileList
 {
@@ -32,17 +34,15 @@ namespace YARG.Menu.ProfileList
         private ReusableBindGroup _group;
         private ReusableControlBinding _binding;
 
-        public void Init(ReusableBindGroup group, ReusableControlBinding binding, bool interactable, bool showLeftyNames)
+        public void Init(ReusableBindGroup group, ReusableControlBinding binding, bool interactable, bool showLeftyNames, bool isMenu)
         {
             _group = group;
             _binding = binding;
             _group.HandednessChanged += RefreshHandedness;
             RefreshHandedness(showLeftyNames);
 
-
-            /* TODO-FRICK: Menu binding stuff
             var icons = MenuData.NavigationIcons;
-            if (editBindsTab.SelectingMenuBinds && icons.HasIcon((MenuAction) binding.Action))
+            if (isMenu && icons.HasIcon((MenuAction) binding.Action))
             {
                 // Show icons for menu actions
                 _bindingIcon.gameObject.SetActive(true);
@@ -53,8 +53,8 @@ namespace YARG.Menu.ProfileList
             else
             {
                 // Don't for anything else
-            */  _bindingIcon.gameObject.SetActive(false);
-            //}
+                _bindingIcon.gameObject.SetActive(false);
+            }
 
             _addNewButton.interactable = interactable;
         }

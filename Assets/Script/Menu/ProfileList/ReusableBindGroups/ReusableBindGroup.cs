@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem.Layouts;
+using YARG.Core;
 using YARG.Core.Logging;
 using YARG.Helpers;
 using YARG.Input.Bindings;
@@ -72,7 +73,7 @@ namespace YARG.Menu.ProfileList
             Binding = binding;
             _controls = controls;
 
-            _header.Init(this, binding, _interactable, _centerPane.ShowLeftyNames);
+            _header.Init(this, binding, _interactable, _centerPane.ShowLeftyNames, bindingSet.Mode is GameMode.Menu);
             _header.BindingsClicked += ToggleBindingsDrawer;
             _header.SettingsClicked += ToggleSettingsDrawer;
 
