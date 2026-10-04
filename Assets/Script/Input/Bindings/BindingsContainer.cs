@@ -115,9 +115,11 @@ namespace YARG.Input.Bindings
                     }},
                     { GameMode.FiveFretGuitar, new() { ReusableBindingSetDefaults.DefaultComputerKeyboardFiveFretGuitarGameplay } },
                     { GameMode.SixFretGuitar, new() { ReusableBindingSetDefaults.DefaultComputerKeyboardSixFretGuitarGameplay } },
+                    { GameMode.EliteDrums, new() { ReusableBindingSetDefaults.DefaultComputerKeyboardDrumsGameplay } },
                     { GameMode.FourLaneDrums, new() { ReusableBindingSetDefaults.DefaultComputerKeyboardFourLaneDrumsGameplay } },
                     { GameMode.FiveLaneDrums, new() { ReusableBindingSetDefaults.DefaultComputerKeyboardFiveLaneDrumsGameplay } },
                     { GameMode.ProKeys, new() { ReusableBindingSetDefaults.DefaultComputerKeyboardKeysGameplay } },
+                    { GameMode.Vocals, new() { ReusableBindingSetDefaults.DefaultComputerKeyboardVocalGameplay } }
                 }
             },
 

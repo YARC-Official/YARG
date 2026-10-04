@@ -201,6 +201,8 @@ namespace YARG.Input.Bindings
         public const string COMPUTER_KEYBOARD_RIGHT_ARROW = "rightArrow";
         public const string COMPUTER_KEYBOARD_RIGHT_SHIFT = "rightShift";
         public const string COMPUTER_KEYBOARD_LEFT_ALT = "leftAlt";
+        public const string COMPUTER_KEYBOARD_LEFT_CTRL = "leftCtrl";
+        public const string COMPUTER_KEYBOARD_LEFT_SHIFT = "leftShift";
         public const string COMPUTER_KEYBOARD_F1 = "f1";
 
         public const string MOUSE_LEFT_CLICK = "leftButton";

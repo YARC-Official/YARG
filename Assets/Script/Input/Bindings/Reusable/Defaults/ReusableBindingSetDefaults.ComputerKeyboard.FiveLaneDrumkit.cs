@@ -1,6 +1,4 @@
-﻿using PlasticBand.Devices;
-using System.Collections.Generic;
-using UnityEngine.InputSystem;
+﻿using System.Collections.Generic;
 using YARG.Core;
 using YARG.Menu.ProfileList;
 
