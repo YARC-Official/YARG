@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using YARG.Core;
+using YARG.Helpers;
 using YARG.Menu.ProfileList;
 
 namespace YARG.Input.Bindings
@@ -9,9 +10,9 @@ namespace YARG.Input.Bindings
         private static Dictionary<string, ReusableControlBinding> _computerKeyboardFiveLaneDrumsGameplayDefaults = new()
         {
             {
-                ControlStrings.DRUMS_KICK,
+                ActionStrings.DRUMS_KICK,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.FIVE_LANE_DRUMKIT[ControlStrings.DRUMS_KICK],
+                    ReusableBindingSetTemplates.FIVE_LANE_DRUMKIT[ActionStrings.DRUMS_KICK],
                     new List<ReusableSingleButtonBindingConfig>() {
                         new(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_SPACE),
                         new(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_LEFT_ALT),
@@ -20,41 +21,41 @@ namespace YARG.Input.Bindings
             },
 
             {
-                ControlStrings.FIVE_DRUMS_RED_PAD,
+                ActionStrings.FIVE_DRUMS_RED_PAD,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.FIVE_LANE_DRUMKIT[ControlStrings.FIVE_DRUMS_RED_PAD],
+                    ReusableBindingSetTemplates.FIVE_LANE_DRUMKIT[ActionStrings.FIVE_DRUMS_RED_PAD],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_Z)
                 )
             },
 
             {
-                ControlStrings.FIVE_DRUMS_YELLOW_CYMBAL,
+                ActionStrings.FIVE_DRUMS_YELLOW_CYMBAL,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.FIVE_LANE_DRUMKIT[ControlStrings.FIVE_DRUMS_YELLOW_CYMBAL],
+                    ReusableBindingSetTemplates.FIVE_LANE_DRUMKIT[ActionStrings.FIVE_DRUMS_YELLOW_CYMBAL],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_X)
                 )
             },
 
             {
-                ControlStrings.FIVE_DRUMS_BLUE_PAD,
+                ActionStrings.FIVE_DRUMS_BLUE_PAD,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.FIVE_LANE_DRUMKIT[ControlStrings.FIVE_DRUMS_BLUE_PAD],
+                    ReusableBindingSetTemplates.FIVE_LANE_DRUMKIT[ActionStrings.FIVE_DRUMS_BLUE_PAD],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_C)
                 )
             },
 
             {
-                ControlStrings.FIVE_DRUMS_ORANGE_CYMBAL,
+                ActionStrings.FIVE_DRUMS_ORANGE_CYMBAL,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.FIVE_LANE_DRUMKIT[ControlStrings.FIVE_DRUMS_ORANGE_CYMBAL],
+                    ReusableBindingSetTemplates.FIVE_LANE_DRUMKIT[ActionStrings.FIVE_DRUMS_ORANGE_CYMBAL],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_V)
                 )
             },
 
             {
-                ControlStrings.FIVE_DRUMS_GREEN_PAD,
+                ActionStrings.FIVE_DRUMS_GREEN_PAD,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.FIVE_LANE_DRUMKIT[ControlStrings.FIVE_DRUMS_GREEN_PAD],
+                    ReusableBindingSetTemplates.FIVE_LANE_DRUMKIT[ActionStrings.FIVE_DRUMS_GREEN_PAD],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_B)
                 )
             },

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using YARG.Assets.Script.Helpers;
 using YARG.Core;
+using YARG.Helpers;
 using YARG.Menu.ProfileList;
 
 namespace YARG.Input.Bindings
@@ -49,228 +51,228 @@ namespace YARG.Input.Bindings
         private static Dictionary<string, ReusableControlBinding> _midiKeyboardDefaults = new()
         {
             {
-                ControlStrings.KEYS_PRO_KEY_1,
+                ActionStrings.KEYS_PRO_KEY_1,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.KEYS[ControlStrings.KEYS_PRO_KEY_1],
+                    ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_1],
                     GenerateOctaveRepetitions(MIDI_MIDDLE_C, PRO_KEYS_OCTAVE_INTERVAL)
                 )
             },
             {
-                ControlStrings.KEYS_PRO_KEY_2,
+                ActionStrings.KEYS_PRO_KEY_2,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.KEYS[ControlStrings.KEYS_PRO_KEY_2],
+                    ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_2],
                     GenerateOctaveRepetitions(MIDI_MIDDLE_C + 1, PRO_KEYS_OCTAVE_INTERVAL)
                 )
             },
             {
-                ControlStrings.KEYS_PRO_KEY_3,
+                ActionStrings.KEYS_PRO_KEY_3,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.KEYS[ControlStrings.KEYS_PRO_KEY_3],
+                    ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_3],
                     GenerateOctaveRepetitions(MIDI_MIDDLE_C + 2, PRO_KEYS_OCTAVE_INTERVAL)
                 )
             },
             {
-                ControlStrings.KEYS_PRO_KEY_4,
+                ActionStrings.KEYS_PRO_KEY_4,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.KEYS[ControlStrings.KEYS_PRO_KEY_4],
+                    ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_4],
                     GenerateOctaveRepetitions(MIDI_MIDDLE_C + 3, PRO_KEYS_OCTAVE_INTERVAL)
                 )
             },
             {
-                ControlStrings.KEYS_PRO_KEY_5,
+                ActionStrings.KEYS_PRO_KEY_5,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.KEYS[ControlStrings.KEYS_PRO_KEY_5],
+                    ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_5],
                     GenerateOctaveRepetitions(MIDI_MIDDLE_C + 4, PRO_KEYS_OCTAVE_INTERVAL)
                 )
             },
             {
-                ControlStrings.KEYS_PRO_KEY_6,
+                ActionStrings.KEYS_PRO_KEY_6,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.KEYS[ControlStrings.KEYS_PRO_KEY_6],
+                    ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_6],
                     GenerateOctaveRepetitions(MIDI_MIDDLE_C + 5, PRO_KEYS_OCTAVE_INTERVAL)
                 )
             },
             {
-                ControlStrings.KEYS_PRO_KEY_7,
+                ActionStrings.KEYS_PRO_KEY_7,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.KEYS[ControlStrings.KEYS_PRO_KEY_7],
+                    ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_7],
                     GenerateOctaveRepetitions(MIDI_MIDDLE_C + 6, PRO_KEYS_OCTAVE_INTERVAL)
                 )
             },
             {
-                ControlStrings.KEYS_PRO_KEY_8,
+                ActionStrings.KEYS_PRO_KEY_8,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.KEYS[ControlStrings.KEYS_PRO_KEY_8],
+                    ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_8],
                     GenerateOctaveRepetitions(MIDI_MIDDLE_C + 7, PRO_KEYS_OCTAVE_INTERVAL)
                 )
             },
             {
-                ControlStrings.KEYS_PRO_KEY_9,
+                ActionStrings.KEYS_PRO_KEY_9,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.KEYS[ControlStrings.KEYS_PRO_KEY_9],
+                    ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_9],
                     GenerateOctaveRepetitions(MIDI_MIDDLE_C + 8, PRO_KEYS_OCTAVE_INTERVAL)
                 )
             },
             {
-                ControlStrings.KEYS_PRO_KEY_10,
+                ActionStrings.KEYS_PRO_KEY_10,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.KEYS[ControlStrings.KEYS_PRO_KEY_10],
+                    ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_10],
                     GenerateOctaveRepetitions(MIDI_MIDDLE_C + 9, PRO_KEYS_OCTAVE_INTERVAL)
                 )
             },
             {
-                ControlStrings.KEYS_PRO_KEY_11,
+                ActionStrings.KEYS_PRO_KEY_11,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.KEYS[ControlStrings.KEYS_PRO_KEY_11],
+                    ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_11],
                     GenerateOctaveRepetitions(MIDI_MIDDLE_C + 10, PRO_KEYS_OCTAVE_INTERVAL)
                 )
             },
             {
-                ControlStrings.KEYS_PRO_KEY_12,
+                ActionStrings.KEYS_PRO_KEY_12,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.KEYS[ControlStrings.KEYS_PRO_KEY_12],
+                    ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_12],
                     GenerateOctaveRepetitions(MIDI_MIDDLE_C + 11, PRO_KEYS_OCTAVE_INTERVAL)
                 )
             },
             {
-                ControlStrings.KEYS_PRO_KEY_13,
+                ActionStrings.KEYS_PRO_KEY_13,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.KEYS[ControlStrings.KEYS_PRO_KEY_13],
+                    ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_13],
                     GenerateOctaveRepetitions(MIDI_MIDDLE_C + 12, PRO_KEYS_OCTAVE_INTERVAL)
                 )
             },
             {
-                ControlStrings.KEYS_PRO_KEY_14,
+                ActionStrings.KEYS_PRO_KEY_14,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.KEYS[ControlStrings.KEYS_PRO_KEY_14],
+                    ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_14],
                     GenerateOctaveRepetitions(MIDI_MIDDLE_C + 13, PRO_KEYS_OCTAVE_INTERVAL)
                 )
             },
             {
-                ControlStrings.KEYS_PRO_KEY_15,
+                ActionStrings.KEYS_PRO_KEY_15,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.KEYS[ControlStrings.KEYS_PRO_KEY_15],
+                    ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_15],
                     GenerateOctaveRepetitions(MIDI_MIDDLE_C + 14, PRO_KEYS_OCTAVE_INTERVAL)
                 )
             },
             {
-                ControlStrings.KEYS_PRO_KEY_16,
+                ActionStrings.KEYS_PRO_KEY_16,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.KEYS[ControlStrings.KEYS_PRO_KEY_16],
+                    ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_16],
                     GenerateOctaveRepetitions(MIDI_MIDDLE_C + 15, PRO_KEYS_OCTAVE_INTERVAL)
                 )
             },
             {
-                ControlStrings.KEYS_PRO_KEY_17,
+                ActionStrings.KEYS_PRO_KEY_17,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.KEYS[ControlStrings.KEYS_PRO_KEY_17],
+                    ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_17],
                     GenerateOctaveRepetitions(MIDI_MIDDLE_C + 16, PRO_KEYS_OCTAVE_INTERVAL)
                 )
             },
             {
-                ControlStrings.KEYS_PRO_KEY_18,
+                ActionStrings.KEYS_PRO_KEY_18,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.KEYS[ControlStrings.KEYS_PRO_KEY_18],
+                    ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_18],
                     GenerateOctaveRepetitions(MIDI_MIDDLE_C + 17, PRO_KEYS_OCTAVE_INTERVAL)
                 )
             },
             {
-                ControlStrings.KEYS_PRO_KEY_19,
+                ActionStrings.KEYS_PRO_KEY_19,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.KEYS[ControlStrings.KEYS_PRO_KEY_19],
+                    ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_19],
                     GenerateOctaveRepetitions(MIDI_MIDDLE_C + 18, PRO_KEYS_OCTAVE_INTERVAL)
                 )
             },
             {
-                ControlStrings.KEYS_PRO_KEY_20,
+                ActionStrings.KEYS_PRO_KEY_20,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.KEYS[ControlStrings.KEYS_PRO_KEY_20],
+                    ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_20],
                     GenerateOctaveRepetitions(MIDI_MIDDLE_C + 19, PRO_KEYS_OCTAVE_INTERVAL)
                 )
             },
             {
-                ControlStrings.KEYS_PRO_KEY_21,
+                ActionStrings.KEYS_PRO_KEY_21,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.KEYS[ControlStrings.KEYS_PRO_KEY_21],
+                    ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_21],
                     GenerateOctaveRepetitions(MIDI_MIDDLE_C + 20, PRO_KEYS_OCTAVE_INTERVAL)
                 )
             },
             {
-                ControlStrings.KEYS_PRO_KEY_22,
+                ActionStrings.KEYS_PRO_KEY_22,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.KEYS[ControlStrings.KEYS_PRO_KEY_22],
+                    ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_22],
                     GenerateOctaveRepetitions(MIDI_MIDDLE_C + 21, PRO_KEYS_OCTAVE_INTERVAL)
                 )
             },
             {
-                ControlStrings.KEYS_PRO_KEY_23,
+                ActionStrings.KEYS_PRO_KEY_23,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.KEYS[ControlStrings.KEYS_PRO_KEY_23],
+                    ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_23],
                     GenerateOctaveRepetitions(MIDI_MIDDLE_C + 22, PRO_KEYS_OCTAVE_INTERVAL)
                 )
             },
             {
-                ControlStrings.KEYS_PRO_KEY_24,
+                ActionStrings.KEYS_PRO_KEY_24,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.KEYS[ControlStrings.KEYS_PRO_KEY_24],
+                    ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_24],
                     GenerateOctaveRepetitions(MIDI_MIDDLE_C + 23, PRO_KEYS_OCTAVE_INTERVAL)
                 )
             },
             {
-                ControlStrings.KEYS_PRO_KEY_25,
+                ActionStrings.KEYS_PRO_KEY_25,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.KEYS[ControlStrings.KEYS_PRO_KEY_25],
+                    ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_25],
                     GenerateOctaveRepetitions(MIDI_MIDDLE_C + 24, PRO_KEYS_OCTAVE_INTERVAL)
                 )
             },
 
             {
-                ControlStrings.KEYS_FIVE_LANE_OPEN,
+                ActionStrings.KEYS_FIVE_LANE_OPEN,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.KEYS[ControlStrings.KEYS_FIVE_LANE_OPEN],
+                    ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_FIVE_LANE_OPEN],
                     GenerateOctaveRepetitions(MIDI_MIDDLE_C - 1) // All Bs
                 )
             },
             {
-                ControlStrings.KEYS_FIVE_LANE_GREEN,
+                ActionStrings.KEYS_FIVE_LANE_GREEN,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.KEYS[ControlStrings.KEYS_FIVE_LANE_GREEN],
+                    ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_FIVE_LANE_GREEN],
                     GenerateOctaveRepetitions(MIDI_MIDDLE_C) // All Cs
                 )
             },
             {
-                ControlStrings.KEYS_FIVE_LANE_RED,
+                ActionStrings.KEYS_FIVE_LANE_RED,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.KEYS[ControlStrings.KEYS_FIVE_LANE_RED],
+                    ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_FIVE_LANE_RED],
                     GenerateOctaveRepetitions(MIDI_MIDDLE_C + 2) // All Ds
                 )
             },
             {
-                ControlStrings.KEYS_FIVE_LANE_YELLOW,
+                ActionStrings.KEYS_FIVE_LANE_YELLOW,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.KEYS[ControlStrings.KEYS_FIVE_LANE_YELLOW],
+                    ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_FIVE_LANE_YELLOW],
                     GenerateOctaveRepetitions(MIDI_MIDDLE_C + 4) // All Es
                 )
             },
             {
-                ControlStrings.KEYS_FIVE_LANE_BLUE,
+                ActionStrings.KEYS_FIVE_LANE_BLUE,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.KEYS[ControlStrings.KEYS_FIVE_LANE_BLUE],
+                    ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_FIVE_LANE_BLUE],
                     GenerateOctaveRepetitions(MIDI_MIDDLE_C + 5) // All Fs
                 )
             },
             {
-                ControlStrings.KEYS_FIVE_LANE_ORANGE,
+                ActionStrings.KEYS_FIVE_LANE_ORANGE,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.KEYS[ControlStrings.KEYS_FIVE_LANE_ORANGE],
+                    ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_FIVE_LANE_ORANGE],
                     GenerateOctaveRepetitions(MIDI_MIDDLE_C + 7) // All Gs
                 )
             },
 
             {
-                ControlStrings.KEYS_TOUCH_EFFECTS,
+                ActionStrings.KEYS_TOUCH_EFFECTS,
                 new ReusableAxisBinding(
-                    ReusableBindingSetTemplates.KEYS[ControlStrings.KEYS_TOUCH_EFFECTS],
+                    ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_TOUCH_EFFECTS],
                     new ReusableSingleAxisBindingConfig(ControllerFamily.MidiDevice, "pitchBend")
                 )
             },

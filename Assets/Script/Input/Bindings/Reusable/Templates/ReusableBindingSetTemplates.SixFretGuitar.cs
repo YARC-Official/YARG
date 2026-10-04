@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using YARG.Assets.Script.Helpers;
 using YARG.Core.Input;
+using YARG.Helpers;
 
 namespace YARG.Input.Bindings
 {
@@ -10,17 +12,17 @@ namespace YARG.Input.Bindings
     {
         public static Dictionary<string, InputActionInfo> SIX_FRET_GUITAR = new()
         {
-            { ControlStrings.SIX_FRET_BLACK_1,  new(ControlStrings.SIX_FRET_BLACK_1,    BindingType.Button, (int) GuitarAction.Black1Fret) },
-            { ControlStrings.SIX_FRET_BLACK_2,  new(ControlStrings.SIX_FRET_BLACK_2,    BindingType.Button, (int) GuitarAction.Black2Fret) },
-            { ControlStrings.SIX_FRET_BLACK_3,  new(ControlStrings.SIX_FRET_BLACK_3,    BindingType.Button, (int) GuitarAction.Black3Fret) },
-            { ControlStrings.SIX_FRET_WHITE_1,  new(ControlStrings.SIX_FRET_WHITE_1,    BindingType.Button, (int) GuitarAction.White1Fret) },
-            { ControlStrings.SIX_FRET_WHITE_2,  new(ControlStrings.SIX_FRET_WHITE_2,    BindingType.Button, (int) GuitarAction.White2Fret) },
-            { ControlStrings.SIX_FRET_WHITE_3,  new(ControlStrings.SIX_FRET_WHITE_3,    BindingType.Button, (int) GuitarAction.White3Fret) },
+            { ActionStrings.SIX_FRET_BLACK_1,  new(ActionStrings.SIX_FRET_BLACK_1,    BindingType.Button, (int) GuitarAction.Black1Fret) },
+            { ActionStrings.SIX_FRET_BLACK_2,  new(ActionStrings.SIX_FRET_BLACK_2,    BindingType.Button, (int) GuitarAction.Black2Fret) },
+            { ActionStrings.SIX_FRET_BLACK_3,  new(ActionStrings.SIX_FRET_BLACK_3,    BindingType.Button, (int) GuitarAction.Black3Fret) },
+            { ActionStrings.SIX_FRET_WHITE_1,  new(ActionStrings.SIX_FRET_WHITE_1,    BindingType.Button, (int) GuitarAction.White1Fret) },
+            { ActionStrings.SIX_FRET_WHITE_2,  new(ActionStrings.SIX_FRET_WHITE_2,    BindingType.Button, (int) GuitarAction.White2Fret) },
+            { ActionStrings.SIX_FRET_WHITE_3,  new(ActionStrings.SIX_FRET_WHITE_3,    BindingType.Button, (int) GuitarAction.White3Fret) },
 
-            { ControlStrings.GUITAR_STRUM_UP,          new(ControlStrings.GUITAR_STRUM_UP,        ControlStrings.GUITAR_STRUM_DOWN,   BindingType.Button,             (int) GuitarAction.StrumUp) },
-            { ControlStrings.GUITAR_STRUM_DOWN,        new(ControlStrings.GUITAR_STRUM_DOWN,      ControlStrings.GUITAR_STRUM_UP, BindingType.Button,             (int) GuitarAction.StrumDown) },
-            { ControlStrings.GUITAR_STAR_POWER,        new(ControlStrings.GUITAR_STAR_POWER,      BindingType.ImpulseButton,   (int) GuitarAction.StarPower) },
-            { ControlStrings.GUITAR_WHAMMY,            new(ControlStrings.GUITAR_WHAMMY,          BindingType.Axis,               (int) GuitarAction.Whammy) },
+            { ActionStrings.GUITAR_STRUM_UP,          new(ActionStrings.GUITAR_STRUM_UP,        ActionStrings.GUITAR_STRUM_DOWN,   BindingType.Button,             (int) GuitarAction.StrumUp) },
+            { ActionStrings.GUITAR_STRUM_DOWN,        new(ActionStrings.GUITAR_STRUM_DOWN,      ActionStrings.GUITAR_STRUM_UP, BindingType.Button,             (int) GuitarAction.StrumDown) },
+            { ActionStrings.GUITAR_STAR_POWER,        new(ActionStrings.GUITAR_STAR_POWER,      BindingType.ImpulseButton,   (int) GuitarAction.StarPower) },
+            { ActionStrings.GUITAR_WHAMMY,            new(ActionStrings.GUITAR_WHAMMY,          BindingType.Axis,               (int) GuitarAction.Whammy) },
 
         };
     }

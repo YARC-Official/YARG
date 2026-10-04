@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine.InputSystem;
+using YARG.Assets.Script.Helpers;
 using YARG.Core;
-using YARG.Input.Bindings;
+using YARG.Helpers;
 using YARG.Menu.ProfileList;
 
 namespace YARG.Input.Bindings
@@ -13,16 +14,16 @@ namespace YARG.Input.Bindings
         private static Dictionary<string, ReusableControlBinding> _computerKeyboardVocalDefaults = new()
         {
             {
-                ControlStrings.VOCAL_HIT,
+                ActionStrings.VOCAL_HIT,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.VOCALS[ControlStrings.VOCAL_HIT],
+                    ReusableBindingSetTemplates.VOCALS[ActionStrings.VOCAL_HIT],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_SPACE)
                 )
             },
             {
-                ControlStrings.VOCAL_STAR_POWER,
+                ActionStrings.VOCAL_STAR_POWER,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.VOCALS[ControlStrings.VOCAL_STAR_POWER],
+                    ReusableBindingSetTemplates.VOCALS[ActionStrings.VOCAL_STAR_POWER],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_ENTER)
                 )
             },

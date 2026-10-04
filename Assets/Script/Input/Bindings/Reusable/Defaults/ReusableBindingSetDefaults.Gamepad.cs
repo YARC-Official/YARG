@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine.InputSystem;
 using YARG.Core;
+using YARG.Helpers;
 using YARG.Menu.ProfileList;
 
 namespace YARG.Input.Bindings
@@ -13,60 +14,60 @@ namespace YARG.Input.Bindings
         private static Dictionary<string, ReusableControlBinding> _gamepadMenuDefaults = new()
         {
             {
-                ControlStrings.MENU_START,
+                ActionStrings.MENU_START,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_START],
+                    ReusableBindingSetTemplates.MENU[ActionStrings.MENU_START],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_START)
                 )
             },
             {
-                ControlStrings.MENU_SELECT,
+                ActionStrings.MENU_SELECT,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_SELECT],
+                    ReusableBindingSetTemplates.MENU[ActionStrings.MENU_SELECT],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_SELECT)
                 )
             },
 
             {
-                ControlStrings.MENU_GREEN,
+                ActionStrings.MENU_GREEN,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_GREEN],
+                    ReusableBindingSetTemplates.MENU[ActionStrings.MENU_GREEN],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_BUTTON_SOUTH)
                 )
             },
             {
-                ControlStrings.MENU_RED,
+                ActionStrings.MENU_RED,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_RED],
+                    ReusableBindingSetTemplates.MENU[ActionStrings.MENU_RED],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_BUTTON_EAST)
                 )
             },
             {
-                ControlStrings.MENU_YELLOW,
+                ActionStrings.MENU_YELLOW,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_YELLOW],
+                    ReusableBindingSetTemplates.MENU[ActionStrings.MENU_YELLOW],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_BUTTON_NORTH)
                 )
             },
             {
-                ControlStrings.MENU_BLUE,
+                ActionStrings.MENU_BLUE,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_BLUE],
+                    ReusableBindingSetTemplates.MENU[ActionStrings.MENU_BLUE],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_BUTTON_WEST)
                 )
             },
             {
-                ControlStrings.MENU_ORANGE,
+                ActionStrings.MENU_ORANGE,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_ORANGE],
+                    ReusableBindingSetTemplates.MENU[ActionStrings.MENU_ORANGE],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_RIGHT_SHOULDER)
                 )
             },
 
             {
-                ControlStrings.MENU_UP,
+                ActionStrings.MENU_UP,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_UP],
+                    ReusableBindingSetTemplates.MENU[ActionStrings.MENU_UP],
                     new List<ReusableSingleButtonBindingConfig>() {
                         new(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_DPAD_UP),
                         new(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_LEFT_STICK_UP),
@@ -74,9 +75,9 @@ namespace YARG.Input.Bindings
                 )
             },
             {
-                ControlStrings.MENU_DOWN,
+                ActionStrings.MENU_DOWN,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_DOWN],
+                    ReusableBindingSetTemplates.MENU[ActionStrings.MENU_DOWN],
                     new List<ReusableSingleButtonBindingConfig>() {
                         new(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_DPAD_DOWN),
                         new(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_LEFT_STICK_DOWN),
@@ -84,9 +85,9 @@ namespace YARG.Input.Bindings
                 )
             },
             {
-                ControlStrings.MENU_LEFT,
+                ActionStrings.MENU_LEFT,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_LEFT],
+                    ReusableBindingSetTemplates.MENU[ActionStrings.MENU_LEFT],
                     new List<ReusableSingleButtonBindingConfig>() {
                         new(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_DPAD_LEFT),
                         new(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_LEFT_STICK_LEFT),
@@ -94,9 +95,9 @@ namespace YARG.Input.Bindings
                 )
             },
             {
-                ControlStrings.MENU_RIGHT,
+                ActionStrings.MENU_RIGHT,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_RIGHT],
+                    ReusableBindingSetTemplates.MENU[ActionStrings.MENU_RIGHT],
                     new List<ReusableSingleButtonBindingConfig>() {
                         new(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_DPAD_RIGHT),
                         new(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_LEFT_STICK_RIGHT),
@@ -108,16 +109,16 @@ namespace YARG.Input.Bindings
         private static Dictionary<string, ReusableControlBinding> _gamepadVocalDefaults = new()
         {
             {
-                ControlStrings.VOCAL_HIT,
+                ActionStrings.VOCAL_HIT,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.VOCALS[ControlStrings.VOCAL_HIT],
+                    ReusableBindingSetTemplates.VOCALS[ActionStrings.VOCAL_HIT],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_BUTTON_SOUTH)
                 )
             },
             {
-                ControlStrings.VOCAL_STAR_POWER,
+                ActionStrings.VOCAL_STAR_POWER,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.VOCALS[ControlStrings.VOCAL_STAR_POWER],
+                    ReusableBindingSetTemplates.VOCALS[ActionStrings.VOCAL_STAR_POWER],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_SELECT)
                 )
             },

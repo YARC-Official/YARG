@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using YARG.Core;
-using YARG.Input.Bindings;
+using YARG.Helpers;
 using YARG.Menu.ProfileList;
 
 namespace YARG.Input.Bindings
@@ -12,16 +12,16 @@ namespace YARG.Input.Bindings
         private static Dictionary<string, ReusableControlBinding> _mouseVocalDefaults = new()
         {
             {
-                ControlStrings.VOCAL_HIT,
+                ActionStrings.VOCAL_HIT,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.VOCALS[ControlStrings.VOCAL_HIT],
+                    ReusableBindingSetTemplates.VOCALS[ActionStrings.VOCAL_HIT],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.Mouse, ControlStrings.MOUSE_LEFT_CLICK)
                 )
             },
             {
-                ControlStrings.VOCAL_STAR_POWER,
+                ActionStrings.VOCAL_STAR_POWER,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.VOCALS[ControlStrings.VOCAL_STAR_POWER],
+                    ReusableBindingSetTemplates.VOCALS[ActionStrings.VOCAL_STAR_POWER],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.Mouse, ControlStrings.MOUSE_RIGHT_CLICK)
                 )
             },

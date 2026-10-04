@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using YARG.Assets.Script.Helpers;
 using YARG.Core.Input;
+using YARG.Helpers;
 
 namespace YARG.Input.Bindings
 {
@@ -10,8 +12,8 @@ namespace YARG.Input.Bindings
     {
         public static Dictionary<string, InputActionInfo> VOCALS = new()
         {
-            { ControlStrings.VOCAL_HIT, new(ControlStrings.VOCAL_HIT,   BindingType.Button, (int) VocalsAction.Hit) },
-            { ControlStrings.VOCAL_STAR_POWER, new(ControlStrings.VOCAL_STAR_POWER,   BindingType.Button, (int) VocalsAction.StarPower) },
+            { ActionStrings.VOCAL_HIT, new(ActionStrings.VOCAL_HIT,   BindingType.Button, (int) VocalsAction.Hit) },
+            { ActionStrings.VOCAL_STAR_POWER, new(ActionStrings.VOCAL_STAR_POWER,   BindingType.Button, (int) VocalsAction.StarPower) },
         };
     }
 }

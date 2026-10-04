@@ -1,8 +1,7 @@
-﻿using PlasticBand.Devices;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
+using YARG.Helpers;
 using YARG.Core;
+using YARG.Helpers;
 using YARG.Menu.ProfileList;
 
 namespace YARG.Input.Bindings
@@ -13,45 +12,45 @@ namespace YARG.Input.Bindings
         {
 
             {
-                ControlStrings.FIVE_FRET_GREEN,
+                ActionStrings.FIVE_FRET_GREEN,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ControlStrings.FIVE_FRET_GREEN],
+                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.FIVE_FRET_GREEN],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_DIGIT_1)
                 )
             },
             {
-                ControlStrings.FIVE_FRET_RED,
+                ActionStrings.FIVE_FRET_RED,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ControlStrings.FIVE_FRET_RED],
+                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.FIVE_FRET_RED],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_DIGIT_2)
                 )
             },
             {
-                ControlStrings.FIVE_FRET_YELLOW,
+                ActionStrings.FIVE_FRET_YELLOW,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ControlStrings.FIVE_FRET_YELLOW],
+                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.FIVE_FRET_YELLOW],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_DIGIT_3)
                 )
             },
             {
-                ControlStrings.FIVE_FRET_BLUE,
+                ActionStrings.FIVE_FRET_BLUE,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ControlStrings.FIVE_FRET_BLUE],
+                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.FIVE_FRET_BLUE],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_DIGIT_4)
                 )
             },
             {
-                ControlStrings.FIVE_FRET_ORANGE,
+                ActionStrings.FIVE_FRET_ORANGE,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ControlStrings.FIVE_FRET_ORANGE],
+                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.FIVE_FRET_ORANGE],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_DIGIT_5)
                 )
             },
 
             {
-                ControlStrings.GUITAR_STRUM_DOWN,
+                ActionStrings.GUITAR_STRUM_DOWN,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ControlStrings.GUITAR_STRUM_DOWN],
+                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.GUITAR_STRUM_DOWN],
                     new List<ReusableSingleButtonBindingConfig>() {
                         new(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_RIGHT_SHIFT),
                         new(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_DOWN_ARROW),
@@ -59,9 +58,9 @@ namespace YARG.Input.Bindings
                 )
             },
             {
-                ControlStrings.GUITAR_STRUM_UP,
+                ActionStrings.GUITAR_STRUM_UP,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ControlStrings.GUITAR_STRUM_UP],
+                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.GUITAR_STRUM_UP],
                     new List<ReusableSingleButtonBindingConfig>() {
                         new(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_ENTER),
                         new(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_UP_ARROW),
@@ -70,53 +69,53 @@ namespace YARG.Input.Bindings
             },
 
             {
-                ControlStrings.GUITAR_STAR_POWER,
+                ActionStrings.GUITAR_STAR_POWER,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ControlStrings.GUITAR_STAR_POWER],
+                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.GUITAR_STAR_POWER],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_BACKSPACE)
                 )
             },
 
             {
-                ControlStrings.GUITAR_WHAMMY,
+                ActionStrings.GUITAR_WHAMMY,
                 new ReusableAxisBinding(
-                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ControlStrings.GUITAR_WHAMMY],
+                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.GUITAR_WHAMMY],
                     new ReusableSingleAxisBindingConfig(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_SEMICOLON)
                 )
             },
 
             {
-                ControlStrings.FIVE_FRET_SOLO_GREEN,
+                ActionStrings.FIVE_FRET_SOLO_GREEN,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ControlStrings.FIVE_FRET_SOLO_GREEN],
+                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.FIVE_FRET_SOLO_GREEN],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_Q)
                 )
             },
             {
-                ControlStrings.FIVE_FRET_SOLO_RED,
+                ActionStrings.FIVE_FRET_SOLO_RED,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ControlStrings.FIVE_FRET_SOLO_RED],
+                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.FIVE_FRET_SOLO_RED],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_W)
                 )
             },
             {
-                ControlStrings.FIVE_FRET_SOLO_YELLOW,
+                ActionStrings.FIVE_FRET_SOLO_YELLOW,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ControlStrings.FIVE_FRET_SOLO_YELLOW],
+                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.FIVE_FRET_SOLO_YELLOW],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_E)
                 )
             },
             {
-                ControlStrings.FIVE_FRET_SOLO_BLUE,
+                ActionStrings.FIVE_FRET_SOLO_BLUE,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ControlStrings.FIVE_FRET_SOLO_BLUE],
+                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.FIVE_FRET_SOLO_BLUE],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_R)
                 )
             },
             {
-                ControlStrings.FIVE_FRET_SOLO_ORANGE,
+                ActionStrings.FIVE_FRET_SOLO_ORANGE,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ControlStrings.FIVE_FRET_SOLO_ORANGE],
+                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.FIVE_FRET_SOLO_ORANGE],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_T)
                 )
             },
