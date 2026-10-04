@@ -524,7 +524,7 @@ namespace YARG.Menu.MusicLibrary
             UpdateSearch(true);
         }
 
-        private void OpenFilters()
+        public void OpenFilters()
         {
             // Stop any library preview audio so the Filters menu doesn't inherit it
             StopPreview();
