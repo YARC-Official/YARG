@@ -1595,6 +1595,10 @@
                 "Name": "Enable Streak Counter",
                 "Description": "Displays the current streak count during gameplay."
             },
+            "Judgement": {
+                "Name": "Enable Judgement Display",
+                "Description": "Displays the judgement during gameplay."
+            },
             "SfxVolume": {
                 "Name": "SFX Volume",
                 "PauseName": "SFX",

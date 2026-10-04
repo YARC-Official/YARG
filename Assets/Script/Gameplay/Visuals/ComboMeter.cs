@@ -42,8 +42,6 @@ namespace YARG.Gameplay.Visuals
         [SerializeField]
         private TextMeshPro _accuracy;
 
-        private static bool StreakCounterEnabled => SettingsManager.Settings.StreakCounter.Value;
-
         [Header("Preset Colors")]
         [SerializeField]
         private Color _defaultPresetColor;
@@ -54,13 +52,15 @@ namespace YARG.Gameplay.Visuals
 
         private TextMeshPro[] _textCache;
 
+        private static bool StreakCounterEnabled => SettingsManager.Settings.StreakCounter.Value;
+        private static bool Judgement => SettingsManager.Settings.Judgement.Value;
+
         public void Initialize(EnginePreset preset, int maxMultiplier, bool isMultiplayer)
         {
             _multiplierText.enabled = false;
             _multiplierText.text = string.Empty;
-            _textCache = MultiplierTextHelper.CreateMultiplierTextCache(maxMultiplier, _multiplierText, isMultiplayer);
-
             _accuracy.text = string.Empty;
+            _textCache = MultiplierTextHelper.CreateMultiplierTextCache(maxMultiplier, _multiplierText, isMultiplayer);
 
             Color color;
 
@@ -78,7 +78,7 @@ namespace YARG.Gameplay.Visuals
                 color = _customPresetColor;
             }
 
-            // Set the combo text and wing visibility based on the StreakCounterEnabled setting
+            // Set the combo text and wing visibility based on the StreakCounter setting
             if (StreakCounterEnabled)
             {
                 _comboText.enabled = true;
@@ -88,6 +88,18 @@ namespace YARG.Gameplay.Visuals
             {
                 _comboText.enabled = false;
                 _comboWing.enabled = false;
+            }
+
+            // Set the judgement text and wing visibility based on the Judgement setting
+            if (Judgement)
+            {
+                _accuracy.enabled = true;
+                _judgeWing.enabled = true;
+            }
+            else
+            {
+                _accuracy.enabled = false;
+                _judgeWing.enabled = false;
             }
 
             _comboText.color = _FcColor;

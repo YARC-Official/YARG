@@ -290,6 +290,7 @@ namespace YARG.Settings
                 nameof(Settings.BandComboTypeSetting),
                 nameof(Settings.DataStreamEnable),
                 nameof(Settings.StreakCounter),
+                nameof(Settings.Judgement),
                 nameof(Settings.SaveScoresWithBots),
                 nameof(Settings.ReverbImplementation),
                 new HeaderMetadata("Accessibility"),

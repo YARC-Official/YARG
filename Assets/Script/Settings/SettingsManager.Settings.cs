@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
@@ -804,6 +804,7 @@ namespace YARG.Settings
             };
             public ToggleSetting SaveScoresWithBots { get; } = new(false);
             public ToggleSetting StreakCounter { get; } = new(false);
+            public ToggleSetting Judgement { get; } = new(false);
             public SliderSetting FontScaling { get; } = new(0f, 0f, 100f, FontScalingCallback);
 
             public DropdownSetting<AudioOutputMode> OutputMode { get; } = new(AudioOutputMode.Shared,
