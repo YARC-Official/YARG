@@ -250,11 +250,20 @@ namespace YARG.Menu.ProfileList
             foreach (var controller in InputSystem.devices)
             {
                 if (!controller.enabled) continue;
-                if (PlayerContainer.IsDeviceTaken(controller)) continue;
+                var existingUser = PlayerContainer.GetControllerUser(controller);
+
+                var text = existingUser is null ?
+                    controller.displayName :
+                    Localize.KeyFormat("Menu.ProfileList.StealController", controller.displayName, existingUser.Profile.Name);
 
                 controllerCount++;
-                dialog.AddListButton(controller.displayName, async () =>
+                dialog.AddListButton(text, async () =>
                 {
+                    if (existingUser is not null)
+                    {
+                        existingUser.DeviceInfo.RemoveController(controller);
+                    }
+
                     player.DeviceInfo.AddController(controller);
                     if (!player.DeviceInfo.ContainsBindingsForController(controller))
                     {

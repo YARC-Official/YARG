@@ -192,7 +192,7 @@ namespace YARG.Input
         {
             foreach (var device in InputSystem.devices)
             {
-                if (!PlayerContainer.IsDeviceTaken(device))
+                if (!PlayerContainer.IsControllerTaken(device))
                     OnControllerAdded(device);
             }
 

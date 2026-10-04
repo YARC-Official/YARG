@@ -624,6 +624,7 @@
 			"BotDelete": "Deleting this bot is permanent.",
 			"PressPoint": "Press Point",
 			"VelocityThreshold": "Velocity Threshold",
+			"StealController": "{0} <i>(steal from <color=#2DD9FE>{1}</color>)</i>",
 			"AddBindingSet": "ADD",
 			"AddOtherBindingSet": "ADD OTHER",
 			"AddOtherBindingSetNotRecommended": "ADD OTHER (<i>Not Recommended</i>)",

@@ -20,8 +20,6 @@ using YARG.Settings.Customization;
 
 namespace YARG.Menu.ProfileList
 {
-    // This will be cleaned up when we add the new profile overview screen
-
     public class ProfileCenterPane : MonoBehaviour
     {
         private static readonly GameMode[] _gameModes =
