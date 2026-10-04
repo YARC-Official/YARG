@@ -314,7 +314,7 @@ namespace YARG.Input.Bindings
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.MENU[ControlStrings.MENU_UP],
                     new List<ReusableSingleButtonBindingConfig>() {
-                        new (ControllerFamily.FiveFretGuitar, ControlStrings.DPAD_UP),
+                        new (ControllerFamily.FiveFretGuitar, ControlStrings.GAMEPAD_DPAD_UP),
                         new (ControllerFamily.FiveFretGuitar, ControlStrings.JOYSTICK_UP)
                     }
                 )
@@ -324,7 +324,7 @@ namespace YARG.Input.Bindings
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.MENU[ControlStrings.MENU_DOWN],
                     new List<ReusableSingleButtonBindingConfig>() {
-                        new (ControllerFamily.FiveFretGuitar, ControlStrings.DPAD_DOWN),
+                        new (ControllerFamily.FiveFretGuitar, ControlStrings.GAMEPAD_DPAD_DOWN),
                         new (ControllerFamily.FiveFretGuitar, ControlStrings.JOYSTICK_DOWN)
                     }
                 )
@@ -335,7 +335,7 @@ namespace YARG.Input.Bindings
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.MENU[ControlStrings.MENU_LEFT],
                     new List<ReusableSingleButtonBindingConfig>() {
-                        new (ControllerFamily.FiveFretGuitar, ControlStrings.DPAD_LEFT),
+                        new (ControllerFamily.FiveFretGuitar, ControlStrings.GAMEPAD_DPAD_LEFT),
                         new (ControllerFamily.FiveFretGuitar, ControlStrings.JOYSTICK_LEFT)
                     }
                 )
@@ -345,7 +345,7 @@ namespace YARG.Input.Bindings
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.MENU[ControlStrings.MENU_RIGHT],
                     new List<ReusableSingleButtonBindingConfig>() {
-                        new (ControllerFamily.FiveFretGuitar, ControlStrings.DPAD_RIGHT),
+                        new (ControllerFamily.FiveFretGuitar, ControlStrings.GAMEPAD_DPAD_RIGHT),
                         new (ControllerFamily.FiveFretGuitar, ControlStrings.JOYSTICK_RIGHT)
                     }
                 )

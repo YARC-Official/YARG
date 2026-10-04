@@ -300,13 +300,9 @@ namespace YARG.Menu.ProfileList
                                 return;
                             }
 
-                            player.DeviceInfo.SetDefaultBinds(xinput, mode.Value);
+                            var (gameplay, menu) = player.DeviceInfo.GetDefaultBindingSetForGamepad(mode.Value, Profile.GameMode);
                         }
-                        else
 #endif
-                        {
-                            player.DeviceInfo.SetDefaultBinds(controller);
-                        }
                     }
 
                     selectedController = true;

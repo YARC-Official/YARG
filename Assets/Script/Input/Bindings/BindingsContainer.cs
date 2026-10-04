@@ -99,8 +99,18 @@ namespace YARG.Input.Bindings
                 ControllerFamily.Gamepad,
                 new()
                 {
-                    { GameMode.Menu, new() { ReusableBindingSetDefaults.DefaultGamepadMenu }},
-                    { GameMode.Vocals, new() { ReusableBindingSetDefaults.DefaultGamepadVocalGameplay } }
+                    { GameMode.Menu, new() {
+                        ReusableBindingSetDefaults.DefaultGamepadMenu,
+                        ReusableBindingSetDefaults.DefaultCrkdMode1Menu,
+                        ReusableBindingSetDefaults.DefaultWiitarThingGuitarMenu
+                    }},
+                    { GameMode.Vocals, new() { ReusableBindingSetDefaults.DefaultGamepadVocalGameplay } },
+                    { GameMode.FiveFretGuitar, new()
+                    {
+                        ReusableBindingSetDefaults.DefaultCrkdMode1Gameplay,
+                        ReusableBindingSetDefaults.DefaultCrkdMode1Fw30Gameplay,
+                        ReusableBindingSetDefaults.DefaultWiitarThingGuitarGameplay
+                    }}
                 }
             },
 

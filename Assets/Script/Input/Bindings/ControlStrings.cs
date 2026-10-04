@@ -125,12 +125,37 @@ namespace YARG.Input.Bindings
         public const string KEYS_STAR_POWER = "ProKeys.StarPower";
         public const string KEYS_TOUCH_EFFECTS = "ProKeys.TouchEffects";
 
+        public const string GAMEPAD_START = "start";
+        public const string GAMEPAD_SELECT = "select";
+
+        public const string GAMEPAD_BUTTON_SOUTH = "buttonSouth";
+        public const string GAMEPAD_BUTTON_EAST = "buttonEast";
+        public const string GAMEPAD_BUTTON_NORTH = "buttonNorth";
+        public const string GAMEPAD_BUTTON_WEST = "buttonWest";
+
+        public const string GAMEPAD_RIGHT_SHOULDER = "rightShoulder";
+        public const string GAMEPAD_LEFT_SHOULDER = "leftShoulder";
+        public const string GAMEPAD_RIGHT_TRIGGER = "rightTrigger";
+        public const string GAMEPAD_LEFT_TRIGGER = "leftTrigger";
+        public const string GAMEPAD_LEFT_STICK_UP = "leftStick/up";
+        public const string GAMEPAD_LEFT_STICK_DOWN = "leftStick/down";
+        public const string GAMEPAD_LEFT_STICK_LEFT = "leftStick/left";
+        public const string GAMEPAD_LEFT_STICK_RIGHT = "leftStick/right";
+        public const string GAMEPAD_LEFT_STICK_X = "leftStick/x";
+        public const string GAMEPAD_LEFT_STICK_Y = "leftStick/y";
+        public const string GAMEPAD_RIGHT_STICK_UP = "rightStick/up";
+        public const string GAMEPAD_RIGHT_STICK_DOWN = "rightStick/down";
+        public const string GAMEPAD_RIGHT_STICK_LEFT = "rightStick/left";
+        public const string GAMEPAD_RIGHT_STICK_RIGHT = "rightStick/right";
+        public const string GAMEPAD_RIGHT_STICK_X = "rightStick/x";
+        public const string GAMEPAD_RIGHT_STICK_Y = "rightStick/y";
 
 
-        public const string DPAD_UP = "dpad/up";
-        public const string DPAD_DOWN = "dpad/down";
-        public const string DPAD_LEFT = "dpad/left";
-        public const string DPAD_RIGHT = "dpad/right";
+
+        public const string GAMEPAD_DPAD_UP = "dpad/up";
+        public const string GAMEPAD_DPAD_DOWN = "dpad/down";
+        public const string GAMEPAD_DPAD_LEFT = "dpad/left";
+        public const string GAMEPAD_DPAD_RIGHT = "dpad/right";
 
         public const string JOYSTICK_UP = "joystick/up";
         public const string JOYSTICK_DOWN = "joystick/down";
@@ -207,6 +232,5 @@ namespace YARG.Input.Bindings
 
         public const string MOUSE_LEFT_CLICK = "leftButton";
         public const string MOUSE_RIGHT_CLICK = "rightButton";
-
     }
 }
