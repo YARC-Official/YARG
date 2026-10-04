@@ -12823,10 +12823,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1731608351740115695}
     m_Modifications:
-    - target: {fileID: 5240628994194081110, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
-      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
-      value: 1801810542
-      objectReference: {fileID: 0}
     - target: {fileID: 1424403399501945098, guid: 0dab2d5fd611fdb4bb5ca54e023d39b7, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
       value: 1
@@ -12978,6 +12974,10 @@ PrefabInstance:
     - target: {fileID: 5245842211347915737, guid: 0dab2d5fd611fdb4bb5ca54e023d39b7, type: 3}
       propertyPath: _tabs.Array.data[1].DisplayName
       value: Bindings
+      objectReference: {fileID: 0}
+    - target: {fileID: 5240628994194081110, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
+      value: 1801810542
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -13594,11 +13594,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3672239862567044622, guid: 45a81623e6e295b42b0be10d51e92565, type: 3}
       propertyPath: m_Name
-      value: DummyControllerQuickBindDialog
+      value: DummyControllerRecordDialog
       objectReference: {fileID: 0}
     - target: {fileID: 3672239862567044622, guid: 45a81623e6e295b42b0be10d51e92565, type: 3}
       propertyPath: m_IsActive
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4947002179294785729, guid: 45a81623e6e295b42b0be10d51e92565, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 6933285833458149409, guid: 45a81623e6e295b42b0be10d51e92565, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
       objectReference: {fileID: 0}
     - target: {fileID: 7085972344865827844, guid: 45a81623e6e295b42b0be10d51e92565, type: 3}
       propertyPath: m_AnchorMax.x
@@ -13620,7 +13628,8 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0.000030517578
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 6375567488079745359, guid: 45a81623e6e295b42b0be10d51e92565, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
@@ -13630,17 +13639,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 3672239862567044613, guid: 45a81623e6e295b42b0be10d51e92565, type: 3}
   m_PrefabInstance: {fileID: 3343097913105635704}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &8511663722186868791 stripped
+--- !u!114 &8335216239401888317 stripped
 MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 6375567488079745359, guid: 45a81623e6e295b42b0be10d51e92565, type: 3}
+  m_CorrespondingSourceObject: {fileID: 6758129343402029893, guid: 45a81623e6e295b42b0be10d51e92565, type: 3}
   m_PrefabInstance: {fileID: 3343097913105635704}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2fad2027822229d408c23a0ca02151a7, type: 3}
+  m_Script: {fileID: 11500000, guid: 6e2cd4fc50ef7044786d7b20c90322e2, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.ProfileInfo.DummyControllerQuickBindDialogMenu
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.ProfileInfo.DummyControllerRecordDialogMenu
 --- !u!1001 &3494198850791806670
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -15021,7 +15030,7 @@ PrefabInstance:
     - target: {fileID: 8728195230581420338, guid: 5abcff02d9ff58643a1993ddac92b7a5, type: 3}
       propertyPath: _quickBindDialog
       value: 
-      objectReference: {fileID: 8511663722186868791}
+      objectReference: {fileID: 8335216239401888317}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -15727,7 +15736,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6232041351873830570, guid: 81863a63e0d96cf459c263ee0ea6f98e, type: 3}
       propertyPath: m_Size
-      value: 0.44661292
+      value: 0.44063646
       objectReference: {fileID: 0}
     - target: {fileID: 6232041351873830570, guid: 81863a63e0d96cf459c263ee0ea6f98e, type: 3}
       propertyPath: m_Value

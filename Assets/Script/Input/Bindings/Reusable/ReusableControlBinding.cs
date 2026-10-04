@@ -121,8 +121,11 @@ namespace YARG.Input.Bindings
         {
             foreach (var single in _bindings)
             {
-                RemoveBinding(single);
+                single.Changed -= NotifyChanged;
             }
+
+            _bindings.Clear();
+            NotifyChanged();
         }
     }
 }
