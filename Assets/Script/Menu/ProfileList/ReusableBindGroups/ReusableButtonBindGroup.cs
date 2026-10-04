@@ -30,7 +30,7 @@ namespace YARG.Menu.ProfileList
             ProfilesMenu profilesMenu,
             BindingSetsCenterPane centerPane,
             BindingsCenterPaneSettingsPanel settingsPanel,
-            DummyControllerQuickBindDialogMenu quickBindDialog,
+            DummyControllerRecordDialogMenu quickBindDialog,
             ReusableBindingSet bindingSet,
             ReusableButtonBinding binding,
             List<ControlItemInfo> controls

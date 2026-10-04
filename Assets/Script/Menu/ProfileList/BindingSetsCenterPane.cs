@@ -7,12 +7,14 @@ using UniGLTF.Extensions.VRMC_vrm;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using YARG.Core;
 using YARG.Core.Input;
 using YARG.Core.Logging;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Input;
 using YARG.Input.Bindings;
+using YARG.Menu.Persistent;
 using YARG.Menu.ProfileInfo;
 using YARG.Scores;
 
@@ -23,7 +25,7 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private ProfilesMenu _profilesMenu;
         [SerializeField]
-        private DummyControllerQuickBindDialogMenu _quickBindDialog;
+        private DummyControllerRecordDialogMenu _quickBindDialog;
         [SerializeField]
         private GameObject _contents;
         [SerializeField]
@@ -71,6 +73,7 @@ namespace YARG.Menu.ProfileList
                 {
                     _dummyController = value;
                     DummyControllerChanged?.Invoke();
+                    _settingsPanel.Refresh();
                 }
             }
         }
@@ -113,6 +116,31 @@ namespace YARG.Menu.ProfileList
             InputManager.DeviceAdded -= OnControllerAdded;
             InputManager.DeviceRemoved -= OnControllerRemoved;
             HideContents();
+        }
+
+        public async void ShowQuickBind()
+        {
+            if (BindingSet.Mode is GameMode.FourLaneDrums or GameMode.ProKeys or
+                    GameMode.FiveLaneDrums or GameMode.EliteDrums)
+            {
+                var dialog = DialogManager.Instance.ShowFriendlyBindingDialog(BindingSet, DummyController, _showLeftyNames);
+
+                if (dialog is not null)
+                {
+                    await dialog.WaitUntilClosed();
+                    RefreshFromBindingSet(BindingSet);
+                }
+            }
+            else
+            {
+                var dialog = DialogManager.Instance.ShowMessage("Unsupported Instrument Type",
+                    "Quick binding is currently only supported for Drums and Keys.");
+
+                if (dialog is not null)
+                {
+                    await dialog.WaitUntilClosed();
+                }
+            }
         }
 
         private void OnControllerAdded(InputDevice controller)

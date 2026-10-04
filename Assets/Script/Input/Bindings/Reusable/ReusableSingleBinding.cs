@@ -92,8 +92,6 @@ namespace YARG.Input.Bindings
                 ReusableControlBinding.LogUnknownParameter(key, val);
             }
         }
-
-        public abstract bool IsControlBeingQuickBound(InputControl control);
     }
 
     public abstract class ReusableSingleBinding<TState> : ReusableSingleBinding
@@ -129,28 +127,9 @@ namespace YARG.Input.Bindings
 
         protected abstract RuntimeSingleBinding<TState> MakeRuntime(InputControl<TState> control);
 
-        public async Task<bool> QuickBind(InputDevice dummyController, DummyControllerQuickBindDialogMenu quickBindDialog)
+        public async Task<bool> QuickBind(InputDevice dummyController, DummyControllerRecordDialogMenu quickBindDialog, BindingType bindingType)
         {
-            return dummyController is not null && await quickBindDialog.Show(dummyController, this);
+            return dummyController is not null && await quickBindDialog.Show(dummyController, this, bindingType);
         }
-
-        public override bool IsControlBeingQuickBound(InputControl control)
-        {
-            return IsControlCompatible(control, out var typedControl) && IsControlActuated(typedControl);
-        }
-
-        protected virtual bool IsControlCompatible(InputControl control, out InputControl<TState> typedControl)
-        {
-            if (control is InputControl<TState> tControl)
-            {
-                typedControl = tControl;
-                return true;
-            }
-
-            typedControl = null;
-            return false;
-        }
-
-        protected abstract bool IsControlActuated(InputControl<TState> typedControl);
     }
 }

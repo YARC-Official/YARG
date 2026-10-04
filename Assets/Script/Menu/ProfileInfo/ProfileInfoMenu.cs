@@ -19,23 +19,5 @@ namespace YARG.Menu.ProfileInfo
         {
             Navigator.Instance.PopScheme();
         }
-
-        /* TODO-FRICK: This should be somewhere else
-        public async void ShowQuickBind()
-        {
-            if (CurrentProfile is { GameMode: GameMode.FourLaneDrums or GameMode.ProKeys or
-                GameMode.FiveLaneDrums or GameMode.EliteDrums})
-            {
-                var dialog = DialogManager.Instance.ShowFriendlyBindingDialog(CurrentProfile, CurrentProfile.GameMode);
-                await dialog.WaitUntilClosed();
-            }
-            else
-            {
-                var dialog = DialogManager.Instance.ShowMessage("Unsupported Instrument Type",
-                    "Quick binding is currently only supported for Drums and Keys.");
-                await dialog.WaitUntilClosed();
-            }
-        }
-        */
     }
 }

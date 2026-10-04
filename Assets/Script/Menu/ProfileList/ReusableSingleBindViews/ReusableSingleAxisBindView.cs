@@ -37,7 +37,7 @@ namespace YARG.Menu.ProfileList
             List<ControlItemInfo> controls,
             ProfilesMenu profilesMenu,
             BindingSetsCenterPane centerPane,
-            DummyControllerQuickBindDialogMenu quickBindDialog,
+            DummyControllerRecordDialogMenu quickBindDialog,
             bool interactable
         )
         {

@@ -6,6 +6,8 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.LowLevel;
+using YARG.Core.Logging;
+using YARG.Helpers;
 using YARG.Input.Bindings;
 using YARG.Player;
 
@@ -47,7 +49,6 @@ namespace YARG.Input
         private State             _state;
         private YargPlayer        _player; // TODO-FRICK: Obsolete after implementing dummy controller
         private ControlBinding    _binding; // TODO-FRICK: Obsolete after implementing dummy controller
-        private ReusableSingleBinding _singleBinding;
         private InputDevice       _dummyController;
         private AllowedControl    _allowedControls = AllowedControl.All;
         private ActuationSettings _bindSettings    = new();
@@ -55,6 +56,12 @@ namespace YARG.Input
 
         private          float?             _bindGroupingTimer;
         private readonly List<InputControl> _possibleControls = new();
+
+        // Screens whether a control is A) of a valid type to be quick-bound to the current binding, and
+        // B) whether it is currently being actuated
+        private Func<InputControl, bool> _quickBindScreener;
+
+        private HashSet<string> _allowedControlPaths = new();
 
         private CancellationTokenSource _cancellationToken;
 
@@ -94,10 +101,15 @@ namespace YARG.Input
             }
         }
 
-        public async UniTask<List<InputControl>> GetControl(InputDevice controller, CancellationToken token, ReusableSingleBinding singleBinding)
+        public async UniTask<List<InputControl>> GetControl(InputDevice controller, CancellationToken token, BindingType bindingType)
         {
-            _singleBinding = singleBinding;
+            _quickBindScreener = BindingSetHelper.GetQuickBindScreener(bindingType);
             _dummyController = controller;
+            _allowedControlPaths = BindingSetHelper.GetAllowedControlPaths(
+                LayoutHelper.InputDeviceToControllerFamily(controller),
+                bindingType
+            );
+
             _state = State.Waiting;
             _possibleControls.Clear();
 
@@ -152,8 +164,22 @@ namespace YARG.Input
             // since the state from that event has already been written to the device buffers by this time
             foreach (var control in controller.allControls)
             {
-                // Ignore disallowed and inactive controls
-                if (!ControlAllowed(control) || !_singleBinding.IsControlBeingQuickBound(control))
+                // Ignore globally-disallowed controls
+                if (!ControlAllowed(control))
+                {
+                    continue;
+                }
+
+                var controlPath = BindingSetHelper.TrimControllerName(control, controller);
+
+                // Ignore controls that are disallowed for this binding type
+                if (!_allowedControlPaths.Contains(controlPath))
+                {
+                    continue;
+                }
+
+                // Ignore controls that aren't being actuated
+                if (!_quickBindScreener(control))
                 {
                     continue;
                 }
