@@ -1,26 +1,19 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.Layouts;
 using YARG.Core;
-using YARG.Core.Audio;
 using YARG.Core.Game;
 using YARG.Core.Input;
-using YARG.Core.Logging;
 using YARG.Gameplay.Visuals;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
-using YARG.Input;
 using YARG.Input.Bindings;
 using YARG.Input.Serialization;
 using YARG.Localization;
 using YARG.Menu.HighwayConfiguration;
-using YARG.Menu.MusicLibrary;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Player;
@@ -125,6 +118,9 @@ namespace YARG.Menu.ProfileList
             {
                 return;
             }
+
+            // Deselect
+            _bindingSetsCenterPane.HideContents();
 
             // Remove old ones
             _leftPaneList.transform.DestroyChildren();
