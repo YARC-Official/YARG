@@ -16,8 +16,8 @@ namespace YARG.Gameplay.Visuals
         public const  string FUTURE_STAR_POWER_PHRASE_COLOR_TAG = "<color=#757519>";
         public const  string CLOSE_COLOR_TAG                    = "</color>";
 
-        public const double SMALL_GAP_THRESHOLD = .3d; // time > this = small gap
-        public const double LARGE_GAP_THRESHOLD = 3 * SMALL_GAP_THRESHOLD; // time > this = large gap
+        public const float STATIC_LYRIC_SHIFT_DURATION = .167f;
+        public const double DISMISS_AFTER_LAST_LYRIC_TIME = 0.1;
 
         public static double GetTimeBetweenLyrics(VocalsPhrase next, VocalsPhrase curr)
         {
