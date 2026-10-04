@@ -268,16 +268,25 @@ namespace YARG.Menu.ProfileList
             foreach (var controller in InputSystem.devices)
             {
                 if (!controller.enabled) continue;
-                if (PlayerContainer.IsDeviceTaken(controller)) continue;
+                var existingUser = PlayerContainer.GetControllerUser(controller);
+
+                var text = existingUser is null ?
+                    controller.displayName :
+                    Localize.KeyFormat("Menu.ProfileList.StealController", controller.displayName, existingUser.Profile.Name);
 
                 controllerCount++;
                 // Only Windows awaits the XInput mode prompt. Non-Windows omits async to prevent CS1998 warning.
 #if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
-                dialog.AddListButton(controller.displayName, async () =>
+                dialog.AddListButton(text, async () =>
 #else
                 dialog.AddListButton(device.displayName, () =>
 #endif
                 {
+                    if (existingUser is not null)
+                    {
+                        existingUser.DeviceInfo.RemoveController(controller);
+                    }
+
                     player.DeviceInfo.AddController(controller);
                     if (!player.DeviceInfo.ContainsBindingsForController(controller))
                     {

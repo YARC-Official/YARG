@@ -275,7 +275,7 @@ namespace YARG.Player
             return candidateProfiles.OrderByDescending(e => e.LastUsed).FirstOrDefault();
         }
 
-        public static bool IsDeviceTaken(InputDevice device)
+        public static bool IsControllerTaken(InputDevice device)
         {
             foreach (var player in _players)
             {
@@ -287,6 +287,21 @@ namespace YARG.Player
 
             return false;
         }
+
+#nullable enable
+        public static YargPlayer? GetControllerUser(InputDevice controller)
+        {
+            foreach (var player in _players)
+            {
+                if (player.DeviceInfo.ContainsController(controller))
+                {
+                    return player;
+                }
+            }
+
+            return null;
+        }
+#nullable disable
 
         private static void OnDeviceAdded(InputDevice device)
         {
@@ -311,7 +326,7 @@ namespace YARG.Player
 
         public static bool TryConnectProfile(InputDevice device)
         {
-            if (IsDeviceTaken(device))
+            if (IsControllerTaken(device))
             {
                 return false;
             }
