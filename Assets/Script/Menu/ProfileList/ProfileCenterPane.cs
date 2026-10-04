@@ -60,7 +60,7 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private RawImage _customProfilePicture;
         [SerializeField]
-        private Button[] _profileActionButtons;
+        private GameObject _overviewButton;
 
         [Space]
         [SerializeField]
@@ -164,6 +164,8 @@ namespace YARG.Menu.ProfileList
                 // Create the dropdown option
                 _gameModeDropdown.options.Add(new(gameMode.ToLocalizedName()));
             }
+
+
         }
 
         private void OnEnable()
@@ -325,12 +327,9 @@ namespace YARG.Menu.ProfileList
                 _customProfilePicture.gameObject.SetActive(false);
             }
 
-            // Enable/disable the edit profile button
-            bool interactable = !Profile.IsBot && PlayerContainer.IsProfileTaken(Profile);
-            foreach (var button in _profileActionButtons)
-            {
-                button.interactable = interactable;
-            }
+            // Enable/disable the overview button
+            _overviewButton.SetActive(!Profile.IsBot && PlayerContainer.IsProfileTaken(Profile));
+
 
             // Enable/disable the avatar delete/edit buttons
             _deleteButton.SetActive(!profile.IsBot && Profile.Avatar != null);
@@ -406,7 +405,7 @@ namespace YARG.Menu.ProfileList
             }
         }
 
-        public void EditProfile()
+        public void OpenOverview()
         {
             // Only allow profile editing if it's taken
             if (!PlayerContainer.IsProfileTaken(Profile))
