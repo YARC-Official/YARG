@@ -637,10 +637,24 @@ namespace YARG.Input
             var defaults = BindingsContainer.GetBindingSetsForControllerInMode(family, mode);
             if (defaults.Count > 0)
             {
-                return defaults.First();
+                // Special cases to catch certain controller types - move to a helper if this gets too long
+                switch ((family, mode))
+                {
+                    case (ControllerFamily.FiveFretGuitar, GameMode.FiveFretGuitar):
+                        if (controller.name.Contains("Riffmaster"))
+                        {
+                            return ReusableBindingSetDefaults.DefaultRiffmasterGuitar;
+                        }
+                        break;
+                    case (ControllerFamily.MidiDevice, GameMode.EliteDrums):
+                        if (controller.name.Contains("Alesis Nitro") || controller.name.Contains("Alesis Surge"))
+                        {
+                            return ReusableBindingSetDefaults.AlesisNitroDrumkit;
+                        }
+                        break;
+                }
 
-                // TODO-FRICK: Also look for better-match defaults beyond the first, like giving a Riffmaster the "Default Riffmaster
-                // Gameplay" set instead of "Default 5F Guitar Gameplay"
+                return defaults.First();
             }
             return null;
         }
