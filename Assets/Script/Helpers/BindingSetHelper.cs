@@ -6,6 +6,7 @@ using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.XR;
 using YARG.Core.Game;
 using YARG.Input.Bindings;
+using YARG.Menu.ProfileList;
 using YARG.Player;
 
 namespace YARG.Helpers
@@ -64,6 +65,36 @@ namespace YARG.Helpers
         public static string TrimControllerName(InputControl control, InputDevice controller)
         {
             return control.path[(controller.path.Length)..].TrimStart('/');
+        }
+
+        // e.g., D-pad X- and Y-axes are not okay, because they're just aggregates of buttons,
+        // but Tilt is okay, because it's an axis in its own right
+        public static bool IsControlValidForButton(ControlItemInfo control)
+        {
+            return control.Layout is
+                LayoutStrings.BUTTON or
+                LayoutStrings.MIDI_NOTE or
+                LayoutStrings.KEY
+                || (control.Layout is LayoutStrings.AXIS && control.ParentPath is null);
+        }
+
+        public static HashSet<string> GetAllowedControlPaths(ControllerFamily family, BindingType bindingType)
+        {
+            var controls = LayoutHelper.GetAllControlsForControllerFamily(family);
+
+            if (bindingType is BindingType.Button or BindingType.IndividualButton or BindingType.DrumButton)
+            {
+                return controls
+                    .Where(control => IsControlValidForButton(control))
+                    .Select(control => control.ControlPath)
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            }
+            else
+            {
+                return controls
+                    .Select(control => control.ControlPath)
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            }
         }
 
         private static bool IsButtonBeingQuickBound(InputControl control) {
