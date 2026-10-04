@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using YARG.Assets.Script.Helpers;
 using YARG.Core;
+using YARG.Helpers;
 using YARG.Menu.ProfileList;
 
 namespace YARG.Input.Bindings
@@ -65,179 +67,179 @@ namespace YARG.Input.Bindings
         private static Dictionary<string, ReusableControlBinding> _alesisNitroDefaults = new()
         {
             {
-                ControlStrings.DRUMS_KICK,
+                ActionStrings.DRUMS_KICK,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.DRUMS_KICK],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.DRUMS_KICK],
                     ALESIS_NITRO_KICK
                 )
             },
 
             {
-                ControlStrings.ELITE_DRUMS_STOMP,
+                ActionStrings.ELITE_DRUMS_STOMP,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_STOMP],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_STOMP],
                     ALESIS_NITRO_STOMP
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_SPLASH,
+                ActionStrings.ELITE_DRUMS_SPLASH,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_SPLASH],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_SPLASH],
                     ALESIS_NITRO_SPLASH
                 )
             },
 
             {
-                ControlStrings.ELITE_DRUMS_SNARE,
+                ActionStrings.ELITE_DRUMS_SNARE,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_SNARE],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_SNARE],
                     ALESIS_NITRO_SNARES
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_CLOSED_HI_HAT,
+                ActionStrings.ELITE_DRUMS_CLOSED_HI_HAT,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_CLOSED_HI_HAT],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_CLOSED_HI_HAT],
                     ALESIS_NITRO_CLOSED_HAT
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_SIZZLE_HI_HAT,
+                ActionStrings.ELITE_DRUMS_SIZZLE_HI_HAT,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_SIZZLE_HI_HAT],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_SIZZLE_HI_HAT],
                     ALESIS_NITRO_SIZZLE_HAT
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_OPEN_HI_HAT,
+                ActionStrings.ELITE_DRUMS_OPEN_HI_HAT,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_OPEN_HI_HAT],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_OPEN_HI_HAT],
                     ALESIS_NITRO_OPEN_HAT
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_LEFT_CRASH,
+                ActionStrings.ELITE_DRUMS_LEFT_CRASH,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_LEFT_CRASH],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_LEFT_CRASH],
                     ALESIS_NITRO_LEFT_CRASH
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_TOM_1,
+                ActionStrings.ELITE_DRUMS_TOM_1,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_TOM_1],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_TOM_1],
                     ALESIS_NITRO_TOM_1S
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_TOM_2,
+                ActionStrings.ELITE_DRUMS_TOM_2,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_TOM_2],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_TOM_2],
                     ALESIS_NITRO_TOM_2S
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_TOM_3,
+                ActionStrings.ELITE_DRUMS_TOM_3,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_TOM_3],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_TOM_3],
                     ALESIS_NITRO_TOM_3S
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_RIDE,
+                ActionStrings.ELITE_DRUMS_RIDE,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_RIDE],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_RIDE],
                     ALESIS_NITRO_RIDE
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_RIGHT_CRASH,
+                ActionStrings.ELITE_DRUMS_RIGHT_CRASH,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_RIGHT_CRASH],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_RIGHT_CRASH],
                     ALESIS_NITRO_RIGHT_CRASH
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_4L_RED,
+                ActionStrings.ELITE_DRUMS_4L_RED,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_4L_RED],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_4L_RED],
                     ALESIS_NITRO_SNARES
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_4L_YTOM,
+                ActionStrings.ELITE_DRUMS_4L_YTOM,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_4L_YTOM],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_4L_YTOM],
                     ALESIS_NITRO_TOM_1S
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_4L_BTOM,
+                ActionStrings.ELITE_DRUMS_4L_BTOM,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_4L_BTOM],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_4L_BTOM],
                     ALESIS_NITRO_TOM_2S
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_4L_GTOM,
+                ActionStrings.ELITE_DRUMS_4L_GTOM,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_4L_GTOM],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_4L_GTOM],
                     ALESIS_NITRO_TOM_3S
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_4L_YCYM,
+                ActionStrings.ELITE_DRUMS_4L_YCYM,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_4L_YCYM],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_4L_YCYM],
                     ALESIS_NITRO_HI_HATS
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_4L_BCYM,
+                ActionStrings.ELITE_DRUMS_4L_BCYM,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_4L_BCYM],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_4L_BCYM],
                     ALESIS_NITRO_RIDE
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_4L_GCYM,
+                ActionStrings.ELITE_DRUMS_4L_GCYM,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_4L_GCYM],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_4L_GCYM],
                     ALESIS_NITRO_CRASHES
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_5L_RED,
+                ActionStrings.ELITE_DRUMS_5L_RED,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_5L_RED],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_5L_RED],
                     ALESIS_NITRO_SNARES
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_5L_BLUE,
+                ActionStrings.ELITE_DRUMS_5L_BLUE,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_5L_BLUE],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_5L_BLUE],
                     ALESIS_NITRO_TOM_1S.Concat(ALESIS_NITRO_TOM_2S).ToList()
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_5L_GREEN,
+                ActionStrings.ELITE_DRUMS_5L_GREEN,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_5L_GREEN],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_5L_GREEN],
                     ALESIS_NITRO_TOM_3S
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_5L_YELLOW,
+                ActionStrings.ELITE_DRUMS_5L_YELLOW,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_5L_YELLOW],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_5L_YELLOW],
                     ALESIS_NITRO_HI_HATS
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_5L_ORANGE,
+                ActionStrings.ELITE_DRUMS_5L_ORANGE,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_5L_ORANGE],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_5L_ORANGE],
                     ALESIS_NITRO_CRASHES.Concat(ALESIS_NITRO_RIDE).ToList()
                 )
             },

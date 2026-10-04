@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
+using YARG.Assets.Script.Helpers;
 using YARG.Core;
+using YARG.Helpers;
 using YARG.Menu.ProfileList;
 
 namespace YARG.Input.Bindings
@@ -9,9 +11,9 @@ namespace YARG.Input.Bindings
         private static Dictionary<string, ReusableControlBinding> _defaultComputerKeyboardDrumsGameplayDefaults = new()
         {
             {
-                ControlStrings.DRUMS_KICK,
+                ActionStrings.DRUMS_KICK,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.FOUR_LANE_DRUMKIT[ControlStrings.DRUMS_KICK],
+                    ReusableBindingSetTemplates.FOUR_LANE_DRUMKIT[ActionStrings.DRUMS_KICK],
                     new List<ReusableSingleButtonBindingConfig>() {
                         new(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_SPACE),
                         new(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_LEFT_ALT),
@@ -20,172 +22,172 @@ namespace YARG.Input.Bindings
             },
 
             {
-                ControlStrings.ELITE_DRUMS_STOMP,
+                ActionStrings.ELITE_DRUMS_STOMP,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_STOMP],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_STOMP],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_LEFT_CTRL)
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_SPLASH,
+                ActionStrings.ELITE_DRUMS_SPLASH,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_SPLASH],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_SPLASH],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_LEFT_SHIFT)
                 )
             },
 
             {
-                ControlStrings.ELITE_DRUMS_SNARE,
+                ActionStrings.ELITE_DRUMS_SNARE,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_SNARE],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_SNARE],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_Z)
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_CLOSED_HI_HAT,
+                ActionStrings.ELITE_DRUMS_CLOSED_HI_HAT,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_CLOSED_HI_HAT],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_CLOSED_HI_HAT],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_S)
                 )
             },
             
             {
-                ControlStrings.ELITE_DRUMS_OPEN_HI_HAT,
+                ActionStrings.ELITE_DRUMS_OPEN_HI_HAT,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_OPEN_HI_HAT],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_OPEN_HI_HAT],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_W)
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_LEFT_CRASH,
+                ActionStrings.ELITE_DRUMS_LEFT_CRASH,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_LEFT_CRASH],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_LEFT_CRASH],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_D)
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_TOM_1,
+                ActionStrings.ELITE_DRUMS_TOM_1,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_TOM_1],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_TOM_1],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_X)
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_TOM_2,
+                ActionStrings.ELITE_DRUMS_TOM_2,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_TOM_2],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_TOM_2],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_C)
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_TOM_3,
+                ActionStrings.ELITE_DRUMS_TOM_3,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_TOM_3],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_TOM_3],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_V)
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_RIDE,
+                ActionStrings.ELITE_DRUMS_RIDE,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_RIDE],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_RIDE],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_F)
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_RIGHT_CRASH,
+                ActionStrings.ELITE_DRUMS_RIGHT_CRASH,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_RIGHT_CRASH],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_RIGHT_CRASH],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_G)
                 )
             },
 
             {
-                ControlStrings.ELITE_DRUMS_4L_RED,
+                ActionStrings.ELITE_DRUMS_4L_RED,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_4L_RED],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_4L_RED],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_Z)
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_4L_YTOM,
+                ActionStrings.ELITE_DRUMS_4L_YTOM,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_4L_YTOM],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_4L_YTOM],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_X)
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_4L_BTOM,
+                ActionStrings.ELITE_DRUMS_4L_BTOM,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_4L_BTOM],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_4L_BTOM],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_C)
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_4L_GTOM,
+                ActionStrings.ELITE_DRUMS_4L_GTOM,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_4L_GTOM],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_4L_GTOM],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_V)
                 )
             },
 
             {
-                ControlStrings.ELITE_DRUMS_4L_YCYM,
+                ActionStrings.ELITE_DRUMS_4L_YCYM,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_4L_YCYM],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_4L_YCYM],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_S)
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_4L_BCYM,
+                ActionStrings.ELITE_DRUMS_4L_BCYM,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_4L_BCYM],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_4L_BCYM],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_D)
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_4L_GCYM,
+                ActionStrings.ELITE_DRUMS_4L_GCYM,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_4L_GCYM],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_4L_GCYM],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_F)
                 )
             },
 
             {
-                ControlStrings.ELITE_DRUMS_5L_RED,
+                ActionStrings.ELITE_DRUMS_5L_RED,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_5L_RED],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_5L_RED],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_Z)
                 )
             },
 
             {
-                ControlStrings.ELITE_DRUMS_5L_YELLOW,
+                ActionStrings.ELITE_DRUMS_5L_YELLOW,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_5L_YELLOW],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_5L_YELLOW],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_X)
                 )
             },
 
             {
-                ControlStrings.ELITE_DRUMS_5L_BLUE,
+                ActionStrings.ELITE_DRUMS_5L_BLUE,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_5L_BLUE],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_5L_BLUE],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_C)
                 )
             },
 
             {
-                ControlStrings.ELITE_DRUMS_5L_ORANGE,
+                ActionStrings.ELITE_DRUMS_5L_ORANGE,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_5L_ORANGE],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_5L_ORANGE],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_V)
                 )
             },
 
             {
-                ControlStrings.ELITE_DRUMS_5L_GREEN,
+                ActionStrings.ELITE_DRUMS_5L_GREEN,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_5L_GREEN],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_5L_GREEN],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_B)
                 )
             },

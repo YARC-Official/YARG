@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using YARG.Assets.Script.Helpers;
 using YARG.Core;
 using YARG.Menu.ProfileList;
+using YARG.Helpers;
 
 namespace YARG.Input.Bindings
 {
@@ -11,60 +13,60 @@ namespace YARG.Input.Bindings
         private static Dictionary<string, ReusableControlBinding> _wiitarThingGuitarGameplay = new()
         {
             {
-                ControlStrings.FIVE_FRET_GREEN,
+                ActionStrings.FIVE_FRET_GREEN,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ControlStrings.FIVE_FRET_GREEN],
+                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.FIVE_FRET_GREEN],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_BUTTON_SOUTH)
                 )
             },
             {
-                ControlStrings.FIVE_FRET_RED,
+                ActionStrings.FIVE_FRET_RED,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ControlStrings.FIVE_FRET_RED],
+                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.FIVE_FRET_RED],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_BUTTON_EAST)
                 )
             },
             {
-                ControlStrings.FIVE_FRET_YELLOW,
+                ActionStrings.FIVE_FRET_YELLOW,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ControlStrings.FIVE_FRET_YELLOW],
+                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.FIVE_FRET_YELLOW],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_BUTTON_NORTH)
                 )
             },
             {
-                ControlStrings.FIVE_FRET_BLUE,
+                ActionStrings.FIVE_FRET_BLUE,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ControlStrings.FIVE_FRET_BLUE],
+                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.FIVE_FRET_BLUE],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_BUTTON_WEST)
                 )
             },
             {
-                ControlStrings.FIVE_FRET_ORANGE,
+                ActionStrings.FIVE_FRET_ORANGE,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ControlStrings.FIVE_FRET_ORANGE],
+                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.FIVE_FRET_ORANGE],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_LEFT_SHOULDER)
                 )
             },
 
             {
-                ControlStrings.GUITAR_STRUM_DOWN,
+                ActionStrings.GUITAR_STRUM_DOWN,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ControlStrings.GUITAR_STRUM_DOWN],
+                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.GUITAR_STRUM_DOWN],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_DPAD_DOWN)
                 )
             },
             {
-                ControlStrings.GUITAR_STRUM_UP,
+                ActionStrings.GUITAR_STRUM_UP,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ControlStrings.GUITAR_STRUM_UP],
+                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.GUITAR_STRUM_UP],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_DPAD_UP)
                 )
             },
 
             {
-                ControlStrings.GUITAR_STAR_POWER,
+                ActionStrings.GUITAR_STAR_POWER,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ControlStrings.GUITAR_STAR_POWER],
+                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.GUITAR_STAR_POWER],
                     new List<ReusableSingleButtonBindingConfig> {
                         new(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_SELECT),
                         new(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_RIGHT_STICK_Y)
@@ -76,9 +78,9 @@ namespace YARG.Input.Bindings
             },
 
             {
-                ControlStrings.GUITAR_WHAMMY,
+                ActionStrings.GUITAR_WHAMMY,
                 new ReusableAxisBinding(
-                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ControlStrings.GUITAR_WHAMMY],
+                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.GUITAR_WHAMMY],
                     new ReusableSingleAxisBindingConfig(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_RIGHT_STICK_X)
                 )
             },
@@ -87,95 +89,95 @@ namespace YARG.Input.Bindings
         private static Dictionary<string, ReusableControlBinding> _wiitarThingGuitarMenu = new()
         {
             {
-                ControlStrings.MENU_START,
+                ActionStrings.MENU_START,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_START],
+                    ReusableBindingSetTemplates.MENU[ActionStrings.MENU_START],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_START)
                 )
             },
             {
-                ControlStrings.MENU_SELECT,
+                ActionStrings.MENU_SELECT,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_SELECT],
+                    ReusableBindingSetTemplates.MENU[ActionStrings.MENU_SELECT],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_SELECT)
                 )
             },
 
             {
-                ControlStrings.MENU_GREEN,
+                ActionStrings.MENU_GREEN,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_GREEN],
+                    ReusableBindingSetTemplates.MENU[ActionStrings.MENU_GREEN],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_BUTTON_SOUTH)
                 )
             },
             {
-                ControlStrings.MENU_RED,
+                ActionStrings.MENU_RED,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_RED],
+                    ReusableBindingSetTemplates.MENU[ActionStrings.MENU_RED],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_BUTTON_EAST)
                 )
             },
             {
-                ControlStrings.MENU_YELLOW,
+                ActionStrings.MENU_YELLOW,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_YELLOW],
+                    ReusableBindingSetTemplates.MENU[ActionStrings.MENU_YELLOW],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_BUTTON_NORTH)
                 )
             },
             {
-                ControlStrings.MENU_BLUE,
+                ActionStrings.MENU_BLUE,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_BLUE],
+                    ReusableBindingSetTemplates.MENU[ActionStrings.MENU_BLUE],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_BUTTON_WEST)
                 )
             },
             {
-                ControlStrings.MENU_ORANGE,
+                ActionStrings.MENU_ORANGE,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_ORANGE],
+                    ReusableBindingSetTemplates.MENU[ActionStrings.MENU_ORANGE],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_LEFT_SHOULDER)
                 )
             },
 
             {
-                ControlStrings.MENU_UP,
+                ActionStrings.MENU_UP,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_UP],
+                    ReusableBindingSetTemplates.MENU[ActionStrings.MENU_UP],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_DPAD_UP)
                 )
             },
             {
-                ControlStrings.MENU_DOWN,
+                ActionStrings.MENU_DOWN,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_DOWN],
+                    ReusableBindingSetTemplates.MENU[ActionStrings.MENU_DOWN],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_DPAD_DOWN)
                 )
             },
             {
-                ControlStrings.MENU_LEFT,
+                ActionStrings.MENU_LEFT,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_LEFT],
+                    ReusableBindingSetTemplates.MENU[ActionStrings.MENU_LEFT],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_DPAD_LEFT)
                 )
             },
             {
-                ControlStrings.MENU_RIGHT,
+                ActionStrings.MENU_RIGHT,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_RIGHT],
+                    ReusableBindingSetTemplates.MENU[ActionStrings.MENU_RIGHT],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_DPAD_RIGHT)
                 )
             },
         };
 
         public static ReusableBindingSet DefaultWiitarThingGuitarGameplay = MakeHardcodedBindingSet(
-            "Default Wiitar Thing Guitar",
-            GameMode.FiveFretGuitar,
+            "Default Wiitar Thing Drumkit",
+            GameMode.FiveLaneDrums,
             ControllerFamily.Gamepad,
             _wiitarThingGuitarGameplay
         );
 
         public static ReusableBindingSet DefaultWiitarThingGuitarMenu = MakeHardcodedBindingSet(
-            "Default Wiitar Thing Guitar Menu",
+            "Default Wiitar Thing Drumkit Menu",
             GameMode.Menu,
             ControllerFamily.Gamepad,
             _wiitarThingGuitarMenu

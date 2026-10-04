@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using YARG.Core;
-using YARG.Input.Bindings;
+using YARG.Helpers;
 using YARG.Menu.ProfileList;
 
 namespace YARG.Input.Bindings
@@ -13,67 +13,67 @@ namespace YARG.Input.Bindings
         private static Dictionary<string, ReusableControlBinding> _sixFretGuitarDefaults = new()
         {
             {
-                ControlStrings.SIX_FRET_BLACK_1,
+                ActionStrings.SIX_FRET_BLACK_1,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.SIX_FRET_GUITAR[ControlStrings.SIX_FRET_BLACK_1],
+                    ReusableBindingSetTemplates.SIX_FRET_GUITAR[ActionStrings.SIX_FRET_BLACK_1],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.SixFretGuitar, nameof(SixFretGuitar.black1))
                 )
             },
             {
-                ControlStrings.SIX_FRET_BLACK_2,
+                ActionStrings.SIX_FRET_BLACK_2,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.SIX_FRET_GUITAR[ControlStrings.SIX_FRET_BLACK_2],
+                    ReusableBindingSetTemplates.SIX_FRET_GUITAR[ActionStrings.SIX_FRET_BLACK_2],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.SixFretGuitar, nameof(SixFretGuitar.black2))
                 )
             },
             {
-                ControlStrings.SIX_FRET_BLACK_3,
+                ActionStrings.SIX_FRET_BLACK_3,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.SIX_FRET_GUITAR[ControlStrings.SIX_FRET_BLACK_3],
+                    ReusableBindingSetTemplates.SIX_FRET_GUITAR[ActionStrings.SIX_FRET_BLACK_3],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.SixFretGuitar, nameof(SixFretGuitar.black3))
                 )
             },
             {
-                ControlStrings.SIX_FRET_WHITE_1,
+                ActionStrings.SIX_FRET_WHITE_1,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.SIX_FRET_GUITAR[ControlStrings.SIX_FRET_WHITE_1],
+                    ReusableBindingSetTemplates.SIX_FRET_GUITAR[ActionStrings.SIX_FRET_WHITE_1],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.SixFretGuitar, nameof(SixFretGuitar.white1))
                 )
             },
             {
-                ControlStrings.SIX_FRET_WHITE_2,
+                ActionStrings.SIX_FRET_WHITE_2,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.SIX_FRET_GUITAR[ControlStrings.SIX_FRET_WHITE_2],
+                    ReusableBindingSetTemplates.SIX_FRET_GUITAR[ActionStrings.SIX_FRET_WHITE_2],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.SixFretGuitar, nameof(SixFretGuitar.white2))
                 )
             },
             {
-                ControlStrings.SIX_FRET_WHITE_3,
+                ActionStrings.SIX_FRET_WHITE_3,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.SIX_FRET_GUITAR[ControlStrings.SIX_FRET_WHITE_3],
+                    ReusableBindingSetTemplates.SIX_FRET_GUITAR[ActionStrings.SIX_FRET_WHITE_3],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.SixFretGuitar, nameof(SixFretGuitar.white3))
                 )
             },
 
             {
-                ControlStrings.GUITAR_STRUM_DOWN,
+                ActionStrings.GUITAR_STRUM_DOWN,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.SIX_FRET_GUITAR[ControlStrings.GUITAR_STRUM_DOWN],
+                    ReusableBindingSetTemplates.SIX_FRET_GUITAR[ActionStrings.GUITAR_STRUM_DOWN],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, ControlStrings.GAMEPAD_DPAD_DOWN)
                 )
             },
             {
-                ControlStrings.GUITAR_STRUM_UP,
+                ActionStrings.GUITAR_STRUM_UP,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.SIX_FRET_GUITAR[ControlStrings.GUITAR_STRUM_UP],
+                    ReusableBindingSetTemplates.SIX_FRET_GUITAR[ActionStrings.GUITAR_STRUM_UP],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, ControlStrings.GAMEPAD_DPAD_UP)
                 )
             },
 
             {
-                ControlStrings.GUITAR_STAR_POWER,
+                ActionStrings.GUITAR_STAR_POWER,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.SIX_FRET_GUITAR[ControlStrings.GUITAR_STAR_POWER],
+                    ReusableBindingSetTemplates.SIX_FRET_GUITAR[ActionStrings.GUITAR_STAR_POWER],
                     new List<ReusableSingleButtonBindingConfig>() {
                         new(ControllerFamily.FiveFretGuitar, nameof(SixFretGuitar.tilt)) { PressPoint = 1f },
                         new(ControllerFamily.FiveFretGuitar, nameof(SixFretGuitar.selectButton)),
@@ -82,9 +82,9 @@ namespace YARG.Input.Bindings
             },
 
             {
-                ControlStrings.GUITAR_WHAMMY,
+                ActionStrings.GUITAR_WHAMMY,
                 new ReusableAxisBinding(
-                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ControlStrings.GUITAR_WHAMMY],
+                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.GUITAR_WHAMMY],
                     new ReusableSingleAxisBindingConfig(ControllerFamily.FiveFretGuitar, nameof(FiveFretGuitar.whammy))
                 )
             },
@@ -93,82 +93,82 @@ namespace YARG.Input.Bindings
         private static Dictionary<string, ReusableControlBinding> _sixFretGuitarMenuDefaults = new()
         {
             {
-                ControlStrings.MENU_START,
+                ActionStrings.MENU_START,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_START],
+                    ReusableBindingSetTemplates.MENU[ActionStrings.MENU_START],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.SixFretGuitar, nameof(SixFretGuitar.startButton))
                 )
             },
             {
-                ControlStrings.MENU_SELECT,
+                ActionStrings.MENU_SELECT,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_SELECT],
+                    ReusableBindingSetTemplates.MENU[ActionStrings.MENU_SELECT],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.SixFretGuitar, nameof(SixFretGuitar.selectButton))
                 )
             },
 
             {
-                ControlStrings.MENU_GREEN,
+                ActionStrings.MENU_GREEN,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_GREEN],
+                    ReusableBindingSetTemplates.MENU[ActionStrings.MENU_GREEN],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.SixFretGuitar, nameof(SixFretGuitar.black1))
                 )
             },
             {
-                ControlStrings.MENU_RED,
+                ActionStrings.MENU_RED,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_RED],
+                    ReusableBindingSetTemplates.MENU[ActionStrings.MENU_RED],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.SixFretGuitar, nameof(SixFretGuitar.black2))
                 )
             },
             {
-                ControlStrings.MENU_YELLOW,
+                ActionStrings.MENU_YELLOW,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_YELLOW],
+                    ReusableBindingSetTemplates.MENU[ActionStrings.MENU_YELLOW],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.SixFretGuitar, nameof(SixFretGuitar.black3))
                 )
             },
             {
-                ControlStrings.MENU_BLUE,
+                ActionStrings.MENU_BLUE,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_BLUE],
+                    ReusableBindingSetTemplates.MENU[ActionStrings.MENU_BLUE],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.SixFretGuitar, nameof(SixFretGuitar.white1))
                 )
             },
             {
-                ControlStrings.MENU_ORANGE,
+                ActionStrings.MENU_ORANGE,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_ORANGE],
+                    ReusableBindingSetTemplates.MENU[ActionStrings.MENU_ORANGE],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.SixFretGuitar, nameof(SixFretGuitar.white2))
                 )
             },
 
             {
-                ControlStrings.MENU_UP,
+                ActionStrings.MENU_UP,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_UP],
+                    ReusableBindingSetTemplates.MENU[ActionStrings.MENU_UP],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.SixFretGuitar, ControlStrings.GAMEPAD_DPAD_UP)
                 )
             },
             {
-                ControlStrings.MENU_DOWN,
+                ActionStrings.MENU_DOWN,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_DOWN],
+                    ReusableBindingSetTemplates.MENU[ActionStrings.MENU_DOWN],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.SixFretGuitar, ControlStrings.GAMEPAD_DPAD_DOWN)
                 )
             },
 
-                        {
-                ControlStrings.MENU_LEFT,
+            {
+                ActionStrings.MENU_LEFT,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_UP],
+                    ReusableBindingSetTemplates.MENU[ActionStrings.MENU_UP],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, ControlStrings.GAMEPAD_DPAD_LEFT)
                 )
             },
             {
-                ControlStrings.MENU_RIGHT,
+                ActionStrings.MENU_RIGHT,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_DOWN],
+                    ReusableBindingSetTemplates.MENU[ActionStrings.MENU_DOWN],
                     new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, ControlStrings.GAMEPAD_DPAD_RIGHT)
                 )
             },

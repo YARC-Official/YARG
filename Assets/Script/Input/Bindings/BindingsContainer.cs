@@ -102,14 +102,17 @@ namespace YARG.Input.Bindings
                     { GameMode.Menu, new() {
                         ReusableBindingSetDefaults.DefaultGamepadMenu,
                         ReusableBindingSetDefaults.DefaultCrkdMode1Menu,
-                        ReusableBindingSetDefaults.DefaultWiitarThingGuitarMenu
+                        ReusableBindingSetDefaults.DefaultWiitarThingGuitarMenu,
+                        ReusableBindingSetDefaults.DefaultWiitarThingDrumkitMenu,
                     }},
                     { GameMode.Vocals, new() { ReusableBindingSetDefaults.DefaultGamepadVocalGameplay } },
-                    { GameMode.FiveFretGuitar, new()
-                    {
+                    { GameMode.FiveFretGuitar, new() {
                         ReusableBindingSetDefaults.DefaultCrkdMode1Gameplay,
                         ReusableBindingSetDefaults.DefaultCrkdMode1Fw30Gameplay,
                         ReusableBindingSetDefaults.DefaultWiitarThingGuitarGameplay
+                    }},
+                    { GameMode.FiveLaneDrums, new() {
+                        ReusableBindingSetDefaults.DefaultWiitarThingDrumkitGameplay
                     }}
                 }
             },

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using YARG.Assets.Script.Helpers;
 using YARG.Core;
+using YARG.Helpers;
 using YARG.Menu.ProfileList;
 
 namespace YARG.Input.Bindings
@@ -66,166 +68,166 @@ namespace YARG.Input.Bindings
         private static Dictionary<string, ReusableControlBinding> _generalMidiDrumDefaults = new()
         {
             {
-                ControlStrings.DRUMS_KICK,
+                ActionStrings.DRUMS_KICK,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.DRUMS_KICK],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.DRUMS_KICK],
                     GENERAL_MIDI_KICKS
                 )
             },
 
             {
-                ControlStrings.ELITE_DRUMS_STOMP,
+                ActionStrings.ELITE_DRUMS_STOMP,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_STOMP],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_STOMP],
                     GENERAL_MIDI_STOMP
                 )
             },
             // GM doesn't have a hi-hat splash mapping (no, Note 055 "Splash Cymbal" is not the same thing)
             {
-                ControlStrings.ELITE_DRUMS_SNARE,
+                ActionStrings.ELITE_DRUMS_SNARE,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_SNARE],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_SNARE],
                     GENERAL_MIDI_SNARES
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_CLOSED_HI_HAT,
+                ActionStrings.ELITE_DRUMS_CLOSED_HI_HAT,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_CLOSED_HI_HAT],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_CLOSED_HI_HAT],
                     GENERAL_MIDI_CLOSED_HAT
                 )
             },
             // GM doesn't have a hi-hat sizzle mapping
             {
-                ControlStrings.ELITE_DRUMS_OPEN_HI_HAT,
+                ActionStrings.ELITE_DRUMS_OPEN_HI_HAT,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_OPEN_HI_HAT],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_OPEN_HI_HAT],
                     GENERAL_MIDI_OPEN_HAT
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_LEFT_CRASH,
+                ActionStrings.ELITE_DRUMS_LEFT_CRASH,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_LEFT_CRASH],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_LEFT_CRASH],
                     GENERAL_MIDI_CRASH_1
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_TOM_1,
+                ActionStrings.ELITE_DRUMS_TOM_1,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_TOM_1],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_TOM_1],
                     GENERAL_MIDI_HIGH_TOMS
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_TOM_2,
+                ActionStrings.ELITE_DRUMS_TOM_2,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_TOM_2],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_TOM_2],
                     GENERAL_MIDI_LOW_TOMS
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_TOM_3,
+                ActionStrings.ELITE_DRUMS_TOM_3,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_TOM_3],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_TOM_3],
                     GENERAL_MIDI_FLOOR_TOMS
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_RIDE,
+                ActionStrings.ELITE_DRUMS_RIDE,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_RIDE],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_RIDE],
                     GENERAL_MIDI_RIDES
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_RIGHT_CRASH,
+                ActionStrings.ELITE_DRUMS_RIGHT_CRASH,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_RIGHT_CRASH],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_RIGHT_CRASH],
                     GENERAL_MIDI_CRASH_2
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_4L_RED,
+                ActionStrings.ELITE_DRUMS_4L_RED,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_4L_RED],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_4L_RED],
                     GENERAL_MIDI_SNARES
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_4L_YTOM,
+                ActionStrings.ELITE_DRUMS_4L_YTOM,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_4L_YTOM],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_4L_YTOM],
                     GENERAL_MIDI_HIGH_TOMS
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_4L_BTOM,
+                ActionStrings.ELITE_DRUMS_4L_BTOM,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_4L_BTOM],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_4L_BTOM],
                     GENERAL_MIDI_LOW_TOMS
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_4L_GTOM,
+                ActionStrings.ELITE_DRUMS_4L_GTOM,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_4L_GTOM],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_4L_GTOM],
                     GENERAL_MIDI_FLOOR_TOMS
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_4L_YCYM,
+                ActionStrings.ELITE_DRUMS_4L_YCYM,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_4L_YCYM],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_4L_YCYM],
                     GENERAL_MIDI_HI_HATS
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_4L_BCYM,
+                ActionStrings.ELITE_DRUMS_4L_BCYM,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_4L_BCYM],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_4L_BCYM],
                     GENERAL_MIDI_RIDES
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_4L_GCYM,
+                ActionStrings.ELITE_DRUMS_4L_GCYM,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_4L_GCYM],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_4L_GCYM],
                     GENERAL_MIDI_CRASHES
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_5L_RED,
+                ActionStrings.ELITE_DRUMS_5L_RED,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_5L_RED],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_5L_RED],
                     GENERAL_MIDI_SNARES
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_5L_BLUE,
+                ActionStrings.ELITE_DRUMS_5L_BLUE,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_5L_BLUE],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_5L_BLUE],
                     GENERAL_MIDI_HIGH_TOMS.Concat(GENERAL_MIDI_LOW_TOMS).ToList()
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_5L_GREEN,
+                ActionStrings.ELITE_DRUMS_5L_GREEN,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_5L_GREEN],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_5L_GREEN],
                     GENERAL_MIDI_FLOOR_TOMS
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_5L_YELLOW,
+                ActionStrings.ELITE_DRUMS_5L_YELLOW,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_5L_YELLOW],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_5L_YELLOW],
                     GENERAL_MIDI_HI_HATS
                 )
             },
             {
-                ControlStrings.ELITE_DRUMS_5L_ORANGE,
+                ActionStrings.ELITE_DRUMS_5L_ORANGE,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.ELITE_DRUMS[ControlStrings.ELITE_DRUMS_5L_ORANGE],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.ELITE_DRUMS_5L_ORANGE],
                     GENERAL_MIDI_CRASHES.Concat(GENERAL_MIDI_RIDES).ToList()
                 )
             },
