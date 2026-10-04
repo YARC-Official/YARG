@@ -188,17 +188,11 @@ namespace YARG.Menu.Dialogs
 
                     switch (action.Type)
                     {
-                        case BindingType.Button:
+                        case BindingType.Button or BindingType.IndividualButton or BindingType.DrumButton:
                             var buttonBinding = _bindingSet.Bindings[action.Key] as ReusableButtonBinding;
                             buttonBinding.ClearBindings();
                             var buttonConfig = new ReusableSingleButtonBindingConfig(_controllerFamily, path);
                             buttonBinding.AddBinding(new ReusableSingleButtonBinding(buttonConfig));
-                            break;
-                        case BindingType.IndividualButton or BindingType.DrumButton:
-                            var impulseBinding = _bindingSet.Bindings[action.Key] as ReusableImpulseBinding;
-                            impulseBinding.ClearBindings();
-                            var impulseConfig = new ReusableSingleButtonBindingConfig(_controllerFamily, path);
-                            impulseBinding.AddBinding(new ReusableSingleButtonBinding(impulseConfig));
                             break;
                         case BindingType.Axis:
                             var axisBinding = _bindingSet.Bindings[action.Key] as ReusableAxisBinding;
