@@ -5,6 +5,7 @@ using System.Linq;
 using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Core.Logging;
+using YARG.Core.Utility;
 using YARG.Gameplay.Visuals;
 using YARG.Settings;
 
@@ -15,11 +16,10 @@ namespace YARG.Gameplay.Player
         private int[] _phraseMarkerIndices;
 
         // Static vocals-related constants
-        private const float STATIC_LYRICS_SPACING_FROM_SING_LINE = .25f;
+        private const float STATIC_LYRICS_SPACING_FROM_SING_LINE = .1f;
         private const float STATIC_LYRICS_LEFT_EDGE = VocalElement.SING_LINE_POS + STATIC_LYRICS_SPACING_FROM_SING_LINE;
         private const float DEFAULT_STATIC_LYRICS_RIGHT_EDGE = STATIC_LYRICS_LEFT_EDGE + VocalLyricContainer.SMALL_GAP_PHRASE_SPACING;
         private const int MAXIMUM_STATIC_PHRASE_QUEUE_SIZE = 10;
-        private const float STATIC_LYRIC_SHIFT_DURATION = .1f;
         private const int SCROLLING_LYRIC_SPAWN_BUDGET = 4;
         private const int STATIC_PHRASE_ENQUEUE_BUDGET = 2;
 
@@ -162,7 +162,7 @@ namespace YARG.Gameplay.Player
 
                     foreach (var remainingPhrase in queue)
                     {
-                        remainingPhrase.transform.DOLocalMoveX(remainingPhrase.transform.localPosition.x - leftShift, STATIC_LYRIC_SHIFT_DURATION);
+                        remainingPhrase.transform.DOLocalMoveX(remainingPhrase.transform.localPosition.x - leftShift, StaticPhraseHelpers.STATIC_LYRIC_SHIFT_DURATION);
 
                     }
                     _rightEdges[harmonyIndex] -= leftShift;
@@ -190,7 +190,7 @@ namespace YARG.Gameplay.Player
                     foreach (var remainingPhrase in queue)
                     {
                         remainingPhrase.transform.DOLocalMoveX(remainingPhrase.transform.localPosition.x - leftShift,
-                            Mathf.Min(STATIC_LYRIC_SHIFT_DURATION, (float)leftmostPhraseElement.Duration));
+                            Mathf.Min(StaticPhraseHelpers.STATIC_LYRIC_SHIFT_DURATION, (float)leftmostPhraseElement.Duration));
 
                     }
                     _rightEdges[harmonyIndex] -= leftShift;
@@ -216,7 +216,7 @@ namespace YARG.Gameplay.Player
                     {
                         remainingPhrase.transform.DOLocalMoveX(
                             remainingPhrase.transform.localPosition.x - VocalLyricContainer.SMALL_GAP_PHRASE_SPACING,
-                            Mathf.Min(STATIC_LYRIC_SHIFT_DURATION, (float)leftmostPhraseElement.Duration));
+                            Mathf.Min(StaticPhraseHelpers.STATIC_LYRIC_SHIFT_DURATION, (float)leftmostPhraseElement.Duration));
 
                     }
                     break;
@@ -271,7 +271,7 @@ namespace YARG.Gameplay.Player
                         timeBetweenLyrics = StaticPhraseHelpers.GetTimeBetweenLyrics(next.Phrase, phrase.Phrase);
                     }
                 }
-                var shiftAmount = timeBetweenLyrics < StaticPhraseHelpers.SMALL_GAP_THRESHOLD ? VocalLyricContainer.NO_GAP_PHRASE_SPACING : VocalLyricContainer.SMALL_GAP_PHRASE_SPACING;
+                var shiftAmount = timeBetweenLyrics < StaticLyricConstants.SMALL_GAP_THRESHOLD ? VocalLyricContainer.NO_GAP_PHRASE_SPACING : VocalLyricContainer.SMALL_GAP_PHRASE_SPACING;
 
                 var newPhraseElement = _lyricContainer.TrySpawnStaticLyricPhrase(
                     phrase, _totalHarms, harmonyIndex, _rightEdges[harmonyIndex]);
