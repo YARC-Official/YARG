@@ -69,7 +69,7 @@ namespace YARG.Input.Bindings
                     ReusableControlBinding newBinding = info.Type switch
                     {
                         BindingType.Button or
-                        BindingType.IndividualButton or
+                        BindingType.ImpulseButton or
                         BindingType.DrumButton => new ReusableButtonBinding(binding, info),
                         BindingType.Axis => new ReusableAxisBinding(binding, info),
                         BindingType.Integer => new ReusableIntegerBinding(binding, info),

@@ -24,7 +24,7 @@ namespace YARG.Input.Bindings
         public ReusableButtonBindingSubtype Subtype => Info.Type switch
         {
             BindingType.Button => ReusableButtonBindingSubtype.Regular,
-            BindingType.IndividualButton => ReusableButtonBindingSubtype.Impulse,
+            BindingType.ImpulseButton => ReusableButtonBindingSubtype.Impulse,
             BindingType.DrumButton => ReusableButtonBindingSubtype.Drum,
             _ => throw new ArgumentOutOfRangeException($"Unexpected button binding type {Info.Type}")
         };

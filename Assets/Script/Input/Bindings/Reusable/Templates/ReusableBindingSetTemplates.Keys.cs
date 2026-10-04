@@ -40,7 +40,7 @@ namespace YARG.Input.Bindings
             { ControlStrings.KEYS_FIVE_LANE_BLUE,   new(ControlStrings.KEYS_FIVE_LANE_BLUE,     BindingType.Button,             (int)ProKeysAction.BlueKey) },
             { ControlStrings.KEYS_FIVE_LANE_ORANGE, new(ControlStrings.KEYS_FIVE_LANE_ORANGE,   BindingType.Button,             (int)ProKeysAction.OrangeKey) },
 
-            { ControlStrings.KEYS_STAR_POWER,       new(ControlStrings.KEYS_STAR_POWER,         BindingType.IndividualButton,   (int)ProKeysAction.StarPower) },
+            { ControlStrings.KEYS_STAR_POWER,       new(ControlStrings.KEYS_STAR_POWER,         BindingType.ImpulseButton,   (int)ProKeysAction.StarPower) },
             { ControlStrings.KEYS_TOUCH_EFFECTS,    new(ControlStrings.KEYS_TOUCH_EFFECTS,      BindingType.Axis,               (int)ProKeysAction.TouchEffects) },
 
         };
