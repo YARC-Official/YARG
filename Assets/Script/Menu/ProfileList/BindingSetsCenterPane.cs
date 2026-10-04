@@ -25,7 +25,7 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private ProfilesMenu _profilesMenu;
         [SerializeField]
-        private DummyControllerQuickBindDialogMenu _quickBindDialog;
+        private DummyControllerRecordDialogMenu _quickBindDialog;
         [SerializeField]
         private GameObject _contents;
         [SerializeField]
@@ -128,6 +128,7 @@ namespace YARG.Menu.ProfileList
                 if (dialog is not null)
                 {
                     await dialog.WaitUntilClosed();
+                    RefreshFromBindingSet(BindingSet);
                 }
             }
             else

@@ -199,14 +199,6 @@ namespace YARG.Input.Bindings
             }
         }
 
-        protected override bool IsControlActuated(InputControl<float> control)
-        {
-            float previousValue = control.ReadValueFromPreviousFrame();
-            float value = control.ReadValue();
-
-            return Math.Abs(value - previousValue) >= RuntimeControlBinding.AXIS_DELTA_THRESHOLD;
-        }
-
         protected override RuntimeSingleBinding<float> MakeRuntime(InputControl<float> control)
         {
             return new RuntimeSingleAxisBinding(control, this);

@@ -39,7 +39,7 @@ namespace YARG.Menu.ProfileList
         protected ReusableBindGroup _bindGroup;
         protected ProfilesMenu _profilesMenu;
         protected BindingSetsCenterPane _centerPane;
-        protected DummyControllerQuickBindDialogMenu _quickBindDialog;
+        protected DummyControllerRecordDialogMenu _quickBindDialog;
         private bool _interactable { get; set; }
 
         protected InputControl _dummyInputControl;
@@ -51,7 +51,7 @@ namespace YARG.Menu.ProfileList
             List<ControlItemInfo> controls,
             ProfilesMenu profilesMenu,
             BindingSetsCenterPane centerPane,
-            DummyControllerQuickBindDialogMenu quickBindDialog,
+            DummyControllerRecordDialogMenu quickBindDialog,
             bool interactable
         )
         {
@@ -171,7 +171,7 @@ namespace YARG.Menu.ProfileList
 
         public async void OnRecord()
         {
-            if (await SingleBinding.QuickBind(_centerPane.DummyController, _quickBindDialog))
+            if (await SingleBinding.QuickBind(_centerPane.DummyController, _quickBindDialog, Binding.Info.Type))
             {
                 var idx = _dropdownControls.FindIndex(c =>
                             string.Equals(

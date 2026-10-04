@@ -49,7 +49,7 @@ namespace YARG.Menu.ProfileList
         protected ProfilesMenu _profilesMenu;
         protected BindingSetsCenterPane _centerPane;
         protected BindingsCenterPaneSettingsPanel _settingsPanel;
-        protected DummyControllerQuickBindDialogMenu _quickBindDialog;
+        protected DummyControllerRecordDialogMenu _quickBindDialog;
         protected bool _interactable;
         protected bool _showLeftyNames;
 
@@ -57,7 +57,7 @@ namespace YARG.Menu.ProfileList
             ProfilesMenu profilesMenu,
             BindingSetsCenterPane centerPane,
             BindingsCenterPaneSettingsPanel settingsPanel,
-            DummyControllerQuickBindDialogMenu quickBindDialog,
+            DummyControllerRecordDialogMenu quickBindDialog,
             ReusableBindingSet bindingSet,
             TBinding binding,
             List<ControlItemInfo> controls
@@ -109,7 +109,7 @@ namespace YARG.Menu.ProfileList
         public async void AddNewBinding()
         {
             TSingle newBinding = new();
-            await newBinding.QuickBind(_centerPane.DummyController, _quickBindDialog); // Will return immediately if no dummy controller
+            await newBinding.QuickBind(_centerPane.DummyController, _quickBindDialog, Binding.Info.Type); // Will return immediately if no dummy controller
             Binding.AddBinding(newBinding);
             RefreshBindings();
         }

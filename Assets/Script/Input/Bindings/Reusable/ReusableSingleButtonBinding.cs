@@ -179,18 +179,6 @@ namespace YARG.Input.Bindings
             }
         }
 
-        protected override bool IsControlActuated(InputControl<float> control)
-        {
-            float previousValue = control.ReadValueFromPreviousFrame();
-            float value = control.ReadValue();
-            bool actuated = Math.Abs(value - previousValue) >= RuntimeControlBinding.AXIS_DELTA_THRESHOLD;
-
-            if (control is ButtonControl button)
-                return actuated && value >= button.pressPointOrDefault;
-            else
-                return actuated;
-        }
-
         protected override RuntimeSingleBinding<float> MakeRuntime(InputControl<float> control)
         {
             return new RuntimeSingleButtonBinding(control, this);

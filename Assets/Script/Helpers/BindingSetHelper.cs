@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Controls;
+using UnityEngine.InputSystem.XR;
 using YARG.Core.Game;
 using YARG.Input.Bindings;
 using YARG.Player;
-using System.Linq;
 
 namespace YARG.Helpers
 {
@@ -45,6 +48,68 @@ namespace YARG.Helpers
             }
 
             return (allUsers, activeUsers);
+        }
+
+        public static Func<InputControl, bool> GetQuickBindScreener(BindingType bindingType)
+        {
+            return bindingType switch
+            {
+                BindingType.Button or BindingType.IndividualButton or BindingType.DrumButton => IsButtonBeingQuickBound,
+                BindingType.Axis => IsAxisBeingQuickBound,
+                BindingType.Integer => IsIntegerBeingQuickBound,
+                _ => throw new ArgumentOutOfRangeException("Unexpected binding type")
+            };
+        }
+
+        public static string TrimControllerName(InputControl control, InputDevice controller)
+        {
+            return control.path[(controller.path.Length)..].TrimStart('/');
+        }
+
+        private static bool IsButtonBeingQuickBound(InputControl control) {
+            if (control is not InputControl<float> floatControl)
+            {
+                return false;
+            }
+
+            float previousValue = floatControl.ReadValueFromPreviousFrame();
+            float value = floatControl.ReadValue();
+            bool actuated = Math.Abs(value - previousValue) >= RuntimeControlBinding.AXIS_DELTA_THRESHOLD;
+
+            if (floatControl is ButtonControl button)
+            {
+                return actuated && value >= button.pressPointOrDefault;
+            }
+            else
+            {
+                return actuated;
+            }
+        }
+
+        private static bool IsAxisBeingQuickBound(InputControl control)
+        {
+            if (control is not InputControl<float> floatControl)
+            {
+                return false;
+            }
+
+            float previousValue = floatControl.ReadValueFromPreviousFrame();
+            float value = floatControl.ReadValue();
+
+            return Math.Abs(value - previousValue) >= RuntimeControlBinding.AXIS_DELTA_THRESHOLD;
+        }
+
+        private static bool IsIntegerBeingQuickBound(InputControl control)
+        {
+            if (control is not InputControl<int> integerControl)
+            {
+                return false;
+            }
+
+            float previousValue = integerControl.ReadValueFromPreviousFrame();
+            float value = integerControl.ReadValue();
+
+            return Math.Abs(value - previousValue) >= RuntimeIntegerBinding.INTEGER_DELTA_THRESHOLD;
         }
     }
 }

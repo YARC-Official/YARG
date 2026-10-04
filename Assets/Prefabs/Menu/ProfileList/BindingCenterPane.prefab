@@ -3655,7 +3655,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7666ce39360a4330a733067d9e66b929, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _localizationKey: Menu.ProfileList.QuickBind.Button
+  _localizationKey: Menu.ProfileList.QuickBind
 --- !u!114 &2302844888091306588 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1245898288579793007, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}

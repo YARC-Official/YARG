@@ -166,7 +166,7 @@ namespace YARG.Menu.Dialogs
                     _bindingTokenSource = new CancellationTokenSource();
                     highlight.gameObject.SetActive(true);
                     possibleControls =
-                        await InputControlBindingHelper.Instance.GetControl(Controller, _bindingTokenSource.Token);
+                        await InputControlBindingHelper.Instance.GetControl(Controller, _bindingTokenSource.Token, action.Type);
                 }
                 catch (OperationCanceledException)
                 {
@@ -182,26 +182,28 @@ namespace YARG.Menu.Dialogs
                 if (possibleControls.Count > 0)
                 {
                     // For now we just take the first thing actuated
-                    // TODO: Make this more robust
+                    // TODO: Make that more robust; the Record interface allows for selecting from multiple options
+
+                    var path = BindingSetHelper.TrimControllerName(possibleControls[0], Controller);
 
                     switch (action.Type)
                     {
                         case BindingType.Button:
                             var buttonBinding = _bindingSet.Bindings[action.Key] as ReusableButtonBinding;
                             buttonBinding.ClearBindings();
-                            var buttonConfig = new ReusableSingleButtonBindingConfig(_controllerFamily, possibleControls[0].path);
+                            var buttonConfig = new ReusableSingleButtonBindingConfig(_controllerFamily, path);
                             buttonBinding.AddBinding(new ReusableSingleButtonBinding(buttonConfig));
                             break;
                         case BindingType.IndividualButton or BindingType.DrumButton:
                             var impulseBinding = _bindingSet.Bindings[action.Key] as ReusableImpulseBinding;
                             impulseBinding.ClearBindings();
-                            var impulseConfig = new ReusableSingleButtonBindingConfig(_controllerFamily, possibleControls[0].path);
+                            var impulseConfig = new ReusableSingleButtonBindingConfig(_controllerFamily, path);
                             impulseBinding.AddBinding(new ReusableSingleButtonBinding(impulseConfig));
                             break;
                         case BindingType.Axis:
                             var axisBinding = _bindingSet.Bindings[action.Key] as ReusableAxisBinding;
                             axisBinding.ClearBindings();
-                            var axisConfig = new ReusableSingleAxisBindingConfig(_controllerFamily, possibleControls[0].path);
+                            var axisConfig = new ReusableSingleAxisBindingConfig(_controllerFamily, path);
                             axisBinding.AddBinding(new ReusableSingleAxisBinding(axisConfig));
                             break;
                         case BindingType.Integer:

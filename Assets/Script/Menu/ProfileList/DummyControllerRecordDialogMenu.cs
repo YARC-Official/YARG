@@ -5,6 +5,7 @@ using System.Threading;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Input;
 using YARG.Input.Bindings;
@@ -12,7 +13,7 @@ using YARG.Localization;
 
 namespace YARG.Menu.ProfileInfo
 {
-    public class DummyControllerQuickBindDialogMenu : MonoBehaviour
+    public class DummyControllerRecordDialogMenu : MonoBehaviour
     {
         private ActuationSettings _bindSettings = new();
         private InputControl _grabbedControl;
@@ -37,11 +38,11 @@ namespace YARG.Menu.ProfileInfo
         [SerializeField]
         private GameObject _controlEntryPrefab;
 
-        public async UniTask<bool> Show<TSingleState>(InputDevice controller, ReusableSingleBinding<TSingleState> single)
+        public async UniTask<bool> Show<TSingleState>(InputDevice controller, ReusableSingleBinding<TSingleState> single, BindingType bindingType)
             where TSingleState : struct
         {
-            _waitingText.text = Localize.KeyFormat("Menu.ProfileList.QuickBind.Waiting", controller.displayName);
-            _selectText.text = Localize.Key("Menu.ProfileList.QuickBind.Select");
+            _waitingText.text = Localize.KeyFormat("Menu.ProfileList.Record.Waiting", controller.displayName);
+            _selectText.text = Localize.Key("Menu.ProfileList.Record.Select");
 
             _grabbedControl = null;
             _possibleControls.Clear();
@@ -62,7 +63,7 @@ namespace YARG.Menu.ProfileInfo
 
             try
             {
-                var possibleControls = await InputControlBindingHelper.Instance.GetControl(controller, bindingToken, single);
+                var possibleControls = await InputControlBindingHelper.Instance.GetControl(controller, bindingToken, bindingType);
                 _waitingContainer.SetActive(false);
                 _controlChooseContainer.SetActive(true);
 
@@ -86,7 +87,7 @@ namespace YARG.Menu.ProfileInfo
                 }
 
                 // Add the binding
-                single.ControlPath = _grabbedControl.path[(controller.path.Length)..].TrimStart('/'); // Omit the controller name
+                single.ControlPath = BindingSetHelper.TrimControllerName(_grabbedControl, controller);
                 single.DisplayName = _grabbedControl.displayName;
                 single.SourceLayout = controller.layout;
 

@@ -22,7 +22,7 @@ namespace YARG.Input.Bindings
             Changed?.Invoke();
         }
 
-        protected InputActionInfo Info { get; }
+        public InputActionInfo Info { get; private set; }
 
         public ReusableControlBinding(InputActionInfo info)
         {
