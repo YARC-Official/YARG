@@ -148,8 +148,8 @@ namespace YARG.Gameplay.Visuals
         // This will be simplified later...
         public void JudgementPerfect()
         {
-            // Originally supposed to be PERFECT
-            _accuracy.SetText("PEFRECT");
+            // Originally supposed to be PEFRECT
+            _accuracy.SetText("PERFECT");
             StartCoroutine(FadeCoroutine());
         }
 
