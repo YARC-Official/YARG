@@ -96,7 +96,7 @@ namespace YARG.Menu.MusicLibrary
 
             SetMarqueeActive(selected && viewType is SongViewType);
 
-            if (viewType is SecondaryHeaderViewType)
+            if (viewType is SecondaryHeaderViewType && viewType.GetIcon() == null)
             {
                 SetIcon(_secondaryHeaderIcon);
             }

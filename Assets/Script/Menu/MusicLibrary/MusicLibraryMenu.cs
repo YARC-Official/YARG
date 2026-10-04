@@ -10,6 +10,8 @@ using YARG.Core.Audio;
 using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Core.Song;
+using YARG.Helpers;
+using YARG.Helpers.Extensions;
 using YARG.Localization;
 using YARG.Menu.Filters;
 using YARG.Menu.ListMenu;
@@ -717,7 +719,54 @@ namespace YARG.Menu.MusicLibrary
                 }
 
                 var secondaryAlbumSort = SettingsManager.Settings.SecondaryAlbumSort.Value;
-                if (includeSongs && SettingsManager.Settings.LibrarySort == SortAttribute.Artist &&
+                if (includeSongs && SettingsManager.Settings.LibrarySort == SortAttribute.Source)
+                {
+                    var players = PlayerContainer.Players
+                        .Where(player => !player.Profile.IsBot)
+                        .ToArray();
+                    Instrument intensityInstrument = players.Length == 1
+                        ? players[0].Profile.CurrentInstrument
+                        : Instrument.Band;
+                    string iconName = intensityInstrument switch
+                    {
+                        Instrument.Band => "band",
+                        Instrument.ProGuitar_22Fret => "realGuitar",
+                        Instrument.ProBass_22Fret => "realBass",
+                        _ => intensityInstrument.ToResourceName(),
+                    };
+                    string iconPath = $"InstrumentIcons[{iconName}]";
+
+                    var intensityGroups = displayedSongs
+                        .GroupBy(song => song.HasInstrument(intensityInstrument) &&
+                            song[intensityInstrument].IsActive()
+                                ? (int?) song[intensityInstrument].Intensity
+                                : null)
+                        .OrderBy(group => group.Key.HasValue ? 0 : 1)
+                        .ThenBy(group => group.Key)
+                        .ToArray();
+
+                    foreach (var intensityGroup in intensityGroups)
+                    {
+                        var songs = intensityGroup.OrderBy(song => song.Name).ToArray();
+                        string intensityLabel = intensityGroup.Key.HasValue
+                            ? FiltersMenu.GetIntensityLabel(intensityGroup.Key.Value)
+                            : Localize.Key(IntensityLabels.NoPartKey);
+                        var intensityHeader = new SecondaryHeaderViewType(
+                            intensityLabel, songs.Length, iconPath);
+                        list.Add(intensityHeader);
+                        int starsBeforeIntensity = sectionTotalStars;
+                        bool intensityHasNonGoldSong = false;
+                        foreach (var song in songs)
+                        {
+                            AddSong(song);
+                            intensityHasNonGoldSong |=
+                                SongViewType.GetStarAmountForSong(song) != StarAmount.StarGold;
+                        }
+                        intensityHeader.TotalStarsCount = sectionTotalStars - starsBeforeIntensity;
+                        intensityHeader.HasGoldStars = !intensityHasNonGoldSong;
+                    }
+                }
+                else if (includeSongs && SettingsManager.Settings.LibrarySort == SortAttribute.Artist &&
                     secondaryAlbumSort != SecondaryAlbumSortMode.Off)
                 {
                     IEnumerable<IGrouping<SortString, SongEntry>> albumGroups = displayedSongs

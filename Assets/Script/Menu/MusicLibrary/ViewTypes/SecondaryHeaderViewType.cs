@@ -1,4 +1,7 @@
 using Cysharp.Text;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.AddressableAssets;
 using YARG.Helpers;
 using YARG.Menu.Data;
 
@@ -12,6 +15,8 @@ namespace YARG.Menu.MusicLibrary
     {
         private readonly string _text;
         private readonly int _songCount;
+        private readonly string _iconPath;
+        private static readonly Dictionary<string, Sprite> IconCache = new();
 
         public override BackgroundType Background => BackgroundType.SecondaryHeader;
         public override bool IsSelectable => false;
@@ -20,10 +25,26 @@ namespace YARG.Menu.MusicLibrary
         public int TotalStarsCount { get; set; }
         public bool HasGoldStars { get; set; }
 
-        public SecondaryHeaderViewType(string text, int songCount)
+        public SecondaryHeaderViewType(string text, int songCount, string iconPath = null)
         {
             _text = text;
             _songCount = songCount;
+            _iconPath = iconPath;
+        }
+
+#nullable enable
+        public override Sprite? GetIcon()
+#nullable disable
+        {
+            if (string.IsNullOrEmpty(_iconPath))
+                return null;
+
+            if (!IconCache.TryGetValue(_iconPath, out var icon))
+            {
+                IconCache[_iconPath] = icon = Addressables.LoadAssetAsync<Sprite>(_iconPath).WaitForCompletion();
+            }
+
+            return icon;
         }
 
         public override string GetPrimaryText(bool selected)
