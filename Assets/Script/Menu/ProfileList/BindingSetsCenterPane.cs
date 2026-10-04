@@ -71,6 +71,7 @@ namespace YARG.Menu.ProfileList
                 {
                     _dummyController = value;
                     DummyControllerChanged?.Invoke();
+                    _settingsPanel.Refresh();
                 }
             }
         }

@@ -16,6 +16,8 @@ namespace YARG.Menu.ProfileList
     public class BindingsCenterPaneSettingsPanel : MonoBehaviour
     {
         [SerializeField]
+        private Button _quickBindButton;
+        [SerializeField]
         private GameObject _leftyNamesGroup;
         [SerializeField]
         private Toggle _leftyToggle;
@@ -56,6 +58,8 @@ namespace YARG.Menu.ProfileList
         }
         public void Refresh()
         {
+            _quickBindButton.interactable = !_centerPane.BindingSet.IsHardcoded && _centerPane.DummyController is not null;
+
             _leftyToggle.SetIsOnWithoutNotify(_centerPane.ShowLeftyNames);
 
             var bindingSet = _centerPane.BindingSet;
