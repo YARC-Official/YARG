@@ -18,7 +18,7 @@ namespace YARG.Input.Bindings
 
             { ControlStrings.GUITAR_STRUM_UP,          new(ControlStrings.GUITAR_STRUM_UP,        ControlStrings.GUITAR_STRUM_DOWN,  BindingType.Button,             (int) GuitarAction.StrumUp) },
             { ControlStrings.GUITAR_STRUM_DOWN,        new(ControlStrings.GUITAR_STRUM_DOWN,      ControlStrings.GUITAR_STRUM_UP,    BindingType.Button,             (int) GuitarAction.StrumDown) },
-            { ControlStrings.GUITAR_STAR_POWER,        new(ControlStrings.GUITAR_STAR_POWER,      BindingType.IndividualButton,   (int) GuitarAction.StarPower) },
+            { ControlStrings.GUITAR_STAR_POWER,        new(ControlStrings.GUITAR_STAR_POWER,      BindingType.ImpulseButton,   (int) GuitarAction.StarPower) },
             { ControlStrings.GUITAR_WHAMMY,            new(ControlStrings.GUITAR_WHAMMY,          BindingType.Axis,               (int) GuitarAction.Whammy) },
 
             { ControlStrings.FIVE_FRET_SOLO_GREEN,     new(ControlStrings.FIVE_FRET_SOLO_GREEN,   BindingType.Button,             (int) GuitarAction.SoloGreenFret,     false) },
