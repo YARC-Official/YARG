@@ -2,16 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Utilities;
+using UnityEngine.InputSystem.XR;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Game;
 using YARG.Core.Logging;
-using YARG.Input.Serialization;
-using YARG.Player;
-using YARG.Input.Bindings;
-using UnityEngine.InputSystem.Utilities;
-using YARG.Menu.ProfileList;
 using YARG.Helpers;
+using YARG.Input.Bindings;
+using YARG.Input.Serialization;
+using YARG.Menu.ProfileList;
+using YARG.Player;
 
 namespace YARG.Input
 {
@@ -435,34 +436,37 @@ namespace YARG.Input
         }
         */
 
-        public bool SetDefaultBinds(InputDevice controller)
+        public (ReusableBindingSet gameplay, ReusableBindingSet menu) GetDefaultBindingSetForGamepad(GamepadBindingMode bindingMode, GameMode gameMode)
         {
-            if (!ContainsController(controller))
+            ReusableBindingSet gameplay = null;
+            ReusableBindingSet menu = null;
+
+            ReusableBindingSet GetPreferenceOrDefault(GameMode mode, ReusableBindingSet @default)
             {
-                return false;
+                return _preferredBindsByContext.GetValueOrDefault((mode, ControllerFamily.Gamepad), @default);
             }
 
-            foreach (var bindings in _preferredBindsByContext.Values)
+            switch (bindingMode)
             {
-                // bindings.SetDefaultBindings(controller); TODO-FRICK
+                case GamepadBindingMode.Gamepad:
+                    gameplay = GetBindingSetForControllerFamily(ControllerFamily.Gamepad, false);
+                    menu = GetBindingSetForControllerFamily(ControllerFamily.Gamepad, true);
+                    break;
+                case GamepadBindingMode.CrkdGuitar_Mode1:
+                    gameplay = GetPreferenceOrDefault(gameMode, gameMode is GameMode.FiveFretGuitar ? ReusableBindingSetDefaults.DefaultCrkdMode1Gameplay : null);
+                    menu = GetPreferenceOrDefault(GameMode.Menu, ReusableBindingSetDefaults.DefaultCrkdMode1Menu);
+                    break;
+                case GamepadBindingMode.CrkdGuitar_Mode1_Fw30:
+                    gameplay = GetPreferenceOrDefault(gameMode, gameMode is GameMode.FiveFretGuitar ? ReusableBindingSetDefaults.DefaultCrkdMode1Fw30Gameplay : null);
+                    menu = GetPreferenceOrDefault(GameMode.Menu, ReusableBindingSetDefaults.DefaultCrkdMode1Menu);
+                    break;
+                case GamepadBindingMode.WiitarThing_Guitar:
+                    gameplay = GetPreferenceOrDefault(gameMode, gameMode is GameMode.FiveFretGuitar ? ReusableBindingSetDefaults.DefaultWiitarThingGuitarGameplay : null);
+                    menu = GetPreferenceOrDefault(GameMode.Menu, ReusableBindingSetDefaults.DefaultWiitarThingGuitarMenu);
+                    break;
             }
 
-            return true;
-        }
-
-        public bool SetDefaultBinds(Gamepad gamepad, GamepadBindingMode mode)
-        {
-            if (!ContainsController(gamepad))
-            {
-                return false;
-            }
-
-            foreach (var bindings in _preferredBindsByContext.Values)
-            {
-                // bindings.SetDefaultBindings(gamepad, mode); TODO-FRICK
-            }
-
-            return true;
+            return (gameplay, menu);
         }
 
         public void OnControllerAdded(InputDevice controller)
@@ -626,9 +630,6 @@ namespace YARG.Input
             var family = LayoutHelper.InputDeviceToControllerFamily(controller);
             var mode = menu ? GameMode.Menu : Profile.GameMode;
 
-            // TODO-FRICK: Implement Profile-level device-specific overrides (keyed by name or hash, tbd) to
-            // check before general (profile,mode,family)-wide preferred bindings
-
             if (_preferredBindsByContext.TryGetValue((mode, family), out var preferredBindingSet))
             {
                 return preferredBindingSet;
@@ -654,6 +655,24 @@ namespace YARG.Input
                         break;
                 }
 
+                return defaults.First();
+            }
+
+            return null;
+        }
+
+        private ReusableBindingSet GetBindingSetForControllerFamily(ControllerFamily family, bool menu)
+        {
+            var mode = menu ? GameMode.Menu : Profile.GameMode;
+
+            if (_preferredBindsByContext.TryGetValue((mode, family), out var preferredBindingSet))
+            {
+                return preferredBindingSet;
+            }
+
+            var defaults = BindingsContainer.GetBindingSetsForControllerInMode(family, mode);
+            if (defaults.Count > 0)
+            {
                 return defaults.First();
             }
 

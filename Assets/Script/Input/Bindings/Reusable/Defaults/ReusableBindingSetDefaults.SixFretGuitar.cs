@@ -59,14 +59,14 @@ namespace YARG.Input.Bindings
                 ControlStrings.GUITAR_STRUM_DOWN,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.SIX_FRET_GUITAR[ControlStrings.GUITAR_STRUM_DOWN],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, ControlStrings.DPAD_DOWN)
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, ControlStrings.GAMEPAD_DPAD_DOWN)
                 )
             },
             {
                 ControlStrings.GUITAR_STRUM_UP,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.SIX_FRET_GUITAR[ControlStrings.GUITAR_STRUM_UP],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, ControlStrings.DPAD_UP)
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, ControlStrings.GAMEPAD_DPAD_UP)
                 )
             },
 
@@ -147,14 +147,14 @@ namespace YARG.Input.Bindings
                 ControlStrings.MENU_UP,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.MENU[ControlStrings.MENU_UP],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.SixFretGuitar, ControlStrings.DPAD_UP)
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.SixFretGuitar, ControlStrings.GAMEPAD_DPAD_UP)
                 )
             },
             {
                 ControlStrings.MENU_DOWN,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.MENU[ControlStrings.MENU_DOWN],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.SixFretGuitar, ControlStrings.DPAD_DOWN)
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.SixFretGuitar, ControlStrings.GAMEPAD_DPAD_DOWN)
                 )
             },
 
@@ -162,14 +162,14 @@ namespace YARG.Input.Bindings
                 ControlStrings.MENU_LEFT,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.MENU[ControlStrings.MENU_UP],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, ControlStrings.DPAD_LEFT)
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, ControlStrings.GAMEPAD_DPAD_LEFT)
                 )
             },
             {
                 ControlStrings.MENU_RIGHT,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.MENU[ControlStrings.MENU_DOWN],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, ControlStrings.DPAD_RIGHT)
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, ControlStrings.GAMEPAD_DPAD_RIGHT)
                 )
             },
         };

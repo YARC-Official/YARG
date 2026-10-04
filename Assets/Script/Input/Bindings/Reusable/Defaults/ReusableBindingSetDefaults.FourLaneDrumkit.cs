@@ -148,7 +148,7 @@ namespace YARG.Input.Bindings
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.MENU[ControlStrings.MENU_UP],
                     new List<ReusableSingleButtonBindingConfig>() {
-                        new (ControllerFamily.FourLaneDrumkit, ControlStrings.DPAD_UP),
+                        new (ControllerFamily.FourLaneDrumkit, ControlStrings.GAMEPAD_DPAD_UP),
                         new (ControllerFamily.FourLaneDrumkit, nameof(FourLaneDrumkit.yellowPad)),
                     }
                 )
@@ -158,7 +158,7 @@ namespace YARG.Input.Bindings
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.MENU[ControlStrings.MENU_DOWN],
                     new List<ReusableSingleButtonBindingConfig>() {
-                        new (ControllerFamily.FourLaneDrumkit, ControlStrings.DPAD_DOWN),
+                        new (ControllerFamily.FourLaneDrumkit, ControlStrings.GAMEPAD_DPAD_DOWN),
                         new (ControllerFamily.FourLaneDrumkit, nameof(FourLaneDrumkit.bluePad)),
                     }
                 )
@@ -167,14 +167,14 @@ namespace YARG.Input.Bindings
                 ControlStrings.MENU_LEFT,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.MENU[ControlStrings.MENU_LEFT],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FourLaneDrumkit, ControlStrings.DPAD_LEFT)
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FourLaneDrumkit, ControlStrings.GAMEPAD_DPAD_LEFT)
                 )
             },
             {
                 ControlStrings.MENU_RIGHT,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.MENU[ControlStrings.MENU_RIGHT],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FourLaneDrumkit, ControlStrings.DPAD_RIGHT)
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FourLaneDrumkit, ControlStrings.GAMEPAD_DPAD_RIGHT)
                 )
             },
         };
@@ -229,28 +229,28 @@ namespace YARG.Input.Bindings
                 ControlStrings.MENU_UP,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.MENU[ControlStrings.MENU_UP],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FourLaneDrumkit, ControlStrings.DPAD_UP)
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FourLaneDrumkit, ControlStrings.GAMEPAD_DPAD_UP)
                 )
             },
             {
                 ControlStrings.MENU_DOWN,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.MENU[ControlStrings.MENU_DOWN],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FourLaneDrumkit, ControlStrings.DPAD_DOWN)
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FourLaneDrumkit, ControlStrings.GAMEPAD_DPAD_DOWN)
                 )
             },
             {
                 ControlStrings.MENU_LEFT,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.MENU[ControlStrings.MENU_LEFT],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FourLaneDrumkit, ControlStrings.DPAD_LEFT)
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FourLaneDrumkit, ControlStrings.GAMEPAD_DPAD_LEFT)
                 )
             },
             {
                 ControlStrings.MENU_RIGHT,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.MENU[ControlStrings.MENU_RIGHT],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FourLaneDrumkit, ControlStrings.DPAD_RIGHT)
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FourLaneDrumkit, ControlStrings.GAMEPAD_DPAD_RIGHT)
                 )
             },
         };
