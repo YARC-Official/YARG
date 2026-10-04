@@ -4,6 +4,7 @@ using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using UnityEngine.Windows;
 
@@ -17,6 +18,8 @@ namespace YARG.Menu.Tooltips
         private TextMeshProUGUI tooltipTextPanel;
 
         private TooltipTrigger _currentTrigger;
+        private Vector2 _pointerPosition;
+
 
         public void Show(string title, string text)
         {
@@ -29,8 +32,10 @@ namespace YARG.Menu.Tooltips
             Show(string.Empty, string.Empty);
         }
 
-        public void Enter(TooltipTrigger trigger)
+        public void Enter(TooltipTrigger trigger, PointerEventData eventData)
         {
+            _pointerPosition = eventData.position;
+
             if (trigger == _currentTrigger)
             {
                 return;
@@ -42,20 +47,54 @@ namespace YARG.Menu.Tooltips
 
         public void Exit(TooltipTrigger trigger, PointerEventData eventData)
         {
+            _pointerPosition = eventData.position;
+
             if (_currentTrigger != trigger)
             {
                 return;
             }
 
-            _currentTrigger = FindTooltipTrigger(eventData);
+            Refresh();
+        }
 
-            if (_currentTrigger is null)
+        public void Refresh()
+        {
+            if (EventSystem.current is null)
+            {
+                Clear();
+                _currentTrigger = null;
+                return;
+            }
+
+            var pointerEventData = new PointerEventData(EventSystem.current)
+            {
+                position = _pointerPosition
+            };
+
+            var trigger = FindTooltipTrigger(pointerEventData);
+
+            if (trigger == _currentTrigger)
+            {
+                return;
+            }
+
+            _currentTrigger = trigger;
+
+            if (trigger is null)
             {
                 Clear();
             }
             else
             {
-                _currentTrigger.Show();
+                trigger.Show();
+            }
+        }
+
+        public void TriggerDisabled(TooltipTrigger trigger)
+        {
+            if (_currentTrigger == trigger)
+            {
+                Refresh();
             }
         }
 

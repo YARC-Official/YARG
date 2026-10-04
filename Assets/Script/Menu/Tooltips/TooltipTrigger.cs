@@ -43,12 +43,17 @@ namespace YARG.Menu.Tooltips
 
         public void OnPointerEnter(PointerEventData eventData)
         {
-            _coordinator.Enter(this);
+            _coordinator.Enter(this, eventData);
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
             _coordinator.Exit(this, eventData);
+        }
+
+        private void OnDisable()
+        {
+            _coordinator?.TriggerDisabled(this);
         }
     }
 }
