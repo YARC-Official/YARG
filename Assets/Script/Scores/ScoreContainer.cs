@@ -227,17 +227,6 @@ namespace YARG.Scores
                 BandScore = gameRecord.BandScore,
                 CompletedAt = DateTime.Now,
                 Source = CareerCompletionSource.SingleSong,
-                PlayerScores = playerEntries.Select(entry => new CareerPlayerScoreCommit
-                {
-                    ProfileId = entry.PlayerId,
-                    PlayerScoreRecordId = entry.Id,
-                    Instrument = entry.Instrument,
-                    Difficulty = entry.Difficulty,
-                    Stars = entry.Stars,
-                    Score = entry.Score,
-                    Percent = entry.GetPercent(),
-                    IsFc = entry.IsFc,
-                }).ToList(),
             };
 
             Careers.CommitSongCompletion(commit);

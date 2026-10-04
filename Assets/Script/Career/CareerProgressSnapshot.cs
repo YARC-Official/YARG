@@ -10,7 +10,6 @@ namespace YARG.Career
         public int CareerSaveId;
 
         public List<CareerSongCompletions> Completions = new();
-        public List<CareerSongCompletionScores> CompletionScores = new();
         public List<CareerTierProgress> TierProgress = new();
     }
 }

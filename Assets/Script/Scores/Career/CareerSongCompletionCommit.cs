@@ -1,25 +1,8 @@
 using System;
-using System.Collections.Generic;
-using YARG.Core;
-using YARG.Core.Game;
 
 namespace YARG.Scores
 {
-    // One player's score within a career completion commit.
-    public class CareerPlayerScoreCommit
-    {
-        public Guid ProfileId;
-        public int PlayerScoreRecordId;
-        public Instrument Instrument;
-        public Difficulty Difficulty;
-        public StarAmount Stars;
-        public int Score;
-        public float Percent;
-        public bool IsFc;
-    }
-
-    // Everything needed to commit a single career song completion (plus the scores that back it).
-    // A score counts toward career only if it is linked by a committed career completion row.
+    // Everything needed to commit a single career song completion.
     public class CareerSongCompletionCommit
     {
         public int CareerSaveId;
@@ -34,6 +17,5 @@ namespace YARG.Scores
         public int BandScore;
         public DateTime CompletedAt;
         public CareerCompletionSource Source;
-        public IReadOnlyList<CareerPlayerScoreCommit> PlayerScores;
     }
 }

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using SQLite;
 using YARG.Career;
-using YARG.Core.Logging;
 
 namespace YARG.Scores
 {
@@ -18,45 +17,10 @@ namespace YARG.Scores
 
         public void Initialize()
         {
-            MigrateDriftedTables();
-
             _db.CreateTable<CareerSaves>();
             _db.CreateTable<CareerSaveProfiles>();
             _db.CreateTable<CareerSongCompletions>();
-            _db.CreateTable<CareerSongCompletionScores>();
             _db.CreateTable<CareerTierProgress>();
-        }
-
-        // The career tables have never had data written to them (no write path existed before the
-        // career feature). If a table with an outdated schema exists and is empty, drop it so
-        // CreateTable recreates it with the current schema.
-        private void MigrateDriftedTables()
-        {
-            DropIfEmpty("CareerSaves");
-            DropIfEmpty("CareerSaveProfiles");
-            DropIfEmpty("CareerSongCompletions");
-            DropIfEmpty("CareerTierProgress");
-        }
-
-        private void DropIfEmpty(string table)
-        {
-            var exists = _db.ExecuteScalar<int>(
-                "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = ?", table);
-            if (exists == 0)
-            {
-                return;
-            }
-
-            var rows = _db.ExecuteScalar<int>($"SELECT COUNT(*) FROM {table}");
-            if (rows > 0)
-            {
-                YargLogger.LogFormatError(
-                    "Career: table {0} exists with data but has an outdated schema. Manual migration required.",
-                    table);
-                return;
-            }
-
-            _db.Execute($"DROP TABLE {table}");
         }
 
         #region Reads
@@ -85,8 +49,6 @@ namespace YARG.Scores
             {
                 CareerSaveId = careerSaveId,
                 Completions = GetSongCompletions(careerSaveId),
-                CompletionScores = _db.Query<CareerSongCompletionScores>(
-                    "SELECT * FROM CareerSongCompletionScores WHERE CareerSaveId = ?", careerSaveId),
                 TierProgress = GetTierProgress(careerSaveId),
             };
         }
@@ -186,8 +148,7 @@ namespace YARG.Scores
         #region Commits
 
         /// <summary>
-        /// Commit a single song completion: one CareerSongCompletions row plus one
-        /// CareerSongCompletionScores row per player, in a single transaction.
+        /// Commit a single song completion in a transaction.
         /// Replays insert new rows on purpose; star aggregation uses best-per-song so extra rows
         /// never farm progress.
         /// </summary>
@@ -212,23 +173,6 @@ namespace YARG.Scores
             _db.RunInTransaction(() =>
             {
                 _db.Insert(completion);
-
-                foreach (var playerScore in commit.PlayerScores ?? Array.Empty<CareerPlayerScoreCommit>())
-                {
-                    _db.Insert(new CareerSongCompletionScores
-                    {
-                        CareerSongCompletionId = completion.Id,
-                        CareerSaveId = commit.CareerSaveId,
-                        ProfileId = playerScore.ProfileId,
-                        PlayerScoreRecordId = playerScore.PlayerScoreRecordId,
-                        Instrument = playerScore.Instrument,
-                        Difficulty = playerScore.Difficulty,
-                        Stars = playerScore.Stars,
-                        Score = playerScore.Score,
-                        Percent = playerScore.Percent,
-                        IsFc = playerScore.IsFc,
-                    });
-                }
 
                 _db.Execute("UPDATE CareerSaves SET LastPlayedAt = ? WHERE Id = ?",
                     DateTime.Now, commit.CareerSaveId);
