@@ -94,7 +94,7 @@ namespace YARG.Input
             }
         }
 
-        public async UniTask<List<InputControl>> GetControl(InputDevice controller, CancellationToken token, ReusableSingleBinding singleBinding)
+        public async UniTask<List<InputControl>> GetControl(InputDevice controller, CancellationToken token, ReusableSingleBinding singleBinding = null)
         {
             _singleBinding = singleBinding;
             _dummyController = controller;
@@ -153,7 +153,7 @@ namespace YARG.Input
             foreach (var control in controller.allControls)
             {
                 // Ignore disallowed and inactive controls
-                if (!ControlAllowed(control) || !_singleBinding.IsControlBeingQuickBound(control))
+                if (!ControlAllowed(control) || !(_singleBinding is not null && _singleBinding.IsControlBeingQuickBound(control)))
                 {
                     continue;
                 }

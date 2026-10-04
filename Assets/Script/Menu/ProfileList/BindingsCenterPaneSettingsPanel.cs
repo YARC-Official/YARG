@@ -58,7 +58,9 @@ namespace YARG.Menu.ProfileList
         }
         public void Refresh()
         {
-            _quickBindButton.interactable = !_centerPane.BindingSet.IsHardcoded && _centerPane.DummyController is not null;
+            _quickBindButton.interactable = _centerPane.BindingSet is not null &&
+                !_centerPane.BindingSet.IsHardcoded &&
+                _centerPane.DummyController is not null;
 
             _leftyToggle.SetIsOnWithoutNotify(_centerPane.ShowLeftyNames);
 

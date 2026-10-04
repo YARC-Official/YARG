@@ -9,11 +9,13 @@ using UnityEngine.Serialization;
 using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Logging;
+using YARG.Helpers;
 using YARG.Input;
 using YARG.Input.Bindings;
 using YARG.Localization;
 using YARG.Menu.Data;
 using YARG.Menu.Persistent;
+using YARG.Menu.ProfileList;
 using YARG.Player;
 
 namespace YARG.Menu.Dialogs
@@ -29,10 +31,21 @@ namespace YARG.Menu.Dialogs
         [SerializeField]
         protected Image[] _keyHighlights;
 
-        protected InputDevice   _device;
-        protected YargPlayer    _player;
-        protected ColoredButton _startButton;
-        protected ColoredButton _cancelButton;
+        protected InputDevice           _controller
+        {
+            get => _controller;
+            set
+            {
+                _controller = value;
+                if (value is not null) {
+                    _controllerFamily = LayoutHelper.LayoutStringToControllerFamily(value.layout);
+                }
+            }
+        }
+        protected ControllerFamily      _controllerFamily;
+        protected ReusableBindingSet    _bindingSet;
+        protected ColoredButton         _startButton;
+        protected ColoredButton         _cancelButton;
 
         protected GameMode _mode;
 
@@ -40,7 +53,7 @@ namespace YARG.Menu.Dialogs
         protected State                   _state;
         protected ActuationSettings       _bindSettings    = new();
 
-        protected BindingCollection _bindingCollection;
+        protected bool _lefty;
 
         protected abstract (string initial, string complete) BindingMessages { get; set; }
 
@@ -64,12 +77,11 @@ namespace YARG.Menu.Dialogs
             _state = State.Starting;
         }
 
-        public void SetParameters((InputDevice device, YargPlayer player, GameMode mode) parameters)
+        public void SetParameters((ReusableBindingSet bindingSet, InputDevice controller, bool lefty) parameters)
         {
-            _device = parameters.device;
-            _player = parameters.player;
-            // _bindingCollection = _player.DeviceInfo[(_player.Profile.GameMode, _device.layout)]; TODO
-            _mode = parameters.mode;
+            _controller = parameters.controller;
+            _bindingSet = parameters.bindingSet;
+            _lefty = parameters.lefty;
         }
 
         public async void OnStartButtonPressed()
@@ -81,14 +93,12 @@ namespace YARG.Menu.Dialogs
                 return;
             }
 
-            var gameMode = _player.Profile.GameMode;
+            var gameMode = _bindingSet.Mode;
 
             // Dim the start button, make it inactive, then call the binding loop
             var button = _startButton.gameObject.GetComponentInChildren<Button>();
             button.interactable = false;
             button.image.color = Color.gray;
-
-            // _player.DeviceInfo.ClearBindingsForController(_device, false); TODO: Delete?
 
             _cancelButton.Text.text = Localize.Key("Menu.Dialog.FriendlyBindingDialog.Skip");
             bool success;
@@ -124,16 +134,18 @@ namespace YARG.Menu.Dialogs
         {
             _state = State.Waiting;
 
-            foreach (var bind in _bindingCollection)
+            var template = ReusableBindingSetTemplates.GetTemplate(mode);
+
+            foreach (var action in template.Values)
             {
                 _state = State.Waiting;
                 // Get the key highlight
-                var key = _player.Profile.LeftyFlip ? bind.NameLefty : bind.Name;
+                var key = _lefty ? action.LeftyLocalizationKey : action.Key;
 
                 CheckForModeSwitch(key, mode);
 
-                // Skip bindings not relevant to this dialog
-                if (!IsKeyValid(mode, key))
+                // Skip unnecessary bindings and those not relevant to this dialog
+                if (!action.QuickBind || !IsKeyValid(mode, key))
                 {
                     continue;
                 }
@@ -153,7 +165,7 @@ namespace YARG.Menu.Dialogs
                     _bindingTokenSource = new CancellationTokenSource();
                     highlight.gameObject.SetActive(true);
                     possibleControls =
-                        await InputControlBindingHelper.Instance.GetControl(_player, _bindingTokenSource.Token, bind);
+                        await InputControlBindingHelper.Instance.GetControl(_controller, _bindingTokenSource.Token);
                 }
                 catch (OperationCanceledException)
                 {
@@ -162,7 +174,7 @@ namespace YARG.Menu.Dialogs
 
                 if (possibleControls.Count == 0 && !_bindingTokenSource.IsCancellationRequested)
                 {
-                    YargLogger.LogWarning($"Failed to bind {bind.Name}");
+                    YargLogger.LogWarning($"Failed to bind {action.Key}");
                     continue;
                 }
 
@@ -170,7 +182,36 @@ namespace YARG.Menu.Dialogs
                 {
                     // For now we just take the first thing actuated
                     // TODO: Make this more robust
-                    bind.AddControl(_bindSettings, possibleControls[0]);
+
+                    switch (action.Type)
+                    {
+                        case BindingType.Button:
+                            var buttonBinding = _bindingSet.Bindings[action.Key] as ReusableButtonBinding;
+                            buttonBinding.ClearBindings();
+                            var buttonConfig = new ReusableSingleButtonBindingConfig(_controllerFamily, possibleControls[0].path);
+                            buttonBinding.AddBinding(new ReusableSingleButtonBinding(buttonConfig));
+                            break;
+                        case BindingType.IndividualButton or BindingType.DrumButton:
+                            var impulseBinding = _bindingSet.Bindings[action.Key] as ReusableImpulseBinding;
+                            impulseBinding.ClearBindings();
+                            var impulseConfig = new ReusableSingleButtonBindingConfig(_controllerFamily, possibleControls[0].path);
+                            impulseBinding.AddBinding(new ReusableSingleButtonBinding(impulseConfig));
+                            break;
+                        case BindingType.Axis:
+                            var axisBinding = _bindingSet.Bindings[action.Key] as ReusableAxisBinding;
+                            axisBinding.ClearBindings();
+                            var axisConfig = new ReusableSingleAxisBindingConfig(_controllerFamily, possibleControls[0].path);
+                            axisBinding.AddBinding(new ReusableSingleAxisBinding(axisConfig));
+                            break;
+                        case BindingType.Integer:
+                            var integerBinding = _bindingSet.Bindings[action.Key] as ReusableIntegerBinding;
+                            integerBinding.ClearBindings();
+                            integerBinding.AddBinding(new ReusableSingleIntegerBinding());
+                            break;
+                        default:
+                            YargLogger.LogError("Unexpected binding type");
+                            continue;
+                    }
                 }
 
                 // If we ended up in the done state the dialog is being destroyed, so we shouldn't
@@ -265,7 +306,7 @@ namespace YARG.Menu.Dialogs
                 return key;
             }
 
-            YargLogger.LogWarning($"Unsupported game mode for friendly binding: {_player.Profile.GameMode}");
+            YargLogger.LogWarning($"Unsupported game mode for friendly binding: {_bindingSet.Mode}");
             return null;
         }
 

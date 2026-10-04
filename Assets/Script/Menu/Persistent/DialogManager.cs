@@ -9,6 +9,7 @@ using YARG.Menu.Data;
 using YARG.Menu.Dialogs;
 using YARG.Player;
 using YARG.Menu.MusicLibrary;
+using YARG.Input.Bindings;
 
 namespace YARG.Menu.Persistent
 {
@@ -92,35 +93,9 @@ namespace YARG.Menu.Persistent
             return dialog;
         }
 
-        public FriendlyBindingDialog ShowFriendlyBindingDialog(YargProfile profile, GameMode gameMode)
+        public FriendlyBindingDialog ShowFriendlyBindingDialog(ReusableBindingSet bindingSet, InputDevice controller, bool lefty)
         {
-            YargPlayer player = null;
-            var players = PlayerContainer.Players;
-            foreach (var p in players)
-            {
-                if (p.Profile.Id == profile.Id)
-                {
-                    player = p;
-                    break;
-                }
-            }
-
-            if (player == null)
-            {
-                ShowMessage("Error", "Player not found for this profile. Please report on Discord.");
-                return null;
-            }
-
-            if (player.DeviceInfo.Controllers.Count != 1)
-            {
-                ShowMessage("Not Supported",
-                    "Quick binding is currently only supported for profiles with exactly one input device.");
-                return null;
-            }
-
-            var device = player.DeviceInfo.Controllers[0];
-
-            var prefab = gameMode switch
+            var prefab = bindingSet.Mode switch
             {
                 GameMode.ProKeys        => _friendlyKeysBindingDialog,
                 GameMode.FourLaneDrums  => _friendlyDrumsBindingDialog,
@@ -136,7 +111,7 @@ namespace YARG.Menu.Persistent
             }
 
             var dialog = ShowDialog(prefab);
-            dialog.SetParameters((device, player, gameMode));
+            dialog.SetParameters((bindingSet, controller, lefty));
             dialog.Initialize();
             return dialog;
         }

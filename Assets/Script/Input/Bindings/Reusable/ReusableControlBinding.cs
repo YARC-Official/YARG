@@ -26,7 +26,7 @@ namespace YARG.Input.Bindings
 
         public ReusableControlBinding(InputActionInfo info)
         {
-            Name = Localize.Key("Bindings", info.LocalizationKey);
+            Name = Localize.Key("Bindings", info.Key);
             NameLefty = Localize.Key("Bindings", info.LeftyLocalizationKey);
             Action = info.Action;
             Info = info;
@@ -115,6 +115,14 @@ namespace YARG.Input.Bindings
             single.Changed -= NotifyChanged;
             _bindings.Remove(single);
             NotifyChanged();
+        }
+
+        public void ClearBindings()
+        {
+            foreach (var single in _bindings)
+            {
+                RemoveBinding(single);
+            }
         }
     }
 }

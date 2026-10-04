@@ -21,18 +21,23 @@ namespace YARG.Input.Bindings
     {
         public BindingType Type { get; }
         public int Action { get; }
-        public string LocalizationKey { get; }
+        public string Key { get; }
         public string LeftyLocalizationKey { get; }
 
-        public InputActionInfo(string localizationKey, BindingType type, int action)
-            : this(localizationKey, localizationKey, type, action) { }
+        // Whether to prompt for this action during quick-binding. True by default; set to false for unnecessary
+        // actions like solo frets
+        public bool QuickBind { get; }
 
-        public InputActionInfo(string localizationKey, string leftyLocalizationKey, BindingType type, int action)
+        public InputActionInfo(string localizationKey, BindingType type, int action, bool quickBind = true)
+            : this(localizationKey, localizationKey, type, action, quickBind) { }
+
+        public InputActionInfo(string localizationKey, string leftyLocalizationKey, BindingType type, int action, bool quickBind = true)
         {
-            LocalizationKey = localizationKey;
+            Key = localizationKey;
             LeftyLocalizationKey = leftyLocalizationKey;
             Type = type;
             Action = action;
+            QuickBind = quickBind;
         }
     }
 
