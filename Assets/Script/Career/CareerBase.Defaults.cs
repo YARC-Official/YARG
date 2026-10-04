@@ -643,7 +643,7 @@ namespace YARG.Career
             };
 
             return new CareerBase(
-                new Guid("1cb75c48-ef17-52aa-bb40-f48fe0fcf2d4"),
+                new Guid("7e9ba306-2dc8-4dbf-83f4-80325844b1c4"),
                 "YARG Setlist Pop",
                 "So you wanna be a pop star. Get to it!",
                 null,
