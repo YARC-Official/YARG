@@ -55,6 +55,22 @@ namespace YARG.Gameplay.Player
         /// </remarks>
         public double InputCalibration => -Player.Profile.InputCalibrationSeconds;
 
+        /// <summary>
+        /// This player's personal video offset, in seconds. Unlike <see cref="InputCalibration"/>,
+        /// this never touches input timing or scoring—it only shifts what this player sees on
+        /// their own highway, for players whose timing naturally anchors on a different part of
+        /// the highway than the strikeline.
+        /// </summary>
+        public double VideoOffsetSeconds => VideoOffsetContainer.GetOffsetSeconds(Player.Profile);
+
+        /// <summary>
+        /// <see cref="Gameplay.GameManager.VisualTime"/>, adjusted for this player's personal
+        /// <see cref="VideoOffsetSeconds"/>. Use this (rather than <c>GameManager.VisualTime</c>
+        /// directly) for anything that positions notes or other elements on this player's own
+        /// highway.
+        /// </summary>
+        public double VisualTime => GameManager.VisualTime + VideoOffsetSeconds * GameManager.SongSpeed;
+
         public abstract BaseEngine BaseEngine { get; }
 
         public BaseStats BaseStats => BaseEngine.BaseStats;
@@ -139,7 +155,7 @@ namespace YARG.Gameplay.Player
             //Ensure hud elements get repositioned on screen size change
             if (ScreenSizeDetector.HasScreenSizeChanged)
             {
-                UpdateVisuals(GameManager.VisualTime);
+                UpdateVisuals(VisualTime);
             }
         }
 
@@ -205,7 +221,7 @@ namespace YARG.Gameplay.Player
                 UpdateInputs(GameManager.InputTime);
             }
 
-            UpdateVisuals(GameManager.VisualTime);
+            UpdateVisuals(VisualTime);
         }
 
         protected abstract void UpdateVisuals(double visualTime);
