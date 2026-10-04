@@ -765,6 +765,8 @@ private:
 	static constexpr Sample noiseFloor{Sample(1e-15)};
 	static constexpr Sample tinyFloor{Sample(1e-30)};
 	static constexpr Sample maxCleanLow{6}; // YARG local patch: lows stay clean (upstream maxCleanStretch 2)
+	static constexpr Sample GRADIENT_TWIST_MAX{Sample(1)};
+	static constexpr Sample VERTICAL_AGREEMENT_MIN{Sample(0.5)};
 	static constexpr Sample splitFreq{Sample(0.11)}; // YARG local patch: ~4.8kHz @44.1k, normalized
 	static constexpr Sample TRANSIENT_MIN_STRETCH{Sample(1.1)};
 	static constexpr Sample TRANSIENT_MIN_POWER{Sample(1e-6)};
@@ -930,6 +932,9 @@ private:
 	std::vector<Sample> pvdrSteer_;
 	bool tonalReferenceHistory_ = false;
 	std::vector<char> transientHold_;
+	int f0Bin_ = -1;
+	Sample f0Freq_ = Sample(0);
+	bool f0Confident_ = false;
 	static constexpr Sample PVDR_ENERGY_TOLERANCE = Sample(1e-12);
 	static constexpr int PVDR_PREVIOUS = -1;
 	static constexpr int PVDR_UNPROCESSED = -2;
@@ -945,6 +950,13 @@ private:
 	static constexpr Sample TONAL_PHASE_ERROR_START = Sample(0.025);
 	static constexpr Sample TONAL_PHASE_ERROR_RANGE = Sample(0.25);
 	static constexpr Sample TONAL_PHASE_MAX_CORRECTION = Sample(0.12);
+	static constexpr Sample TRANSIENT_SNAP_MIN_DISAGREEMENT = Sample(0.5);
+	static constexpr Sample F0_MIN_FREQ{Sample(50)};
+	static constexpr Sample F0_MAX_FREQ{Sample(500)};
+	static constexpr Sample F0_MIN_SUPPORT{Sample(0.3)};
+	static constexpr Sample F0_CAPTURE{Sample(0.03)};
+	static constexpr Sample F0_MIN_STRETCH{Sample(1.5)};
+	static constexpr int F0_HARMONICS = 4;
 	static constexpr int TONAL_AGREEMENT_RADIUS = 2;
 	static constexpr Sample TONAL_AGREEMENT_MIN_POWER = Sample(0.1);
 	static constexpr Sample TONAL_AGREEMENT_TOLERANCE = Sample(0.1);
@@ -988,8 +1000,51 @@ private:
 			weightedAgreement / totalWeight;
 	}
 
+	void estimateF0() {
+		f0Bin_ = -1;
+		f0Confident_ = false;
+		if (blockProcess.mappedFrequencies || blockProcess.processFormants) {
+			return;
+		}
+		const int lowBin = std::max(1, static_cast<int>(hzToBand(F0_MIN_FREQ)));
+		const int highBin = std::min(bands - 1, static_cast<int>(hzToBand(F0_MAX_FREQ)));
+		if (highBin <= lowBin) {
+			return;
+		}
+		Sample regionMax = tinyFloor;
+		for (int b = lowBin; b <= highBin; ++b) {
+			regionMax = std::max(regionMax, pvdrCurrentEnergy[b]);
+		}
+		double bestScore = 0;
+		for (int b = lowBin; b <= highBin; ++b) {
+			const Sample fundamental = bandToHz(Sample(b));
+			double product = double(pvdrCurrentEnergy[b]);
+			int terms = 1;
+			for (int k = 2; k <= F0_HARMONICS; ++k) {
+				const int harmonic = static_cast<int>(hzToBand(fundamental * Sample(k)));
+				if (harmonic >= bands) {
+					break;
+				}
+				product *= double(pvdrCurrentEnergy[harmonic]);
+				++terms;
+			}
+			const double score = std::pow(product, 1.0 / terms) / double(regionMax);
+			if (score > bestScore * 2.0) {
+				bestScore = score;
+				f0Bin_ = b;
+			}
+		}
+		if (f0Bin_ >= 0 && bestScore >= double(F0_MIN_SUPPORT)) {
+			f0Freq_ = bandToHz(Sample(f0Bin_));
+			f0Confident_ = true;
+		} else {
+			f0Bin_ = -1;
+		}
+	}
+
 	// PVDR traversal adapted from Holighaus and Prusa, "Phase vocoder done right", EUSIPCO 2017.
 	void preparePvdrTraversal() {
+		estimateF0();
 		const bool trackReferences = blockProcess.newSpectrum && !blockProcess.mappedFrequencies &&
 			!blockProcess.processFormants && blockProcess.timeFactor > TRANSIENT_MIN_STRETCH &&
 			transientSamples_ == 0 && transientState_ != TransientState::COLLECTING;
@@ -1586,7 +1641,26 @@ private:
 				const int firstBand = int(freqToBand(transientMinFreq_));
 				const bool mappedReset = (blockProcess.mappedFrequencies || blockProcess.processFormants) && b >= firstBand;
 				const bool resetTransient = transientState_ == TransientState::RESET && (transientHold_[b] != 0 || mappedReset);
-				if (resetTransient) {
+				bool snapTransient = resetTransient;
+				if (snapTransient && !mappedReset && parent != PVDR_RANDOM) {
+					const Complex previous = bins[b].prevInput;
+					const Sample currentPower = _impl::norm(prediction.input);
+					const Sample previousPower = _impl::norm(previous);
+					if (currentPower + previousPower > tinyFloor) {
+						const Complex progression = _impl::mul<true>(prediction.input, previous);
+						const Sample interval = Sample(blockProcess.phaseInterval);
+						const Sample hop = Sample(stft.defaultInterval());
+						const Sample expected = prediction.timeAdvance * interval / hop;
+						const Sample sourcePhase = std::atan2(progression.imag(), progression.real());
+						Sample measured = sourcePhase - Sample(2 * M_PI) * bandToFreq(Sample(b)) * interval;
+						measured -= Sample(2 * M_PI) * std::round((measured - expected) / Sample(2 * M_PI));
+						const Sample error = measured * hop / interval - prediction.timeAdvance;
+						const Sample disagreement = std::clamp((std::abs(error) - TONAL_PHASE_ERROR_START) /
+							TONAL_PHASE_ERROR_RANGE, Sample(0), Sample(1));
+						snapTransient = disagreement >= TRANSIENT_SNAP_MIN_DISAGREEMENT;
+					}
+				}
+				if (snapTransient) {
 					phase = prediction.input;
 				} else if (!blockProcess.mappedFrequencies && b >= splitBin && parent >= 0 && clampedTimeFactor > TRANSIENT_MIN_STRETCH) {
 					auto &peakPrediction = predictions[parent];
@@ -1628,19 +1702,97 @@ private:
 					phase = std::polar(Sample(1), phaseDist(randomEngine));
 				} else {
 					auto &parentPrediction = predictions[parent];
-					if (!blockProcess.mappedFrequencies && b < splitBin && parent >= 0 &&
+					int harmonicMultiple = 0;
+					if (f0Confident_ &&
+						!blockProcess.mappedFrequencies && !blockProcess.processFormants && b < splitBin &&
+						parent >= 0 && clampedTimeFactor > F0_MIN_STRETCH) {
+						const Sample harmonicRatio = bandToHz(Sample(b)) / f0Freq_;
+						const int candidate = int(harmonicRatio + Sample(0.5));
+						if (candidate >= 2 && std::abs(harmonicRatio / Sample(candidate) - Sample(1)) < F0_CAPTURE) {
+							harmonicMultiple = candidate;
+						}
+					}
+					Sample gateAgreement = Sample(1);
+					if (parent >= 0 && parent != b) {
+						Complex twistNow = _impl::mul<true>(prediction.input, parentPrediction.input);
+						Complex twistPrev = _impl::mul<true>(bins[b].prevInput, bins[parent].prevInput);
+						Sample nowNorm = _impl::norm(twistNow);
+						Sample prevNorm = _impl::norm(twistPrev);
+						if (nowNorm > Sample(0) && prevNorm > Sample(0)) {
+							Sample invScale = Sample(1) / std::sqrt(nowNorm * prevNorm);
+							gateAgreement = (twistNow.real() * twistPrev.real() +
+								twistNow.imag() * twistPrev.imag()) * invScale;
+						} else {
+							gateAgreement = Sample(0);
+						}
+					}
+					if (harmonicMultiple >= 2) {
+						const auto &fundamentalPrediction = predictions[f0Bin_];
+						Sample fundAngle = twistTimeFactor * fundamentalPrediction.frequencyGradient;
+						Sample harmAngle = fundAngle * Sample(harmonicMultiple);
+						harmAngle -= Sample(2 * M_PI) * std::round(harmAngle / Sample(2 * M_PI));
+						Complex relativeTwist = _impl::mul<true>(prediction.input, fundamentalPrediction.input);
+						const Sample relativeNorm = _impl::norm(relativeTwist);
+						if (relativeNorm > Sample(0)) {
+							const Sample invNorm = Sample(1) / std::sqrt(relativeNorm);
+							relativeTwist = Complex{relativeTwist.real() * invNorm, relativeTwist.imag() * invNorm};
+						} else {
+							relativeTwist = Complex{Sample(1), Sample(0)};
+						}
+						phase = _impl::mul(_impl::mul(outputBin.output, std::polar(Sample(1), harmAngle)), relativeTwist) /
+							(prediction.energy + tinyFloor);
+					} else if (gateAgreement < VERTICAL_AGREEMENT_MIN) {
+						Sample ownAngle = twistTimeFactor * prediction.frequencyGradient;
+						ownAngle -= Sample(2 * M_PI) * std::round(ownAngle / Sample(2 * M_PI));
+						ownAngle = std::clamp(ownAngle, -GRADIENT_TWIST_MAX, GRADIENT_TWIST_MAX);
+						phase = _impl::mul(outputBin.output, std::polar(Sample(1), ownAngle)) /
+							(prediction.energy + tinyFloor);
+					} else if (!blockProcess.mappedFrequencies && b < splitBin && parent >= 0 &&
 						clampedTimeFactor > maxCleanLow) {
 						Complex twist = _impl::mul<true>(prediction.input, parentPrediction.input);
-						phase = _impl::mul(bins[parent].output, twist)/(prediction.energy + tinyFloor);
+						Sample twistNorm = _impl::norm(twist);
+						if (twistNorm > Sample(0)) {
+							Sample invNorm = Sample(1)/std::sqrt(twistNorm);
+							Complex relativeTwist{twist.real()*invNorm, twist.imag()*invNorm};
+							phase = _impl::mul(bins[parent].output, relativeTwist);
+						} else {
+							phase = bins[parent].output;
+						}
 					} else {
 						Sample binTimeFactor = twistTimeFactor;
 						Sample gradient = (prediction.frequencyGradient + parentPrediction.frequencyGradient)*Sample(0.5);
 						if (parent > b) {
 							gradient = -gradient;
 						}
-						Complex verticalTwist = std::polar(Sample(1), binTimeFactor*gradient);
+						Sample twistAngle = binTimeFactor * gradient;
+						twistAngle -= Sample(2 * M_PI) * std::round(twistAngle / Sample(2 * M_PI));
+						twistAngle = std::clamp(twistAngle, -GRADIENT_TWIST_MAX, GRADIENT_TWIST_MAX);
+						Complex verticalTwist = std::polar(Sample(1), twistAngle);
 						phase = _impl::mul(bins[parent].output, verticalTwist)/
 							(prediction.energy + tinyFloor);
+					}
+				}
+				if (parent >= 0 &&
+					!blockProcess.mappedFrequencies && !blockProcess.processFormants && b < splitBin) {
+					const Sample textureWeight = noiseMorph.textureAmount(b);
+					if (textureWeight > Sample(0)) {
+						const Sample phaseNorm = _impl::norm(phase);
+						Complex tonalPhase = phaseNorm > Sample(0) ?
+							Complex{phase.real() / std::sqrt(phaseNorm), phase.imag() / std::sqrt(phaseNorm)} :
+							prediction.input;
+						const Sample inputNorm = _impl::norm(prediction.input);
+						if (inputNorm > Sample(0)) {
+							const Sample invInput = Sample(1) / std::sqrt(inputNorm);
+							const Complex percussivePhase{prediction.input.real() * invInput,
+								prediction.input.imag() * invInput};
+							Complex mixed = tonalPhase * (Sample(1) - textureWeight) +
+								percussivePhase * textureWeight;
+							const Sample mixedNorm = _impl::norm(mixed);
+							if (mixedNorm > Sample(0)) {
+								const Sample invMixed = Sample(1) / std::sqrt(mixedNorm);
+								phase = Complex{mixed.real() * invMixed, mixed.imag() * invMixed};
+							}
+						}
 					}
 				}
 				outputBin.output = prediction.makeOutput(phase);
@@ -1650,7 +1802,7 @@ private:
 					if (c != maxChannel) {
 						auto &channelBin = bandsForChannel(c)[b];
 						auto &channelPrediction = predictionsForChannel(c)[b];
-						if (resetTransient) {
+						if (snapTransient) {
 							channelBin.output = channelPrediction.makeOutput(channelPrediction.input);
 						} else {
 							Complex channelTwist = _impl::mul<true>(channelPrediction.input, prediction.input);

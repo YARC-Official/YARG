@@ -50,6 +50,7 @@ class NoiseMorph {
     static constexpr double PEAK_TIMES_BACKGROUND = 4.0;
     // Minimum-frequency fade-in for resynthesis, as a multiple of the cutoff.
     static constexpr Sample CUTOFF_TIMES_MINIMUM{Sample(1.5)};
+    static constexpr Sample ROUGH_LOW_FREQ{Sample(1000)};
     TextureGrains<Sample> grains;
     bool useGrains = false;
     std::vector<Sample> grainMask;
@@ -121,6 +122,13 @@ public:
 
     bool usesGrains() const {
         return useGrains;
+    }
+
+    Sample textureAmount(int b) const {
+        if (!useGrains || b < 0 || b >= bands) {
+            return Sample(0);
+        }
+        return grainMask[b];
     }
 
     Sample readGrain(int channel) const {
@@ -278,7 +286,14 @@ private:
         double coherentPower = 0;
         double totalPower = 0;
         for (int b = 0; b < bands; ++b) {
-            const Sample shelter = std::max(tonal[b], protection[b]);
+            Sample shelter = std::max(tonal[b], protection[b]);
+            if (coherenceCount == COHERENCE_WARMUP) {
+                const Sample freq = output.binToFreq(b);
+                const Sample roughGate = std::min(
+                    std::clamp((freq - ROUGH_LOW_FREQ / Sample(2)) / (ROUGH_LOW_FREQ / Sample(2)), Sample(0), Sample(1)),
+                    std::clamp((Sample(6000) - freq) / Sample(1000), Sample(0), Sample(1)));
+                shelter *= Sample(1) - roughGate * (Sample(1) - sourceCoherence[b]);
+            }
             const Sample texture = std::max(Sample(0), mask[b] - shelter);
             const Sample desiredPhaseScale = Sample(1) - COHERENCE_MAX_REDUCTION * sourceCoherence[b];
             phaseScale[b] = std::clamp(desiredPhaseScale,
