@@ -14,6 +14,8 @@ namespace YARG.Helpers
 {
     public static class LayoutHelper
     {
+        private static readonly Dictionary<ControllerFamily, List<ControlItemInfo>> _controlInfoCache = new();
+
         public static ControlItemInfo GetControlInfo(ControllerFamily family, string controlName)
         {
             var layouts = GetLayoutsForFamily(family);
@@ -71,8 +73,15 @@ namespace YARG.Helpers
 
         public static List<ControlItemInfo> GetAllControlsForControllerFamily(ControllerFamily family) {
 
+            if (_controlInfoCache.TryGetValue(family, out var controls))
+            {
+                return controls;
+            }
+
             var layouts = GetLayoutsForFamily(family);
-            return BuildControlInfoIndex(layouts).ControlsByPath.Values.ToList();
+            controls = BuildControlInfoIndex(layouts).ControlsByPath.Values.ToList();
+            _controlInfoCache[family] = controls;
+            return controls;
         }
 
         public static ControllerFamily InputDeviceToControllerFamily(InputDevice device)

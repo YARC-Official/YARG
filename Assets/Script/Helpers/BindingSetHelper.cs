@@ -13,6 +13,8 @@ namespace YARG.Helpers
 {
     public static class BindingSetHelper
     {
+        private static readonly Dictionary<(ControllerFamily, BindingType), HashSet<string>> _allowedControlPathCache = new();
+
         public static (List<YargProfile> allUsers, List<YargProfile> activeUsers) GetUsersOfBindingSet(ReusableBindingSet bindingSet)
         {
             var allUsers = new List<YargProfile>();
@@ -80,21 +82,32 @@ namespace YARG.Helpers
 
         public static HashSet<string> GetAllowedControlPaths(ControllerFamily family, BindingType bindingType)
         {
+            var key = (family, bindingType);
+
+            if (_allowedControlPathCache.TryGetValue(key, out var paths))
+            {
+                return paths;
+            }
+
             var controls = LayoutHelper.GetAllControlsForControllerFamily(family);
 
             if (bindingType is BindingType.Button or BindingType.IndividualButton or BindingType.DrumButton)
             {
-                return controls
+                paths = controls
                     .Where(control => IsControlValidForButton(control))
                     .Select(control => control.ControlPath)
                     .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
             }
             else
             {
-                return controls
+                paths = controls
                     .Select(control => control.ControlPath)
                     .ToHashSet(StringComparer.OrdinalIgnoreCase);
             }
+
+            _allowedControlPathCache[key] = paths;
+            return paths;
         }
 
         private static bool IsButtonBeingQuickBound(InputControl control) {
