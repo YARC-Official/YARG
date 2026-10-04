@@ -24,6 +24,8 @@ namespace YARG.Menu.Persistent
         public MusicPlayer MusicPlayer { get; private set; }
 
         private readonly List<HelpBarButton> _buttons = new();
+        private HelpBarButton _directionButton;
+        private MenuAction? _verticalDirectionsModifier;
 
         protected override void SingletonAwake()
         {
@@ -44,6 +46,8 @@ namespace YARG.Menu.Persistent
 
         private void ResetHelpBar()
         {
+            _directionButton = null;
+            _verticalDirectionsModifier = null;
             foreach (var button in _buttons)
             {
                 button.gameObject.SetActive(false);
@@ -59,6 +63,7 @@ namespace YARG.Menu.Persistent
         public void SetInfoFromScheme(NavigationScheme scheme)
         {
             ResetHelpBar();
+            _verticalDirectionsModifier = scheme.VerticalDirectionsModifier;
 
             // Show/hide music player
             if (GlobalVariables.Instance.CurrentScene is SceneIndex.Menu or SceneIndex.Content)
@@ -134,12 +139,23 @@ namespace YARG.Menu.Persistent
                         var button = _buttons[buttonIndex];
                         button.gameObject.SetActive(true);
                         button.SetInfoFromSchemeEntry(entry, false);
+                        _directionButton = button;
                         break;
                     }
                 }
             }
 
             gameObject.SetActive(true);
+        }
+
+        private void Update()
+        {
+            if (_directionButton == null || _verticalDirectionsModifier is not { } modifier)
+            {
+                return;
+            }
+
+            _directionButton.SetDirectionalIconVertical(Navigator.Instance.GetHoldProgress(modifier) >= 0f);
         }
     }
 }

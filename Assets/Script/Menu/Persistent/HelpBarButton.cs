@@ -11,6 +11,12 @@ namespace YARG.Menu.Persistent
 {
     public class HelpBarButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerUpHandler
     {
+        // The directional sprite is wider than it is tall. Scale it down before rotating it so the
+        // resulting up/down icon fits inside the 45px help bar. Adjust these two values to fine-tune
+        // the vertical icon without affecting the normal left/right icon.
+        private const float VERTICAL_DIRECTIONAL_ICON_SCALE = 0.8f;
+        private static readonly Vector2 VerticalDirectionalIconOffset = Vector2.zero;
+
         [SerializeField]
         private Image _buttonImage;
         [SerializeField]
@@ -48,6 +54,9 @@ namespace YARG.Menu.Persistent
         private ButtonState _defaultState = ButtonState.NONE;
 
         private ButtonState _currentState = ButtonState.NONE;
+        private Vector2 _buttonImageSize;
+        private Vector2 _buttonImagePosition;
+        private Vector2 _buttonImagePivot;
         private bool IsPointerHolding => _entry?.HasHoldHandler == true && _holdTracker?.IsHolding == true;
         private bool IsDisabledState => _currentState == ButtonState.DISABLED;
 
@@ -91,8 +100,43 @@ namespace YARG.Menu.Persistent
 
             // Set sprite and fill color, then apply idle state
             _buttonImage.sprite = icons.GetIcon(entry.Action);
+            _buttonImage.rectTransform.localRotation = Quaternion.identity;
+            if (_buttonImageSize == default)
+            {
+                _buttonImageSize = _buttonImage.rectTransform.sizeDelta;
+                _buttonImagePosition = _buttonImage.rectTransform.anchoredPosition;
+                _buttonImagePivot = _buttonImage.rectTransform.pivot;
+            }
+            _buttonImage.rectTransform.pivot = _buttonImagePivot;
+            _buttonImage.rectTransform.anchoredPosition = _buttonImagePosition;
+            _buttonImage.rectTransform.sizeDelta = _buttonImageSize;
             _buttonHoldFill.color = _buttonFillColor;
             ApplyState(_defaultState);
+        }
+
+        public void SetDirectionalIconVertical(bool vertical)
+        {
+            var imageTransform = _buttonImage.rectTransform;
+            imageTransform.localRotation = vertical
+                ? Quaternion.Euler(0f, 0f, 90f)
+                : Quaternion.identity;
+
+            if (vertical)
+            {
+                // Center the rect before rotating; its normal left-edge pivot would otherwise move
+                // the icon up and cause the help bar's mask to clip it.
+                var pivotToCenter = Vector2.Scale(_buttonImageSize, new Vector2(0.5f, 0.5f) - _buttonImagePivot);
+                imageTransform.pivot = new Vector2(0.5f, 0.5f);
+                imageTransform.anchoredPosition = _buttonImagePosition + pivotToCenter +
+                    VerticalDirectionalIconOffset;
+                imageTransform.sizeDelta = _buttonImageSize * VERTICAL_DIRECTIONAL_ICON_SCALE;
+            }
+            else
+            {
+                imageTransform.pivot = _buttonImagePivot;
+                imageTransform.anchoredPosition = _buttonImagePosition;
+                imageTransform.sizeDelta = _buttonImageSize;
+            }
         }
 
         public void OnPointerEnter(PointerEventData eventData)

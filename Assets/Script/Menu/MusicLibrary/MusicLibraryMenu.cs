@@ -465,7 +465,13 @@ namespace YARG.Menu.MusicLibrary
                     () => CurrentSelection?.SecondaryTextClick(), hide: true),
             };
 
-            _ = Navigator.Instance.PushScheme(new NavigationScheme(entries, false));
+            var scheme = new NavigationScheme(entries, false);
+            if (MenuState == MenuState.Library)
+            {
+                scheme.VerticalDirectionsModifier = MenuAction.Orange;
+            }
+
+            _ = Navigator.Instance.PushScheme(scheme);
         }
 
         protected override void OnSelectedIndexChanged()

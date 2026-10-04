@@ -304,7 +304,7 @@ namespace YARG.Menu.Navigation
             float progress = -1f;
             foreach (var hold in _holdInputs)
             {
-                if (hold.Context.Action == action)
+                if (hold.Context.Action == action && hold.Tracker.IsPressed)
                 {
                     progress = Mathf.Max(progress, hold.Tracker.HoldProgress);
                 }
