@@ -1536,6 +1536,10 @@ MonoBehaviour:
   _totalScore: {fileID: 4421469024402619887}
   _totalStars: {fileID: 8226931096919367568}
   _totalFcs: {fileID: 6660595736227088421}
+  _statsViewport: {fileID: 1720953231159298718}
+  _scrollViewPrefab: {fileID: 2732038155882833699, guid: 81863a63e0d96cf459c263ee0ea6f98e, type: 3}
+  _settingsHeaderPrefab: {fileID: 5753369685943773599, guid: eda8fcec479d4324eb4bd1d7624e1edc, type: 3}
+  _labeledRowPrefab: {fileID: 4420504316707193964, guid: 6f46741e648c07044852bd3391146600, type: 3}
 --- !u!1 &5681889342567814302
 GameObject:
   m_ObjectHideFlags: 0
