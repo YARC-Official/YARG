@@ -6550,6 +6550,8 @@ MonoBehaviour:
   _comboText: {fileID: 8306241581077542084}
   _noFcColor: {r: 1, g: 1, b: 1, a: 1}
   _FcColor: {r: 1, g: 0.6695522, b: 0, a: 1}
+  _judgeWing: {fileID: 7435049317731871875}
+  _accuracy: {fileID: 6404003293675032646}
   _defaultPresetColor: {r: 0, g: 0.49803922, b: 0.6901961, a: 1}
   _customPresetColor: {r: 1, g: 0.2, b: 0.18431373, a: 1}
   _soloTapsPresetColor: {r: 0.5411765, g: 0.1686275, b: 0.8862746, a: 1}

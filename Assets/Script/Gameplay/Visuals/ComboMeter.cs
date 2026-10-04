@@ -1,4 +1,6 @@
 ﻿using TMPro;
+using System.Collections;
+using DG.Tweening;
 using UnityEngine;
 using YARG.Core.Game;
 using YARG.Helpers.UI;
@@ -34,6 +36,12 @@ namespace YARG.Gameplay.Visuals
         [SerializeField]
         private Color _FcColor;
 
+        [Header("ComboNumber")]
+        [SerializeField]
+        private MeshRenderer _judgeWing;
+        [SerializeField]
+        private TextMeshPro _accuracy;
+
         private static bool StreakCounterEnabled => SettingsManager.Settings.StreakCounter.Value;
 
         [Header("Preset Colors")]
@@ -51,6 +59,8 @@ namespace YARG.Gameplay.Visuals
             _multiplierText.enabled = false;
             _multiplierText.text = string.Empty;
             _textCache = MultiplierTextHelper.CreateMultiplierTextCache(maxMultiplier, _multiplierText, isMultiplayer);
+
+            _accuracy.text = string.Empty;
 
             Color color;
 
@@ -122,5 +132,34 @@ namespace YARG.Gameplay.Visuals
             _ringMesh.sharedMaterial = isFc ? _fcRingMaterial : _noFcRingMaterial;
             _comboText.color = isFc ? _FcColor : _noFcColor;
         }
+
+        // This will be simplified later...
+        public void JudgementPerfect()
+        {
+            _accuracy.SetText("PERFECT");
+            StartCoroutine(FadeCoroutine());
+        }
+
+        public void JudgementPoor()
+        {
+            _accuracy.SetText("POOR");
+            StartCoroutine(FadeCoroutine());
+        }
+
+        public void JudgementMiss()
+        {
+            _accuracy.SetText("MISS");
+            StartCoroutine(FadeCoroutine());
+        }
+
+        private IEnumerator FadeCoroutine()
+        {
+            _accuracy.DOFade(1f, 0f).SetLink(gameObject).WaitForCompletion();
+            _accuracy.alpha = 1f;
+
+            // Then fade to 0 in a second
+            yield return _accuracy.DOFade(0f, 0.2f).SetLink(gameObject).WaitForCompletion();
+        }
+
     }
 }
