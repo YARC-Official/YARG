@@ -10,30 +10,17 @@ namespace YARG.Menu.ProfileInfo
     {
         public YargProfile CurrentProfile { get; set; }
 
-        [SerializeField]
-        private HeaderTabs _tabs;
-
-        [Space]
-        [SerializeField]
-        private GameObject _overviewTab;
-        [SerializeField]
-        private GameObject _editBindsTab;
-
         private void OnEnable()
         {
-            _tabs.TabChanged += OnTabChanged;
-            _tabs.SelectFirstTab();
-
             _ = Navigator.Instance.PushScheme(NavigationScheme.EmptyWithMusicPlayer);
         }
 
         private void OnDisable()
         {
-            _tabs.TabChanged -= OnTabChanged;
-
             Navigator.Instance.PopScheme();
         }
 
+        /* TODO-FRICK: This should be somewhere else
         public async void ShowQuickBind()
         {
             if (CurrentProfile is { GameMode: GameMode.FourLaneDrums or GameMode.ProKeys or
@@ -49,11 +36,6 @@ namespace YARG.Menu.ProfileInfo
                 await dialog.WaitUntilClosed();
             }
         }
-
-        private void OnTabChanged(string tabId)
-        {
-            _overviewTab.SetActive(tabId == "overview");
-            _editBindsTab.SetActive(tabId == "binds");
-        }
+        */
     }
 }

@@ -656,6 +656,7 @@ namespace YARG.Input
 
                 return defaults.First();
             }
+
             return null;
         }
         

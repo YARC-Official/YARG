@@ -600,7 +600,7 @@
             }
         },
         "ProfileInfo": {
-            "Name": "Edit Profile",
+            "Name": "Profile Overview",
             "Stats": {
                 "SongPlays": "{0:N0} Song Plays",
                 "TotalScore": "Total Score",
@@ -613,6 +613,7 @@
 			"ActiveProfiles": "Active Profiles",
 			"AddBot": "Add Bot",
 			"AddProfile": "Add Profile",
+			"Overview": "Overview",
 			"ImportBindingSet": "Import Binding Set",
 			"ExportBindingSet": "Export",
 			"Bots": "Bots",
@@ -661,6 +662,10 @@
 				"MultipleUnlocked": "Used by <color=yellow>{0} profiles</color>",
 			},
 			"Tooltip": {
+				"Overview": {
+					"Title": "Profile Overview",
+					"Text": "Open an overview of this profile's lifetime statistics."
+				},
 			    "InputMode": {
 				    "Title": "Input Mode",
 				    "Text": "Represents what type of device you'll be using to play songs. Determines which playable parts will be available to you, what engine you'll use to play them, and what gameplay bindings you can configure.\n\nThis profile's input mode is set to {0}, {1}",
