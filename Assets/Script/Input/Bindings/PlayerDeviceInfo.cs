@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Utilities;
-using UnityEngine.InputSystem.XR;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Game;
@@ -463,6 +462,10 @@ namespace YARG.Input
                 case GamepadBindingMode.WiitarThing_Guitar:
                     gameplay = GetPreferenceOrDefault(gameMode, gameMode is GameMode.FiveFretGuitar ? ReusableBindingSetDefaults.DefaultWiitarThingGuitarGameplay : null);
                     menu = GetPreferenceOrDefault(GameMode.Menu, ReusableBindingSetDefaults.DefaultWiitarThingGuitarMenu);
+                    break;
+                case GamepadBindingMode.WiitarThing_Drums:
+                    gameplay = GetPreferenceOrDefault(gameMode, gameMode is GameMode.FiveLaneDrums ? ReusableBindingSetDefaults.DefaultWiitarThingDrumkitGameplay : null);
+                    menu = GetPreferenceOrDefault(GameMode.Menu, ReusableBindingSetDefaults.DefaultWiitarThingDrumkitMenu);
                     break;
             }
 
