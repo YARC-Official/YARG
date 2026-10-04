@@ -31,7 +31,8 @@ namespace YARG.Menu.Dialogs
         [SerializeField]
         protected Image[] _keyHighlights;
 
-        protected InputDevice           _controller
+        private InputDevice _controller;
+        protected InputDevice Controller
         {
             get => _controller;
             set
@@ -79,7 +80,7 @@ namespace YARG.Menu.Dialogs
 
         public void SetParameters((ReusableBindingSet bindingSet, InputDevice controller, bool lefty) parameters)
         {
-            _controller = parameters.controller;
+            Controller = parameters.controller;
             _bindingSet = parameters.bindingSet;
             _lefty = parameters.lefty;
         }
@@ -165,7 +166,7 @@ namespace YARG.Menu.Dialogs
                     _bindingTokenSource = new CancellationTokenSource();
                     highlight.gameObject.SetActive(true);
                     possibleControls =
-                        await InputControlBindingHelper.Instance.GetControl(_controller, _bindingTokenSource.Token);
+                        await InputControlBindingHelper.Instance.GetControl(Controller, _bindingTokenSource.Token);
                 }
                 catch (OperationCanceledException)
                 {

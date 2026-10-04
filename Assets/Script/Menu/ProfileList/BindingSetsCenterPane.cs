@@ -124,13 +124,21 @@ namespace YARG.Menu.ProfileList
                     GameMode.FiveLaneDrums or GameMode.EliteDrums)
             {
                 var dialog = DialogManager.Instance.ShowFriendlyBindingDialog(BindingSet, DummyController, _showLeftyNames);
-                await dialog.WaitUntilClosed();
+
+                if (dialog is not null)
+                {
+                    await dialog.WaitUntilClosed();
+                }
             }
             else
             {
                 var dialog = DialogManager.Instance.ShowMessage("Unsupported Instrument Type",
                     "Quick binding is currently only supported for Drums and Keys.");
-                await dialog.WaitUntilClosed();
+
+                if (dialog is not null)
+                {
+                    await dialog.WaitUntilClosed();
+                }
             }
         }
 
