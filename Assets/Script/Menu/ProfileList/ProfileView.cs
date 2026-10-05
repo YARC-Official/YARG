@@ -265,22 +265,21 @@ namespace YARG.Menu.ProfileList
                     }
 
                     player.DeviceInfo.AddController(controller);
-                    if (!player.DeviceInfo.ContainsBindingsForController(controller))
-                    {
 #if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
-                        if (controller is XInputController xinput)
+                    if (controller is XInputController xinput)
+                    {
+                        xinputDialogShowing = true;
+                        var mode = await PromptGamepadMode(xinput);
+                        if (!mode.HasValue || !xinput.added)
                         {
-                            xinputDialogShowing = true;
-                            var mode = await PromptGamepadMode(xinput);
-                            if (!mode.HasValue || !xinput.added)
-                            {
-                                return;
-                            }
-
-                            var (gameplay, menu) = player.DeviceInfo.GetDefaultBindingSetForGamepad(mode.Value, Profile.GameMode);
+                            return;
                         }
-#endif
+
+                        var (gameplay, menu) = player.DeviceInfo.GetBindingSetsForGamepad(mode.Value, Profile.GameMode);
+                        player.DeviceInfo.SetGameplayBindingsForController(controller, gameplay);
+                        player.DeviceInfo.SetMenuBindingsForController(controller, menu);
                     }
+#endif
 
                     selectedController = true;
                 });

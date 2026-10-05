@@ -123,7 +123,7 @@ namespace YARG.Menu.ProfileList
         public void ChangeGameplayBindingSet()
         {
             var player = PlayerContainer.GetPlayerFromProfile(Profile);
-            player.DeviceInfo.SelectGameplayBindingsForController(Controller, _gameplayBindingSetsByIndex[_gameplayBindingSetDropdown.value]);
+            player.DeviceInfo.SetGameplayBindingsForController(Controller, _gameplayBindingSetsByIndex[_gameplayBindingSetDropdown.value]);
             UpdateGameplayBindingsStatus();
         }
 

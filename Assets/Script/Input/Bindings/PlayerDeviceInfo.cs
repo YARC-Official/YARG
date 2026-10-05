@@ -323,17 +323,17 @@ namespace YARG.Input
             return interfaces;
         }
 
-        public void SelectGameplayBindingsForController(InputDevice controller, ReusableBindingSet bindingSet)
+        public void SetGameplayBindingsForController(InputDevice controller, ReusableBindingSet bindingSet)
         {
             if (bindingSet is null)
             {
                 _selectedGameplayBindings.Remove(controller);
-                _preferredBindsByContext.Remove((Profile.GameMode, LayoutHelper.LayoutStringToControllerFamily(controller.layout)));
+                _preferredBindsByContext.Remove((Profile.GameMode, LayoutHelper.InputDeviceToControllerFamily(controller)));
             }
             else
             {
                 _selectedGameplayBindings[controller] = bindingSet;
-                _preferredBindsByContext[(Profile.GameMode, LayoutHelper.LayoutStringToControllerFamily(controller.layout))] = bindingSet;
+                _preferredBindsByContext[(Profile.GameMode, LayoutHelper.InputDeviceToControllerFamily(controller))] = bindingSet;
             }            
         }
 
@@ -413,29 +413,7 @@ namespace YARG.Input
             return _unresolvedControllers.Any(dev => dev.MatchesDevice(controller));
         }
 
-        // TODO: Delete?
-        public bool ContainsBindingsForController(InputDevice controller)
-        {
-            return false;
-
-            //return _bindsByDeviceHash.ContainsKey(controller.GetHash());
-
-            // return MenuBindings.ContainsBindingsForDevice(device); TODO: Delete?
-        }
-
-        /* TODO: After controller overrides are implemented
-        public void ClearBindingsForController(InputDevice controller, bool clearMenuBindings = true)
-        {
-            _bindsByDeviceHash.Remove(controller.GetHash());
-
-            if (clearMenuBindings)
-            {
-                // MenuBindings.ClearBindingsForDevice(device); TODO: Delete?
-            }
-        }
-        */
-
-        public (ReusableBindingSet gameplay, ReusableBindingSet menu) GetDefaultBindingSetForGamepad(GamepadBindingMode bindingMode, GameMode gameMode)
+        public (ReusableBindingSet gameplay, ReusableBindingSet menu) GetBindingSetsForGamepad(GamepadBindingMode bindingMode, GameMode gameMode)
         {
             ReusableBindingSet gameplay = null;
             ReusableBindingSet menu = null;
@@ -470,16 +448,16 @@ namespace YARG.Input
                     menu = GetPreferenceOrDefault(GameMode.Menu, ReusableBindingSetDefaults.DefaultGamepadFiveFretGuitarMenu);
                     break;
                 case GamepadBindingMode.WiitarThing_Drums:
-                    gameplay = GetPreferenceOrDefault(gameMode, gameMode is GameMode.FiveLaneDrums ? ReusableBindingSetDefaults.DefaultWiitarThingDrumkitGameplay : null);
-                    menu = GetPreferenceOrDefault(GameMode.Menu, ReusableBindingSetDefaults.DefaultWiitarThingDrumkitMenu);
+                    gameplay = GetPreferenceOrDefault(gameMode, gameMode is GameMode.FiveLaneDrums ? ReusableBindingSetDefaults.DefaultGamepadFiveLaneDrumkitGameplay : null);
+                    menu = GetPreferenceOrDefault(GameMode.Menu, ReusableBindingSetDefaults.DefaultGamepadFiveLaneDrumkitMenu);
                     break;
                 case GamepadBindingMode.RB4InstrumentMapper_GHLGuitar:
                     gameplay = GetPreferenceOrDefault(gameMode, gameMode is GameMode.SixFretGuitar ? ReusableBindingSetDefaults.DefaultGamepadSixFretGuitarGameplay : null);
                     menu = GetPreferenceOrDefault(GameMode.Menu, ReusableBindingSetDefaults.DefaultGamepadSixFretGuitarMenu);
                     break;
                 case GamepadBindingMode.RB4InstrumentMapper_Drums:
-                    gameplay = GetPreferenceOrDefault(gameMode, gameMode is GameMode.FourLaneDrums ? ReusableBindingSetDefaults.RB4InstrumentMapperFourLaneDrumkitGameplay : null);
-                    menu = GetPreferenceOrDefault(GameMode.Menu, ReusableBindingSetDefaults.RB4InstrumentMapperFourLaneDrumkitMenu);
+                    gameplay = GetPreferenceOrDefault(gameMode, gameMode is GameMode.FourLaneDrums ? ReusableBindingSetDefaults.GamepadFourLaneDrumkitGameplay : null);
+                    menu = GetPreferenceOrDefault(GameMode.Menu, ReusableBindingSetDefaults.GamepadFourLaneDrumkitMenu);
                     break;
             }
 
