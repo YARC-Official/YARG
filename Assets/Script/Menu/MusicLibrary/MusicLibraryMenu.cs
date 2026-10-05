@@ -721,9 +721,10 @@ namespace YARG.Menu.MusicLibrary
                         .GroupBy(song => song.Album)
                         .Where(group => group.Key.Length > 0 && group.Count() >= MINIMUM_ALBUM_GROUP_SIZE);
 
-                    albumGroups = secondaryAlbumSort is
+                    bool sortAlbumsByYear = secondaryAlbumSort is
                         SecondaryAlbumSortMode.AlbumsByYearSongsByTitle or
-                        SecondaryAlbumSortMode.AlbumsByYearSongsByTrack
+                        SecondaryAlbumSortMode.AlbumsByYearSongsByTrack;
+                    albumGroups = sortAlbumsByYear
                         ? albumGroups.OrderBy(group => group.Min(song => song.YearAsNumber))
                             .ThenBy(group => group.Key)
                         : albumGroups.OrderBy(group => group.Key);
@@ -731,9 +732,15 @@ namespace YARG.Menu.MusicLibrary
                     var groupedAlbums = albumGroups.ToArray();
                     var groupedSongs = new HashSet<SongEntry>(groupedAlbums.SelectMany(group => group));
 
-                    // Songs without enough same-album companions retain their existing title order
-                    // immediately below the artist header.
-                    foreach (var song in displayedSongs.Where(song => !groupedSongs.Contains(song)))
+                    // Songs without enough same-album companions appear immediately below the artist
+                    // header. Year-based modes sort them by year, then retain their existing title order.
+                    var ungroupedSongs = displayedSongs.Where(song => !groupedSongs.Contains(song));
+                    if (sortAlbumsByYear)
+                    {
+                        ungroupedSongs = ungroupedSongs.OrderBy(song => song.YearAsNumber);
+                    }
+
+                    foreach (var song in ungroupedSongs)
                     {
                         AddSong(song);
                     }
