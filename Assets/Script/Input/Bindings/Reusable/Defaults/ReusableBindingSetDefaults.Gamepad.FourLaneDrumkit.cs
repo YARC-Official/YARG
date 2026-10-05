@@ -176,14 +176,14 @@ namespace YARG.Input.Bindings
             },
         };
 
-        public static ReusableBindingSet GamepadFourLaneDrumkitGameplay = MakeHardcodedBindingSet(
+        public static ReusableBindingSet DefaultGamepadFourLaneDrumkitGameplay = MakeHardcodedBindingSet(
             "Default Gamepad as 4L Drumkit",
             GameMode.FourLaneDrums,
             ControllerFamily.Gamepad,
             _gamepadFourLaneDrumkitGameplay
         );
 
-        public static ReusableBindingSet GamepadFourLaneDrumkitMenu = MakeHardcodedBindingSet(
+        public static ReusableBindingSet DefaultGamepadFourLaneDrumkitMenu = MakeHardcodedBindingSet(
             "Default Gamepad as 4L Drumkit Menu",
             GameMode.Menu,
             ControllerFamily.Gamepad,
