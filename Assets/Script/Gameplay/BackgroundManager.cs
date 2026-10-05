@@ -61,7 +61,11 @@ namespace YARG.Gameplay
 
         private bool _videoStarted = false;
         private bool _videoSeeking = false;
-        private bool _videoSeekWaitForPause = false;
+
+        // SongRunner counts pause overrides, and a re-seek before the first lands fires only one
+        // seekCompleted, so a second override would never be released and the song would stay
+        // paused. Hold at most one, released when the latest seek lands.
+        private bool _holdingSongForSeek;
 
         private const float FADE_DURATION = 0.5f;
 
@@ -771,6 +775,7 @@ namespace YARG.Gameplay
                     double videoTime = VideoTargetFor(songTime);
                     if (videoTime < 0f) // Seeking before video start
                     {
+                        EndHeldSeek();
                         enabled = true;
                         _videoPlayer.playerEnabled = true;
                         _videoStarted = false;
@@ -778,6 +783,7 @@ namespace YARG.Gameplay
                     }
                     else if (videoTime >= _videoPlayer.length) // Seeking after video end
                     {
+                        EndHeldSeek();
                         enabled = false;
                         _videoPlayer.playerEnabled = false;
                         _videoPlayer.Stop();
@@ -789,11 +795,14 @@ namespace YARG.Gameplay
 
                         // Hack to ensure the video stays synced to the audio
                         _videoSeeking = true; // Signaling flag; must come first
-                        _videoSeekWaitForPause = waitForSeek;
                         bool videoWasPaused = _videoPlayer.isPaused;
 
-                        if (waitForSeek && SettingsManager.Settings.WaitForSongVideo.Value)
+                        if (waitForSeek && SettingsManager.Settings.WaitForSongVideo.Value &&
+                            !_holdingSongForSeek)
+                        {
+                            _holdingSongForSeek = true;
                             GameManager.OverridePause();
+                        }
 
                         // A seek issued while paused is dropped, so play across it; OnVideoSeeked
                         // settles the video back into the song's state once it lands.
@@ -842,8 +851,7 @@ namespace YARG.Gameplay
             if (!_videoSeeking)
                 return;
 
-            if (_videoSeekWaitForPause && SettingsManager.Settings.WaitForSongVideo.Value)
-                GameManager.OverrideResume();
+            ReleaseSongHold();
 
             if (parkHeldSeek)
             {
@@ -864,7 +872,24 @@ namespace YARG.Gameplay
 
             enabled = true;
             _videoSeeking = false;
-            _videoSeekWaitForPause = false;
+        }
+
+        private void ReleaseSongHold()
+        {
+            if (!_holdingSongForSeek)
+                return;
+
+            _holdingSongForSeek = false;
+            GameManager.OverrideResume();
+        }
+
+        // A held seek still in flight when SetTime moves outside the video: its landing no longer
+        // applies, so release the song now rather than on a seekCompleted that settles nothing.
+        private void EndHeldSeek()
+        {
+            ReleaseSongHold();
+            _videoSeeking = false;
+            _applyRateOnSeekLanded = false;
         }
 
         private string[] BuildMediaOptions()
