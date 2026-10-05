@@ -29,6 +29,8 @@ public class YargVideoPlayer : MonoBehaviour
     [SerializeField] private LibVLCSharp.VLCMediaPlayer _vlcPlayer;
     private IVlcPlayer _vlc;
     private bool _usingVLC = false;
+    // The 180-degree flip happens in BlitContained rather than in VLCMediaPlayer; see TryInitializeVLC.
+    private bool _flipInBlit;
     // Latches prepareCompleted to one fire per Prepare() -- see OnVLCTextureResized.
     private bool _vlcPreparedFired = false;
 
@@ -404,8 +406,16 @@ public class YargVideoPlayer : MonoBehaviour
 #endif
 
         _vlcPlayer.playOnAwake = false;
-        _vlcPlayer.flipTextureX = true;
-        _vlcPlayer.flipTextureY = true;
+        // On Linux Vulkan, any flip makes vlc-unity copy each frame into a Texture2D and
+        // Graphics.Blit it into a second texture. Without one, the plugin writes straight into
+        // OutputTexture, and the flip rides along in our own blit.
+        _flipInBlit = (Application.platform is RuntimePlatform.LinuxPlayer or RuntimePlatform.LinuxEditor) &&
+            SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Vulkan;
+        _vlcPlayer.flipTextureX = !_flipInBlit;
+        _vlcPlayer.flipTextureY = !_flipInBlit;
+        YargLogger.LogInfo(_flipInBlit
+            ? "[YargVideoPlayer] VLC output: direct Vulkan, flip in blit"
+            : "[YargVideoPlayer] VLC output: vlc-unity flip");
         _vlcPlayer.logPlayerActivity = false;
         _vlc = new VlcUnityPlayer(_vlcPlayer);
 #endif
@@ -516,14 +526,15 @@ public class YargVideoPlayer : MonoBehaviour
             return;
         }
 
-        BlitContained(source, _targetTexture);
+        BlitContained(source, _targetTexture, _flipInBlit);
     }
 
     // Centers source inside dest at source's own aspect ratio, filling the remainder with
     // black bars. VLC decodes at the video's native resolution, and every consumer of
     // targetTexture -- the venue RawImage, the yarground screen material -- maps the whole
     // texture onto a fixed rect, so without this the video is stretched to that rect.
-    private static void BlitContained(Texture source, RenderTexture dest)
+    // flip rotates the picture 180 degrees, the flipTextureX/Y the VLC player would otherwise apply.
+    private static void BlitContained(Texture source, RenderTexture dest, bool flip)
     {
         float sourceAspect = (float) source.width / source.height;
 
@@ -549,10 +560,13 @@ public class YargVideoPlayer : MonoBehaviour
         GL.PushMatrix();
         // y-down (bottom > top), which is what keeps this stage orientation-neutral:
         // Graphics.DrawTexture maps v=0 to the rect's top edge, so a y-up matrix flips the
-        // image. The pipeline's real flip convention lives elsewhere -- _vlcPlayer's
-        // flipTextureX/Y and the yarground image blit's (1, -1).
+        // image. The pipeline's flip convention lives elsewhere: _flipInBlit (or _vlcPlayer's
+        // flipTextureX/Y) and the yarground image blit's (1, -1).
         GL.LoadPixelMatrix(0, dest.width, dest.height, 0);
-        Graphics.DrawTexture(fitted, source);
+        if (flip)
+            Graphics.DrawTexture(fitted, source, new Rect(1f, 1f, -1f, -1f), 0, 0, 0, 0);
+        else
+            Graphics.DrawTexture(fitted, source);
         GL.PopMatrix();
         RenderTexture.active = previous;
     }
