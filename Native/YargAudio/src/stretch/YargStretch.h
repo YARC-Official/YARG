@@ -158,9 +158,8 @@ struct YargStretch {
 		transientBg_[0] = transientBg_[1] = transientBg_[2] = 0;
 		transientBgReady_ = false;
 		for (int b = 0; b < bands; ++b) {
-			pvdrOrder[b] = b;
-			pvdrCurrentEnergy[b] = 0;
-			pvdrPreviousEnergy[b] = 0;
+			phaseCurrentEnergy[b] = 0;
+			phasePreviousEnergy[b] = 0;
 		}
 		std::fill(transientHold_.begin(), transientHold_.end(), 0);
 		tonalReferenceHistory_ = false;
@@ -173,6 +172,14 @@ struct YargStretch {
 		sampleRate_ = sampleRate;
 		stft.configure(channels, channels, blockSamples, intervalSamples + 1);
 		stft.setInterval(intervalSamples, stft.kaiser);
+		const Sample sigma = Sample(blockSamples)/GAUSSIAN_WIDTH;
+		magnitudeGradientScale_ = Sample(stft.fftSamples())/(Sample(8*M_PI)*sigma*sigma);
+		for (int i = 0; i < blockSamples; ++i) {
+			const Sample position = (Sample(i) - Sample(stft.analysisOffset()))/sigma;
+			const Sample window = std::exp(Sample(-0.5)*position*position);
+			stft.analysisWindow()[i] = window;
+			stft.synthesisWindow()[i] = window;
+		}
 		stft.reset(Sample(0.1));
 		const bool useGrains = channels <= 2 && !splitComputation &&
 			intervalSamples * 3 <= blockSamples;
@@ -180,15 +187,12 @@ struct YargStretch {
 		if (useGrains) {
 			envelopeEq.configure(stft, channels, sampleRate);
 		}
-		derivativeWindow.resize(blockSamples);
+		logPower.resize(stft.bands());
 		timeWindow.resize(blockSamples);
 		const auto *window = stft.analysisWindow();
 		Sample rampPower = 0;
 		Sample rampMoment = 0;
 		for (int i = 0; i < blockSamples; ++i) {
-			Sample left = i > 0 ? window[i - 1] : Sample(0);
-			Sample right = i + 1 < blockSamples ? window[i + 1] : Sample(0);
-			derivativeWindow[i] = (right - left)*Sample(0.5);
 			timeWindow[i] = window[i]*(i - int(stft.analysisOffset()));
 			Sample ramp = window[i]*Sample(i);
 			Sample power = ramp*ramp;
@@ -214,18 +218,21 @@ struct YargStretch {
 		smoothedEnergy.resize(bands);
 		outputMap.resize(bands);
 		channelPredictions.assign(channels*bands, Prediction());
-		pvdrOrder.resize(bands);
-		pvdrParent.resize(bands);
-		pvdrHeap.resize(bands*2);
-		pvdrCurrentEnergy.resize(bands);
-		pvdrPreviousEnergy.resize(bands);
-		pvdrSteer_.assign(bands, Sample(1));
+		phaseChannels.resize(bands);
+		phaseSignificant.resize(bands);
+		phaseReset.resize(bands);
+		phaseReferences.assign(bands, 0);
+		phaseDiagonal.resize(bands);
+		phaseUpper.resize(bands);
+		phaseSolution.resize(bands);
+		phaseCurrentEnergy.resize(bands);
+		phasePreviousEnergy.resize(bands);
+		phaseAnchorWeight.assign(bands, Sample(1));
 		tonalReferenceHistory_ = false;
 		transientHold_.assign(bands, 0);
 
 		for (int b = 0; b < bands; ++b) {
-			pvdrOrder[b] = b;
-			pvdrCurrentEnergy[b] = 0;
+			phaseCurrentEnergy[b] = 0;
 		}
 
 		blockProcess = {};
@@ -458,7 +465,7 @@ struct YargStretch {
 					if (blockProcess.reanalysePrev) blockProcess.steps += stft.analyseSteps() + 1;
 
 					// analyse a new input
-					blockProcess.steps += 3*(stft.analyseSteps() + 1);
+					blockProcess.steps += 2*(stft.analyseSteps() + 1);
 				}
 				
 				blockProcess.processFormants = formantMultiplier != 1 || (formantCompensation && blockProcess.mappedFrequencies);
@@ -525,11 +532,36 @@ struct YargStretch {
 					step -= stft.analyseSteps();
 					if (step < 1) {
 						// Copy analysed spectrum into our band objects
+						const Sample minimumLogRatio = std::log(GRADIENT_MIN_RELATIVE_POWER);
 						for (int c = 0; c < channels; ++c) {
 							auto channelBands = bandsForChannel(c);
 							auto *spectrumBands = stft.spectrum(c);
 							for (int b = 0; b < bands; ++b) {
 								channelBands[b].input = spectrumBands[b];
+								logPower[b] = std::log(_impl::norm(spectrumBands[b]) + tinyFloor);
+							}
+							for (int b = 0; b < bands; ++b) {
+								const Sample left = logPower[b > 0 ? b - 1 : b];
+								const Sample right = logPower[b + 1 < bands ? b + 1 : b];
+								Sample gradient = (right - left)*magnitudeGradientScale_;
+								if (std::min(left, right) < logPower[b] + minimumLogRatio) {
+									const Sample centerPower = _impl::norm(channelBands[b].input);
+									const Sample threshold = centerPower*GRADIENT_MIN_RELATIVE_POWER + tinyFloor;
+									const Sample previousPower = _impl::norm(channelBands[b].prevInput);
+									if (previousPower > threshold) {
+										const Complex progression = _impl::mul<true>(channelBands[b].input, channelBands[b].prevInput);
+										const Sample interval = Sample(blockProcess.phaseInterval);
+										Sample phase = std::atan2(progression.imag(), progression.real()) -
+											Sample(2*M_PI)*bandToFreq(Sample(b))*interval;
+										phase -= Sample(2*M_PI)*std::round(phase/Sample(2*M_PI));
+										const Sample leftPower = _impl::norm(channelBands[b > 0 ? b - 1 : b].input);
+										const Sample rightPower = _impl::norm(channelBands[b + 1 < bands ? b + 1 : b].input);
+										const Sample confidence = std::min(centerPower, previousPower)/std::max(centerPower, previousPower);
+										const Sample reliability = std::min(Sample(1), std::min(leftPower, rightPower)/threshold);
+										gradient += (phase/interval - gradient)*(Sample(1) - reliability)*confidence;
+									}
+								}
+								channelBands[b].derivative = _impl::mul(channelBands[b].input, Complex{Sample(0), -gradient});
 							}
 						}
 						continue;
@@ -537,11 +569,9 @@ struct YargStretch {
 					step -= 1;
 
 					const size_t gradientSteps = stft.analyseSteps() + 1;
-					if (step < 2*gradientSteps) {
-						const bool timeWeighted = step >= gradientSteps;
-						step %= gradientSteps;
+					if (step < gradientSteps) {
 						if (step < stft.analyseSteps()) {
-							auto &window = timeWeighted ? timeWindow : derivativeWindow;
+							auto &window = timeWindow;
 							std::swap_ranges(window.begin(), window.end(), stft.analysisWindow());
 							stashedInput.swap(stft.input);
 							stft.analyseStep(step);
@@ -552,17 +582,13 @@ struct YargStretch {
 								auto *bins = bandsForChannel(c);
 								auto *spectrum = stft.spectrum(c);
 								for (int b = 0; b < bands; ++b) {
-									if (timeWeighted) {
-										bins[b].timed = spectrum[b];
-									} else {
-										bins[b].derivative = spectrum[b];
-									}
+									bins[b].timed = spectrum[b];
 								}
 							}
 						}
 						continue;
 					}
-					step -= 2*gradientSteps;
+					step -= gradientSteps;
 				}
 
 				if (step < processSpectrumSteps) {
@@ -746,6 +772,7 @@ struct YargStretch {
 	}
 
 private:
+	friend struct StretchDiagnostics;
 	bool _splitComputation = false;
 	struct {
 		size_t samplesSinceLast = std::numeric_limits<size_t>::max();
@@ -832,7 +859,10 @@ private:
 	typename STFT::Output stashedOutput;
 	
 	std::vector<Sample> tmpProcessBuffer, tmpPreRollBuffer;
-	std::vector<Sample> derivativeWindow, timeWindow;
+	static constexpr Sample GAUSSIAN_WIDTH{Sample(8)};
+	static constexpr Sample GRADIENT_MIN_RELATIVE_POWER = Sample(1e-2);
+	Sample magnitudeGradientScale_ = 0;
+	std::vector<Sample> logPower, timeWindow;
 
 	int channels = 0, bands = 0;
 	Sample sampleRate_ = 0;
@@ -925,18 +955,17 @@ private:
 		}
 	};
 	std::vector<Prediction> channelPredictions;
-	std::vector<int> pvdrOrder;
-	std::vector<int> pvdrParent, pvdrHeap;
-	std::vector<Sample> pvdrCurrentEnergy;
-	std::vector<Sample> pvdrPreviousEnergy;
-	std::vector<Sample> pvdrSteer_;
+	std::vector<int> phaseChannels;
+	std::vector<char> phaseSignificant, phaseReset, phaseReferences;
+	std::vector<double> phaseDiagonal;
+	std::vector<std::complex<double>> phaseUpper, phaseSolution;
+	std::vector<Sample> phaseCurrentEnergy;
+	std::vector<Sample> phasePreviousEnergy;
+	std::vector<Sample> phaseAnchorWeight;
 	bool tonalReferenceHistory_ = false;
 	std::vector<char> transientHold_;
-	static constexpr Sample PVDR_ENERGY_TOLERANCE = Sample(1e-12);
-	static constexpr int PVDR_PREVIOUS = -1;
-	static constexpr int PVDR_UNPROCESSED = -2;
-	static constexpr int PVDR_RANDOM = -3;
-	static constexpr int PEAK_SHELTER_RADIUS = 4;
+	static constexpr double PHASE_FREQUENCY_WEIGHT = 16;
+	static constexpr Sample PHASE_ENERGY_TOLERANCE = Sample(1e-12);
 	static constexpr Sample PEAK_SHELTER_RATIO = Sample(4);
 	static constexpr Sample TONAL_REFERENCE_PRIORITY = Sample(1.5);
 	static constexpr Sample TONAL_REFERENCE_PROMINENCE = Sample(2.5);
@@ -992,237 +1021,129 @@ private:
 	}
 
 	// PVDR traversal adapted from Holighaus and Prusa, "Phase vocoder done right", EUSIPCO 2017.
-	void preparePvdrTraversal() {
+	void solvePhaseIntegration(Sample twistTimeFactor) {
 		const bool trackReferences = blockProcess.newSpectrum && !blockProcess.mappedFrequencies &&
 			!blockProcess.processFormants && blockProcess.timeFactor > TRANSIENT_MIN_STRETCH &&
 			transientSamples_ == 0 && transientState_ != TransientState::COLLECTING;
 		const bool continueReferences = trackReferences && tonalReferenceHistory_;
 		tonalReferenceHistory_ = trackReferences;
-		std::fill(pvdrSteer_.begin(), pvdrSteer_.end(), Sample(1));
-		if (!blockProcess.mappedFrequencies && blockProcess.timeFactor > TRANSIENT_MIN_STRETCH) {
-			Sample peakMax = 0;
-			for (int b = 0; b < bands; ++b) {
-				peakMax = std::max(peakMax, std::max(pvdrPreviousEnergy[b], pvdrCurrentEnergy[b]));
-			}
-			Sample peakTol = peakMax*PVDR_ENERGY_TOLERANCE;
-			int highBin = static_cast<int>(freqToBand(splitFreq));
-			if (continueReferences) {
-				for (int b = 1; b < highBin; ++b) {
-					Sample previous = pvdrPreviousEnergy[b];
-					Sample current = pvdrCurrentEnergy[b];
-					Sample neighbors = std::max(pvdrCurrentEnergy[b - 1], pvdrCurrentEnergy[b + 1]);
-					if (pvdrParent[b] == PVDR_PREVIOUS &&
-						previous > pvdrPreviousEnergy[b - 1] && previous >= pvdrPreviousEnergy[b + 1] &&
-						current > peakMax*TONAL_REFERENCE_MIN_POWER &&
-						current >= previous*TONAL_REFERENCE_POWER_RATIO &&
-						current >= neighbors*TONAL_REFERENCE_POWER_RATIO &&
-						energy[b] > smoothedEnergy[b]*TONAL_REFERENCE_PROMINENCE) {
-						pvdrSteer_[b] = TONAL_REFERENCE_PRIORITY;
-					}
-				}
-			}
-			int orderSize = 0;
-			int heapSize = 0;
-			int significant = 0;
-			for (int b = 0; b < highBin; ++b) {
-				if (pvdrCurrentEnergy[b] > peakTol) {
-					pvdrHeap[heapSize++] = b;
-					pvdrParent[b] = PVDR_UNPROCESSED;
-					++significant;
-				} else {
-					pvdrParent[b] = PVDR_RANDOM;
-				}
-			}
-			auto lowEnergy = [&](int node) {
-				int b = node < bands ? node : node - bands;
-				Sample raw = node < bands ? pvdrPreviousEnergy[node] : pvdrCurrentEnergy[node - bands];
-				return raw*pvdrSteer_[b];
-			};
-			auto lowPriority = [&](int a, int c) {
-				Sample aEnergy = lowEnergy(a);
-				Sample cEnergy = lowEnergy(c);
-				if (aEnergy != cEnergy) {
-					return aEnergy < cEnergy;
-				}
-				return a > c;
-			};
-			std::make_heap(pvdrHeap.begin(), pvdrHeap.begin() + heapSize, lowPriority);
-			auto addLow = [&](int b, int parent) {
-				pvdrParent[b] = parent;
-				pvdrOrder[orderSize++] = b;
-				pvdrHeap[heapSize++] = b + bands;
-				std::push_heap(pvdrHeap.begin(), pvdrHeap.begin() + heapSize, lowPriority);
-			};
-			while (orderSize < significant) {
-				std::pop_heap(pvdrHeap.begin(), pvdrHeap.begin() + heapSize, lowPriority);
-				int node = pvdrHeap[--heapSize];
-				int b = node < bands ? node : node - bands;
-				if (node < bands) {
-					if (pvdrParent[b] == PVDR_UNPROCESSED) {
-						addLow(b, PVDR_PREVIOUS);
-					}
-					continue;
-				}
-				if (b + 1 < highBin && pvdrParent[b + 1] == PVDR_UNPROCESSED) {
-					addLow(b + 1, b);
-				}
-				if (b > 0 && pvdrParent[b - 1] == PVDR_UNPROCESSED) {
-					addLow(b - 1, b);
-				}
-			}
-			int peakCount = 0;
-			for (int b = highBin; b < bands; ++b) {
-				if (pvdrCurrentEnergy[b] > peakTol && energy[b] > PEAK_SHELTER_RATIO*smoothedEnergy[b]) {
-					pvdrHeap[peakCount++] = b;
-				}
-			}
-			std::sort(pvdrHeap.begin(), pvdrHeap.begin() + peakCount, [&](int a, int c) {
-				Sample aEnergy = pvdrCurrentEnergy[a]*pvdrSteer_[a];
-				Sample cEnergy = pvdrCurrentEnergy[c]*pvdrSteer_[c];
-				if (aEnergy != cEnergy) {
-					return aEnergy > cEnergy;
-				}
-				return a < c;
-			});
-			for (int i = 0; i < peakCount; ++i) {
-				int b = pvdrHeap[i];
-				pvdrParent[b] = PVDR_PREVIOUS;
-				pvdrOrder[orderSize++] = b;
-			}
-			int scaledCount = 0;
-			for (int b = highBin; b < bands; ++b) {
-				if (pvdrCurrentEnergy[b] > peakTol && energy[b] > PEAK_SHELTER_RATIO*smoothedEnergy[b]) {
-					continue;
-				}
-				Sample both = std::max(pvdrPreviousEnergy[b], pvdrCurrentEnergy[b]);
-				if (both <= peakTol) {
-					pvdrParent[b] = PVDR_RANDOM;
-					continue;
-				}
-				int radius = PEAK_SHELTER_RADIUS;
-				int loBest = -1;
-				int hiBest = -1;
-				for (int d = 1; d <= radius; ++d) {
-					if (loBest < 0) {
-						int lo = b - d;
-						if (lo >= highBin) {
-							if (pvdrCurrentEnergy[lo] > peakTol && energy[lo] > PEAK_SHELTER_RATIO*smoothedEnergy[lo]) {
-								loBest = lo;
-							}
-						}
-					}
-					if (hiBest < 0) {
-						int hi = b + d;
-						if (hi < bands) {
-							if (pvdrCurrentEnergy[hi] > peakTol && energy[hi] > PEAK_SHELTER_RATIO*smoothedEnergy[hi]) {
-								hiBest = hi;
-							}
-						}
-					}
-					if (loBest >= 0 && hiBest >= 0) {
-						break;
-					}
-				}
-				if (loBest >= 0 && hiBest < 0) {
-					pvdrParent[b] = loBest;
-					pvdrHeap[scaledCount++] = b;
-				} else if (hiBest >= 0 && loBest < 0) {
-					pvdrParent[b] = hiBest;
-					pvdrHeap[scaledCount++] = b;
-				} else if (loBest >= 0 && hiBest >= 0) {
-					Sample loDist = Sample(b - loBest);
-					Sample hiDist = Sample(hiBest - b);
-					Sample loScore = pvdrCurrentEnergy[loBest] / (loDist * loDist);
-					Sample hiScore = pvdrCurrentEnergy[hiBest] / (hiDist * hiDist);
-					pvdrParent[b] = (loScore >= hiScore) ? loBest : hiBest;
-					pvdrHeap[scaledCount++] = b;
-				} else {
-					pvdrParent[b] = PVDR_PREVIOUS;
-				}
-			}
-			std::sort(pvdrHeap.begin(), pvdrHeap.begin() + scaledCount, [&](int a, int c) {
-				Sample aEnergy = pvdrCurrentEnergy[a]*pvdrSteer_[a];
-				Sample cEnergy = pvdrCurrentEnergy[c]*pvdrSteer_[c];
-				if (aEnergy != cEnergy) {
-					return aEnergy > cEnergy;
-				}
-				return a < c;
-			});
-			for (int i = 0; i < scaledCount; ++i) {
-				pvdrOrder[orderSize++] = pvdrHeap[i];
-			}
-			for (int b = highBin; b < bands; ++b) {
-				if (pvdrCurrentEnergy[b] > peakTol && energy[b] > PEAK_SHELTER_RATIO*smoothedEnergy[b]) {
-					continue;
-				}
-				if (pvdrParent[b] == PVDR_PREVIOUS) {
-					pvdrOrder[orderSize++] = b;
-				}
-			}
-			for (int b = 0; b < bands; ++b) {
-				if (pvdrParent[b] == PVDR_RANDOM) {
-					pvdrOrder[orderSize++] = b;
-				}
-			}
-			return;
-		}
-		auto energyForNode = [&](int node) {
-			return node < bands ? pvdrPreviousEnergy[node] : pvdrCurrentEnergy[node - bands];
-		};
-		auto lowerPriority = [&](int a, int b) {
-			Sample aEnergy = energyForNode(a);
-			Sample bEnergy = energyForNode(b);
-			if (aEnergy != bEnergy) {
-				return aEnergy < bEnergy;
-			}
-			return a > b;
-		};
-		Sample maxEnergy = 0;
+		Sample maximumEnergy = 0;
 		for (int b = 0; b < bands; ++b) {
-			maxEnergy = std::max(maxEnergy,
-				std::max(pvdrPreviousEnergy[b], pvdrCurrentEnergy[b]));
+			maximumEnergy = std::max(maximumEnergy, std::max(phaseCurrentEnergy[b], phasePreviousEnergy[b]));
 		}
-		Sample absoluteTolerance = maxEnergy*PVDR_ENERGY_TOLERANCE;
-		int heapSize = 0;
-		int significant = 0;
+		const Sample tolerance = maximumEnergy*PHASE_ENERGY_TOLERANCE;
+		const int splitBin = int(freqToBand(splitFreq));
+		const int firstTransientBand = int(freqToBand(transientMinFreq_));
+		std::uniform_real_distribution<Sample> phaseDist(Sample(-M_PI), Sample(M_PI));
 		for (int b = 0; b < bands; ++b) {
-			if (pvdrCurrentEnergy[b] > absoluteTolerance) {
-				pvdrHeap[heapSize++] = b;
-				pvdrParent[b] = PVDR_UNPROCESSED;
-				++significant;
-			} else {
-				pvdrParent[b] = PVDR_RANDOM;
-			}
-		}
-		int orderSize = 0;
-		std::make_heap(pvdrHeap.begin(), pvdrHeap.begin() + heapSize, lowerPriority);
-		auto addCurrent = [&](int b, int parent) {
-			pvdrParent[b] = parent;
-			pvdrOrder[orderSize++] = b;
-			pvdrHeap[heapSize++] = b + bands;
-			std::push_heap(pvdrHeap.begin(), pvdrHeap.begin() + heapSize, lowerPriority);
-		};
-		while (orderSize < significant) {
-			std::pop_heap(pvdrHeap.begin(), pvdrHeap.begin() + heapSize, lowerPriority);
-			int node = pvdrHeap[--heapSize];
-			int b = node < bands ? node : node - bands;
-			if (node < bands) {
-				if (pvdrParent[b] == PVDR_UNPROCESSED) {
-					addCurrent(b, PVDR_PREVIOUS);
+			int channel = 0;
+			for (int c = 1; c < channels; ++c) {
+				if (predictionsForChannel(c)[b].energy > predictionsForChannel(channel)[b].energy) {
+					channel = c;
 				}
+			}
+			phaseChannels[b] = channel;
+			phaseSignificant[b] = phaseCurrentEnergy[b] > tolerance;
+			phaseAnchorWeight[b] = Sample(1);
+			const bool peak = b > 0 && b + 1 < bands &&
+				phaseCurrentEnergy[b] > phaseCurrentEnergy[b - 1] &&
+				phaseCurrentEnergy[b] >= phaseCurrentEnergy[b + 1];
+			if (continueReferences && phaseReferences[b] && b < splitBin && peak &&
+				phaseCurrentEnergy[b] > maximumEnergy*TONAL_REFERENCE_MIN_POWER &&
+				phaseCurrentEnergy[b] >= phasePreviousEnergy[b]*TONAL_REFERENCE_POWER_RATIO &&
+				energy[b] > smoothedEnergy[b]*TONAL_REFERENCE_PROMINENCE) {
+				phaseAnchorWeight[b] = TONAL_REFERENCE_PRIORITY;
+			}
+			phaseReferences[b] = trackReferences && peak && phaseSignificant[b];
+			if (b >= splitBin && energy[b] > PEAK_SHELTER_RATIO*smoothedEnergy[b]) {
+				phaseAnchorWeight[b] = TONAL_REFERENCE_PRIORITY;
+			}
+			auto &prediction = predictionsForChannel(channel)[b];
+			auto &bin = bandsForChannel(channel)[b];
+			const bool mappedReset = (blockProcess.mappedFrequencies || blockProcess.processFormants) &&
+				b >= firstTransientBand;
+			bool snap = transientState_ == TransientState::RESET && (transientHold_[b] || mappedReset);
+			const Sample currentPower = _impl::norm(prediction.input);
+			const Sample previousPower = _impl::norm(bin.prevInput);
+			const Complex progression = _impl::mul<true>(prediction.input, bin.prevInput);
+			const Sample interval = Sample(blockProcess.phaseInterval);
+			const Sample hop = Sample(stft.defaultInterval());
+			Sample correction = 0;
+			if (blockProcess.newSpectrum && currentPower + previousPower > tinyFloor) {
+				const Sample expected = prediction.timeAdvance*interval/hop;
+				const Sample sourcePhase = std::atan2(progression.imag(), progression.real());
+				Sample measured = sourcePhase - Sample(2*M_PI)*bandToFreq(Sample(b))*interval;
+				measured -= Sample(2*M_PI)*std::round((measured - expected)/Sample(2*M_PI));
+				const Sample error = measured*hop/interval - prediction.timeAdvance;
+				const Sample disagreement = std::clamp((std::abs(error) - TONAL_PHASE_ERROR_START)/
+					TONAL_PHASE_ERROR_RANGE, Sample(0), Sample(1));
+				if (snap && !mappedReset && phaseSignificant[b]) {
+					snap = disagreement >= TRANSIENT_SNAP_MIN_DISAGREEMENT;
+				}
+				if (phaseAnchorWeight[b] > Sample(1) && !blockProcess.mappedFrequencies &&
+					!blockProcess.processFormants && bandToHz(Sample(b)) < TONAL_PHASE_MAX_HZ) {
+					const Sample confidence = Sample(2)*std::sqrt(currentPower*previousPower)/
+						(currentPower + previousPower + tinyFloor)*getTonalPeakAgreement(channel, b, sourcePhase);
+					correction = std::clamp(error*confidence*disagreement*TONAL_PHASE_MAX_WEIGHT,
+						-TONAL_PHASE_MAX_CORRECTION, TONAL_PHASE_MAX_CORRECTION);
+				}
+			}
+			phaseReset[b] = snap;
+			Complex target = prediction.makeOutput(_impl::mul(bin.output, std::polar(Sample(1), correction)));
+			if (snap) {
+				target = prediction.makeOutput(prediction.input);
+			} else if (!phaseSignificant[b]) {
+				target = prediction.makeOutput(std::polar(Sample(1), phaseDist(randomEngine)));
+			}
+			const double balance = 2*std::sqrt(double(phaseCurrentEnergy[b])*phasePreviousEnergy[b])/
+				(double(phaseCurrentEnergy[b]) + phasePreviousEnergy[b] + double(tinyFloor));
+			phaseDiagonal[b] = 1 + balance*phaseAnchorWeight[b];
+			phaseSolution[b] = std::complex<double>(target)*phaseDiagonal[b];
+			phaseUpper[b] = 0;
+		}
+		for (int b = 1; b < bands; ++b) {
+			if (!phaseSignificant[b - 1] || !phaseSignificant[b] || phaseReset[b - 1] || phaseReset[b] ||
+				phaseChannels[b - 1] != phaseChannels[b] || blockProcess.mappedFrequencies || blockProcess.processFormants) {
 				continue;
 			}
-			if (b + 1 < bands && pvdrParent[b + 1] == PVDR_UNPROCESSED) {
-				addCurrent(b + 1, b);
-			}
-			if (b > 0 && pvdrParent[b - 1] == PVDR_UNPROCESSED) {
-				addCurrent(b - 1, b);
-			}
+			const int channel = phaseChannels[b];
+			const auto *predictions = predictionsForChannel(channel);
+			const auto *bins = bandsForChannel(channel);
+			const std::complex<double> current = std::complex<double>(predictions[b].input)*
+				std::conj(std::complex<double>(predictions[b - 1].input));
+			const std::complex<double> previous = std::complex<double>(bins[b].prevInput)*
+				std::conj(std::complex<double>(bins[b - 1].prevInput));
+			const double currentNorm = std::norm(current);
+			const double previousNorm = std::norm(previous);
+			const double agreement = (current*std::conj(previous)).real()/
+				(std::sqrt(currentNorm*previousNorm) + double(tinyFloor));
+			const double weight = PHASE_FREQUENCY_WEIGHT*std::clamp((agreement - double(VERTICAL_AGREEMENT_MIN))/
+				(1 - double(VERTICAL_AGREEMENT_MIN)), 0.0, 1.0);
+			const Sample gradient = (predictions[b - 1].frequencyGradient + predictions[b].frequencyGradient)*Sample(0.5);
+			Sample angle = (twistTimeFactor - Sample(1))*gradient;
+			angle -= Sample(2*M_PI)*std::round(angle/Sample(2*M_PI));
+			angle = std::clamp(angle, -GRADIENT_TWIST_MAX, GRADIENT_TWIST_MAX);
+			const std::complex<double> rotation = current/(std::sqrt(currentNorm) + double(tinyFloor))*
+				std::polar(1.0, double(angle));
+			const double leftEnergy = predictions[b - 1].energy;
+			const double rightEnergy = predictions[b].energy;
+			const double totalEnergy = leftEnergy + rightEnergy;
+			const double leftCoefficient = std::sqrt(rightEnergy/totalEnergy);
+			const double rightCoefficient = std::sqrt(leftEnergy/totalEnergy);
+			phaseDiagonal[b - 1] += weight*leftCoefficient*leftCoefficient*std::norm(rotation);
+			phaseDiagonal[b] += weight*rightCoefficient*rightCoefficient;
+			phaseUpper[b - 1] = -weight*leftCoefficient*rightCoefficient*std::conj(rotation);
 		}
-		for (int b = 0; b < bands; ++b) {
-			if (pvdrParent[b] == PVDR_RANDOM) {
-				pvdrOrder[orderSize++] = b;
+		for (int b = 1; b < bands; ++b) {
+			const auto lower = std::conj(phaseUpper[b - 1]);
+			phaseDiagonal[b] -= (lower*phaseUpper[b - 1]).real()/phaseDiagonal[b - 1];
+			phaseSolution[b] -= lower*phaseSolution[b - 1]/phaseDiagonal[b - 1];
+		}
+		for (int b = bands - 1; b >= 0; --b) {
+			if (b + 1 < bands) {
+				phaseSolution[b] -= phaseUpper[b]*phaseSolution[b + 1];
 			}
+			phaseSolution[b] /= phaseDiagonal[b];
 		}
 	}
 
@@ -1456,7 +1377,6 @@ private:
 			std::max<Sample>(smoothTimeFactor_, 1/maxCleanLow) : clampedTimeFactor;
 
 		Sample smoothingBins = Sample(stft.fftSamples())/stft.defaultInterval();
-		std::uniform_real_distribution<Sample> phaseDist(Sample(-M_PI), Sample(M_PI));
 		int splitBin = static_cast<int>(freqToBand(splitFreq));
 		int lockSplit = static_cast<int>(freqToBand(transientMinFreq_));
 
@@ -1531,11 +1451,11 @@ private:
 				prediction.energy *= std::max<Sample>(0, mapPoint.freqGrad); // scale the energy according to local stretch factor
 				prediction.input = getFractional<&Band::input>(c, lowIndex, fracIndex);
 				if (c == 0) {
-					pvdrPreviousEnergy[b] = prevEnergy;
-					pvdrCurrentEnergy[b] = prediction.energy;
+					phasePreviousEnergy[b] = prevEnergy;
+					phaseCurrentEnergy[b] = prediction.energy;
 				} else {
-					pvdrPreviousEnergy[b] = std::max(pvdrPreviousEnergy[b], prevEnergy);
-					pvdrCurrentEnergy[b] = std::max(pvdrCurrentEnergy[b], prediction.energy);
+					phasePreviousEnergy[b] = std::max(phasePreviousEnergy[b], prevEnergy);
+					phaseCurrentEnergy[b] = std::max(phaseCurrentEnergy[b], prediction.energy);
 				}
 
 				auto &outputBin = bins[b];
@@ -1572,140 +1492,18 @@ private:
 			// Re-predict using phase differences between frequencies
 			size_t chunk = step;
 			if (chunk == 0) { // YARG phase-2: loudest-first order, propagated to later chunks
-				preparePvdrTraversal();
+				solvePhaseIntegration(twistTimeFactor);
 			}
 			int startI = int(bands*chunk/splitMainPrediction);
 			int endI = int(bands*(chunk + 1)/splitMainPrediction);
-			for (int i = startI; i < endI; ++i) {
-				int b = pvdrOrder[i];
+			for (int b = startI; b < endI; ++b) {
 				// Find maximum-energy channel and calculate that
-				int maxChannel = 0;
-				Sample maxEnergy = predictionsForChannel(0)[b].energy;
-				for (int c = 1; c < channels; ++c) {
-					Sample e = predictionsForChannel(c)[b].energy;
-					if (e > maxEnergy) {
-						maxChannel = c;
-						maxEnergy = e;
-					}
-				}
-
-				auto *predictions = predictionsForChannel(maxChannel);
-				auto &prediction = predictions[b];
-				auto *bins = bandsForChannel(maxChannel);
-				auto &outputBin = bins[b];
-
-				int parent = pvdrParent[b];
-				Complex phase;
-				const int firstBand = int(freqToBand(transientMinFreq_));
-				const bool mappedReset = (blockProcess.mappedFrequencies || blockProcess.processFormants) && b >= firstBand;
-				const bool resetTransient = transientState_ == TransientState::RESET && (transientHold_[b] != 0 || mappedReset);
-				bool snapTransient = resetTransient;
-				if (snapTransient && !mappedReset && parent != PVDR_RANDOM) {
-					const Complex previous = bins[b].prevInput;
-					const Sample currentPower = _impl::norm(prediction.input);
-					const Sample previousPower = _impl::norm(previous);
-					if (currentPower + previousPower > tinyFloor) {
-						const Complex progression = _impl::mul<true>(prediction.input, previous);
-						const Sample interval = Sample(blockProcess.phaseInterval);
-						const Sample hop = Sample(stft.defaultInterval());
-						const Sample expected = prediction.timeAdvance * interval / hop;
-						const Sample sourcePhase = std::atan2(progression.imag(), progression.real());
-						Sample measured = sourcePhase - Sample(2 * M_PI) * bandToFreq(Sample(b)) * interval;
-						measured -= Sample(2 * M_PI) * std::round((measured - expected) / Sample(2 * M_PI));
-						const Sample error = measured * hop / interval - prediction.timeAdvance;
-						const Sample disagreement = std::clamp((std::abs(error) - TONAL_PHASE_ERROR_START) /
-							TONAL_PHASE_ERROR_RANGE, Sample(0), Sample(1));
-						snapTransient = disagreement >= TRANSIENT_SNAP_MIN_DISAGREEMENT;
-					}
-				}
-				if (snapTransient) {
-					phase = prediction.input;
-				} else if (!blockProcess.mappedFrequencies && b >= splitBin && parent >= 0 && clampedTimeFactor > TRANSIENT_MIN_STRETCH) {
-					auto &peakPrediction = predictions[parent];
-					auto &peakBin = bins[parent];
-					Complex twist = _impl::mul<true>(prediction.input, peakPrediction.input);
-					Sample twistNorm = _impl::norm(twist);
-					if (twistNorm > Sample(0)) {
-						Sample invNorm = Sample(1)/std::sqrt(twistNorm);
-						Complex relativeTwist{twist.real()*invNorm, twist.imag()*invNorm};
-						phase = _impl::mul(peakBin.output, relativeTwist);
-					} else {
-						phase = peakBin.output;
-					}
-				} else if (parent == PVDR_PREVIOUS) {
-					phase = outputBin.output;
-					if (blockProcess.newSpectrum && pvdrSteer_[b] > Sample(1) &&
-						bandToHz(Sample(b)) < TONAL_PHASE_MAX_HZ) {
-						const Complex previous = bins[b].prevInput;
-						const Complex progression = _impl::mul<true>(prediction.input, previous);
-						const Sample interval = Sample(blockProcess.phaseInterval);
-						const Sample hop = Sample(stft.defaultInterval());
-						const Sample expected = prediction.timeAdvance * interval / hop;
-						const Sample sourcePhase = std::atan2(progression.imag(), progression.real());
-						Sample measured = sourcePhase -
-							Sample(2*M_PI) * bandToFreq(Sample(b)) * interval;
-						measured -= Sample(2*M_PI) * std::round((measured - expected) / Sample(2*M_PI));
-						const Sample error = measured * hop / interval - prediction.timeAdvance;
-						const Sample currentPower = _impl::norm(prediction.input);
-						const Sample previousPower = _impl::norm(previous);
-						const Sample confidence = Sample(2) * std::sqrt(currentPower * previousPower) /
-							(currentPower + previousPower + tinyFloor) * getTonalPeakAgreement(maxChannel, b, sourcePhase);
-						const Sample disagreement = std::clamp((std::abs(error) - TONAL_PHASE_ERROR_START) /
-							TONAL_PHASE_ERROR_RANGE, Sample(0), Sample(1));
-						const Sample correction = std::clamp(error * confidence * disagreement * TONAL_PHASE_MAX_WEIGHT,
-							-TONAL_PHASE_MAX_CORRECTION, TONAL_PHASE_MAX_CORRECTION);
-						phase = _impl::mul(phase, std::polar(Sample(1), correction));
-					}
-				} else if (parent == PVDR_RANDOM) {
-					phase = std::polar(Sample(1), phaseDist(randomEngine));
-				} else {
-					auto &parentPrediction = predictions[parent];
-					Sample gateAgreement = Sample(1);
-					if (parent >= 0 && parent != b) {
-						Complex twistNow = _impl::mul<true>(prediction.input, parentPrediction.input);
-						Complex twistPrev = _impl::mul<true>(bins[b].prevInput, bins[parent].prevInput);
-						Sample nowNorm = _impl::norm(twistNow);
-						Sample prevNorm = _impl::norm(twistPrev);
-						if (nowNorm > Sample(0) && prevNorm > Sample(0)) {
-							Sample invScale = Sample(1) / std::sqrt(nowNorm * prevNorm);
-							gateAgreement = (twistNow.real() * twistPrev.real() +
-								twistNow.imag() * twistPrev.imag()) * invScale;
-						} else {
-							gateAgreement = Sample(0);
-						}
-					}
-					if (gateAgreement < VERTICAL_AGREEMENT_MIN) {
-						Sample ownAngle = twistTimeFactor * prediction.frequencyGradient;
-						ownAngle -= Sample(2 * M_PI) * std::round(ownAngle / Sample(2 * M_PI));
-						ownAngle = std::clamp(ownAngle, -GRADIENT_TWIST_MAX, GRADIENT_TWIST_MAX);
-						phase = _impl::mul(outputBin.output, std::polar(Sample(1), ownAngle)) /
-							(prediction.energy + tinyFloor);
-					} else if (!blockProcess.mappedFrequencies && b < splitBin && parent >= 0 &&
-						clampedTimeFactor > maxCleanLow) {
-						Complex twist = _impl::mul<true>(prediction.input, parentPrediction.input);
-						Sample twistNorm = _impl::norm(twist);
-						if (twistNorm > Sample(0)) {
-							Sample invNorm = Sample(1)/std::sqrt(twistNorm);
-							Complex relativeTwist{twist.real()*invNorm, twist.imag()*invNorm};
-							phase = _impl::mul(bins[parent].output, relativeTwist);
-						} else {
-							phase = bins[parent].output;
-						}
-					} else {
-						Sample binTimeFactor = twistTimeFactor;
-						Sample gradient = (prediction.frequencyGradient + parentPrediction.frequencyGradient)*Sample(0.5);
-						if (parent > b) {
-							gradient = -gradient;
-						}
-						Sample twistAngle = binTimeFactor * gradient;
-						twistAngle -= Sample(2 * M_PI) * std::round(twistAngle / Sample(2 * M_PI));
-						twistAngle = std::clamp(twistAngle, -GRADIENT_TWIST_MAX, GRADIENT_TWIST_MAX);
-						Complex verticalTwist = std::polar(Sample(1), twistAngle);
-						phase = _impl::mul(bins[parent].output, verticalTwist)/
-							(prediction.energy + tinyFloor);
-					}
-				}
-				if (parent >= 0 &&
+				const int maxChannel = phaseChannels[b];
+				auto &prediction = predictionsForChannel(maxChannel)[b];
+				auto &outputBin = bandsForChannel(maxChannel)[b];
+				const bool snapTransient = phaseReset[b];
+				Complex phase = Complex(phaseSolution[b]);
+				if (phaseSignificant[b] && !snapTransient &&
 					!blockProcess.mappedFrequencies && !blockProcess.processFormants && b < splitBin) {
 					const Sample textureWeight = noiseMorph.textureAmount(b);
 					if (textureWeight > Sample(0)) {
