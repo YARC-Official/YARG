@@ -18,6 +18,7 @@ namespace YARG.Menu.MusicLibrary
         public override bool UseWiderPrimaryText => true;
         public override string StableId => $"SecondaryHeader:{_text}";
         public int TotalStarsCount { get; set; }
+        public bool HasGoldStars { get; set; }
 
         public SecondaryHeaderViewType(string text, int songCount)
         {

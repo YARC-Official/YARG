@@ -1102,14 +1102,31 @@ namespace YARG.Gameplay
                 return false;
             }
 
-            var genre = Genrelizer.GetBaseGenre(GameManager.Song.Genre);
+            var animationGenres = new List<Genrelizer.BaseGenre>();
 
-            if (!anims.ContainsKey(genre))
+            if (GameManager.Chart.AnimationGenre is not MiloAnimation.MiloAnimationGenre.None)
+            {
+                animationGenres.AddRange(Genrelizer.GetAnimationGenres(GameManager.Chart.AnimationGenre));
+            }
+            // Add the song's actual base genre at the end of the list, if we can't find any from the animation genre
+            animationGenres.Add(Genrelizer.GetBaseGenre(GameManager.Song.Genre));
+
+            Genrelizer.BaseGenre? genre = null;
+            foreach (var animationGenre in animationGenres)
+            {
+                if (anims.ContainsKey(animationGenre))
+                {
+                    genre = animationGenre;
+                    break;
+                }
+            }
+
+            if (genre is null)
             {
                 return false;
             }
 
-            var controller = anims[genre];
+            var controller = anims[genre.Value];
             animator.runtimeAnimatorController = controller;
             animator.Rebind();
             return true;

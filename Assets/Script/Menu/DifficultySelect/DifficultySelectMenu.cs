@@ -318,15 +318,15 @@ namespace YARG.Menu.DifficultySelect
             RefreshScrollbar();
         }
 
-        // Get the charter-rated tier values for an instrument. Harmony reads from
-        // HarmonyVocals, which is empty on solo-only songs (no harmony chart) —
-        // fall back to the lead vocals tier so the ring still shows meaningful
-        // data instead of the dimmed state.
+        // Get the charter-rated tier values for an instrument. Harmony and party
+        // vocals read from HarmonyVocals, which is empty on solo-only songs (no
+        // harmony chart) — fall back to the lead vocals tier so the ring still
+        // shows meaningful data instead of the dimmed state.
         private static PartValues GetTierValues(SongEntry song, Instrument instrument)
         {
             var tierValues = song[instrument];
 
-            if (instrument is Instrument.Harmony && !tierValues.IsActive())
+            if (instrument is Instrument.Harmony or Instrument.PartyVocals && !tierValues.IsActive())
             {
                 tierValues = song[Instrument.Vocals];
             }
@@ -336,14 +336,14 @@ namespace YARG.Menu.DifficultySelect
 
         // Resolve the bare Addressable icon name for the ring. Handles the 22-fret
         // pro-instrument gap (ToResourceName returns null for ProGuitar_22Fret /
-        // ProBass_22Fret) and selects the part-count mic icon for harmony based on
-        // the song's vocal part count.
+        // ProBass_22Fret) and selects the part-count mic icon for harmony and
+        // party vocals based on the song's vocal part count.
         private static string GetInstrumentRingAsset(Instrument instrument, int vocalPartCount)
             => instrument switch
         {
             Instrument.ProGuitar_22Fret => "realGuitar",
             Instrument.ProBass_22Fret   => "realBass",
-            Instrument.Harmony => vocalPartCount switch
+            Instrument.Harmony or Instrument.PartyVocals => vocalPartCount switch
             {
                 >= 3 => "harmVocals",
                 2    => "twoVocals",
@@ -1277,8 +1277,8 @@ namespace YARG.Menu.DifficultySelect
 
         private bool HasPlayableInstrument(SongEntry entry, in Instrument instrument)
         {
-            // For vocals, all players *must* select the same gamemode (solo/harmony)
-            if (instrument is Instrument.Vocals or Instrument.Harmony)
+            // For vocals, all players *must* select the same gamemode (solo/harmony/party)
+            if (instrument is Instrument.Vocals or Instrument.Harmony or Instrument.PartyVocals)
             {
                 if (!entry.HasInstrument(instrument))
                 {
@@ -1293,7 +1293,7 @@ namespace YARG.Menu.DifficultySelect
                     var player = PlayerContainer.Players[i];
                     if (player.SittingOut) continue;
                     var playerInstrument = player.Profile.CurrentInstrument;
-                    if (playerInstrument is Instrument.Vocals or Instrument.Harmony)
+                    if (playerInstrument is Instrument.Vocals or Instrument.Harmony or Instrument.PartyVocals)
                     {
                         return playerInstrument == instrument;
                     }
@@ -1314,7 +1314,7 @@ namespace YARG.Menu.DifficultySelect
         private bool HasPlayableDifficulty(SongEntry entry, in Instrument instrument, in Difficulty difficulty)
         {
             // For vocals, insert special difficulties
-            if (instrument is Instrument.Vocals or Instrument.Harmony)
+            if (instrument is Instrument.Vocals or Instrument.Harmony or Instrument.PartyVocals)
             {
                 return difficulty is not Difficulty.ExpertPlus;
             }

@@ -9,6 +9,7 @@ using PlasticBand.Devices;
 using UnityEngine.InputSystem;
 using YARG.Core;
 using YARG.Core.Game;
+using YARG.Core.IO;
 using YARG.Core.Logging;
 using YARG.Helpers;
 using YARG.Input;
@@ -123,6 +124,7 @@ namespace YARG.Player
 
             _profiles.Remove(profile);
             _profilesById.Remove(profile.Id);
+            profile.Avatar?.Dispose();
             ActiveProfilesChanged();
             return true;
         }
@@ -206,6 +208,7 @@ namespace YARG.Player
         private static void ActiveProfilesChanged()
         {
             if (SettingsManager.Settings.OnlyShowPlayableSongs.Value ||
+                SettingsManager.Settings.ShowRecommendedSongs.Value ||
                 SettingsManager.Settings.LibrarySort == SortAttribute.Playcount)
             {
                 if (SettingsManager.Settings.OnlyShowPlayableSongs.Value)
@@ -217,6 +220,12 @@ namespace YARG.Player
             MusicLibraryMenu.NeedsReload();
 
             StatsManager.Instance?.UpdateActivePlayers();
+        }
+
+        public static void NotifyProfileChanged(YargProfile profile)
+        {
+            if (IsProfileTaken(profile))
+                ActiveProfilesChanged();
         }
 
         public static YargPlayer GetPlayerFromProfile(YargProfile profile)
@@ -519,6 +528,7 @@ namespace YARG.Player
 
             _profiles.Add(profile);
             _profilesById.Add(profile.Id, profile);
+            LoadAvatar(profile);
             return true;
         }
 
@@ -791,6 +801,15 @@ namespace YARG.Player
             }
 
             return profiles.Count;
+        }
+
+        private static void LoadAvatar(YargProfile profile)
+        {
+            var imagePath = Path.Join(ProfilesDirectory, profile.Id.ToString());
+            if (File.Exists(imagePath))
+            {
+                profile.Avatar = YARGImage.Load(imagePath);
+            }
         }
 
         public static void Destroy()

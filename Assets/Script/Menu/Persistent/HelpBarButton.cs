@@ -64,6 +64,7 @@ namespace YARG.Menu.Persistent
         {
             _clickable = clickable;
             _entry = entry;
+            _buttonHoldFill.fillAmount = 0f;
 
             if (entry.HasHoldHandler)
             {

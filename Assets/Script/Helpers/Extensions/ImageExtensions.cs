@@ -79,6 +79,12 @@ namespace YARG.Helpers.Extensions
             return texture;
         }
 
+        public static Sprite ToSprite(this YARGImage image)
+        {
+            var texture = image.LoadTexture(false);
+            return Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
+        }
+
         private sealed class AlbumCoverRequestState
         {
             public int RequestId;
@@ -101,7 +107,7 @@ namespace YARG.Helpers.Extensions
             var tracker = rawImage.GetComponent<AlbumCoverRequestTracker>();
             if (tracker == null)
                 tracker = rawImage.gameObject.AddComponent<AlbumCoverRequestTracker>();
-            
+
             tracker.Initialize(rawImage);
 
             var instanceId = rawImage.GetInstanceID();

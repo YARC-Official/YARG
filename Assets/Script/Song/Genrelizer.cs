@@ -7,6 +7,7 @@ using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using UnityEngine.Networking;
+using YARG.Core.IO;
 using YARG.Core.Logging;
 using YARG.Core.Song;
 using YARG.Helpers;
@@ -165,6 +166,34 @@ namespace YARG.Song
         {
             var overGenre = Overgenrelize(genre);
             return OVERGENRE_TO_BASE_GENRE.GetValueOrDefault(overGenre, BaseGenre.Other);
+        }
+
+        public static BaseGenre[] GetAnimationGenres(MiloAnimation.MiloAnimationGenre genre)
+        {
+            return genre switch
+            {
+                MiloAnimation.MiloAnimationGenre.Spazz => new[]
+                {
+                    BaseGenre.Punk,
+                },
+                MiloAnimation.MiloAnimationGenre.Dramatic => new[]
+                {
+                    BaseGenre.DanceElectronic,
+                    BaseGenre.Pop,
+                },
+                MiloAnimation.MiloAnimationGenre.Banger => new[]
+                {
+                    BaseGenre.Metal
+                },
+                MiloAnimation.MiloAnimationGenre.Rocker => new[]
+                {
+                    BaseGenre.Rock,
+                    BaseGenre.HipHop,
+                    BaseGenre.Other
+                },
+                MiloAnimation.MiloAnimationGenre.None => Array.Empty<BaseGenre>(),
+                _                                     => throw new ArgumentOutOfRangeException(nameof(genre), genre, null)
+            };
         }
 
         private static string _getLocalizedGenre(string genre)
