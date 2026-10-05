@@ -284,16 +284,18 @@ namespace YARG.Gameplay.Player
                 }
             };
 
-            engine.OnNoteMissed += (_, _) =>
+            engine.OnNoteMissed += (_, note) =>
             {
-                if (LastCombo >= 2)
+                if (note.IsVocalPhrase)
                 {
-                    GlobalAudioHandler.PlaySoundEffect(SfxSample.NoteMiss);
+                    if (LastCombo >= 2)
+                    {
+                        GlobalAudioHandler.PlaySoundEffect(SfxSample.NoteMiss);
+                    }
+
+                    LastCombo = Combo;
+                    _hud.SetFullCombo(false);
                 }
-
-                LastCombo = Combo;
-
-                _hud.SetFullCombo(false);
             };
 
             engine.OnSing += (singing) =>
