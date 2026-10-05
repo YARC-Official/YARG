@@ -57,14 +57,11 @@ namespace YARG.Player
         public bool IsMissingMicrophone => !IsReplay && Profile.GameMode == GameMode.Vocals && Bindings.Microphone == null && !Profile.IsBot;
         public bool IsMissingInputDevice => !IsReplay && Profile.GameMode != GameMode.Vocals && !Bindings.HasDeviceAssigned && !Profile.IsBot;
 
-        public YARGImage? AvatarImage;
-
         public YargPlayer(YargProfile profile, ProfileBindings bindings)
         {
             Profile = profile;
             Bindings = bindings;
             IsReplay = false;
-            LoadAvatar();
         }
 
         public YargPlayer(ReplayFrame frame, ReplayData replay)
@@ -91,8 +88,6 @@ namespace YARG.Player
             RockMeterPreset = replay.GetRockMeterPreset(Profile.RockMeterPreset)
                 ?? CustomContentManager.RockMeterPresets.GetPresetById(Profile.RockMeterPreset)
                 ?? RockMeterPreset.Normal;
-
-            LoadAvatar();
         }
 
         public void SwapToProfile(YargProfile profile, ProfileBindings bindings, bool resolveDevices)
@@ -140,18 +135,6 @@ namespace YARG.Player
                 RockMeterPreset.Normal;
             Profile.RockMeterPreset = RockMeterPreset.Id;
 
-        }
-
-        public void LoadAvatar()
-        {
-            AvatarImage?.Dispose();
-            var avatarPath = Path.Join(PlayerContainer.ProfilesDirectory, Profile.Id.ToString());
-            if (!File.Exists(avatarPath))
-            {
-                return;
-            }
-
-            AvatarImage = YARGImage.Load(avatarPath);
         }
 
         public void EnableInputs()

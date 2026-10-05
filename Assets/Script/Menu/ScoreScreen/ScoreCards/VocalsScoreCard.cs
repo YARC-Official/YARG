@@ -7,15 +7,9 @@ namespace YARG.Menu.ScoreScreen
 {
     public class VocalsScoreCard : ScoreCard<VocalsStats>
     {
-        public override void SetCardContents()
-        {
-            base.SetCardContents();
-
-            // Set background icon
-            _instrumentIcon.sprite = Addressables
+        public override Sprite GetInstrumentSprite() => Addressables
                 .LoadAssetAsync<Sprite>($"InstrumentIcons[{Player.Profile.CurrentInstrument.ToResourceName()}]")
                 .WaitForCompletion();
-        }
 
         // Vocals has no advanced stats
         public override void SetAdvancedStatsShown(bool showAdvanced)
