@@ -3,7 +3,6 @@
 #endif
 
 using System;
-using System.Threading;
 using UnityEngine;
 using UnityEngine.Video;
 using YARG.Core.Logging;
@@ -28,24 +27,26 @@ public class YargVideoPlayer : MonoBehaviour
     private bool _flipInBlit;
     // Latches prepareCompleted to one fire per Prepare() -- see OnVLCTextureResized.
     private bool _vlcPreparedFired = false;
-    private bool _vlcSeekPending;
-    private double _vlcSeekTarget;
-    private float _vlcSeekDeadline;
-    private bool _vlcSeekAccepted;
-    private long _vlcSeekFrameBaseline;
+    private VlcTimeWatch _timeWatch;
 
-    // libVLC's watch_time timer, owned here rather than inside VLCMediaPlayer so no vendored code
-    // is modified. libVLC allows one watcher per player, calls back on its own threads (which must
-    // not call into the player), and asserts at player deletion that no watcher remains -- so it
-    // must be removed before VLCMediaPlayer disposes the player. See StopTimeWatch.
-    private LibVLCSharp.MediaPlayer _watchedPlayer;
-    private VlcPlayerTeardownHook _teardownHook;
-    private LibVLCSharp.MediaPlayer.WatchTimeOnUpdate _onTimeUpdate;
-    private LibVLCSharp.MediaPlayer.WatchTimeOnSeek _onTimeSeek;
-    private long _picturesPresented;
-    private long _presentedPictureTs = long.MinValue;
-    private int _vlcSeekFinished;
-    private long _vlcSeekFinishedAtPicture;
+    // Per-media rather than on LibVLC, which is process-wide and built once.
+    private static readonly string[] VLC_MEDIA_OPTIONS =
+    {
+        // Load-bearing for sync. libavcodec's frame threading delays decoder output by
+        // thread_count - 1 frames, and at 24-30fps that delay is the whole offset the video would
+        // otherwise sit behind the song at. No seek or resume timing can shift it.
+        ":avcodec-threads=1",
+        ":low-delay",
+        // libVLC maps its first picture after a seek to "now + input caching" in wall time while
+        // the stream advances at the playback rate, so at rate r the video settles
+        // caching x (r - 1) off (-0.21s at 120% with the default 1000ms). Local files need little.
+        ":file-caching=100",
+        // Insurance: background videos are silent, and a badly muxed one must not reach the
+        // speakers. Not a sync lever: with no audio track, VLC's master clock is the video.
+        ":no-audio",
+        // Never ":start-time=". It decouples the player's reported time from the picture shown, so
+        // the video runs seconds out while every time-based check still reads correct.
+    };
 #endif
 
     private string _url = "";
@@ -74,7 +75,7 @@ public class YargVideoPlayer : MonoBehaviour
                 return _targetTexture;
             }
 #if VLC_SUPPORTED
-            if (_usingVLC && _vlcPlayer != null)
+            if (usingVlc)
             {
                 return _vlcPlayer.OutputTexture;
             }
@@ -120,7 +121,7 @@ public class YargVideoPlayer : MonoBehaviour
     {
 #if VLC_SUPPORTED
         // MediaPlayer.Time is in microseconds; VLCMediaPlayer.Time truncates it to milliseconds.
-        get => _usingVLC && _vlcPlayer != null
+        get => usingVlc
             ? (_vlcPlayer.MediaPlayer != null ? _vlcPlayer.MediaPlayer.Time / 1_000_000.0 : 0)
             : _unityVideoPlayer.time;
 #else
@@ -129,11 +130,9 @@ public class YargVideoPlayer : MonoBehaviour
         set
         {
 #if VLC_SUPPORTED
-            if (_usingVLC && _vlcPlayer != null)
+            if (usingVlc)
             {
-                // Armed before the seek is issued: on_seek arrives on a libVLC thread and can beat
-                // the return from SeekTo.
-                BeginVlcSeekWatch(value);
+                _timeWatch.BeginSeek(value);
 
                 // fast: false seeks to the requested timestamp rather than the preceding keyframe,
                 // which can be seconds out on a long-GOP video. SeekTo returns false when there's
@@ -152,7 +151,7 @@ public class YargVideoPlayer : MonoBehaviour
     public double length
     {
 #if VLC_SUPPORTED
-        get => _usingVLC && _vlcPlayer != null ? _vlcPlayer.Duration / 1000.0 : _unityVideoPlayer.length;
+        get => usingVlc ? _vlcPlayer.Duration / 1000.0 : _unityVideoPlayer.length;
 #else
         get => _unityVideoPlayer.length;
 #endif
@@ -161,14 +160,14 @@ public class YargVideoPlayer : MonoBehaviour
     public float playbackSpeed
     {
 #if VLC_SUPPORTED
-        get => _usingVLC && _vlcPlayer != null ? _vlcPlayer.MediaPlayer.Rate : _unityVideoPlayer.playbackSpeed;
+        get => usingVlc ? _vlcPlayer.MediaPlayer.Rate : _unityVideoPlayer.playbackSpeed;
 #else
         get => _unityVideoPlayer.playbackSpeed;
 #endif
         set
         {
 #if VLC_SUPPORTED
-            if (_usingVLC && _vlcPlayer != null)
+            if (usingVlc)
                 _vlcPlayer.MediaPlayer.SetRate(value);
             else if (_unityVideoPlayer != null)
                 _unityVideoPlayer.playbackSpeed = value;
@@ -198,9 +197,7 @@ public class YargVideoPlayer : MonoBehaviour
     public bool isPaused
     {
 #if VLC_SUPPORTED
-        get => _usingVLC && _vlcPlayer != null
-            ? !_vlcPlayer.MediaPlayer.IsPlaying
-            : !_unityVideoPlayer.isPlaying;
+        get => usingVlc ? !_vlcPlayer.MediaPlayer.IsPlaying : !_unityVideoPlayer.isPlaying;
 #else
         get => !_unityVideoPlayer.isPlaying;
 #endif
@@ -223,7 +220,7 @@ public class YargVideoPlayer : MonoBehaviour
     public long framesDelivered
     {
 #if VLC_SUPPORTED
-        get => _usingVLC ? Interlocked.Read(ref _picturesPresented) : (long) _unityVideoPlayer.frame;
+        get => usingVlc ? _timeWatch.PicturesPresented : (long) _unityVideoPlayer.frame;
 #else
         get => (long) _unityVideoPlayer.frame;
 #endif
@@ -234,18 +231,34 @@ public class YargVideoPlayer : MonoBehaviour
     /// not using VLC. While paused this is what playback resumes from -- the paused player's
     /// reported <see cref="time"/> runs ahead of it.
     /// </summary>
-    public double presentedPictureTime
+    public double presentedPictureTime =>
+#if VLC_SUPPORTED
+        usingVlc ? _timeWatch.PresentedPictureTime : double.NaN;
+#else
+        double.NaN;
+#endif
+
+    /// <summary>
+    /// Where a paused player will resume from: <see cref="presentedPictureTime"/>, or
+    /// <see cref="time"/> when there is no presented picture to go by.
+    /// </summary>
+    public double resumePictureTime
     {
         get
         {
-#if VLC_SUPPORTED
-            long ts = Interlocked.Read(ref _presentedPictureTs);
-            if (_usingVLC && ts != long.MinValue)
-                return ts / 1_000_000.0;
-#endif
-            return double.NaN;
+            double picture = presentedPictureTime;
+            return double.IsNaN(picture) ? time : picture;
         }
     }
+
+    /// <summary>
+    /// Wall-clock seconds to aim the video ahead of the song. A VLC picture reaches the screen a
+    /// fixed interval after libVLC presents it, so a video aimed exactly at the song shows late;
+    /// Unity's player has no such lag. About two 24fps frames, the same on every platform
+    /// (verified by eye on macOS and Linux). Not derived from the frame rate: libVLC reports
+    /// 0 fps for fragmented MP4s, which are common.
+    /// </summary>
+    public double pipelineLeadSeconds => usingVlc ? 0.08 : 0.0;
 
     public Camera targetCamera => _unityVideoPlayer?.targetCamera;
 
@@ -256,24 +269,19 @@ public class YargVideoPlayer : MonoBehaviour
 
     // ─── Methods ───
 
-    /// <param name="mediaOptions">
-    /// Per-media libVLC options (the ":option=value" form). Ignored on the Unity path, which has
-    /// no equivalent. Per-media rather than instance-level so they can differ between songs
-    /// without recreating LibVLC, which is process-wide and built once.
-    /// </param>
-    public void Prepare(params string[] mediaOptions)
+    public void Prepare()
     {
 #if VLC_SUPPORTED
-        if (_usingVLC && _vlcPlayer != null)
+        if (usingVlc)
         {
             _vlcPreparedFired = false;
-            _ = _vlcPlayer.OpenAsync(_url, mediaOptions ?? Array.Empty<string>());
+            _ = _vlcPlayer.OpenAsync(_url, VLC_MEDIA_OPTIONS);
             return;
         }
 #endif
         // Unity VideoPlayer path. Works identically on Windows (VLC compiled out) and
         // on the VLC fallback path, so it must fully configure the player itself:
-        // SwitchToVideoPlayerFallback (which also set renderMode) is VLC-only.
+        // FallBackToUnity (which also sets renderMode) is VLC-only.
         _unityVideoPlayer.url = _url;
         _unityVideoPlayer.renderMode = VideoRenderMode.RenderTexture;
         // Letterbox rather than stretch into targetTexture, matching the VLC path's blit. The
@@ -294,7 +302,7 @@ public class YargVideoPlayer : MonoBehaviour
     public void Play()
     {
 #if VLC_SUPPORTED
-        if (_usingVLC && _vlcPlayer != null)
+        if (usingVlc)
         {
             _vlcPlayer.Play();
             return;
@@ -307,7 +315,7 @@ public class YargVideoPlayer : MonoBehaviour
     public void Pause()
     {
 #if VLC_SUPPORTED
-        if (_usingVLC && _vlcPlayer != null)
+        if (usingVlc)
         {
             // SetPause, never Pause(): VLCMediaPlayer.Pause() is libvlc_media_player_pause, which
             // toggles -- on a player that hasn't reached Playing yet it starts playback instead.
@@ -322,7 +330,7 @@ public class YargVideoPlayer : MonoBehaviour
     public void Stop()
     {
 #if VLC_SUPPORTED
-        if (_usingVLC && _vlcPlayer != null)
+        if (usingVlc)
         {
             _vlcPlayer.Stop();
             return;
@@ -358,7 +366,20 @@ public class YargVideoPlayer : MonoBehaviour
 #if VLC_SUPPORTED
     private void Update()
     {
-        UpdateSeekWatch();
+        if (!usingVlc)
+            return;
+
+        var status = _timeWatch.PollSeek();
+        if (status == VlcTimeWatch.SeekStatus.TimedOut)
+        {
+            YargLogger.LogFormatWarning(
+                "[YargVideoPlayer] Seek to {0:F4} unconfirmed after {1:F2}s (at {2:F4}, accepted={3}, frames={4}, watchActive={5})",
+                _timeWatch.SeekTarget, VlcTimeWatch.SEEK_TIMEOUT_SECONDS, time, _timeWatch.SeekAccepted,
+                _timeWatch.PicturesSinceSeek, _timeWatch.Active);
+        }
+
+        if (status is VlcTimeWatch.SeekStatus.Landed or VlcTimeWatch.SeekStatus.TimedOut)
+            seekCompleted?.Invoke(this);
     }
 
     // LateUpdate, not Update: VLCMediaPlayer fetches libVLC's newest picture in its own
@@ -369,77 +390,9 @@ public class YargVideoPlayer : MonoBehaviour
         BlitToTargetTexture();
     }
 
-    private unsafe void StartTimeWatch()
-    {
-        var player = _vlcPlayer != null ? _vlcPlayer.MediaPlayer : null;
-        if (player == null || player == _watchedPlayer)
-            return;
-
-        StopTimeWatch();
-
-        Interlocked.Exchange(ref _presentedPictureTs, long.MinValue);
-
-        // Both run on libVLC threads: record and hand off, never call into the player.
-        _onTimeUpdate = (point, _) =>
-        {
-            // INT64_MAX system date is a paused-clock update, not a presented picture.
-            if (point.SystemDate != long.MaxValue)
-            {
-                Interlocked.Exchange(ref _presentedPictureTs, point.Time);
-                Interlocked.Increment(ref _picturesPresented);
-            }
-        };
-        _onTimeSeek = (point, _) =>
-        {
-            // Called with the request, then with null once seeking has finished.
-            if (point.HasValue)
-                return;
-
-            Interlocked.Exchange(ref _vlcSeekFinishedAtPicture, Interlocked.Read(ref _picturesPresented));
-            Interlocked.Exchange(ref _vlcSeekFinished, 1);
-        };
-
-        // 0 = every update; onPaused is unused, and the API accepts null for it.
-        if (player.WatchTime(0, _onTimeUpdate, null, _onTimeSeek))
-        {
-            _watchedPlayer = player;
-
-            if (_teardownHook == null)
-            {
-                _teardownHook = _vlcPlayer.gameObject.GetComponent<VlcPlayerTeardownHook>();
-                if (_teardownHook == null)
-                    _teardownHook = _vlcPlayer.gameObject.AddComponent<VlcPlayerTeardownHook>();
-                _teardownHook.Disabled = StopTimeWatch;
-            }
-        }
-        else
-        {
-            _onTimeUpdate = null;
-            _onTimeSeek = null;
-            YargLogger.LogWarning("[YargVideoPlayer] WatchTime registration failed; seek completion " +
-                "falls back to its timeout.");
-        }
-    }
-
-    // Must run before VLCMediaPlayer disposes the player: libVLC asserts at player deletion that no
-    // watcher remains, and aborts the process. Scene unload destroys objects one at a time, so this
-    // component's OnDisable may come after the VLC object is already gone; VlcPlayerTeardownHook,
-    // on the VLC object itself, is what guarantees the order. Idempotent -- every path calls it.
-    private void StopTimeWatch()
-    {
-        if (_watchedPlayer != null && _vlcPlayer != null && _vlcPlayer.MediaPlayer == _watchedPlayer)
-        {
-            _watchedPlayer.UnwatchTime();
-        }
-
-        _watchedPlayer = null;
-        _onTimeUpdate = null;
-        _onTimeSeek = null;
-    }
-
     private void BlitToTargetTexture()
     {
-        if (!_usingVLC || _vlcPlayer == null || _targetTexture == null)
+        if (!usingVlc || _targetTexture == null)
         {
             return;
         }
@@ -501,15 +454,15 @@ public class YargVideoPlayer : MonoBehaviour
     private void OnEnable()
     {
 #if VLC_SUPPORTED
-        if (_usingVLC)
-            StartTimeWatch();
+        if (usingVlc)
+            _timeWatch.Start();
 #endif
     }
 
     private void OnDisable()
     {
 #if VLC_SUPPORTED
-        StopTimeWatch();
+        _timeWatch?.Stop();
 #endif
     }
 
@@ -517,7 +470,7 @@ public class YargVideoPlayer : MonoBehaviour
     {
 #if VLC_SUPPORTED
         // Before the Destroy below: the watcher must be gone when VLCMediaPlayer disposes the player.
-        StopTimeWatch();
+        _timeWatch?.Stop();
         if (_vlcPlayer != null)
         {
             try
@@ -540,9 +493,7 @@ public class YargVideoPlayer : MonoBehaviour
     {
         if (_vlcPlayer == null)
         {
-            _usingVLC = false;
-            YargLogger.LogInfo("[YargVideoPlayer] VLC not available, using Unity VideoPlayer");
-            SwitchToVideoPlayerFallback();
+            FallBackToUnity("VLC not available");
             return;
         }
 
@@ -570,84 +521,20 @@ public class YargVideoPlayer : MonoBehaviour
 
             if (LibVLCSharp.VLCMediaPlayer.LibVLC == null)
             {
-                _usingVLC = false;
-                YargLogger.LogInfo("[YargVideoPlayer] VLC not available, using Unity VideoPlayer");
-                SwitchToVideoPlayerFallback();
+                FallBackToUnity("VLC not available");
                 return;
             }
 
             _usingVLC = true;
-            StartTimeWatch();
+            _timeWatch = new VlcTimeWatch(_vlcPlayer);
+            _timeWatch.Start();
             YargLogger.LogInfo("[YargVideoPlayer] VLC initialized successfully");
         }
         catch (Exception ex)
         {
-            YargLogger.LogInfo("[YargVideoPlayer] VLC initialization failed, falling back to Unity VideoPlayer: " + ex.Message);
-            _usingVLC = false;
-            if (_vlcPlayer != null)
-            {
-                _vlcPlayer = null;
-            }
-            SwitchToVideoPlayerFallback();
+            _vlcPlayer = null;
+            FallBackToUnity("VLC initialization failed: " + ex.Message);
         }
-    }
-
-    // Seek completion needs two signals, because libVLC gives them at different moments.
-    //
-    // on_seek says libVLC accepted and processed the seek, but it fires before any picture from
-    // the new position exists. Completion releases WaitForSongVideo's hold on the song, so acting
-    // on on_seek alone starts the song before the video can show anything.
-    //
-    // The second signal is a delivered frame, not proximity to the target. A seek lands on the
-    // nearest decodable frame, so a target mid-GOP settles short of where it was aimed and a
-    // distance test never passes -- burning the full deadline on every such seek. A frame is
-    // positive evidence wherever the seek ended up: the seek flushes the decoder, so anything
-    // delivered after on_seek is necessarily post-seek, and under this clock model a presented
-    // picture is what re-anchors the clock.
-    private const long VLC_SEEK_MIN_FRAMES = 1;
-    private const float VLC_SEEK_TIMEOUT_SECONDS = 0.35f;
-
-    private void BeginVlcSeekWatch(double target)
-    {
-        _vlcSeekTarget = target;
-        _vlcSeekFrameBaseline = framesDelivered;
-        _vlcSeekDeadline = Time.unscaledTime + VLC_SEEK_TIMEOUT_SECONDS;
-        _vlcSeekPending = true;
-        _vlcSeekAccepted = false;
-        Interlocked.Exchange(ref _vlcSeekFinished, 0);
-    }
-
-    private void UpdateSeekWatch()
-    {
-        if (!_vlcSeekPending)
-            return;
-
-        // on_seek has reported the seek finished; pictures presented before that moment are
-        // pre-seek, so count only those after it.
-        if (!_vlcSeekAccepted && Interlocked.CompareExchange(ref _vlcSeekFinished, 0, 0) == 1)
-        {
-            _vlcSeekAccepted = true;
-            _vlcSeekFrameBaseline = Interlocked.Read(ref _vlcSeekFinishedAtPicture);
-        }
-
-        bool landed = _vlcSeekAccepted &&
-                      framesDelivered - _vlcSeekFrameBaseline >= VLC_SEEK_MIN_FRAMES;
-        bool expired = Time.unscaledTime >= _vlcSeekDeadline;
-        if (!landed && !expired)
-            return;
-
-        _vlcSeekPending = false;
-        if (!landed)
-        {
-            // Must still fire: a caller may be holding the song paused waiting for it.
-            YargLogger.LogFormatWarning(
-                "[YargVideoPlayer] Seek to {0:F4} unconfirmed after {1:F2}s (at {2:F4}, accepted={3}, frames={4}, watchActive={5})",
-                _vlcSeekTarget, VLC_SEEK_TIMEOUT_SECONDS, time, _vlcSeekAccepted,
-                framesDelivered - _vlcSeekFrameBaseline,
-                _watchedPlayer != null);
-        }
-
-        seekCompleted?.Invoke(this);
     }
 
     private void OnVLCTextureResized(RenderTexture texture)
@@ -678,8 +565,9 @@ public class YargVideoPlayer : MonoBehaviour
         prepareCompleted?.Invoke(this);
     }
 
-    private void SwitchToVideoPlayerFallback()
+    private void FallBackToUnity(string reason)
     {
+        YargLogger.LogInfo($"[YargVideoPlayer] {reason}; using Unity VideoPlayer");
         _usingVLC = false;
         _unityVideoPlayer.enabled = true;
         _unityVideoPlayer.url = _url;

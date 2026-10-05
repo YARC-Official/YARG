@@ -69,31 +69,6 @@ namespace YARG.Gameplay
 
         private const float FADE_DURATION = 0.5f;
 
-        // Load-bearing for video sync, not a tuning knob. libavcodec's frame threading delays
-        // decoder output by thread_count - 1 frames by design and hardware decoders buffer more on
-        // top; at 24-30fps that delay is the whole of the offset the video would otherwise sit at,
-        // and no seek or resume timing shifts it. Per-media because LibVLC is process-wide and
-        // built once; serialized so single-threaded decode can be turned off on a machine it
-        // starves.
-        [Header("Video decoder latency")]
-        [SerializeField]
-        [Tooltip("Single-threaded decode. Removes libavcodec's frame-threading output delay of " +
-                 "thread_count - 1 frames, at the cost of decode throughput.")]
-        private bool _decoderSingleThreaded = true;
-
-        [SerializeField]
-        [Tooltip("Minimise delay through demux, packetisation and decode.")]
-        private bool _decoderLowDelay = true;
-
-        // libVLC maps its first picture after a seek to "now + input caching" in wall time while
-        // the stream advances at the song's rate, so at rate r the video settles about
-        // caching x (r - 1) off: -0.21s at 120% with the default 1000ms. Local files need little.
-        [SerializeField]
-        [Tooltip("libVLC input caching for the video file, in ms (:file-caching). The video " +
-                 "settles about this x (speed - 1) off at non-100% speeds; 0 leaves libVLC's " +
-                 "default (1000ms).")]
-        private int _fileCachingMs = 100;
-
         // Pictures the decoder must deliver after the song-start seek before the curtain lifts.
         private const long REVEAL_MIN_FRAMES = 3;
         private bool _videoRevealed;
@@ -110,7 +85,7 @@ namespace YARG.Gameplay
         // to that value when starting playback at the start of a song.
         private double _videoStartTime;
 
-        // Wall-clock seconds the video is aimed ahead of the song; see VideoLeadFor.
+        // Wall-clock seconds the video is aimed ahead of the song; see YargVideoPlayer.pipelineLeadSeconds.
         private double _videoLeadSeconds;
 
         // Pausing parks the video on the frame the resume will rewind to, so resuming is a Play
@@ -583,7 +558,7 @@ namespace YARG.Gameplay
             _videoPlayer.playerEnabled = true;
             _videoPlayer.prepareCompleted += OnVideoPrepared;
             _videoPlayer.seekCompleted += OnVideoSeeked;
-            _videoPlayer.Prepare(BuildMediaOptions());
+            _videoPlayer.Prepare();
             enabled = true;
         }
 
@@ -703,7 +678,7 @@ namespace YARG.Gameplay
             {
                 _videoStartTime = GameManager.Song.VideoStartTimeSeconds;
                 _videoEndTime = GameManager.Song.VideoEndTimeSeconds;
-                _videoLeadSeconds = VideoLeadFor(player);
+                _videoLeadSeconds = player.pipelineLeadSeconds;
 
                 // Clamped: a negative start time delays when the video starts; it does not name a
                 // position before the file begins.
@@ -892,40 +867,6 @@ namespace YARG.Gameplay
             _applyRateOnSeekLanded = false;
         }
 
-        private string[] BuildMediaOptions()
-        {
-            var options = new List<string>();
-
-            if (_decoderSingleThreaded)
-                options.Add(":avcodec-threads=1");
-
-            if (_decoderLowDelay)
-                options.Add(":low-delay");
-
-            if (_fileCachingMs > 0)
-                options.Add($":file-caching={_fileCachingMs}");
-
-            // Insurance, not a tuning knob: background videos are silent, and a badly muxed one
-            // must not reach the speakers. It is not a sync lever -- VLC only makes the audio
-            // output its master clock when a track exists, and these have none.
-            options.Add(":no-audio");
-
-            // Never ":start-time=". It decouples the player's reported time from the picture it
-            // is showing, so the video runs seconds out while every sync metric here -- all of
-            // which derive from MediaPlayer.Time -- still reads correct.
-
-            return options.ToArray();
-        }
-
-        // VLC's pictures reach the screen a fixed interval after libVLC presents them, so a video
-        // aimed exactly at the song shows late; Unity's player has no such lag. About two 24fps
-        // frames on macOS and Linux. Not derived from the video's frame rate: libVLC reports 0 fps
-        // for fragmented MP4s (which is fairly common), whose headers carry no sample count.
-        private static double VideoLeadFor(YargVideoPlayer player)
-        {
-            return player.usingVlc ? 0.08 : 0.0;
-        }
-
         // The video position to aim at for a song time. The lead is wall-clock, so it scales with
         // song speed when expressed in video time.
         private double VideoTargetFor(double songTime)
@@ -988,9 +929,7 @@ namespace YARG.Gameplay
             // A landed park already holds (about) this frame: play it when the song gets there.
             // Measured from the picture on screen, which is what playback resumes from; the paused
             // player's reported time runs ahead of it.
-            double parkedAt = _videoPlayer.presentedPictureTime;
-            if (double.IsNaN(parkedAt))
-                parkedAt = _videoPlayer.time;
+            double parkedAt = _videoPlayer.resumePictureTime;
 
             if (_parkState == ParkState.Parked && Math.Abs(parkedAt - target) < PARK_MAX_MISMATCH_SECONDS)
             {
@@ -1032,7 +971,7 @@ namespace YARG.Gameplay
 
         private void ArmParkRelease()
         {
-            _parkedAt = _videoPlayer.presentedPictureTime;
+            _parkedAt = _videoPlayer.resumePictureTime;
             _parkState = ParkState.Releasing;
         }
 
