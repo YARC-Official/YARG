@@ -74,6 +74,11 @@ namespace YARG.Audio.BASS
         internal bool TryGetPositionSeconds(long bytes, out double seconds) =>
             YargAudioBindings.StretchStreamGetPosition(this, bytes, out seconds) == 0;
 
-        protected override bool ReleaseHandle() => YargAudioBindings.StretchStreamDestroy(handle) == 0;
+        protected override bool ReleaseHandle()
+        {
+            YargAudioBindings.StretchStreamDestroy(handle);
+            StreamHandle = 0;
+            return true;
+        }
     }
 }
