@@ -646,9 +646,10 @@ namespace YARG.Gameplay
 
                 _revealFrameBaseline = _videoPlayer.framesDelivered;
 
-                // Disable after starting the video if it's not from the song folder
-                // or if video end time is not specified
-                if (_source != VenueSource.Song || double.IsNaN(_videoEndTime))
+                // A song video keeps Update running even with no end time (looping), since
+                // park releases and speed re-parks happen here; the end checks below are false
+                // for a NaN end time.
+                if (_source != VenueSource.Song)
                 {
                     // Update stops here, so there is no later chance to reveal.
                     RevealVideoWhenPlaying(force: true);
@@ -861,7 +862,7 @@ namespace YARG.Gameplay
                 SetVideoPlaying(!GameManager.Paused);
             }
 
-            enabled = !double.IsNaN(_videoEndTime);
+            enabled = true;
             _videoSeeking = false;
             _videoSeekWaitForPause = false;
         }
