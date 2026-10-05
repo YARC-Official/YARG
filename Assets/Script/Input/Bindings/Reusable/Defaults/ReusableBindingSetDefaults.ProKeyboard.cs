@@ -355,7 +355,7 @@ namespace YARG.Input.Bindings
         };
 
         public static ReusableBindingSet DefaultProKeyboard = MakeHardcodedBindingSet(
-            "Default Pro Keys",
+            "Default Keys",
             GameMode.ProKeys,
             ControllerFamily.ProKeyboard,
             _proKeyboardDefaults
