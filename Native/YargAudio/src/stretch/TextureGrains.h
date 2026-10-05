@@ -6,73 +6,77 @@
 #include <algorithm>
 #include <cmath>
 #include <complex>
+#include <random>
 #include <vector>
 
-// TextureGrains - resynthesizes the noise portion of the spectrum from short grains.
+// TextureGrains - resynthesizes the noise portion of the spectrum via noise
+// morphing (Moliner, Fierro, Wright & Valimaki 2024):
 //
-// NoiseMorph selects the texture-only bands; this converts them back to audio with
-// one inverse FFT, then overlaps grain slices onto the output:
-//
-//   - Each grain is shifted a few samples to maximise normalised cross-correlation
-//     with the previous grain tail, avoiding clicks at the seam.
-//   - The seam is an equal-power crossfade, scaled down at low correlation so poor
-//     matches fade instead of ringing.
+//   - envelope from input magnitude shaped by the texture mask
+//   - excitation: shared random rotation per band times each channel's own
+//     input phase, so blocks stay decorrelated over time while interchannel
+//     relationships (and the stereo image) are preserved
+//   - one inverse FFT, equal-power crossfade overlap-add between blocks
 //
 // Only texture passes through here; tones and transients stay on the main path.
+// Blocks are independent by construction: no alignment search, nothing tonal
+// to re-correlate.
 namespace yarg::audio {
 
 template<typename Sample>
 class TextureGrains {
     using Complex = std::complex<Sample>;
     using STFT = signalsmith::linear::DynamicSTFT<Sample, false, true>;
-    // Search range for grain alignment, as a share of the hop.
-    static constexpr int SEARCH_DIVISOR = 4;
-    static constexpr double SHIFT_PENALTY = 0.05;
-    static constexpr double MIN_ALIGNMENT_CORRELATION = 0.35;
-    static constexpr double MIN_HALF_CORRELATION = 0.20;
+    static constexpr unsigned DEFAULT_SEED = 1;
+    static constexpr double PI = 3.14159265358979323846;
     signalsmith::linear::RealFFT<Sample, false, true> fft;
     std::vector<Complex> spectrum;
-    std::vector<Sample> waveform, previous, fade, inverseWindow, output;
-    Sample meanWindowPower = 0;
+    std::vector<Sample> excitation;
+    std::vector<Sample> waveform, previous, fade, output;
+    std::minstd_rand randomEngine{DEFAULT_SEED};
+    Sample normalisation = 1;
     int channels = 0;
     int hop = 0;
+    int block = 0;
     int outputPosition = 0;
-    bool fullSearch = false;
 
 public:
     void configure(const STFT &analysis, int count, bool fullSearchGrains = false) {
+        (void)fullSearchGrains;
         channels = count;
-        fullSearch = fullSearchGrains;
         hop = int(analysis.defaultInterval());
+        block = int(analysis.blockSamples());
         fft.resize(analysis.fftSamples());
         spectrum.resize(analysis.bands());
+        excitation.resize(analysis.bands());
         waveform.resize(channels * analysis.fftSamples());
         previous.assign(channels * hop, Sample(0));
         output.assign(channels * analysis.blockSamples(), Sample(0));
         outputPosition = 0;
         fade.resize(hop);
-        inverseWindow.resize(analysis.blockSamples());
         for (int i = 0; i < hop; ++i) {
-            fade[i] = std::sin((i + Sample(0.5)) * Sample(1.5707963267948966) / hop);
+            fade[i] = std::sin((i + Sample(0.5)) * Sample(PI / 2) / hop);
         }
         double windowPower = 0;
         for (int i = 0; i < int(analysis.blockSamples()); ++i) {
-            const Sample window = analysis.analysisWindow()[i];
-            inverseWindow[i] = Sample(1) / (analysis.fftSamples() * window);
-            windowPower += double(window) * window;
+            const double window = analysis.analysisWindow()[i];
+            windowPower += window * window;
         }
-        meanWindowPower = Sample(windowPower / analysis.fftSamples());
+        normalisation = Sample(1 / std::sqrt(double(analysis.fftSamples()) * windowPower));
+        randomEngine.seed(DEFAULT_SEED);
     }
 
     void reset() {
         std::fill(previous.begin(), previous.end(), Sample(0));
         std::fill(output.begin(), output.end(), Sample(0));
         outputPosition = 0;
+        randomEngine.seed(DEFAULT_SEED);
     }
 
-    // Renders texture to waveform, aligns one grain, blends it in.
+    // Renders texture to waveform, crossfades one block, blends it in.
     template<class Input>
     void add(const STFT &analysis, Input input, const std::vector<Sample> &mask, Sample windowCoherence = Sample(1)) {
+        (void)windowCoherence;
         if (std::all_of(mask.begin(), mask.end(), [](Sample amount) { return amount == Sample(0); })) {
             const int block = int(analysis.blockSamples());
             const int start = outputPosition + int(analysis.synthesisOffset()) - hop;
@@ -86,122 +90,45 @@ public:
             }
             return;
         }
-        renderWaveform(analysis, input, mask, windowCoherence);
-        Sample correlation = 0;
-        int bestOffset = findBestOffset(analysis, correlation);
-        blendGrains(analysis, bestOffset, correlation);
+        renderWaveform(analysis, input, mask);
+        blendBlocks(analysis);
     }
 
     Sample read(int channel) const {
-        return output[channel * inverseWindow.size() + outputPosition];
+        return output[channel * block + outputPosition];
     }
 
     void advance() {
         for (int c = 0; c < channels; ++c) {
-            output[c * inverseWindow.size() + outputPosition] = 0;
+            output[c * block + outputPosition] = 0;
         }
-        outputPosition = (outputPosition + 1) % inverseWindow.size();
+        outputPosition = (outputPosition + 1) % block;
     }
 
 private:
-    // Inverse FFT of the masked spectrum per channel; compensates the analysis window.
+    // Envelope from input magnitude; shared random phase keeps stereo scaling exact.
     template<class Input>
-    void renderWaveform(const STFT &analysis, Input input, const std::vector<Sample> &mask, Sample windowCoherence) {
+    void renderWaveform(const STFT &analysis, Input input, const std::vector<Sample> &mask) {
         const int size = int(analysis.fftSamples());
-        const int center = int(analysis.analysisOffset());
-        const int range = hop + hop / SEARCH_DIVISOR;
+        std::uniform_real_distribution<Sample> phaseDistribution(Sample(-PI), Sample(PI));
+        for (int b = 0; b < int(spectrum.size()); ++b) {
+            excitation[b] = phaseDistribution(randomEngine);
+        }
         for (int c = 0; c < channels; ++c) {
             for (int b = 0; b < int(spectrum.size()); ++b) {
-                spectrum[b] = input(c, b) * std::sqrt(mask[b]);
+                const Complex source = input(c, b);
+                const Sample power = std::norm(source);
+                const Complex unit = power > Sample(1e-30) ?
+                    source / std::sqrt(power) : Complex{Sample(1), Sample(0)};
+                spectrum[b] = std::polar(std::sqrt(power * mask[b]) * normalisation,
+                    excitation[b]) * unit;
             }
-            auto *wave = waveform.data() + c * size;
-            fft.ifft(spectrum.data(), wave);
-            for (int i = -range; i < range; ++i) {
-                const int index = i < 0 ? size + i : i;
-                if (windowCoherence == Sample(1)) {
-                    wave[index] *= (i < 0 ? -1 : 1) * inverseWindow[center + i];
-                } else {
-                    const Sample window = analysis.analysisWindow()[center + i];
-                    const Sample power = windowCoherence * window * window + (Sample(1) - windowCoherence) * meanWindowPower;
-                    wave[index] *= (i < 0 ? -1 : 1) / (size * std::sqrt(power));
-                }
-            }
+            fft.ifft(spectrum.data(), waveform.data() + c * size);
         }
     }
 
-    bool hasAlignmentSupport(int size, int offset) const {
-        const int middle = hop / 2;
-        for (int half = 0; half < 2; ++half) {
-            const int start = half == 0 ? 0 : middle;
-            const int end = half == 0 ? middle : hop;
-            double cross = 0;
-            double oldPower = 0;
-            double newPower = 0;
-            for (int c = 0; c < channels; ++c) {
-                const auto *wave = waveform.data() + c * size;
-                const auto *tail = previous.data() + c * hop;
-                for (int i = start; i < end; ++i) {
-                    const double old = tail[i];
-                    const double next = wave[(size - hop + offset + i) % size];
-                    cross += old * next;
-                    oldPower += old * old;
-                    newPower += next * next;
-                }
-            }
-            const double correlation = cross / std::sqrt(oldPower * newPower + 1e-60);
-            if (correlation < MIN_HALF_CORRELATION) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    // Finds the offset with max normalised correlation against the previous tail;
-    // returns the offset and writes the score.
-    int findBestOffset(const STFT &analysis, Sample &correlation) {
-        const int size = int(analysis.fftSamples());
-        int bestOffset = 0;
-        double bestScore = 0;
-        double bestCorrelation = 0;
-        double oldPower = 0;
-        for (Sample value : previous) {
-            oldPower += double(value) * value;
-        }
-        const int searchStep = fullSearch ? 1 : std::max(1, hop / 16);
-        const int searchRange = hop / SEARCH_DIVISOR;
-        const int searchCount = 2 * searchRange / searchStep + 1;
-        const double shiftPenalty = SHIFT_PENALTY * SEARCH_DIVISOR / double(hop);
-        for (int candidate = -1; candidate < searchCount; ++candidate) {
-            const int offset = candidate < 0 ? 0 : -searchRange + candidate * searchStep;
-            double cross = 0;
-            double newPower = 0;
-            for (int c = 0; c < channels; ++c) {
-                const auto *wave = waveform.data() + c * size;
-                const auto *tail = previous.data() + c * hop;
-                for (int i = 0; i < hop; ++i) {
-                    const int index = (size - hop + offset + i) % size;
-                    const double next = wave[index];
-                    cross += tail[i] * next;
-                    newPower += next * next;
-                }
-            }
-            const double match = cross / std::sqrt(oldPower * newPower + 1e-60);
-            const double score = match - shiftPenalty * std::abs(offset);
-            if (candidate < 0 || score > bestScore || (score == bestScore && std::abs(offset) < std::abs(bestOffset))) {
-                if (offset != 0 && (match < MIN_ALIGNMENT_CORRELATION || !hasAlignmentSupport(size, offset))) {
-                    continue;
-                }
-                bestScore = score;
-                bestCorrelation = match;
-                bestOffset = offset;
-            }
-        }
-        correlation = Sample(std::clamp(bestCorrelation, 0.0, 1.0));
-        return bestOffset;
-    }
-
-    // Equal-power overlap-add of the aligned grain; poor matches blend quietly.
-    void blendGrains(const STFT &analysis, int bestOffset, Sample correlation) {
+    // Equal-power overlap-add of the new block over the previous tail.
+    void blendBlocks(const STFT &analysis) {
         const int size = int(analysis.fftSamples());
         const int block = int(analysis.blockSamples());
         const int start = outputPosition + int(analysis.synthesisOffset()) - hop;
@@ -210,12 +137,9 @@ private:
             auto *tail = previous.data() + c * hop;
             auto *buffer = output.data() + c * block;
             for (int i = 0; i < hop; ++i) {
-                const Sample rise = fade[i];
-                const Sample fall = fade[hop - 1 - i];
-                const Sample next = wave[(size - hop + bestOffset + i) % size];
-                buffer[(start + i) % block] += (tail[i] * fall + next * rise) /
-                    std::sqrt(Sample(1) + 2 * correlation * rise * fall);
-                tail[i] = wave[(size + bestOffset + i) % size];
+                const Sample next = -wave[(size - hop + i) % size];
+                buffer[(start + i) % block] += tail[i] * fade[hop - 1 - i] + next * fade[i];
+                tail[i] = wave[i];
             }
         }
     }

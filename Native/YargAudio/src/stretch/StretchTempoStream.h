@@ -32,11 +32,12 @@ public:
     std::uint32_t streamHandle() const noexcept { return stream_; }
     std::uint32_t sampleRate() const noexcept { return sampleRate_; }
     std::uint32_t channels() const noexcept { return channels_; }
-    int latencyFrames() const noexcept { return stretch_.outputLatency() + BLOCK_FRAMES; }
+    int latencyFrames() const noexcept { return BLOCK_FRAMES; }
     int protectedTransients() const noexcept {
         return protectedTransients_.load(std::memory_order_relaxed);
     }
     void setSpeed(float speed, float pitch) noexcept;
+    void setGrains(float strength) noexcept;
     bool position(double outputFrame, double& seconds) const noexcept;
     bool getPosition(std::int64_t bytes, double& seconds) noexcept;
     bool flush() noexcept;
@@ -78,6 +79,7 @@ private:
     std::vector<PositionBlock> history_;
     std::atomic<float> speed_{1.0f};
     std::atomic<float> pitch_{1.0f};
+    std::atomic<float> grains_{1.0f};
     // Written by the audio thread, read by the game thread via getPosition().
     // Scalars are atomic so queries never block audio. History entries are published
     // under historyMutex_ (fields stored before the entry becomes visible through

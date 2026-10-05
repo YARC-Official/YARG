@@ -23,10 +23,6 @@ constexpr double WINDOW_SECONDS = 0.060;
 constexpr int INTERVAL_DIVISOR = 8;
 // Transient-protection crossover frequency.
 constexpr float TRANSIENT_MIN_HZ = 1500.0f;
-constexpr float ATTACK_POWER_GATE = 2.25f;
-constexpr float ATTACK_SMOOTH_RATIO = 0.5f;
-constexpr float ATTACK_SLOPE = 0.12f;
-constexpr float ATTACK_MEDIUM_SLOPE = 0.0f;
 
 }
 
@@ -71,8 +67,6 @@ StretchTempoStream::StretchTempoStream(BassCoreBindings& bass,
         (2 * BLOCK_FRAMES)));
     const int window = std::max(4 * BLOCK_FRAMES, windowSteps * 2 * BLOCK_FRAMES);
     stretch_.configure(channels_, sampleRate_, window, window / INTERVAL_DIVISOR);
-    stretch_.setAttackGainParams(ATTACK_POWER_GATE, ATTACK_SMOOTH_RATIO,
-        ATTACK_SLOPE, ATTACK_MEDIUM_SLOPE);
     const float transientCutoff = std::clamp(TRANSIENT_MIN_HZ / sampleRate_, 0.001f, 0.49f);
     stretch_.setTransientFrequency(transientCutoff);
     const int capacity = std::max(stretch_.inputLatency(),
@@ -122,6 +116,10 @@ std::shared_ptr<StretchTempoStream> StretchTempoStream::findByHandle(std::uint32
 void StretchTempoStream::setSpeed(float speed, float pitch) noexcept {
     speed_.store(speed, std::memory_order_relaxed);
     pitch_.store(pitch, std::memory_order_relaxed);
+}
+
+void StretchTempoStream::setGrains(float strength) noexcept {
+    grains_.store(strength, std::memory_order_relaxed);
 }
 
 
@@ -226,6 +224,7 @@ bool StretchTempoStream::process() noexcept {
             static_cast<double>(baseInput), frames};
     }
     stretch_.setTransposeFactor(pitch);
+    stretch_.setGrainStrength(grains_.load(std::memory_order_relaxed));
     stretch_.process(inputChannels_, frames, outputChannels_, BLOCK_FRAMES);
     protectedTransients_.store(stretch_.transientCount(), std::memory_order_relaxed);
     inputFrames_.fetch_add(static_cast<std::uint64_t>(frames), std::memory_order_relaxed);

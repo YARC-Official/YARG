@@ -100,7 +100,7 @@ PVDR uses real-time phase-gradient heap integration and estimates phase derivati
 
 ## 5. How YARG Improves the Sound
 
-The engine is based on Signalsmith Stretch 1.3.2 by Geraint Luff ([Signalsmith Audio](https://github.com/Signalsmith-Audio/signalsmith-stretch)), with YARG's PVDR-inspired reconstruction and enhancements described below. It stretches the mixed output rather than each stem separately.
+The engine is based on Signalsmith Stretch 1.3.2 by Geraint Luff ([Signalsmith Audio](https://github.com/Signalsmith-Audio/signalsmith-stretch)), with YARG's PVDR-inspired reconstruction and adaptations described below. It stretches the mixed output rather than each stem separately.
 
 The native stream keeps track of which source position each 256-frame output block represents and accounts for processing delay when reporting playback position. Attack protection and grain alignment preserve this timing, so they do not insert local speed changes or change the number of output samples.
 
@@ -119,7 +119,7 @@ The engine now integrates phase through a confidence-weighted complex tridiagona
 
 Established low-frequency peaks and sheltered high-frequency peaks receive stronger temporal anchors. The low-frequency preference requires a previous local peak, sufficient current energy relative to its previous frame and the global maximum, and prominence above the smoothed background. Tonal references retain the bounded source-phase cross-check below 2500 Hz. Reference history is invalidated by seeks, resets, sustained silence, and draining.
 
-Transient bins selected for a phase reset are isolated from frequency coupling and anchored to source phase. Weak bins retain random phase and cannot connect separate significant regions. Pitch mapping and formant processing use temporal anchors without neighboring-bin coupling. Every bin uses the strongest channel as its phase reference; the existing relative-phase locking reconstructs other channels afterward. Grain resynthesis and subsequent shaping remain downstream.
+Transient bins selected for a phase reset are isolated from frequency coupling and anchored to source phase. Weak bins retain random phase and cannot connect separate significant regions. Pitch mapping and formant processing use temporal anchors without neighboring-bin coupling. Every bin uses the strongest channel as its phase reference; the existing relative-phase locking reconstructs other channels afterward. Noise resynthesis and envelope EQ remain downstream.
 
 A forward elimination and backward substitution solve the Hermitian system in linear time. Positive temporal anchor weights make the system positive definite even when frequency edges are disconnected. Double-precision solver buffers are allocated during configuration; no extra FFT, lookahead, or processing delay is introduced. The magnitude-aware implementation builds and passes the native harmonic, vibrato, pitch, stereo, cancellation-power, split-computation, silence, grain, and reset checks. At 100% speed, the stationary harmonic consistency residual fell from 0.0794 for the first phase-only solver to 0.00030 after correction; the heap baseline was 0.000092. Some synthetic diagnostics still favor the heap. Perceptual quality on mixed recordings and CPU benefit remain unverified.
 
@@ -173,27 +173,15 @@ The collected regions reset to their input phase together when at least half the
 
 This uses the center-timed reset and synchronized transient-set ideas in [Röbel's transient-processing paper](https://dafx.de/paper-archive/2003/pdfs/dafx32.pdf). Pitch mapping and formant processing use an immediate reset: bins above 1500 Hz snap, along with lower bins exhibiting a strong individual energy rise.
 
-Noise replacement pauses during initial transient protection and around the delayed reset, rather than throughout collection. After the synchronized reset, selected attack bins remain marked until the source-timed event expires. During event cooldown they are exempt from high-frequency decay damping and post-transient midrange damping, including on held spectra. All channels use the same selection.
+Noise replacement pauses during initial transient protection and around the delayed reset, rather than throughout collection. After the synchronized reset, selected attack bins remain marked until the source-timed event expires. All channels use the same selection.
 
 These resets preserve the requested time mapping rather than playing attacks at a different local speed. They do not guarantee unstretched attack envelopes. Multiple attacks within a window and overlapping sources within selected bins remain limitations.
 
 </details>
 
-#### F. Attack Reinforcement
-
-Frequencies above 250 Hz receive a limited volume boost when their energy rises sharply. Every channel gets the same boost. This stage limits the amplitude multiplier to 1.25, though later processing can change the result. A separate option for reinforcing weaker attacks is disabled in the native configuration.
-
 #### G. Stereo Preservation
 
 The stronger channel at each frequency provides the main phase reference. The other channels follow it while keeping their original phase differences. This helps preserve where sounds appear between the left and right speakers. During an attack reset, each channel uses its own source phase.
-
-Between approximately 800 and 5000 Hz, an extra correction helps the quieter channel retain its original phase relationship to the louder one without changing the quieter channel's magnitude. The correction gradually decreases from 3500 to 5000 Hz.
-
-Below 100 Hz, bass correction reduces changes to the original phase difference between channels. It weakens when their levels are very unequal and leaves effectively silent channels alone.
-
-#### H. Aligning the Bins Around a Note
-
-A **spectral peak** is a strong frequency region that may represent a note or part of one. **Phase locking** helps nearby bins keep their source relationship to that peak. One stage adjusts the immediate neighbors with the same rotation in every channel. Another adjusts a wider region around the peak, called its **main lobe**, separately for each channel. Both work below approximately 5000 Hz and gradually weaken between 3500 and 5000 Hz. These stages pause during pitch mapping and formant processing.
 
 ### Preserving Noise Textures
 
@@ -245,30 +233,7 @@ Classification and coherence are heuristic. Dense guitar harmonics can resemble 
 
 ### Preserving Tone and Volume
 
-#### K. Controlling Unwanted Sound
-
-The engine also adjusts the strength of individual frequency regions to control harshness, ringing, and unwanted volume changes. The limits below apply to each stage, not to the final output. **Gain** means a volume multiplier: 1 leaves amplitude unchanged, 0.8 reduces it to 80%, and 1.2 raises it to 120%. “Shared” means every channel gets the same multiplier; “Separate” means each channel is calculated individually.
-
-| Enhancement | Current behavior | Channel gains |
-| :--- | :--- | :--- |
-| Spectral contrast and anti-ringing | Turns down bins weaker than the local average across channels, keeping at least 88% of their amplitude. | Shared |
-| Causal pre-echo suppression | Reduces sound spreading ahead of an attack, keeping at least 70% of amplitude. | Shared |
-| Peak sharpening | Turns down the edges around strong peaks to at least 80% of amplitude and boosts their centers by at most 2%. | Shared |
-| Bark-band valley suppression | Turns down weak regions near stronger sounds between approximately 350 and 16000 Hz. Strong peaks are protected; at least 82% of amplitude is retained. | Shared |
-| De-essing | Softens strong regions between 5000 and 12000 Hz, retaining at least 85% of amplitude. It responds to frequencies rather than detecting a voice. | Shared |
-| Extreme-slowdown attenuation | Below approximately 45% speed, increasingly turns down bins weaker than the local average across channels. | Shared |
-| Dynamic modulation restoration | Adjusts bins according to their strength relative to the local average, with amplitude multipliers from 0.86 to 1.16. | Shared |
-| High-frequency decay damping | Softens fading sound more strongly at higher frequencies. When an analysis is reused, gentler softening applies above 4000 Hz. | Separate |
-| Post-transient midrange damping | After an attack, softens fading sound between approximately 260 and 1350 Hz, retaining at least 78% of amplitude. Selected attack bins are protected. | Shared |
-| Spectral boost limiting | Gradually limits excessive energy above 1.25 times the reconstruction estimate, approaching a ceiling of twice that estimate. | Shared |
-| Spectral gain diffusion | Shares energy between neighboring bins to bring their balance closer to the reconstruction estimate, keeping their combined energy unchanged. | Shared |
-| Gain floor | Raises bins that have become too weak relative to the reconstruction estimate. At strong slowdowns, the floor reaches 25% of estimated power; silent bins stay silent. | Separate |
-
-Peak sharpening fades above 3500 Hz and is inactive at 5000 Hz and above. The taper applies to both peak and neighboring-bin frequencies. The stage named dynamic modulation restoration measures spectral contrast rather than modulation over time.
-
-Most strengths increase with the smoothed slowdown ratio. Bypass conditions vary: many stages pause during transient protection, some also pause during cooldown or pitch mapping, and some require a new input spectrum. Post-transient midrange damping runs during cooldown outside active protection, with the selected-attack exemptions described above.
-
-Shared gains preserve the per-bin channel ratio at that stage; separate gains can change it. Later phase processing, overlap-add, and grain mixing affect the final sound and stereo image. Complementary vocoder/grain power weights do not guarantee constant waveform power when the paths are correlated.
+The F8/F9-controlled spectral shaping chain has been removed. Solver reconstruction, transient phase resets, noise resynthesis, and the envelope EQ remain active.
 
 #### L. Matching the Original Tonal Balance
 

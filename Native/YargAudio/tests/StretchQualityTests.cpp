@@ -14,6 +14,9 @@ struct StretchDiagnostics {
     static auto &stft(YargStretch<float> &stretch) {
         return stretch.stft;
     }
+    static float textureEnergy(YargStretch<float> &stretch) {
+        return stretch.noiseMorph.textureEnergyRatio();
+    }
 };
 
 }
@@ -272,6 +275,34 @@ void reportOnsets(Stretch &stretch, int sourceSamples) {
     }
 }
 
+double highFrequencyModulation(const std::vector<float> &signal) {
+    const double coefficient = 1 - std::exp(-2 * PI * 6000 / RATE);
+    double lowpass = 0;
+    std::vector<double> energy;
+    double block = 0;
+    int count = 0;
+    for (int i = RATE; i < OUTPUT_SAMPLES; ++i) {
+        lowpass += coefficient * (signal[i] - lowpass);
+        const double high = signal[i] - lowpass;
+        block += high * high;
+        if (++count == HOP) {
+            energy.push_back(block / HOP);
+            block = 0;
+            count = 0;
+        }
+    }
+    double mean = 0;
+    for (double value : energy) {
+        mean += value;
+    }
+    mean /= energy.size();
+    double variance = 0;
+    for (double value : energy) {
+        variance += (value - mean) * (value - mean);
+    }
+    return std::sqrt(variance / energy.size()) / (mean + 1e-12);
+}
+
 void requireStereo(const Stereo &output, float rightGain) {
     double error = 0;
     double energy = 0;
@@ -294,21 +325,25 @@ void runStretchQualityTests() {
     stretch.setTransientFrequency(1500.0f / RATE);
     std::vector<float> harmonics(OUTPUT_SAMPLES * 2 + WINDOW + HOP);
     std::vector<float> vibrato(harmonics.size());
+    std::vector<float> movingTone(harmonics.size());
     std::vector<float> sine(harmonics.size());
     std::vector<float> noise(harmonics.size());
     std::minstd_rand random(1);
     std::normal_distribution<float> distribution(0, 0.1f);
     double phase = 0;
+    double movingPhase = 0;
     for (int i = 0; i < int(harmonics.size()); ++i) {
         for (int harmonic = 1; harmonic <= 4; ++harmonic) {
             harmonics[i] += float(0.1 * std::sin(2 * PI * 220 * harmonic * i / RATE + 0.3 * harmonic * harmonic));
         }
         phase += 2 * PI * (3000 + 25 * std::sin(2 * PI * 5 * i / RATE)) / RATE;
         vibrato[i] = float(0.2 * std::sin(phase));
+        movingPhase += 2 * PI * (440 + 40 * std::sin(2 * PI * 5 * i / RATE)) / RATE;
+        movingTone[i] = float(0.2 * std::sin(movingPhase));
         sine[i] = float(0.2 * std::sin(2 * PI * 440 * i / RATE));
         noise[i] = distribution(random);
     }
-    for (double speed : {0.1, 0.25, 0.5, 0.75, 1.0, 2.0}) {
+    for (double speed : {0.1, 0.25, 0.35, 0.5, 0.75, 1.0, 2.0}) {
         auto output = render(stretch, harmonics, speed, 1, 0.1f);
         double harmonicPower = 0;
         for (int harmonic = 1; harmonic <= 4; ++harmonic) {
@@ -317,6 +352,11 @@ void runStretchQualityTests() {
         REQUIRE(harmonicPower / power(output[0]) > 0.995);
         requireStereo(output, 0.1f);
         output = render(stretch, vibrato, speed, 1, 0.1f);
+        REQUIRE(std::abs(power(output[0]) / 0.02 - 1) < 0.04);
+        requireStereo(output, 0.1f);
+    }
+    for (double speed : {0.25, 0.35, 0.5}) {
+        const auto output = render(stretch, movingTone, speed, 1, 0.1f);
         REQUIRE(std::abs(power(output[0]) / 0.02 - 1) < 0.04);
         requireStereo(output, 0.1f);
     }
@@ -404,6 +444,43 @@ void runStretchQualityTests() {
     for (const auto &channel : silentOutput) {
         REQUIRE(std::all_of(channel.begin(), channel.end(), [](float value) { return value == 0; }));
     }
+    render(stretch, noise, 0.5, 1, 1.0f);
+    const float noiseTexture = yarg::audio::StretchDiagnostics::textureEnergy(stretch);
+    render(stretch, harmonics, 0.5, 1, 1.0f);
+    const float toneTexture = yarg::audio::StretchDiagnostics::textureEnergy(stretch);
+    std::cout << "Stretch texture: noise=" << noiseTexture << " tone=" << toneTexture << '\n';
+    REQUIRE(noiseTexture > 0.5);
+    REQUIRE(toneTexture < 0.05);
+    std::vector<float> cymbal(harmonics.size());
+    std::minstd_rand cymbalRandom(7);
+    std::normal_distribution<float> cymbalDistribution(0, 1.0f);
+    const float highpass = float(1 - std::exp(-2 * PI * 5000 / RATE));
+    float state = 0;
+    for (int i = 0; i < int(cymbal.size()); ++i) {
+        const double strike = double(i % (RATE / 2)) / (RATE / 2);
+        const double envelope = std::exp(-6 * strike);
+        const float raw = cymbalDistribution(cymbalRandom);
+        state += highpass * (raw - state);
+        cymbal[i] = float(0.3 * envelope * (raw - state) +
+            0.03 * std::sin(2 * PI * 5220 * i / RATE) + 0.03 * std::sin(2 * PI * 7390 * i / RATE));
+    }
+    const auto cymbalOutput = render(stretch, cymbal, 0.5, 1, 0.1f);
+    double cymbalError = 0;
+    double cymbalEnergy = 0;
+    for (int i = 0; i < OUTPUT_SAMPLES; ++i) {
+        const double difference = cymbalOutput[1][i] - 0.1 * cymbalOutput[0][i];
+        cymbalError += difference * difference;
+        cymbalEnergy += double(cymbalOutput[0][i]) * cymbalOutput[0][i];
+    }
+    REQUIRE(cymbalError < cymbalEnergy * 1e-9 + 1e-20);
+    const double cymbalPower = power(cymbalOutput[0]);
+    const double cymbalModulation = highFrequencyModulation(cymbalOutput[0]);
+    const double cymbalReference = highFrequencyModulation(cymbal);
+    std::cout << "Stretch cymbal: power=" << cymbalPower
+        << " hfModulation=" << cymbalModulation << " reference=" << cymbalReference << '\n';
+    REQUIRE(cymbalPower > 0.0015);
+    REQUIRE(cymbalPower < 0.05);
+    REQUIRE(cymbalModulation < cymbalReference * 1.1);
     const auto first = render(stretch, noise, 0.5, 1, 0.1f);
     render(stretch, vibrato, 0.25, 1, -1);
     REQUIRE(render(stretch, noise, 0.5, 1, 0.1f) == first);
