@@ -312,6 +312,20 @@ namespace YARG.Menu.Navigation
             return progress;
         }
 
+        public bool IsActionHeld(YargPlayer player, MenuAction action)
+        {
+            return _holdInputs.Any(i => i.Context.Player == player && i.Context.Action == action);
+        }
+
+        public void CancelHold(YargPlayer player, MenuAction action)
+        {
+            foreach (var hold in _holdInputs.Where(i =>
+                         i.Context.Player == player && i.Context.Action == action))
+            {
+                hold.Tracker.Cancel();
+            }
+        }
+
         private void InvokeNavigationEvent(NavigationContext ctx)
         {
             if (ShouldBlockInputs())

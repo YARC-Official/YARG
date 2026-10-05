@@ -727,7 +727,6 @@ namespace YARG.Menu.Filters
                 {
                     enabled[value] = toggleValue;
                     updateSummary?.Invoke();
-                    DisableRecommendationsIfFiltered();
                 };
             }
         }
@@ -1421,7 +1420,6 @@ namespace YARG.Menu.Filters
         {
             SetAll(dict, value);
             updateSummary?.Invoke();
-            DisableRecommendationsIfFiltered();
 
             if (_rightContainer == null) return;
 
@@ -1429,33 +1427,6 @@ namespace YARG.Menu.Filters
                 row.SetToggleIsOn(value);
         }
 
-        private void DisableRecommendationsIfFiltered()
-        {
-            if (!SettingsManager.Settings.ShowRecommendedSongs.Value)
-                return;
-
-            foreach (var def in GetFilterDefs())
-            {
-                if (def.Group == FilterGroup.Playlist)
-                    continue;
-
-                var values = def.GetValues();
-                if (values.Count == 0)
-                    continue;
-
-                EnsureDefaults(def.Enabled, values);
-
-                int total = values.Count;
-                int selected = def.Enabled.Count(kvp => kvp.Value);
-                if (selected != total)
-                {
-                    SettingsManager.Settings.ShowRecommendedSongs.Value = false;
-                    if (_showRecommendationsToggle != null)
-                        _showRecommendationsToggle.SetIsOnWithoutNotify(false);
-                    break;
-                }
-            }
-        }
 #endregion
 
 #region Genres
@@ -2015,21 +1986,25 @@ namespace YARG.Menu.Filters
             SaveFilters();
             ActiveFilterPredicate = BuildFilterPredicate();
 
+            // Remove the Filters scheme before refreshing the library. Refreshing first can
+            // push a library scheme above this one, causing this pop to remove the wrong scheme
+            // and leave controller input bound to the now-hidden Filters menu.
+            Navigator.Instance.PopScheme();
+
             var library = FindFirstObjectByType<MusicLibrary.MusicLibraryMenu>();
             if (library != null)
             {
-                library.SetSidebarDifficultiesVisible(true);
-                if (filtersChanged || showRecommendationsChanged || onlyShowPlayableChanged)
-                {
-                    library.RefreshAndReselect();
-                }
+                bool refreshLibrary = filtersChanged || showRecommendationsChanged || onlyShowPlayableChanged;
+                library.RestoreAfterFilters(refreshLibrary);
             }
 
-            Navigator.Instance.PopScheme();
             _leftNavGroup.SelectionChanged -= OnSelectionChanged;
             _rightNavGroup.SelectionChanged -= OnRightSelectionChanged;
 
-            MenuManager.Instance.ReactivateCurrentMenu();
+            // Filters is an overlay, so the underlying menu normally remains active.
+            // Avoid toggling it off and back on, which exposes the shared background
+            // for a frame while this overlay is closing.
+            MenuManager.Instance.ReactivateCurrentMenu(false);
         }
 
         private bool HaveFiltersChanged()

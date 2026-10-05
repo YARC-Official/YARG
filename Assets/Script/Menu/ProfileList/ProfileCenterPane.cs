@@ -2,12 +2,15 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Game;
+using YARG.Core.IO;
+using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Localization;
 using YARG.Menu.Data;
@@ -54,6 +57,8 @@ namespace YARG.Menu.ProfileList
         private TMP_InputField _nameInput;
         [SerializeField]
         private Image _profilePicture;
+        [SerializeField]
+        private RawImage _customProfilePicture;
         [SerializeField]
         private GameObject _overviewButton;
 
@@ -124,6 +129,12 @@ namespace YARG.Menu.ProfileList
 
         [Space]
         [SerializeField]
+        private GameObject _deleteButton;
+        [SerializeField]
+        private GameObject _editButton;
+
+        [Space]
+        [SerializeField]
         private TextMeshProUGUI _tooltipTitleText;
         [SerializeField]
         private TextMeshProUGUI _tooltipText;
@@ -153,8 +164,6 @@ namespace YARG.Menu.ProfileList
                 // Create the dropdown option
                 _gameModeDropdown.options.Add(new(gameMode.ToLocalizedName()));
             }
-
-
         }
 
         private void OnEnable()
@@ -301,12 +310,27 @@ namespace YARG.Menu.ProfileList
             _nameContainer.SetActive(true);
             _editNameContainer.SetActive(false);
 
-            // Display the proper profile picture
+            // Display the proper generic profile picture
             _profilePicture.sprite = profile.IsBot ? _profileBotSprite : _profileGenericSprite;
 
             // Enable/disable the overview button
             _overviewButton.SetActive(!Profile.IsBot && PlayerContainer.IsProfileTaken(Profile));
-            
+
+            // Show/hide the custom picture rawimage depending on bot/custom pic availability
+            if (!profile.IsBot && Profile.Avatar != null)
+            {
+                Destroy(_customProfilePicture.texture);
+                _customProfilePicture.texture = Profile.Avatar.LoadTexture(false);
+                _customProfilePicture.gameObject.SetActive(true);
+            }
+            else
+            {
+                _customProfilePicture.gameObject.SetActive(false);
+            }
+
+            // Enable/disable the avatar delete/edit buttons
+            _deleteButton.SetActive(!profile.IsBot && Profile.Avatar != null);
+            _editButton.SetActive(!profile.IsBot);
 
             EnableSettingsForGameMode();
         }
@@ -392,6 +416,41 @@ namespace YARG.Menu.ProfileList
             menu.gameObject.SetActive(true);
         }
 
+        public void EditProfilePicture()
+        {
+            // Open file browser that allows selection of .png and .jpg images
+            // TODO: Once career is merged, update this to use the new OpenChooseFile signature that allows multiple file types
+            FileExplorerHelper.OpenChooseFile(null, "png", path =>
+            {
+                var picturePath = Path.Combine(PlayerContainer.ProfilesDirectory, Profile.Id.ToString());
+
+                // Copy to profile folder and tell the profile to load the data, then refresh the view
+                File.Copy(path, picturePath, true);
+
+                Profile.Avatar?.Dispose();
+                Profile.Avatar = YARGImage.Load(picturePath);
+
+                _profileView.UpdateDisplay(Profile);
+                UpdateCenterPane(Profile, _profileView);
+            });
+        }
+
+        public void DeleteProfilePicture()
+        {
+            Profile.Avatar?.Dispose();
+            Profile.Avatar = null;
+
+            var picturePath = Path.Combine(PlayerContainer.ProfilesDirectory, Profile.Id.ToString());
+
+            if (File.Exists(picturePath))
+            {
+                File.Delete(picturePath);
+            }
+
+            _profileView.UpdateDisplay(Profile);
+            UpdateCenterPane(Profile, _profileView);
+        }
+
         public async void AddController()
         {
             await _profileView.PromptAddController();
@@ -445,6 +504,7 @@ namespace YARG.Menu.ProfileList
 
             _profileView.UpdateDisplay(Profile);
             FiltersMenu.ResetIntensityFiltersForProfile(Profile);
+            PlayerContainer.NotifyProfileChanged(Profile);
             // Update sidebar when game mode changes so the correct settings are displayed
             UpdateCenterPane(Profile, _profileView);
         }

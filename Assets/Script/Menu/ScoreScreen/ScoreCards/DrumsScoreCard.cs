@@ -20,11 +20,6 @@ namespace YARG.Menu.ScoreScreen
         {
             base.SetCardContents();
 
-            // Set background icon
-            _instrumentIcon.sprite = Addressables
-                .LoadAssetAsync<Sprite>($"InstrumentIcons[drums]")
-                .WaitForCompletion();
-
             _overhits.text = ColorizePrimary(Stats.Overhits);
 
             var overhitsRow = _overhits.transform.parent;
@@ -39,6 +34,10 @@ namespace YARG.Menu.ScoreScreen
             }
         }
 
+        public override Sprite GetInstrumentSprite() => Addressables
+                .LoadAssetAsync<Sprite>("InstrumentIcons[drums]")
+                .WaitForCompletion();
+
         private void CreateOverhitRow(ControlBinding binding, int count, Transform parent)
         {
             var info = Instantiate(_statInfoPrefab, parent);
@@ -46,6 +45,5 @@ namespace YARG.Menu.ScoreScreen
             info.Label.text = "<space=20px>" + Localize.Key("Bindings", key);
             info.Value.text = ColorizePrimary(count);
         }
-
     }
 }
