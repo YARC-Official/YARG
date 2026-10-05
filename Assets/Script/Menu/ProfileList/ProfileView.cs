@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
@@ -10,9 +9,9 @@ using UnityEngine.UI;
 using YARG.Core.Audio;
 using YARG.Core.Game;
 using YARG.Core.Logging;
+using YARG.Helpers.Extensions;
 using YARG.Input;
 using YARG.Localization;
-using YARG.Menu;
 using YARG.Menu.Data;
 using YARG.Menu.Dialogs;
 using YARG.Menu.Navigation;
@@ -134,7 +133,21 @@ namespace YARG.Menu.ProfileList
                 connectButton.EnableButton();
             }
 
-            _profilePicture.sprite = profile.IsBot ? _profileBotSprite : _profileGenericSprite;
+            if (profile.Avatar != null)
+            {
+                var texture = profile.Avatar.LoadTexture(false);
+                var sprite = Sprite.Create(texture,
+                    new Rect(0f, 0f, texture.width, texture.height),
+                    new Vector2(0.5f, 0.5f));
+                _profilePicture.sprite = sprite;
+
+                _profilePicture.rectTransform.localScale = new Vector3(1f, -1f);
+            }
+            else
+            {
+                _profilePicture.sprite = _profileGenericSprite;
+                _profilePicture.rectTransform.localScale = new Vector3(1f, 1f);
+            }
         }
 
         protected override void OnSelectionChanged(bool selected)

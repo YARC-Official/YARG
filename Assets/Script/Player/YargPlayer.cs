@@ -1,8 +1,10 @@
 ﻿using System;
+using System.IO;
 using YARG.Core;
 using YARG.Core.Engine;
 using YARG.Core.Game;
 using YARG.Core.Input;
+using YARG.Core.IO;
 using YARG.Core.Replays;
 using YARG.Input;
 using YARG.Settings.Customization;
@@ -55,11 +57,14 @@ namespace YARG.Player
         public bool IsMissingMicrophone => !IsReplay && Profile.GameMode == GameMode.Vocals && Bindings.Microphone == null && !Profile.IsBot;
         public bool IsMissingInputDevice => !IsReplay && Profile.GameMode != GameMode.Vocals && !Bindings.HasDeviceAssigned && !Profile.IsBot;
 
+        public YARGImage? AvatarImage;
+
         public YargPlayer(YargProfile profile, ProfileBindings bindings)
         {
             Profile = profile;
             Bindings = bindings;
             IsReplay = false;
+            LoadAvatar();
         }
 
         public YargPlayer(ReplayFrame frame, ReplayData replay)
@@ -86,6 +91,8 @@ namespace YARG.Player
             RockMeterPreset = replay.GetRockMeterPreset(Profile.RockMeterPreset)
                 ?? CustomContentManager.RockMeterPresets.GetPresetById(Profile.RockMeterPreset)
                 ?? RockMeterPreset.Normal;
+
+            LoadAvatar();
         }
 
         public void SwapToProfile(YargProfile profile, ProfileBindings bindings, bool resolveDevices)
@@ -135,6 +142,18 @@ namespace YARG.Player
 
         }
 
+        public void LoadAvatar()
+        {
+            AvatarImage?.Dispose();
+            var avatarPath = Path.Join(PlayerContainer.ProfilesDirectory, Profile.Id.ToString());
+            if (!File.Exists(avatarPath))
+            {
+                return;
+            }
+
+            AvatarImage = YARGImage.Load(avatarPath);
+        }
+
         public void EnableInputs()
         {
             if (InputsEnabled || Bindings == null)
@@ -172,6 +191,7 @@ namespace YARG.Player
         {
             DisableInputs();
             Bindings?.Dispose();
+            Profile.Avatar?.Dispose();
         }
     }
 }
