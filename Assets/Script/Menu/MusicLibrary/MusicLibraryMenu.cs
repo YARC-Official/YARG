@@ -766,6 +766,46 @@ namespace YARG.Menu.MusicLibrary
                         intensityHeader.HasGoldStars = !intensityHasNonGoldSong;
                     }
                 }
+                else if (includeSongs && SettingsManager.Settings.LibrarySort >= SortAttribute.Instrument)
+                {
+                    var sourceGroups = displayedSongs
+                        .GroupBy(song => song.Source)
+                        .OrderBy(group => SongSources.SourceToGameName(group.Key),
+                            StringComparer.OrdinalIgnoreCase)
+                        .ThenBy(group => group.Key, StringComparer.OrdinalIgnoreCase);
+
+                    foreach (var sourceGroup in sourceGroups)
+                    {
+                        var songs = sourceGroup.OrderBy(song => song.Name).ToArray();
+                        string sourceLabel;
+                        if (SongSources.TryGetSource(sourceGroup.Key, out var parsedSource))
+                        {
+                            sourceLabel = parsedSource.GetDisplayName();
+                        }
+                        else if (sourceGroup.Key.Length > 0)
+                        {
+                            sourceLabel = sourceGroup.Key;
+                        }
+                        else
+                        {
+                            sourceLabel = SongSources.Default.GetDisplayName();
+                        }
+
+                        var sourceHeader = new SecondaryHeaderViewType(
+                            sourceLabel, songs.Length, SongSources.SourceToIcon(sourceGroup.Key));
+                        list.Add(sourceHeader);
+                        int starsBeforeSource = sectionTotalStars;
+                        bool sourceHasNonGoldSong = false;
+                        foreach (var song in songs)
+                        {
+                            AddSong(song);
+                            sourceHasNonGoldSong |=
+                                SongViewType.GetStarAmountForSong(song) != StarAmount.StarGold;
+                        }
+                        sourceHeader.TotalStarsCount = sectionTotalStars - starsBeforeSource;
+                        sourceHeader.HasGoldStars = !sourceHasNonGoldSong;
+                    }
+                }
                 else if (includeSongs && SettingsManager.Settings.LibrarySort == SortAttribute.Artist &&
                     secondaryAlbumSort != SecondaryAlbumSortMode.Off)
                 {

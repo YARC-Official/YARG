@@ -16,6 +16,7 @@ namespace YARG.Menu.MusicLibrary
         private readonly string _text;
         private readonly int _songCount;
         private readonly string _iconPath;
+        private readonly Sprite _icon;
         private static readonly Dictionary<string, Sprite> IconCache = new();
 
         public override BackgroundType Background => BackgroundType.SecondaryHeader;
@@ -32,10 +33,20 @@ namespace YARG.Menu.MusicLibrary
             _iconPath = iconPath;
         }
 
+        public SecondaryHeaderViewType(string text, int songCount, Sprite icon)
+        {
+            _text = text;
+            _songCount = songCount;
+            _icon = icon;
+        }
+
 #nullable enable
         public override Sprite? GetIcon()
 #nullable disable
         {
+            if (_icon != null)
+                return _icon;
+
             if (string.IsNullOrEmpty(_iconPath))
                 return null;
 
