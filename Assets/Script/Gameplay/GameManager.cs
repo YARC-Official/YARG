@@ -478,11 +478,10 @@ namespace YARG.Gameplay
                 _rewindLimit = rewindTime;
             }
 
-            // Where the resume's rewind will put the video, computed as SongRunner.RewindAndResume
-            // does. Practice and replays resume without rewinding.
+            // Where the resume's rewind will put the video. Practice and replays resume without
+            // rewinding.
             double? videoParkTime = recordsPause && !IsPractice
-                ? GetVideoPlaybackTime(
-                    _rewindLimit + (_songRunner.VideoCalibration - _songRunner.AudioCalibration) * SongSpeed)
+                ? GetVideoPlaybackTime(_songRunner.GetVisualTime(_rewindLimit))
                 : null;
             BackgroundManager.SetPaused(true, videoParkTime);
 
