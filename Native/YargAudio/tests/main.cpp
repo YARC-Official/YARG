@@ -15,6 +15,8 @@ int main() {
     runRenderAheadMixerTests();
     runReadAheadStreamTests();
     runStretchTempoStreamTests();
+    runStretchQualityTests();
+    runTextureGrainsTests();
     std::cout << "YargAudio native tests passed\n";
     return 0;
 }

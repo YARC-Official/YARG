@@ -191,7 +191,7 @@ Below 100 Hz, bass correction reduces changes to the original phase difference b
 
 #### H. Aligning the Bins Around a Note
 
-A **spectral peak** is a strong frequency region that may represent a note or part of one. **Phase locking** helps nearby bins keep their source relationship to that peak. One stage adjusts the immediate neighbors with the same rotation in every channel. Another adjusts a wider region around the peak, called its **main lobe**, separately for each channel. Both work below approximately 5000 Hz and gradually weaken between 3500 and 5000 Hz.
+A **spectral peak** is a strong frequency region that may represent a note or part of one. **Phase locking** helps nearby bins keep their source relationship to that peak. One stage adjusts the immediate neighbors with the same rotation in every channel. Another adjusts a wider region around the peak, called its **main lobe**, separately for each channel. Both work below approximately 5000 Hz and gradually weaken between 3500 and 5000 Hz. These stages pause during pitch mapping and formant processing.
 
 ### Preserving Noise Textures
 
@@ -249,12 +249,12 @@ The engine also adjusts the strength of individual frequency regions to control 
 
 | Enhancement | Current behavior | Channel gains |
 | :--- | :--- | :--- |
-| Spectral contrast and anti-ringing | Turns down bins weaker than the local average, keeping at least 88% of their amplitude. | Separate |
+| Spectral contrast and anti-ringing | Turns down bins weaker than the local average across channels, keeping at least 88% of their amplitude. | Shared |
 | Causal pre-echo suppression | Reduces sound spreading ahead of an attack, keeping at least 70% of amplitude. | Shared |
 | Peak sharpening | Turns down the edges around strong peaks to at least 80% of amplitude and boosts their centers by at most 2%. | Shared |
 | Bark-band valley suppression | Turns down weak regions near stronger sounds between approximately 350 and 16000 Hz. Strong peaks are protected; at least 82% of amplitude is retained. | Shared |
 | De-essing | Softens strong regions between 5000 and 12000 Hz, retaining at least 85% of amplitude. It responds to frequencies rather than detecting a voice. | Shared |
-| Extreme-slowdown attenuation | Below approximately 45% speed, increasingly turns down bins weaker than the local average. | Separate |
+| Extreme-slowdown attenuation | Below approximately 45% speed, increasingly turns down bins weaker than the local average across channels. | Shared |
 | Dynamic modulation restoration | Adjusts bins according to their strength relative to the local average, with amplitude multipliers from 0.86 to 1.16. | Shared |
 | High-frequency decay damping | Softens fading sound more strongly at higher frequencies. When an analysis is reused, gentler softening applies above 4000 Hz. | Separate |
 | Post-transient midrange damping | After an attack, softens fading sound between approximately 260 and 1350 Hz, retaining at least 78% of amplitude. Selected attack bins are protected. | Shared |

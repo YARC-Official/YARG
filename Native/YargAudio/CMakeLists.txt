@@ -84,6 +84,7 @@ if(YARG_AUDIO_BUILD_TESTS)
         tests/NativeOneShotStreamTests.cpp
         tests/ReadAheadStreamTests.cpp
         tests/StretchTempoStreamTests.cpp
+        tests/StretchQualityTests.cpp
         tests/TextureGrainsTests.cpp
         src/AudioRingBuffer.cpp
         src/BassCoreBindings.cpp
