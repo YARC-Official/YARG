@@ -103,9 +103,9 @@ namespace YARG.Input.Bindings
                         ReusableBindingSetDefaults.DefaultGamepadMenu,
                         ReusableBindingSetDefaults.DefaultGamepadFiveFretGuitarMenu,
                         ReusableBindingSetDefaults.DefaultGamepadSixFretGuitarMenu,
+                        ReusableBindingSetDefaults.GamepadFourLaneDrumkitMenu,
+                        ReusableBindingSetDefaults.DefaultGamepadFiveLaneDrumkitMenu,
                         ReusableBindingSetDefaults.DefaultCrkdMode1Menu,
-                        ReusableBindingSetDefaults.RB4InstrumentMapperFourLaneDrumkitMenu,
-                        ReusableBindingSetDefaults.DefaultWiitarThingDrumkitMenu,
                     }},
                     { GameMode.Vocals, new() { ReusableBindingSetDefaults.DefaultGamepadVocalGameplay } },
                     { GameMode.FiveFretGuitar, new() {
@@ -114,9 +114,9 @@ namespace YARG.Input.Bindings
                         ReusableBindingSetDefaults.DefaultCrkdMode1Fw30Gameplay,
                     }},
                     { GameMode.SixFretGuitar, new() { ReusableBindingSetDefaults.DefaultGamepadSixFretGuitarGameplay }},
-                    { GameMode.FourLaneDrums, new() { ReusableBindingSetDefaults.RB4InstrumentMapperFourLaneDrumkitGameplay }},
+                    { GameMode.FourLaneDrums, new() { ReusableBindingSetDefaults.GamepadFourLaneDrumkitGameplay }},
                     { GameMode.FiveLaneDrums, new() {
-                        ReusableBindingSetDefaults.DefaultWiitarThingDrumkitGameplay
+                        ReusableBindingSetDefaults.DefaultGamepadFiveLaneDrumkitGameplay
                     }}
                 }
             },

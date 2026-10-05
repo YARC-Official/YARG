@@ -10,7 +10,7 @@ namespace YARG.Input.Bindings
 {
     public static partial class ReusableBindingSetDefaults
     {
-        private static Dictionary<string, ReusableControlBinding> _rb4InstrumentMapperfourLaneDrumkitGameplay = new()
+        private static Dictionary<string, ReusableControlBinding> _gamepadFourLaneDrumkitGameplay = new()
         {
             {
                 ActionStrings.DRUMS_KICK,
@@ -75,7 +75,7 @@ namespace YARG.Input.Bindings
             },
         };
 
-        private static Dictionary<string, ReusableControlBinding> _rb4InstrumentMapperfourLaneDrumkitMenu = new()
+        private static Dictionary<string, ReusableControlBinding> _gamepadFourLaneDrumkitMenu = new()
         {
             {
                 ActionStrings.MENU_START,
@@ -176,18 +176,18 @@ namespace YARG.Input.Bindings
             },
         };
 
-        public static ReusableBindingSet RB4InstrumentMapperFourLaneDrumkitGameplay = MakeHardcodedBindingSet(
-            "RB4 Instrument Mapper 4L Drumkit",
+        public static ReusableBindingSet GamepadFourLaneDrumkitGameplay = MakeHardcodedBindingSet(
+            "Default Gamepad as 4L Drumkit",
             GameMode.FourLaneDrums,
             ControllerFamily.Gamepad,
-            _rb4InstrumentMapperfourLaneDrumkitGameplay
+            _gamepadFourLaneDrumkitGameplay
         );
 
-        public static ReusableBindingSet RB4InstrumentMapperFourLaneDrumkitMenu = MakeHardcodedBindingSet(
-            "RB4 Instrument Mapper 4L Drumkit Menu",
+        public static ReusableBindingSet GamepadFourLaneDrumkitMenu = MakeHardcodedBindingSet(
+            "Default Gamepad as 4L Drumkit Menu",
             GameMode.Menu,
             ControllerFamily.Gamepad,
-            _rb4InstrumentMapperfourLaneDrumkitMenu
+            _gamepadFourLaneDrumkitMenu
         );
     }
 }

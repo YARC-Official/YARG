@@ -11,7 +11,7 @@ namespace YARG.Input.Bindings
 {
     public static partial class ReusableBindingSetDefaults
     {
-        private static Dictionary<string, ReusableControlBinding> _defaultWiitarGuitarDrumkitGameplay = new()
+        private static Dictionary<string, ReusableControlBinding> _defaultGamepadFiveLaneDrumkitGameplay = new()
         {
             {
                 ActionStrings.DRUMS_KICK,
@@ -64,7 +64,7 @@ namespace YARG.Input.Bindings
             },
         };
 
-        private static Dictionary<string, ReusableControlBinding> _defaultWiitarThingDrumkitMenu = new()
+        private static Dictionary<string, ReusableControlBinding> _defaultGamepadFiveLaneDrumkitMenu = new()
         {
             {
                 ActionStrings.MENU_START,
@@ -150,18 +150,18 @@ namespace YARG.Input.Bindings
             },
         };
 
-        public static ReusableBindingSet DefaultWiitarThingDrumkitGameplay = MakeHardcodedBindingSet(
-            "Default Wiitar Thing Drumkit",
+        public static ReusableBindingSet DefaultGamepadFiveLaneDrumkitGameplay = MakeHardcodedBindingSet(
+            "Default Gamepad as 5L Drumkit",
             GameMode.FiveLaneDrums,
             ControllerFamily.Gamepad,
-            _defaultWiitarGuitarDrumkitGameplay
+            _defaultGamepadFiveLaneDrumkitGameplay
         );
 
-        public static ReusableBindingSet DefaultWiitarThingDrumkitMenu = MakeHardcodedBindingSet(
-            "Default Wiitar Thing Drumkit Menu",
+        public static ReusableBindingSet DefaultGamepadFiveLaneDrumkitMenu = MakeHardcodedBindingSet(
+            "Default Gamepad as 5L Drumkit Menu",
             GameMode.Menu,
             ControllerFamily.Gamepad,
-            _defaultWiitarThingDrumkitMenu
+            _defaultGamepadFiveLaneDrumkitMenu
         );
     }
 }
