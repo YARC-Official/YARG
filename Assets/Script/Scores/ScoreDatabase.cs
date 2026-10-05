@@ -334,6 +334,20 @@ namespace YARG.Scores
             );
         }
 
+        public List<PlayerScoreWithChecksum> QueryPlayerScoresWithChecksums(Guid playerId)
+        {
+            return Query<PlayerScoreWithChecksum>(
+                @"SELECT ps.*, gr.SongChecksum
+                FROM PlayerScores ps
+                INNER JOIN GameRecords gr
+                    ON ps.GameRecordId = gr.Id
+                WHERE ps.PlayerId = ?
+                    AND ps.IsReplay = 0
+                ORDER BY ps.Id;",
+                playerId
+            );
+        }
+
         public List<PlayerScoreWithChecksum> QueryPlayerScoresInCurrentLibrary(
             Guid playerId,
             IEnumerable<HashWrapper> currentLibrarySongHashes,
