@@ -37,6 +37,16 @@ namespace YARG.Helpers
         public const string GAMEPAD_DPAD_LEFT = "dpad/left";
         public const string GAMEPAD_DPAD_RIGHT = "dpad/right";
 
+
+        public const string GUITAR_WHAMMY = "whammy";
+        public const string GUITAR_TILT = "tilt";
+        public const string GUITAR_6F_BLACK_1 = "black1";
+        public const string GUITAR_6F_BLACK_2 = "black2";
+        public const string GUITAR_6F_BLACK_3 = "black3";
+        public const string GUITAR_6F_WHITE_1 = "white1";
+        public const string GUITAR_6F_WHITE_2 = "white2";
+        public const string GUITAR_6F_WHITE_3 = "white3";
+
         public const string DRUMKIT_KICK = "kick";
         public const string DRUMKIT_KICK_2 = "kick2";
         public const string DRUMKIT_RED_PAD = "redPad";
