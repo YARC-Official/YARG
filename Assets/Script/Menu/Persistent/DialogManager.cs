@@ -47,6 +47,8 @@ namespace YARG.Menu.Persistent
         private SongPickerListDialog _playAShowDialog;
         [SerializeField]
         private LibrarySearchDialog _librarySearchDialog;
+        [SerializeField]
+        private ImageDialog _imageDialog;
 
         private Dialog _currentDialog;
 
@@ -251,6 +253,19 @@ namespace YARG.Menu.Persistent
             dialog.ClearButtons();
             dialog.AddDialogButton("Menu.Common.Cancel", MenuData.Colors.CancelButton, ClearDialog);
             dialog.AddDialogButton("Menu.Common.Apply", MenuData.Colors.ConfirmButton, () => _currentDialog.Submit());
+
+            return dialog;
+        }
+
+        public ImageDialog ShowImageDialog(string title, string message, string path)
+        {
+            var dialog = ShowDialog(_imageDialog);
+            dialog.Title.text = title;
+            dialog.Message.text = message;
+            dialog.SetImage(path);
+
+            dialog.ClearButtons();
+            dialog.AddDialogButton("Menu.Common.Close", MenuData.Colors.ConfirmButton, ClearDialog);
 
             return dialog;
         }

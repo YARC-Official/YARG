@@ -311,10 +311,25 @@ namespace YARG.Menu.Career
 
         private async UniTaskVoid HandleUnlockDisplay(List<string> names, CareerTier tier)
         {
-            if (tier?.CompletionBonus == CompletionBonusType.Video)
+            var folder = GetCareerContentFolder(_career);
+            var mediaFilename = tier.MediaFilename?.Name;
+            var text = tier?.CustomUnlockText ?? Localize.KeyFormat("Menu.Career.UnlockMessage", Localize.List(names));
+
+            if (tier.CompletionBonus == CompletionBonusType.Image)
             {
-                var folder = GetCareerContentFolder(_career);
-                var mediaFilename = tier.MediaFilename?.Name;
+                if (!string.IsNullOrEmpty(folder) && !string.IsNullOrEmpty(mediaFilename))
+                {
+                    var path = Path.Combine(folder, mediaFilename);
+                    if (!string.IsNullOrEmpty(path) && File.Exists(path))
+                    {
+                        await DialogManager.Instance.ShowImageDialog(Localize.Key("Menu.Career.UnlockTitle"), text, path).WaitUntilClosed();
+                        return;
+                    }
+                }
+            }
+
+            if (tier.CompletionBonus == CompletionBonusType.Video)
+            {
                 if (!string.IsNullOrEmpty(folder) && !string.IsNullOrEmpty(mediaFilename))
                 {
                     var file = Path.Combine(folder, mediaFilename);
@@ -324,8 +339,6 @@ namespace YARG.Menu.Career
                     }
                 }
             }
-
-            var text = tier?.CustomUnlockText ?? Localize.KeyFormat("Menu.Career.UnlockMessage", Localize.List(names));
 
             DialogManager.Instance.ShowMessage(Localize.Key("Menu.Career.UnlockTitle"), text);
         }

@@ -231,6 +231,7 @@ MonoBehaviour:
   _friendlyMidiDrumsBindingDialog: {fileID: 5304055860439716800, guid: 99959ef0a2f04974c84eb885f7d6a48e, type: 3}
   _playAShowDialog: {fileID: 6162491671344219383, guid: 0a237e5e84df70342aba8aab3b3e5d6b, type: 3}
   _librarySearchDialog: {fileID: 7922345990245476484, guid: bfc87651b33fa5a49b72ee112176bb04, type: 3}
+  _imageDialog: {fileID: 4111960373321465084, guid: 9f7ddc241b31f3e488b86871eca2355c, type: 3}
 --- !u!114 &168781096
 MonoBehaviour:
   m_ObjectHideFlags: 0
