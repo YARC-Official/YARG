@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Song;
@@ -12,6 +13,7 @@ using YARG.Helpers.Extensions;
 using YARG.Localization;
 using YARG.Menu.Navigation;
 using YARG.Settings;
+using YARG.Settings.Customization;
 using YARG.Song;
 using YARG.Scores;
 
@@ -52,30 +54,42 @@ namespace YARG.Menu.ProfileInfo.Overview
 
         private RectTransform _statsContent;
         private NavigationGroup _statsNavigationGroup;
+        private ScrollRect _statsScrollRect;
         private RectTransform _profileSummaryContent;
+        private NavigationGroup _profileSummaryNavigationGroup;
+        private ScrollRect _profileSummaryScrollRect;
         private TextMeshProUGUI _profileSummaryHeader;
-        private readonly TextMeshProUGUI[] _profileSummaryValues = new TextMeshProUGUI[5];
+        private int? _profileSummarySelectedIndex;
+        private int? _statsSelectedIndex;
+        private readonly TextMeshProUGUI[] _profileSummaryValues = new TextMeshProUGUI[11];
+        private static readonly Dictionary<string, Sprite> InstrumentIconCache = new();
 
         private static readonly Instrument[] Instruments = Enum.GetValues(typeof(Instrument))
             .Cast<Instrument>()
             .Where(instrument => instrument != Instrument.Band)
             .ToArray();
 
-        private static readonly string[] StatLabels =
+        private static readonly string[] StatLabelKeys =
         {
-            "All Songs Score",
-            "Expert Gold Star Songs",
-            "Expert Full Combos",
-            "Total Stars Earned"
+            "Menu.ProfileInfo.Stats.AllSongsScore",
+            "Menu.ProfileInfo.Stats.TotalStarsEarned",
+            "Menu.ProfileInfo.Stats.ExpertGoldStarSongs",
+            "Menu.ProfileInfo.Stats.ExpertFullCombos"
         };
 
-        private static readonly string[] ProfileSummaryLabels =
+        private static readonly string[] ProfileSummaryLabelKeys =
         {
-            "Songs Owned",
-            "Total Song Plays",
-            "Total Score",
-            "Total Stars Earned",
-            "Full Combos"
+            "Menu.ProfileInfo.Stats.SongsOwned",
+            "Menu.ProfileInfo.Stats.TotalSongPlays",
+            "Menu.ProfileInfo.Stats.TotalScore",
+            "Menu.ProfileInfo.Stats.TotalStarsEarned",
+            "Menu.ProfileInfo.Stats.FullCombos",
+            "Menu.ProfileInfo.Stats.TotalTimePlayed",
+            "Menu.ProfileInfo.Stats.FavoriteSong",
+            "Menu.ProfileInfo.Stats.FavoriteGenre",
+            "Menu.ProfileInfo.Stats.FavoriteEngine",
+            "Menu.ProfileInfo.Stats.AveragePercentage",
+            "Menu.ProfileInfo.Stats.LongestFullComboStreak"
         };
 
         private void Awake()
@@ -87,6 +101,7 @@ namespace YARG.Menu.ProfileInfo.Overview
         {
             var profile = _profileInfoMenu.CurrentProfile;
             var scores = ScoreContainer.GetAllScoresByPlayerId(profile.Id);
+            var scoresWithChecksums = ScoreContainer.GetAllScoresWithChecksumsByPlayerId(profile.Id);
 
             _profilePicture.enabled = true;
             _avatar.gameObject.SetActive(false);
@@ -106,8 +121,9 @@ namespace YARG.Menu.ProfileInfo.Overview
                 .LongCount(i => i.IsFc)
                 .ToString("N0");
 
-            PopulateProfileSummary(profile.Name, scores);
+            PopulateProfileSummary(profile.Name, scores, scoresWithChecksums);
             PopulateInstrumentStats(ScoreContainer.GetScoresInCurrentLibraryByPlayerId(profile.Id));
+            FocusProfileSummary(true);
 
             if (profile.Avatar == null)
             {
@@ -130,12 +146,24 @@ namespace YARG.Menu.ProfileInfo.Overview
 
         public void NavigateUp(bool isRepeat)
         {
-            _statsNavigationGroup?.SelectPrevious(isRepeat);
+            GetFocusedNavigationGroup()?.SelectPrevious(isRepeat);
         }
 
         public void NavigateDown(bool isRepeat)
         {
-            _statsNavigationGroup?.SelectNext(isRepeat);
+            GetFocusedNavigationGroup()?.SelectNext(isRepeat);
+        }
+
+        public void SwapSide()
+        {
+            if (NavigationGroup.CurrentNavigationGroup == _statsNavigationGroup)
+            {
+                FocusProfileSummary(false);
+            }
+            else
+            {
+                FocusInstrumentStats();
+            }
         }
 
         private void CreateTwoPanelLayout()
@@ -147,7 +175,7 @@ namespace YARG.Menu.ProfileInfo.Overview
             }
 
             // The original summary occupied a full-width strip above the stats. It is replaced
-            // by the profile summary in the right pane, so let both panes use the full height.
+            // by independently scrollable profile and instrument panes that use the full height.
             _profileName.transform.parent.parent.gameObject.SetActive(false);
             var placeholderText = _statsViewport.GetComponent<TextMeshProUGUI>();
             placeholderText.enabled = false;
@@ -166,11 +194,12 @@ namespace YARG.Menu.ProfileInfo.Overview
             scrollViewRect.anchoredPosition = Vector2.zero;
             scrollViewRect.sizeDelta = Vector2.zero;
 
-            var scrollRect = scrollView.GetComponent<ScrollRect>();
-            scrollRect.scrollSensitivity = 50;
-            _statsContent = scrollRect.content;
+            _statsScrollRect = scrollView.GetComponent<ScrollRect>();
+            _statsScrollRect.scrollSensitivity = 50;
+            _statsContent = _statsScrollRect.content;
             _statsContent.name = "Instrument Stats";
             _statsNavigationGroup = scrollView.AddComponent<NavigationGroup>();
+            _statsNavigationGroup.SelectionChanged += OnInstrumentStatsSelectionChanged;
             scrollView.AddComponent<ScrollViewNavigationUpdater>();
 
             var layout = _statsContent.gameObject.AddComponent<VerticalLayoutGroup>();
@@ -192,32 +221,156 @@ namespace YARG.Menu.ProfileInfo.Overview
         private void CreateProfileSummaryPanel()
         {
             var panel = new GameObject("Profile Summary", typeof(RectTransform));
-            _profileSummaryContent = panel.GetComponent<RectTransform>();
-            _profileSummaryContent.SetParent(_statsViewport.parent, false);
-            _profileSummaryContent.anchorMin = Vector2.zero;
-            _profileSummaryContent.anchorMax = new Vector2(0.5f, 1);
-            _profileSummaryContent.anchoredPosition = Vector2.zero;
-            _profileSummaryContent.sizeDelta = Vector2.zero;
-            _profileSummaryContent.pivot = new Vector2(0.5f, 1);
+            var panelRect = panel.GetComponent<RectTransform>();
+            panelRect.SetParent(_statsViewport.parent, false);
+            panelRect.anchorMin = Vector2.zero;
+            panelRect.anchorMax = new Vector2(0.5f, 1);
+            panelRect.anchoredPosition = Vector2.zero;
+            panelRect.sizeDelta = Vector2.zero;
+            panelRect.pivot = new Vector2(0.5f, 1);
 
-            var layout = panel.AddComponent<VerticalLayoutGroup>();
+            var scrollView = Instantiate(_scrollViewPrefab, panelRect, false);
+            scrollView.name = "Profile Summary Scroll View";
+            var scrollViewRect = (RectTransform) scrollView.transform;
+            scrollViewRect.anchorMin = Vector2.zero;
+            scrollViewRect.anchorMax = Vector2.one;
+            scrollViewRect.anchoredPosition = Vector2.zero;
+            scrollViewRect.sizeDelta = Vector2.zero;
+
+            _profileSummaryScrollRect = scrollView.GetComponent<ScrollRect>();
+            _profileSummaryScrollRect.scrollSensitivity = 50;
+            _profileSummaryContent = _profileSummaryScrollRect.content;
+            _profileSummaryContent.name = "Profile Summary";
+            _profileSummaryNavigationGroup = scrollView.AddComponent<NavigationGroup>();
+            _profileSummaryNavigationGroup.SelectionChanged += OnProfileSummarySelectionChanged;
+            scrollView.AddComponent<ScrollViewNavigationUpdater>();
+
+            var layout = _profileSummaryContent.gameObject.AddComponent<VerticalLayoutGroup>();
             layout.childAlignment = TextAnchor.UpperCenter;
             layout.childControlWidth = true;
             layout.childControlHeight = true;
             layout.childForceExpandWidth = true;
             layout.childForceExpandHeight = false;
 
-            var header = CreateHeader(_profileSummaryContent, "Profile");
-            _profileSummaryHeader = header.GetComponentInChildren<TextMeshProUGUI>();
+            var sizeFitter = _profileSummaryContent.gameObject.AddComponent<ContentSizeFitter>();
+            sizeFitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+            sizeFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
-            for (int i = 0; i < ProfileSummaryLabels.Length; i++)
+            var header = CreateHeader(_profileSummaryContent, Localize.Key("Menu.ProfileInfo.ProfileHeader"),
+                headerHeight: 105,
+                navigationGroup: _profileSummaryNavigationGroup);
+            _profileSummaryHeader = header.GetComponentInChildren<TextMeshProUGUI>();
+            _profileSummaryHeader.fontSize = _totalScore.fontSize;
+            _profileSummaryHeader.fontStyle |= FontStyles.Bold;
+            AttachProfilePicture(header);
+
+            for (int i = 0; i < ProfileSummaryLabelKeys.Length; i++)
             {
                 _profileSummaryValues[i] = CreateValueRow(_profileSummaryContent,
-                    ProfileSummaryLabels[i], string.Empty, i, false, i > 0);
+                    Localize.Key(ProfileSummaryLabelKeys[i]), string.Empty, i, true, i >= 2 && i <= 4,
+                    _profileSummaryNavigationGroup);
             }
         }
 
-        private void PopulateProfileSummary(string profileName, List<PlayerScoreRecord> scores)
+        private NavigationGroup GetFocusedNavigationGroup()
+        {
+            return NavigationGroup.CurrentNavigationGroup == _statsNavigationGroup
+                ? _statsNavigationGroup
+                : _profileSummaryNavigationGroup;
+        }
+
+        private void FocusProfileSummary(bool selectFirst)
+        {
+            if (_profileSummaryNavigationGroup == null || _profileSummaryNavigationGroup.Count == 0)
+            {
+                return;
+            }
+
+            _statsSelectedIndex = _statsNavigationGroup?.SelectedIndex ?? _statsSelectedIndex;
+            DeactivateNavigationGroup(_statsNavigationGroup);
+
+            if (selectFirst)
+            {
+                _profileSummaryNavigationGroup.SelectFirst(SelectionOrigin.Navigation);
+                _profileSummaryScrollRect.verticalNormalizedPosition = 1;
+            }
+            else if (_profileSummarySelectedIndex is { } index && index < _profileSummaryNavigationGroup.Count)
+            {
+                _profileSummaryNavigationGroup.SelectAt(index, SelectionOrigin.Navigation);
+            }
+            else
+            {
+                _profileSummaryNavigationGroup.SelectFirst(SelectionOrigin.Navigation);
+            }
+
+            _profileSummaryNavigationGroup.PushNavGroupToStack();
+        }
+
+        private void FocusInstrumentStats()
+        {
+            if (_statsNavigationGroup == null || _statsNavigationGroup.Count == 0)
+            {
+                return;
+            }
+
+            _profileSummarySelectedIndex = _profileSummaryNavigationGroup.SelectedIndex
+                ?? _profileSummarySelectedIndex;
+            DeactivateNavigationGroup(_profileSummaryNavigationGroup);
+
+            if (_statsSelectedIndex is { } index && index < _statsNavigationGroup.Count)
+            {
+                _statsNavigationGroup.SelectAt(index, SelectionOrigin.Navigation);
+            }
+            else
+            {
+                _statsNavigationGroup.SelectFirst(SelectionOrigin.Navigation);
+                _statsScrollRect.verticalNormalizedPosition = 1;
+            }
+
+            _statsNavigationGroup.PushNavGroupToStack();
+        }
+
+        private void OnProfileSummarySelectionChanged(NavigatableBehaviour selected, SelectionOrigin selectionOrigin)
+        {
+            if (selected == null)
+            {
+                return;
+            }
+
+            _profileSummarySelectedIndex = _profileSummaryNavigationGroup.SelectedIndex;
+            DeactivateNavigationGroup(_statsNavigationGroup);
+        }
+
+        private void OnInstrumentStatsSelectionChanged(NavigatableBehaviour selected, SelectionOrigin selectionOrigin)
+        {
+            if (selected == null)
+            {
+                return;
+            }
+
+            _statsSelectedIndex = _statsNavigationGroup.SelectedIndex;
+            DeactivateNavigationGroup(_profileSummaryNavigationGroup);
+        }
+
+        private static void DeactivateNavigationGroup(NavigationGroup navigationGroup)
+        {
+            if (navigationGroup == null)
+            {
+                return;
+            }
+
+            if (NavigationGroup.CurrentNavigationGroup == navigationGroup)
+            {
+                navigationGroup.SelectLastNavGroup();
+            }
+            else
+            {
+                navigationGroup.ClearSelection();
+            }
+        }
+
+        private void PopulateProfileSummary(string profileName, List<PlayerScoreRecord> scores,
+            List<PlayerScoreWithChecksum> scoresWithChecksums)
         {
             if (_profileSummaryContent == null)
             {
@@ -231,18 +384,126 @@ namespace YARG.Menu.ProfileInfo.Overview
                 .Select(song => song.Hash)
                 .Distinct()
                 .LongCount();
+            var playHistory = GetPlayHistorySummary(scoresWithChecksums);
             var summaryValues = new[]
             {
                 songsOwned.ToString("N0"),
                 scores.Count.ToString("N0"),
                 scores.Sum(score => (double) score.Score).ToString("N0"),
                 scores.Sum(score => (long) GetProfileStarPoints(score.Stars)).ToString("N0"),
-                scores.LongCount(score => score.IsFc).ToString("N0")
+                scores.LongCount(score => score.IsFc).ToString("N0"),
+                playHistory.TotalTime,
+                playHistory.MostPlayedSong,
+                playHistory.MostPlayedGenre,
+                playHistory.FavoriteEngine,
+                playHistory.AveragePercentage,
+                playHistory.LongestFullComboStreak
             };
             for (int i = 0; i < _profileSummaryValues.Length; i++)
             {
                 _profileSummaryValues[i].text = summaryValues[i];
             }
+        }
+
+        private static (string TotalTime, string MostPlayedSong, string MostPlayedGenre,
+            string LongestFullComboStreak, string FavoriteEngine, string AveragePercentage)
+            GetPlayHistorySummary(IEnumerable<PlayerScoreWithChecksum> scores)
+        {
+            long totalMilliseconds = 0;
+            long currentFullComboStreak = 0;
+            long longestFullComboStreak = 0;
+            double totalPercentage = 0;
+            long percentageCount = 0;
+            var songPlayCounts = new Dictionary<HashWrapper, (string Name, int Count)>();
+            var genrePlayCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            var enginePlayCounts = new Dictionary<Guid, int>();
+
+            foreach (var score in scores)
+            {
+                if (score.IsFc)
+                {
+                    currentFullComboStreak += Math.Max(0, score.NotesHit);
+                    longestFullComboStreak = Math.Max(longestFullComboStreak, currentFullComboStreak);
+                }
+                else
+                {
+                    currentFullComboStreak = 0;
+                }
+
+                float percentage = score.GetPercent();
+                if (!float.IsNaN(percentage) && !float.IsInfinity(percentage))
+                {
+                    totalPercentage += percentage;
+                    percentageCount++;
+                }
+
+                if (score.EnginePresetId != Guid.Empty)
+                {
+                    enginePlayCounts.TryGetValue(score.EnginePresetId, out int enginePlayCount);
+                    enginePlayCounts[score.EnginePresetId] = enginePlayCount + 1;
+                }
+
+                var songHash = HashWrapper.Create(score.SongChecksum);
+                if (SongContainer.SongsByHash.TryGetValue(songHash, out var songs) && songs.Count > 0)
+                {
+                    var song = songs[0];
+                    totalMilliseconds += song.SongLengthMilliseconds;
+
+                    if (songPlayCounts.TryGetValue(songHash, out var songPlayCount))
+                    {
+                        songPlayCounts[songHash] = (songPlayCount.Name, songPlayCount.Count + 1);
+                    }
+                    else
+                    {
+                        songPlayCounts[songHash] = (Localize.KeyFormat(
+                            "Menu.ProfileInfo.Stats.FavoriteSongValue", song.Name, song.Artist), 1);
+                    }
+
+                    string genre = song.Genre;
+                    if (!string.IsNullOrWhiteSpace(genre))
+                    {
+                        genrePlayCounts.TryGetValue(genre, out int genrePlayCount);
+                        genrePlayCounts[genre] = genrePlayCount + 1;
+                    }
+                }
+            }
+
+            var totalTime = TimeSpan.FromMilliseconds(totalMilliseconds);
+            string mostPlayedSong = songPlayCounts.Values
+                .OrderByDescending(song => song.Count)
+                .ThenBy(song => song.Name, StringComparer.OrdinalIgnoreCase)
+                .Select(song => song.Name)
+                .FirstOrDefault() ?? "-";
+            string mostPlayedGenre = genrePlayCounts
+                .OrderByDescending(genre => genre.Value)
+                .ThenBy(genre => genre.Key, StringComparer.OrdinalIgnoreCase)
+                .Select(genre => genre.Key)
+                .FirstOrDefault() ?? "-";
+            var favoriteEngineId = enginePlayCounts
+                .OrderByDescending(engine => engine.Value)
+                .ThenBy(engine => engine.Key)
+                .Select(engine => (Guid?) engine.Key)
+                .FirstOrDefault();
+            string favoriteEngine = favoriteEngineId.HasValue
+                ? CustomContentManager.EnginePresets.GetPresetById(favoriteEngineId.Value)?.Name
+                    ?? Localize.Key("Menu.ProfileInfo.Stats.UnknownCustomEngine")
+                : "-";
+            string averagePercentage = percentageCount > 0
+                ? FormatPercentage(totalPercentage / percentageCount)
+                : "-";
+
+            return (Localize.KeyFormat("Menu.ProfileInfo.Stats.TotalTimePlayedValue",
+                    totalTime.Days, totalTime.Hours, totalTime.Minutes),
+                mostPlayedSong, mostPlayedGenre,
+                Localize.KeyFormat("Menu.ProfileInfo.Stats.LongestFullComboStreakValue", longestFullComboStreak),
+                favoriteEngine, averagePercentage);
+        }
+
+        private static string FormatPercentage(double percentage)
+        {
+            return SettingsManager.Settings.ShowPercentDecimals.Value
+                ? $"{Math.Floor(percentage * 1000) / 10:0.0}%"
+                : $"{Math.Floor(percentage * 100):0}%";
         }
 
         private void PopulateInstrumentStats(List<PlayerScoreWithChecksum> scores)
@@ -292,6 +553,8 @@ namespace YARG.Menu.ProfileInfo.Overview
                 })
                 .ToList();
 
+            var instrumentSections = new List<(string Name, string[] Values, long Score,
+                Instrument IconInstrument)>();
             foreach (var instrument in Instruments)
             {
                 bool isDrums = MidiDrumkitHelper.Instruments.Contains(instrument);
@@ -337,28 +600,41 @@ namespace YARG.Menu.ProfileInfo.Overview
                 var statValues = new[]
                 {
                     cumulativeHighScore.ToString("N0"),
+                    FormatProgress(totalStars, maximumStars),
                     FormatProgress(goldStarSongCount, expertChartCount),
-                    FormatProgress(expertFullComboCount, expertChartCount),
-                    FormatProgress(totalStars, maximumStars)
+                    FormatProgress(expertFullComboCount, expertChartCount)
                 };
 
-                CreateInstrumentSection(isDrums ? "Aggregate Drums" : GetInstrumentName(instrument), statValues);
+                instrumentSections.Add((
+                    isDrums
+                        ? Localize.Key("Menu.ProfileInfo.Instruments.AggregateDrums")
+                        : GetInstrumentName(instrument),
+                    statValues,
+                    cumulativeHighScore,
+                    isDrums ? Instrument.FourLaneDrums : instrument));
             }
 
-            _statsNavigationGroup.SelectFirst(SelectionOrigin.Navigation);
-        }
-
-        private void CreateInstrumentSection(string instrumentName, string[] statValues)
-        {
-            CreateHeader(_statsContent, instrumentName);
-
-            for (int statIndex = 0; statIndex < StatLabels.Length; statIndex++)
+            foreach (var section in instrumentSections.OrderByDescending(section => section.Score))
             {
-                CreateValueRow(_statsContent, StatLabels[statIndex], statValues[statIndex], statIndex, true, false);
+                CreateInstrumentSection(section.Name, section.Values, section.IconInstrument);
+            }
+
+        }
+
+        private void CreateInstrumentSection(string instrumentName, string[] statValues, Instrument instrument)
+        {
+            CreateHeader(_statsContent, instrumentName, GetInstrumentIcon(instrument),
+                navigationGroup: _statsNavigationGroup);
+
+            for (int statIndex = 0; statIndex < StatLabelKeys.Length; statIndex++)
+            {
+                CreateValueRow(_statsContent, Localize.Key(StatLabelKeys[statIndex]), statValues[statIndex],
+                    statIndex, true, false, _statsNavigationGroup);
             }
         }
 
-        private GameObject CreateHeader(Transform parent, string label)
+        private GameObject CreateHeader(Transform parent, string label, Sprite icon = null, float headerHeight = 70,
+            NavigationGroup navigationGroup = null)
         {
             var header = Instantiate(_settingsHeaderPrefab, parent, false);
             header.name = $"{label} Header";
@@ -366,15 +642,92 @@ namespace YARG.Menu.ProfileInfo.Overview
             headerRect.anchorMin = new Vector2(0, 1);
             headerRect.anchorMax = new Vector2(1, 1);
             headerRect.pivot = new Vector2(0.5f, 1);
-            headerRect.sizeDelta = new Vector2(0, 70);
+            headerRect.sizeDelta = new Vector2(0, headerHeight);
             headerRect.anchoredPosition = Vector2.zero;
-            header.GetComponentInChildren<TextMeshProUGUI>().text = label;
-            header.AddComponent<LayoutElement>().preferredHeight = 70;
+            var headerText = header.GetComponentInChildren<TextMeshProUGUI>();
+            headerText.text = label;
+            if (icon != null)
+            {
+                AddHeaderIcon(header, headerText, icon, 40, 20);
+            }
+            header.AddComponent<LayoutElement>().preferredHeight = headerHeight;
+            if (navigationGroup != null)
+            {
+                navigationGroup.AddNavigatable(RuntimeNavigatable.Attach(header, null));
+            }
             return header;
         }
 
+        private void AttachProfilePicture(GameObject header)
+        {
+            var pictureContainer = (RectTransform) _profilePicture.transform.parent;
+            pictureContainer.SetParent(header.transform, false);
+            pictureContainer.anchorMin = new Vector2(0, 0.5f);
+            pictureContainer.anchorMax = new Vector2(0, 0.5f);
+            pictureContainer.pivot = new Vector2(0, 0.5f);
+            pictureContainer.anchoredPosition = new Vector2(15, 0);
+            pictureContainer.sizeDelta = new Vector2(75, 75);
+
+            foreach (RectTransform child in pictureContainer)
+            {
+                child.anchorMin = Vector2.zero;
+                child.anchorMax = Vector2.one;
+                child.offsetMin = Vector2.zero;
+                child.offsetMax = Vector2.zero;
+            }
+
+            var headerText = header.GetComponentInChildren<TextMeshProUGUI>();
+            var textRect = (RectTransform) headerText.transform;
+            textRect.offsetMin = new Vector2(105, textRect.offsetMin.y);
+        }
+
+        private static void AddHeaderIcon(GameObject header, TextMeshProUGUI headerText, Sprite sprite,
+            float size, float leftOffset)
+        {
+            var iconObject = new GameObject("Instrument Icon", typeof(RectTransform), typeof(CanvasRenderer),
+                typeof(Image));
+            var iconRect = iconObject.GetComponent<RectTransform>();
+            iconRect.SetParent(header.transform, false);
+            iconRect.anchorMin = new Vector2(0, 0.5f);
+            iconRect.anchorMax = new Vector2(0, 0.5f);
+            iconRect.pivot = new Vector2(0, 0.5f);
+            iconRect.anchoredPosition = new Vector2(leftOffset, 0);
+            iconRect.sizeDelta = new Vector2(size, size);
+
+            var image = iconObject.GetComponent<Image>();
+            image.sprite = sprite;
+            image.preserveAspect = true;
+            image.raycastTarget = false;
+
+            var textRect = (RectTransform) headerText.transform;
+            textRect.offsetMin = new Vector2(leftOffset + size + 15, textRect.offsetMin.y);
+        }
+
+        private static Sprite GetInstrumentIcon(Instrument instrument)
+        {
+            string resourceName = instrument switch
+            {
+                Instrument.ProGuitar_22Fret => Instrument.ProGuitar_17Fret.ToResourceName(),
+                Instrument.ProBass_22Fret => Instrument.ProBass_17Fret.ToResourceName(),
+                _ => instrument.ToResourceName()
+            };
+            if (string.IsNullOrEmpty(resourceName))
+            {
+                return null;
+            }
+
+            string assetKey = $"InstrumentIcons[{resourceName}]";
+            if (!InstrumentIconCache.TryGetValue(assetKey, out var icon))
+            {
+                icon = Addressables.LoadAssetAsync<Sprite>(assetKey).WaitForCompletion();
+                InstrumentIconCache[assetKey] = icon;
+            }
+
+            return icon;
+        }
+
         private TextMeshProUGUI CreateValueRow(Transform parent, string label, string value, int rowIndex,
-            bool navigatable, bool bold)
+            bool navigatable, bool largeValue, NavigationGroup navigationGroup)
         {
             // This is the same labeled row used by Settings. Keeping the shared prefab here
             // means its spacing, divider, typography, and alternating background follow the
@@ -392,35 +745,46 @@ namespace YARG.Menu.ProfileInfo.Overview
             var labelTransform = row.transform.Find("Label");
             var labelText = labelTransform.GetComponent<TextMeshProUGUI>();
             labelText.text = label;
-            if (bold)
-            {
-                labelText.fontStyle |= FontStyles.Bold;
-            }
-
+            labelText.fontStyle = FontStyles.Normal;
+            // Use the font metrics for vertical centering. Midline alignment centers the
+            // rendered glyph bounds, which shifts the baseline between bold and regular text
+            // (and even between strings with different ascenders or descenders).
+            labelText.alignment = TextAlignmentOptions.Left;
+            labelText.textWrappingMode = TextWrappingModes.NoWrap;
+            var labelRect = (RectTransform) labelTransform;
+            labelRect.anchorMin = new Vector2(0.5f, 0);
+            labelRect.anchorMax = Vector2.one;
+            labelRect.anchoredPosition = Vector2.zero;
+            labelRect.sizeDelta = Vector2.zero;
             var evenBackground = row.transform.Find("Even Background");
             evenBackground.gameObject.SetActive(rowIndex % 2 == 0);
 
             var container = (RectTransform) row.transform.Find("Container");
-            var valueText = Instantiate(labelText, container, false);
+            var valueText = Instantiate(labelText, row.transform, false);
             valueText.name = "Value";
             valueText.text = value;
-            valueText.fontStyle = bold ? FontStyles.Bold : FontStyles.Normal;
-            if (bold)
+            valueText.fontStyle = FontStyles.Bold;
+            if (largeValue)
             {
                 // Match the large values from the original profile summary header.
                 valueText.fontSize = _totalScore.fontSize;
             }
-            valueText.alignment = TextAlignmentOptions.MidlineRight;
+            valueText.alignment = TextAlignmentOptions.Right;
             valueText.textWrappingMode = TextWrappingModes.NoWrap;
+            valueText.margin = new Vector4(0, 0, labelText.margin.x, 0);
             var valueTextRect = (RectTransform) valueText.transform;
             valueTextRect.anchorMin = Vector2.zero;
-            valueTextRect.anchorMax = Vector2.one;
+            valueTextRect.anchorMax = new Vector2(0.5f, 1);
             valueTextRect.offsetMin = Vector2.zero;
             valueTextRect.offsetMax = Vector2.zero;
 
+            // The Settings row's control container is not used by these read-only rows.
+            // Keep it inactive so it cannot intercept input or overlap the centered columns.
+            container.gameObject.SetActive(false);
+
             if (navigatable)
             {
-                _statsNavigationGroup.AddNavigatable(row);
+                navigationGroup.AddNavigatable(row);
             }
             else
             {
@@ -455,7 +819,7 @@ namespace YARG.Menu.ProfileInfo.Overview
                 percentage = $"{Math.Floor(progress * 100):0}%";
             }
 
-            return $"{value:N0} / {maximum:N0} ({percentage})";
+            return Localize.KeyFormat("Menu.ProfileInfo.Stats.ProgressValue", value, maximum, percentage);
         }
 
         private static int GetStarPoints(StarAmount stars, Difficulty difficulty)
@@ -477,30 +841,34 @@ namespace YARG.Menu.ProfileInfo.Overview
 
         private static string GetInstrumentName(Instrument instrument)
         {
-            return instrument switch
+            string key = instrument switch
             {
-                Instrument.FiveFretGuitar => "5-Fret Guitar",
-                Instrument.FiveFretBass => "5-Fret Bass",
-                Instrument.FiveFretRhythm => "5-Fret Rhythm",
-                Instrument.FiveFretCoopGuitar => "5-Fret Co-op Guitar",
+                Instrument.FiveFretGuitar => "FiveFretGuitar",
+                Instrument.FiveFretBass => "FiveFretBass",
+                Instrument.FiveFretRhythm => "FiveFretRhythm",
+                Instrument.FiveFretCoopGuitar => "FiveFretCoopGuitar",
                 Instrument.Keys => "Keys",
-                Instrument.SixFretGuitar => "6-Fret Guitar",
-                Instrument.SixFretBass => "6-Fret Bass",
-                Instrument.SixFretRhythm => "6-Fret Rhythm",
-                Instrument.SixFretCoopGuitar => "6-Fret Co-op Guitar",
-                Instrument.FourLaneDrums => "4-Lane Drums",
-                Instrument.ProDrums => "Pro Drums",
-                Instrument.FiveLaneDrums => "5-Lane Drums",
-                Instrument.EliteDrums => "Elite Drums",
-                Instrument.ProGuitar_17Fret => "Pro Guitar (17 Fret)",
-                Instrument.ProGuitar_22Fret => "Pro Guitar (22 Fret)",
-                Instrument.ProBass_17Fret => "Pro Bass (17 Fret)",
-                Instrument.ProBass_22Fret => "Pro Bass (22 Fret)",
-                Instrument.ProKeys => "Pro Keys",
+                Instrument.SixFretGuitar => "SixFretGuitar",
+                Instrument.SixFretBass => "SixFretBass",
+                Instrument.SixFretRhythm => "SixFretRhythm",
+                Instrument.SixFretCoopGuitar => "SixFretCoopGuitar",
+                Instrument.FourLaneDrums => "FourLaneDrums",
+                Instrument.ProDrums => "ProDrums",
+                Instrument.FiveLaneDrums => "FiveLaneDrums",
+                Instrument.EliteDrums => "EliteDrums",
+                Instrument.ProGuitar_17Fret => "ProGuitar17Fret",
+                Instrument.ProGuitar_22Fret => "ProGuitar22Fret",
+                Instrument.ProBass_17Fret => "ProBass17Fret",
+                Instrument.ProBass_22Fret => "ProBass22Fret",
+                Instrument.ProKeys => "ProKeys",
                 Instrument.Vocals => "Vocals",
-                Instrument.Harmony => "Harmonies",
-                _ => instrument.ToString()
+                Instrument.Harmony => "Harmony",
+                _ => null
             };
+
+            return key == null
+                ? instrument.ToString()
+                : Localize.Key($"Menu.ProfileInfo.Instruments.{key}");
         }
     }
 }
