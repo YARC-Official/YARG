@@ -440,9 +440,15 @@ namespace YARG.Input
             ReusableBindingSet gameplay = null;
             ReusableBindingSet menu = null;
 
+            // We'll still honor an explicit preference if it exists, but our fallback is the provided
+            // default rather than just whatever's listed first in the dictionary's list. If the provided
+            // default is null, then we do fall back to that as usual
             ReusableBindingSet GetPreferenceOrDefault(GameMode mode, ReusableBindingSet @default)
             {
-                return _preferredBindsByContext.GetValueOrDefault((mode, ControllerFamily.Gamepad), @default);
+                return _preferredBindsByContext.GetValueOrDefault(
+                    (mode, ControllerFamily.Gamepad),
+                    @default ?? GetBindingSetForControllerFamily(ControllerFamily.Gamepad, mode is GameMode.Menu)
+                );
             }
 
             switch (bindingMode)
@@ -459,14 +465,16 @@ namespace YARG.Input
                     gameplay = GetPreferenceOrDefault(gameMode, gameMode is GameMode.FiveFretGuitar ? ReusableBindingSetDefaults.DefaultCrkdMode1Fw30Gameplay : null);
                     menu = GetPreferenceOrDefault(GameMode.Menu, ReusableBindingSetDefaults.DefaultCrkdMode1Menu);
                     break;
-                case GamepadBindingMode.WiitarThing_Guitar:
-                    gameplay = GetPreferenceOrDefault(gameMode, gameMode is GameMode.FiveFretGuitar ? ReusableBindingSetDefaults.DefaultWiitarThingGuitarGameplay : null);
-                    menu = GetPreferenceOrDefault(GameMode.Menu, ReusableBindingSetDefaults.DefaultWiitarThingGuitarMenu);
+                case GamepadBindingMode.WiitarThing_Guitar or GamepadBindingMode.RB4InstrumentMapper_Guitar:
+                    gameplay = GetPreferenceOrDefault(gameMode, gameMode is GameMode.FiveFretGuitar ? ReusableBindingSetDefaults.DefaultGamepadFiveFretGuitarGameplay : null);
+                    menu = GetPreferenceOrDefault(GameMode.Menu, ReusableBindingSetDefaults.DefaultGamepadFiveFretGuitarMenu);
                     break;
                 case GamepadBindingMode.WiitarThing_Drums:
                     gameplay = GetPreferenceOrDefault(gameMode, gameMode is GameMode.FiveLaneDrums ? ReusableBindingSetDefaults.DefaultWiitarThingDrumkitGameplay : null);
                     menu = GetPreferenceOrDefault(GameMode.Menu, ReusableBindingSetDefaults.DefaultWiitarThingDrumkitMenu);
                     break;
+                case GamepadBindingMode.RB4InstrumentMapper_GHLGuitar:
+
             }
 
             return (gameplay, menu);

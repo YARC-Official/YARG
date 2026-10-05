@@ -151,14 +151,14 @@ namespace YARG.Input.Bindings
         };
 
         public static ReusableBindingSet DefaultWiitarThingDrumkitGameplay = MakeHardcodedBindingSet(
-            "Default Wiitar Thing Guitar",
+            "Default Wiitar Thing Drumkit",
             GameMode.FiveLaneDrums,
             ControllerFamily.Gamepad,
             _defaultWiitarGuitarDrumkitGameplay
         );
 
         public static ReusableBindingSet DefaultWiitarThingDrumkitMenu = MakeHardcodedBindingSet(
-            "Default Wiitar Thing Guitar Menu",
+            "Default Wiitar Thing Drumkit Menu",
             GameMode.Menu,
             ControllerFamily.Gamepad,
             _defaultWiitarThingDrumkitMenu
