@@ -45,6 +45,8 @@ The distance between successive windows is called a **hop**. The output hop stay
 
 The input step is also called the **analysis hop**, and the output step the **synthesis hop**.
 
+When the input and output hops match and no pitch or formant change is active, YargStretch preserves the source spectrum rather than estimating its phase. This keeps attacks aligned at 100% speed. Playback started or reset at that speed uses source phase immediately. After a speed correction, the engine gradually returns to source phase over one analysis window, preserving spectral magnitudes during the transition to avoid cancellation from an abrupt phase reset.
+
 ### Why Phase Needs Correction
 
 Moving windows apart or closer together changes how their vibrations line up. If they no longer line up correctly, overlapping waves can partly cancel each other or create unwanted changes in volume and tone.
@@ -119,7 +121,7 @@ The engine now integrates phase through a confidence-weighted complex tridiagona
 
 Established low-frequency peaks and sheltered high-frequency peaks receive stronger temporal anchors. The low-frequency preference requires a previous local peak, sufficient current energy relative to its previous frame and the global maximum, and prominence above the smoothed background. Tonal references retain the bounded source-phase cross-check below 2500 Hz. Reference history is invalidated by seeks, resets, sustained silence, and draining.
 
-Transient bins selected for a phase reset are isolated from frequency coupling and anchored to source phase. Weak bins retain random phase and cannot connect separate significant regions. Pitch mapping and formant processing use temporal anchors without neighboring-bin coupling. Every bin uses the strongest channel as its phase reference; the existing relative-phase locking reconstructs other channels afterward. Noise resynthesis and envelope EQ remain downstream.
+Transient bins selected for a phase reset are isolated from frequency coupling and anchored to source phase. Weak bins retain random phase and cannot connect separate significant regions. Pitch mapping and formant processing use temporal anchors without neighboring-bin coupling. Every bin uses the strongest channel as its phase reference; the existing relative-phase locking reconstructs other channels afterward. The reconstructed phase comes directly from the solver, without noise-mask-driven interpolation toward source phase. Noise resynthesis and envelope EQ remain downstream.
 
 A forward elimination and backward substitution solve the Hermitian system in linear time. Positive temporal anchor weights make the system positive definite even when frequency edges are disconnected. Double-precision solver buffers are allocated during configuration; no extra FFT, lookahead, or processing delay is introduced. The magnitude-aware implementation builds and passes the native harmonic, vibrato, pitch, stereo, cancellation-power, split-computation, silence, grain, and reset checks. At 100% speed, the stationary harmonic consistency residual fell from 0.0794 for the first phase-only solver to 0.00030 after correction; the heap baseline was 0.000092. Some synthetic diagnostics still favor the heap. Perceptual quality on mixed recordings and CPU benefit remain unverified.
 

@@ -129,4 +129,82 @@ void runStretchTempoStreamTests() {
 
     stream.reset();
     REQUIRE(state.freed);
+
+    for (int sampleRate : {44100, 48000}) {
+        for (int channels : {1, 2, 8}) {
+            Source unity;
+            unity.sampleRate = sampleRate;
+            unity.channels = channels;
+            unity.length = sampleRate * 3;
+            unity.pcm.resize(unity.length * channels);
+            for (std::uint64_t frame = 0; frame < unity.length; ++frame) {
+                for (int channel = 0; channel < channels; ++channel) {
+                    const double frequency = channel % 2 == 0 ? 180 : 4000;
+                    const int onsetFrame = frame % (sampleRate / 2);
+                    const double attack = onsetFrame < 882 ? 0.7 * std::exp(-double(onsetFrame) / 110) : 0;
+                    unity.pcm[frame * channels + channel] = static_cast<float>(
+                        attack * std::cos(2 * PI * frequency * onsetFrame / sampleRate) +
+                        0.02 * std::sin(2 * PI * (220 + channel * 73) * frame / sampleRate));
+                }
+            }
+            auto unityBass = makeBass(unity);
+            auto unityStream = StretchTempoStream::create(unityBass, 11, &errorCode);
+            REQUIRE(unityStream != nullptr);
+            for (float grains : {0.0f, 1.0f}) {
+                unity.frame = 0;
+                unityStream->setGrains(grains);
+                REQUIRE(unityStream->flush());
+                const auto output = render(unity, 257);
+                REQUIRE(output.size() >= static_cast<std::size_t>(sampleRate * 2 * channels));
+                for (int frame = sampleRate / 4; frame < sampleRate * 2; ++frame) {
+                    for (int channel = 0; channel < channels; ++channel) {
+                        const auto index = frame * channels + channel;
+                        REQUIRE(std::abs(output[index] - unity.pcm[index]) < 1e-5f);
+                    }
+                }
+            }
+        }
+    }
+
+    Source transitions;
+    transitions.length = SAMPLE_RATE * 10;
+    transitions.pcm.resize(transitions.length * CHANNELS);
+    for (std::uint64_t frame = 0; frame < transitions.length; ++frame) {
+        const float sample = static_cast<float>(0.2 * std::sin(2 * PI * 440 * frame / SAMPLE_RATE));
+        transitions.pcm[frame * CHANNELS] = sample;
+        transitions.pcm[frame * CHANNELS + 1] = -sample;
+    }
+    auto transitionBass = makeBass(transitions);
+    auto transitionStream = StretchTempoStream::create(transitionBass, 11, &errorCode);
+    REQUIRE(transitionStream != nullptr);
+    std::vector<float> block(256 * CHANNELS);
+    float previous = 0;
+    double minimumRms = 1;
+    double maximumRms = 0;
+    float largestStep = 0;
+    for (float speed : {1.0f, 0.999f, 1.0f, 1.001f, 1.0f, 0.97f, 1.0f, 1.03f,
+        1.0f, 0.5f, 1.0f, 2.0f, 1.0f}) {
+        transitionStream->setSpeed(speed, 1);
+        for (int chunk = 0; chunk < 100; ++chunk) {
+            const auto bytes = transitions.callback(19, block.data(), block.size() * sizeof(float), transitions.user);
+            REQUIRE(bytes == block.size() * sizeof(float));
+            double energy = 0;
+            for (int frame = 0; frame < 256; ++frame) {
+                const float sample = block[frame * CHANNELS];
+                REQUIRE(std::isfinite(sample));
+                REQUIRE(std::abs(sample + block[frame * CHANNELS + 1]) < 1e-5f);
+                largestStep = std::max(largestStep, std::abs(sample - previous));
+                previous = sample;
+                energy += double(sample) * sample;
+            }
+            const double rms = std::sqrt(energy / 256);
+            minimumRms = std::min(minimumRms, rms);
+            maximumRms = std::max(maximumRms, rms);
+        }
+    }
+    std::cout << "Stretch unity transitions: minRms=" << minimumRms
+        << " maxRms=" << maximumRms << " largestStep=" << largestStep << '\n';
+    REQUIRE(minimumRms > 0.08);
+    REQUIRE(maximumRms < 0.2);
+    REQUIRE(largestStep < 0.06f);
 }

@@ -144,6 +144,7 @@ struct YargStretch {
 		didSeek = false;
 		blockProcess = {};
 		smoothTimeFactor_ = 1;
+		sourcePhaseWeight_ = 0;
 		freqEstimateWeighted = freqEstimateWeight = 0;
 		transientSamples_ = int(stft.blockSamples());
 		transientCooldown_ = 0;
@@ -235,6 +236,7 @@ struct YargStretch {
 
 		blockProcess = {};
 		formantMetric.resize(bands + 2);
+		sourcePhaseWeight_ = 0;
 
 		tmpProcessBuffer.resize(blockSamples + intervalSamples);
 		tmpPreRollBuffer.resize(outputLatency()*channels);
@@ -471,6 +473,16 @@ struct YargStretch {
 				blockProcess.processFormants = formantMultiplier != 1 || (formantCompensation && blockProcess.mappedFrequencies);
 
 				blockProcess.timeFactor = didSeek ? seekTimeFactor : stft.defaultInterval()/static_cast<Sample>(std::max(1, inputInterval));
+				const bool sourcePhase = blockProcess.timeFactor == Sample(1) &&
+					!blockProcess.mappedFrequencies && !blockProcess.processFormants;
+				if (!sourcePhase) {
+					sourcePhaseWeight_ = 0;
+				} else if (didSeek) {
+					sourcePhaseWeight_ = 1;
+				} else {
+					sourcePhaseWeight_ = std::min(Sample(1), sourcePhaseWeight_ +
+						Sample(stft.defaultInterval()) / stft.blockSamples());
+				}
 				if (blockProcess.newSpectrum) {
 					trackTimeFactor(blockProcess.timeFactor);
 				}
@@ -716,6 +728,7 @@ struct YargStretch {
 			}
 		}
 		stft.reset(0.1f);
+		sourcePhaseWeight_ = 0;
 		noiseMorph.reset(0);
 		envelopeEq.reset();
 		tonalReferenceHistory_ = false;
@@ -1411,12 +1424,12 @@ private:
 	}
 
 	void processSpectrum(size_t step) {
+		const bool sourcePhase = sourcePhaseWeight_ == Sample(1);
 		Sample clampedTimeFactor = std::max<Sample>(blockProcess.timeFactor, 1/maxCleanLow);
 		Sample twistTimeFactor = clampedTimeFactor > TRANSIENT_MIN_STRETCH ?
 			std::max<Sample>(smoothTimeFactor_, 1/maxCleanLow) : clampedTimeFactor;
 
 		Sample smoothingBins = Sample(stft.fftSamples())/stft.defaultInterval();
-		int splitBin = static_cast<int>(freqToBand(splitFreq));
 		int lockSplit = static_cast<int>(freqToBand(transientMinFreq_));
 
 		if (blockProcess.newSpectrum) {
@@ -1551,37 +1564,22 @@ private:
 				auto &outputBin = bandsForChannel(maxChannel)[b];
 				const bool snapTransient = phaseReset[b];
 				Complex phase = Complex(phaseSolution[b]);
-				if (phaseSignificant[b] && !snapTransient &&
-					!blockProcess.mappedFrequencies && !blockProcess.processFormants && b < splitBin) {
-					const Sample textureWeight = noiseMorph.textureAmount(b);
-					if (textureWeight > Sample(0)) {
-						const Sample phaseNorm = _impl::norm(phase);
-						Complex tonalPhase = phaseNorm > Sample(0) ?
-							Complex{phase.real() / std::sqrt(phaseNorm), phase.imag() / std::sqrt(phaseNorm)} :
-							prediction.input;
-						const Sample inputNorm = _impl::norm(prediction.input);
-						if (inputNorm > Sample(0)) {
-							const Sample invInput = Sample(1) / std::sqrt(inputNorm);
-							const Complex percussivePhase{prediction.input.real() * invInput,
-								prediction.input.imag() * invInput};
-							Complex mixed = tonalPhase * (Sample(1) - textureWeight) +
-								percussivePhase * textureWeight;
-							const Sample mixedNorm = _impl::norm(mixed);
-							if (mixedNorm > Sample(0)) {
-								const Sample invMixed = Sample(1) / std::sqrt(mixedNorm);
-								phase = Complex{mixed.real() * invMixed, mixed.imag() * invMixed};
-							}
-						}
-					}
+				if (sourcePhaseWeight_ > Sample(0) && !sourcePhase) {
+					const Complex rotation = _impl::mul<true>(prediction.input, phase);
+					const Sample angle = std::atan2(rotation.imag(), rotation.real());
+					phase = _impl::mul(phase, std::polar(Sample(1), angle * sourcePhaseWeight_));
 				}
-				outputBin.output = prediction.makeOutput(phase);
+				outputBin.output = sourcePhase ? outputBin.input :
+					prediction.makeOutput(phase);
 				
 				// All other bins are locked in phase
 				for (int c = 0; c < channels; ++c) {
 					if (c != maxChannel) {
 						auto &channelBin = bandsForChannel(c)[b];
 						auto &channelPrediction = predictionsForChannel(c)[b];
-						if (snapTransient) {
+						if (sourcePhase) {
+							channelBin.output = channelBin.input;
+						} else if (snapTransient) {
 							channelBin.output = channelPrediction.makeOutput(channelPrediction.input);
 						} else {
 							Complex channelTwist = _impl::mul<true>(channelPrediction.input, prediction.input);
@@ -1609,6 +1607,7 @@ private:
 	static constexpr size_t smoothEnergySteps = 3;
 	Sample smoothEnergyState = 0;
 	Sample smoothTimeFactor_ = 1;
+	Sample sourcePhaseWeight_ = 0;
 	void trackTimeFactor(Sample measured) {
 		Sample difference = measured >= smoothTimeFactor_ ? measured - smoothTimeFactor_ : smoothTimeFactor_ - measured;
 		if (difference > smoothTimeFactor_*TIMEFACTOR_SNAP_RATIO) {

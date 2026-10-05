@@ -79,13 +79,6 @@ public:
         return useGrains;
     }
 
-    Sample textureAmount(int b) const {
-        if (!useGrains || b < 0 || b >= bands) {
-            return Sample(0);
-        }
-        return grainMask[b];
-    }
-
     Sample textureEnergyRatio() const {
         if (grainMask.empty()) {
             return Sample(0);
