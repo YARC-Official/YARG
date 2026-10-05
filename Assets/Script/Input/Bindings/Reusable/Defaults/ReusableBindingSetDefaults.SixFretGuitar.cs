@@ -96,14 +96,14 @@ namespace YARG.Input.Bindings
                 ActionStrings.MENU_START,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.MENU[ActionStrings.MENU_START],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.SixFretGuitar, ControlStrings.GAMEPAD_START)
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.SixFretGuitar, ControlStrings.PLASTICBAND_START)
                 )
             },
             {
                 ActionStrings.MENU_SELECT,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.MENU[ActionStrings.MENU_SELECT],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.SixFretGuitar, ControlStrings.GAMEPAD_SELECT)
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.SixFretGuitar, ControlStrings.PLASTICBAND_SELECT)
                 )
             },
 

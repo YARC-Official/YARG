@@ -18,7 +18,7 @@ namespace YARG.Input.Bindings
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.FIVE_LANE_DRUMKIT[ActionStrings.DRUMS_KICK],
                     new List<ReusableSingleButtonBindingConfig>() {
-                        new(ControllerFamily.FiveLaneDrumkit, ControlStrings.GAMEPAD_LEFT_SHOULDER),
+                        new(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_LEFT_SHOULDER),
                     }
                 )
             },
@@ -27,7 +27,7 @@ namespace YARG.Input.Bindings
                 ActionStrings.FIVE_DRUMS_RED_PAD,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.FIVE_LANE_DRUMKIT[ActionStrings.FIVE_DRUMS_RED_PAD],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveLaneDrumkit, ControlStrings.GAMEPAD_BUTTON_EAST)
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_BUTTON_EAST)
                 )
             },
 
@@ -35,7 +35,7 @@ namespace YARG.Input.Bindings
                 ActionStrings.FIVE_DRUMS_YELLOW_CYMBAL,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.FIVE_LANE_DRUMKIT[ActionStrings.FIVE_DRUMS_YELLOW_CYMBAL],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveLaneDrumkit, ControlStrings.GAMEPAD_BUTTON_NORTH)
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_BUTTON_NORTH)
                 )
             },
 
@@ -43,7 +43,7 @@ namespace YARG.Input.Bindings
                 ActionStrings.FIVE_DRUMS_BLUE_PAD,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.FIVE_LANE_DRUMKIT[ActionStrings.FIVE_DRUMS_BLUE_PAD],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveLaneDrumkit, ControlStrings.GAMEPAD_BUTTON_WEST)
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_BUTTON_WEST)
                 )
             },
 
@@ -51,7 +51,7 @@ namespace YARG.Input.Bindings
                 ActionStrings.FIVE_DRUMS_ORANGE_CYMBAL,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.FIVE_LANE_DRUMKIT[ActionStrings.FIVE_DRUMS_ORANGE_CYMBAL],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveLaneDrumkit, ControlStrings.GAMEPAD_RIGHT_SHOULDER)
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_RIGHT_SHOULDER)
                 )
             },
 
@@ -59,7 +59,7 @@ namespace YARG.Input.Bindings
                 ActionStrings.FIVE_DRUMS_GREEN_PAD,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.FIVE_LANE_DRUMKIT[ActionStrings.FIVE_DRUMS_GREEN_PAD],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveLaneDrumkit, ControlStrings.GAMEPAD_BUTTON_SOUTH)
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_BUTTON_SOUTH)
                 )
             },
         };

@@ -56,14 +56,14 @@ namespace YARG.Input.Bindings
                 ActionStrings.FOUR_DRUMS_YELLOW_CYMBAL,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.FOUR_LANE_DRUMKIT[ActionStrings.FOUR_DRUMS_YELLOW_CYMBAL],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_LEFT_STICK_BUTTON)
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_LEFT_STICK_PRESS)
                 )
             },
             {
                 ActionStrings.FOUR_DRUMS_BLUE_CYMBAL,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.FOUR_LANE_DRUMKIT[ActionStrings.FOUR_DRUMS_BLUE_CYMBAL],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_RIGHT_STICK_BUTTON)
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_RIGHT_STICK_PRESS)
                 )
             },
             {
@@ -114,7 +114,7 @@ namespace YARG.Input.Bindings
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.MENU[ActionStrings.MENU_YELLOW],
                     new List<ReusableSingleButtonBindingConfig> {
-                        new(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_LEFT_STICK_BUTTON), // Yellow cymbal
+                        new(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_LEFT_STICK_PRESS), // Yellow cymbal
                         new(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_BUTTON_NORTH),
                     }
                 )
@@ -124,7 +124,7 @@ namespace YARG.Input.Bindings
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.MENU[ActionStrings.MENU_BLUE],
                     new List<ReusableSingleButtonBindingConfig>() {
-                        new(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_RIGHT_STICK_BUTTON), // Blue cymbal
+                        new(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_RIGHT_STICK_PRESS), // Blue cymbal
                         new(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_BUTTON_WEST),
                     }
                 )
