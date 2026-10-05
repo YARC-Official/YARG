@@ -103,18 +103,21 @@ namespace YARG.Input.Bindings
                         ReusableBindingSetDefaults.DefaultGamepadMenu,
                         ReusableBindingSetDefaults.DefaultGamepadFiveFretGuitarMenu,
                         ReusableBindingSetDefaults.DefaultGamepadSixFretGuitarMenu,
-                        ReusableBindingSetDefaults.GamepadFourLaneDrumkitMenu,
+                        ReusableBindingSetDefaults.DefaultGamepadFourLaneDrumkitMenu,
                         ReusableBindingSetDefaults.DefaultGamepadFiveLaneDrumkitMenu,
                         ReusableBindingSetDefaults.DefaultCrkdMode1Menu,
                     }},
-                    { GameMode.Vocals, new() { ReusableBindingSetDefaults.DefaultGamepadVocalGameplay } },
+                    { GameMode.Vocals, new() {
+                        ReusableBindingSetDefaults.DefaultGamepadVocalGameplay } },
                     { GameMode.FiveFretGuitar, new() {
                         ReusableBindingSetDefaults.DefaultGamepadFiveFretGuitarGameplay,
                         ReusableBindingSetDefaults.DefaultCrkdMode1Gameplay,
                         ReusableBindingSetDefaults.DefaultCrkdMode1Fw30Gameplay,
                     }},
-                    { GameMode.SixFretGuitar, new() { ReusableBindingSetDefaults.DefaultGamepadSixFretGuitarGameplay }},
-                    { GameMode.FourLaneDrums, new() { ReusableBindingSetDefaults.GamepadFourLaneDrumkitGameplay }},
+                    { GameMode.SixFretGuitar, new() {
+                        ReusableBindingSetDefaults.DefaultGamepadSixFretGuitarGameplay }},
+                    { GameMode.FourLaneDrums, new() {
+                        ReusableBindingSetDefaults.DefaultGamepadFourLaneDrumkitGameplay }},
                     { GameMode.FiveLaneDrums, new() {
                         ReusableBindingSetDefaults.DefaultGamepadFiveLaneDrumkitGameplay
                     }}

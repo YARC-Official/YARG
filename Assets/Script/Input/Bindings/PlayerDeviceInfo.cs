@@ -456,8 +456,8 @@ namespace YARG.Input
                     menu = GetPreferenceOrDefault(GameMode.Menu, ReusableBindingSetDefaults.DefaultGamepadSixFretGuitarMenu);
                     break;
                 case GamepadBindingMode.RB4InstrumentMapper_Drums:
-                    gameplay = GetPreferenceOrDefault(gameMode, gameMode is GameMode.FourLaneDrums ? ReusableBindingSetDefaults.GamepadFourLaneDrumkitGameplay : null);
-                    menu = GetPreferenceOrDefault(GameMode.Menu, ReusableBindingSetDefaults.GamepadFourLaneDrumkitMenu);
+                    gameplay = GetPreferenceOrDefault(gameMode, gameMode is GameMode.FourLaneDrums ? ReusableBindingSetDefaults.DefaultGamepadFourLaneDrumkitGameplay : null);
+                    menu = GetPreferenceOrDefault(GameMode.Menu, ReusableBindingSetDefaults.DefaultGamepadFourLaneDrumkitMenu);
                     break;
             }
 
