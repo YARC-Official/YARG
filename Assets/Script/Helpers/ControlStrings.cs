@@ -24,14 +24,14 @@ namespace YARG.Helpers
         public const string GAMEPAD_LEFT_STICK_DOWN = "leftStick/down";
         public const string GAMEPAD_LEFT_STICK_LEFT = "leftStick/left";
         public const string GAMEPAD_LEFT_STICK_RIGHT = "leftStick/right";
-        public const string GAMEPAD_LEFT_STICK_BUTTON = "leftStickButton";
+        public const string GAMEPAD_LEFT_STICK_PRESS = "leftStickPress";
         public const string GAMEPAD_LEFT_STICK_X = "leftStick/x";
         public const string GAMEPAD_LEFT_STICK_Y = "leftStick/y";
         public const string GAMEPAD_RIGHT_STICK_UP = "rightStick/up";
         public const string GAMEPAD_RIGHT_STICK_DOWN = "rightStick/down";
         public const string GAMEPAD_RIGHT_STICK_LEFT = "rightStick/left";
         public const string GAMEPAD_RIGHT_STICK_RIGHT = "rightStick/right";
-        public const string GAMEPAD_RIGHT_STICK_BUTTON = "rightStickButton";
+        public const string GAMEPAD_RIGHT_STICK_PRESS = "rightStickPress";
         public const string GAMEPAD_RIGHT_STICK_X = "rightStick/x";
         public const string GAMEPAD_RIGHT_STICK_Y = "rightStick/y";
         public const string GAMEPAD_DPAD_UP = "dpad/up";
@@ -49,8 +49,13 @@ namespace YARG.Helpers
         public const string GUITAR_6F_WHITE_2 = "white2";
         public const string GUITAR_6F_WHITE_3 = "white3";
 
-        public const string DRUMKIT_KICK = "kick";
-        public const string DRUMKIT_KICK_2 = "kick2";
+        // As opposed to "start" and "select" for gamepads
+        public const string PLASTICBAND_START = "startButton";
+        public const string PLASTICBAND_SELECT = "selectButton";
+
+        public const string DRUMKIT_4L_KICK_1 = "kick1";
+        public const string DRUMKIT_4L_KICK_2 = "kick2";
+        public const string DRUMKIT_5L_KICK = "kick";
         public const string DRUMKIT_RED_PAD = "redPad";
         public const string DRUMKIT_YELLOW_PAD = "yellowPad";
         public const string DRUMKIT_BLUE_PAD = "bluePad";

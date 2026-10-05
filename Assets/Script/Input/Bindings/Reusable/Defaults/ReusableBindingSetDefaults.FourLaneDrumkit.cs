@@ -15,8 +15,8 @@ namespace YARG.Input.Bindings
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.FOUR_LANE_DRUMKIT[ActionStrings.DRUMS_KICK],
                     new List<ReusableSingleButtonBindingConfig>() {
-                        new(ControllerFamily.FourLaneDrumkit, ControlStrings.DRUMKIT_KICK),
-                        new(ControllerFamily.FourLaneDrumkit, ControlStrings.DRUMKIT_KICK_2),
+                        new(ControllerFamily.FourLaneDrumkit, ControlStrings.DRUMKIT_4L_KICK_1),
+                        new(ControllerFamily.FourLaneDrumkit, ControlStrings.DRUMKIT_4L_KICK_2),
                     }
                 )
             },
@@ -79,14 +79,14 @@ namespace YARG.Input.Bindings
                 ActionStrings.MENU_START,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.MENU[ActionStrings.MENU_START],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FourLaneDrumkit, ControlStrings.GAMEPAD_START)
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FourLaneDrumkit, ControlStrings.PLASTICBAND_START)
                 )
             },
             {
                 ActionStrings.MENU_SELECT,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.MENU[ActionStrings.MENU_SELECT],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FourLaneDrumkit, ControlStrings.GAMEPAD_SELECT)
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FourLaneDrumkit, ControlStrings.PLASTICBAND_SELECT)
                 )
             },
 
@@ -136,8 +136,8 @@ namespace YARG.Input.Bindings
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.MENU[ActionStrings.MENU_ORANGE],
                     new List<ReusableSingleButtonBindingConfig>() {
-                        new (ControllerFamily.FourLaneDrumkit, ControlStrings.DRUMKIT_KICK),
-                        new (ControllerFamily.FourLaneDrumkit, ControlStrings.DRUMKIT_KICK_2),
+                        new (ControllerFamily.FourLaneDrumkit, ControlStrings.DRUMKIT_4L_KICK_1),
+                        new (ControllerFamily.FourLaneDrumkit, ControlStrings.DRUMKIT_4L_KICK_2),
                     }
                 )
             },
@@ -184,14 +184,14 @@ namespace YARG.Input.Bindings
                 ActionStrings.MENU_START,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.MENU[ActionStrings.MENU_START],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FourLaneDrumkit, ControlStrings.GAMEPAD_START)
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FourLaneDrumkit, ControlStrings.PLASTICBAND_START)
                 )
             },
             {
                 ActionStrings.MENU_SELECT,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.MENU[ActionStrings.MENU_SELECT],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FourLaneDrumkit, ControlStrings.GAMEPAD_SELECT)
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FourLaneDrumkit, ControlStrings.PLASTICBAND_SELECT)
                 )
             },
 
