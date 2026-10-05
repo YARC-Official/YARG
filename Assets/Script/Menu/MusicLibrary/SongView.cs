@@ -12,8 +12,9 @@ namespace YARG.Menu.MusicLibrary
 {
     public class SongView : ViewObject<ViewType>
     {
-        private const float MARQUEE_SPEED = 100f;
+        private const float MARQUEE_SPEED = 70f;
         private const float MARQUEE_END_PAUSE = 1f;
+        private const float MARQUEE_FADE_DURATION = 0.25f;
         private const float MARQUEE_RIGHT_INSET = 15f;
 
         private bool _marqueeActive;
@@ -283,9 +284,10 @@ namespace YARG.Menu.MusicLibrary
             float overflow = text.preferredWidth - marqueeWidth;
 
             float travelTime = overflow / MARQUEE_SPEED;
-            float cycleTime = 2f * (travelTime + MARQUEE_END_PAUSE);
+            float cycleTime = travelTime + 2f * (MARQUEE_END_PAUSE + MARQUEE_FADE_DURATION);
             float phase = elapsed % cycleTime;
             float offset;
+            float alpha = 1f;
 
             if (phase < MARQUEE_END_PAUSE)
             {
@@ -299,9 +301,18 @@ namespace YARG.Menu.MusicLibrary
             {
                 offset = overflow;
             }
+            else if (phase < 2f * MARQUEE_END_PAUSE + travelTime + MARQUEE_FADE_DURATION)
+            {
+                offset = overflow;
+                float fadeProgress = (phase - 2f * MARQUEE_END_PAUSE - travelTime) / MARQUEE_FADE_DURATION;
+                alpha = 1f - Mathf.SmoothStep(0f, 1f, fadeProgress);
+            }
             else
             {
-                offset = overflow - (phase - 2f * MARQUEE_END_PAUSE - travelTime) * MARQUEE_SPEED;
+                offset = 0f;
+                float fadeProgress = (phase - 2f * MARQUEE_END_PAUSE - travelTime - MARQUEE_FADE_DURATION) /
+                    MARQUEE_FADE_DURATION;
+                alpha = Mathf.SmoothStep(0f, 1f, fadeProgress);
             }
 
             Rect bounds = text.rectTransform.rect;
@@ -318,6 +329,7 @@ namespace YARG.Menu.MusicLibrary
                 int vertexIndex = character.vertexIndex;
                 var vertices = meshInfo.vertices;
                 var uvs = meshInfo.uvs0;
+                var colors = meshInfo.colors32;
 
                 float originalLeft = vertices[vertexIndex].x;
                 float originalRight = vertices[vertexIndex + 2].x;
@@ -343,9 +355,18 @@ namespace YARG.Menu.MusicLibrary
                 uvs[vertexIndex + 1] = Vector4.Lerp(topLeftUv, topRightUv, leftT);
                 uvs[vertexIndex + 2] = Vector4.Lerp(topLeftUv, topRightUv, rightT);
                 uvs[vertexIndex + 3] = Vector4.Lerp(bottomLeftUv, bottomRightUv, rightT);
+
+                for (int vertexOffset = 0; vertexOffset < 4; vertexOffset++)
+                {
+                    int colorIndex = vertexIndex + vertexOffset;
+                    var color = colors[colorIndex];
+                    color.a = (byte) (color.a * alpha);
+                    colors[colorIndex] = color;
+                }
             }
 
-            text.UpdateVertexData(TMP_VertexDataUpdateFlags.Vertices | TMP_VertexDataUpdateFlags.Uv0);
+            text.UpdateVertexData(TMP_VertexDataUpdateFlags.Vertices | TMP_VertexDataUpdateFlags.Uv0 |
+                TMP_VertexDataUpdateFlags.Colors32);
         }
 
         protected override void SetBackground(bool selected, BaseViewType.BackgroundType type)
