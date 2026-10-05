@@ -39,6 +39,12 @@ namespace YARG.Settings
         LegacyLabels,
     }
 
+    public enum NavigationJumpDistance
+    {
+        Sections,
+        Pages,
+    }
+
     public enum SecondaryAlbumSortMode
     {
         AlbumsByTitleSongsByTitle,
@@ -310,6 +316,13 @@ namespace YARG.Settings
             public ToggleSetting UseFullDirectoryForPlaylists { get; } = new(false);
 
             public ToggleSetting ShowFavoriteButton { get; } = new(true);
+
+            public DropdownSetting<NavigationJumpDistance> NavigationJumpDistance { get; }
+                = new(YARG.Settings.NavigationJumpDistance.Sections)
+                {
+                    YARG.Settings.NavigationJumpDistance.Sections,
+                    YARG.Settings.NavigationJumpDistance.Pages,
+                };
 
             public DropdownSetting<SecondaryAlbumSortMode> SecondaryAlbumSort { get; }
                 = new(SecondaryAlbumSortMode.AlbumsByTitleSongsByTitle,

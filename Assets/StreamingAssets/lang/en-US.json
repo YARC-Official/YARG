@@ -417,6 +417,7 @@
             "SelectArtist": "Select Current Artist",
             "ExitSearchHold": "(Hold) Exit Search",
             "SkipSection": "<align=left>Navigate Sections</align>",
+            "SkipPage": "<align=left>Navigate Pages</align>",
             "MoveInPlaylist": "Move Song",
             "CurrentSetlist": "Current Setlist",
             "AddToSet": "Add To Setlist",
@@ -427,13 +428,13 @@
             "HoldPlayShow": "(Hold) Play A Show",
             "Filters": "Filters",
             "HoldFilters": "(Hold) Filters",
-            "SortAndFilter": "<align=left><size=80%>Sort By...<br>(Hold) Filters</size></align>",
+            "SortAndFilter": "<align=left>Sort By...<br><size=80%>(Hold) Filters</size></align>",
             "NoSongsInPlaylist": "No Songs In Playlist",
             "CannotAddToSelf": "No, I will not create an ouroboros for you. Nice try, Jaden.",
             "AddToShow": "Add To Show",
             "AddedToShow": "Added To Show",
             "StartShow": "Start The Show",
-            "MoreOptionsAndGoToSection": "<align=left><size=80%>More Options<br>(Hold) Go to Section...</size></align>",
+            "MoreOptionsAndGoToSection": "<align=left>More Options<br><size=80%>(Hold) Go to Section...</size></align>",
             "MoreOptions": "More Options",
             "PlayAShow": {
                 "LongSong": "A Long Song",
@@ -1204,6 +1205,14 @@
                 "Dropdown": {
                     "Classic": "Classic",
                     "Expanded": "Expanded"
+                }
+            },
+            "NavigationJumpDistance": {
+                "Name": "Navigation Jump Distance",
+                "Description": "Choose whether navigation jumps between sections or by one screen of library content.",
+                "Dropdown": {
+                    "Sections": "Sections",
+                    "Pages": "Pages"
                 }
             },
             "DisableBloom": {

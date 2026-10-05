@@ -357,13 +357,16 @@ namespace YARG.Menu.MusicLibrary
             bool isSelectingPlaylist = MenuState == MenuState.PlaylistSelect;
             bool setListNotEmpty = ShowPlaylist.Count > 0;
             _sidebar.UpdatePlayButtonLabel(setListNotEmpty);
+            string jumpKey = SettingsManager.Settings.NavigationJumpDistance.Value == NavigationJumpDistance.Pages
+                ? "Menu.MusicLibrary.SkipPage"
+                : "Menu.MusicLibrary.SkipSection";
             NavigationScheme.Entry leftEntry = MenuState == MenuState.Playlist
                 ? new NavigationScheme.Entry(MenuAction.Left, "Menu.MusicLibrary.MoveInPlaylist", MovePlaylistEntryUp)
-                : new NavigationScheme.Entry(MenuAction.Left, "Menu.MusicLibrary.SkipSection", GoToPreviousSection);
+                : new NavigationScheme.Entry(MenuAction.Left, jumpKey, GoToPreviousSection);
 
             NavigationScheme.Entry rightEntry = MenuState == MenuState.Playlist
                 ? new NavigationScheme.Entry(MenuAction.Right, "Menu.MusicLibrary.MoveInPlaylist", MovePlaylistEntryDown)
-                : new NavigationScheme.Entry(MenuAction.Right, "Menu.MusicLibrary.SkipSection", GoToNextSection);
+                : new NavigationScheme.Entry(MenuAction.Right, jumpKey, GoToNextSection);
 
             // Give yellow the same behaviour as green: press to add to set, hold to start the set
             NavigationScheme.Entry yellowEntry;
@@ -1103,6 +1106,12 @@ namespace YARG.Menu.MusicLibrary
 
         private void GoToNextSection()
         {
+            if (SettingsManager.Settings.NavigationJumpDistance.Value == NavigationJumpDistance.Pages)
+            {
+                SelectedIndex = GetPageJumpIndex(1);
+                return;
+            }
+
             var i = _sectionHeaderIndices.BinarySearch(SelectedIndex);
             i = i < 0 ? ~i : i + 1;
             if (i >= _sectionHeaderIndices.Count)
@@ -1113,6 +1122,12 @@ namespace YARG.Menu.MusicLibrary
 
         private void GoToPreviousSection()
         {
+            if (SettingsManager.Settings.NavigationJumpDistance.Value == NavigationJumpDistance.Pages)
+            {
+                SelectedIndex = GetPageJumpIndex(-1);
+                return;
+            }
+
             var i = _sectionHeaderIndices.BinarySearch(SelectedIndex);
             i = i < 0 ? ~i - 1 : i - 1;
             if (i < 0)

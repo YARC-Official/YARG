@@ -104,6 +104,7 @@ namespace YARG.Settings
                 new HeaderMetadata("LibraryDisplay"),
                 nameof(Settings.ShowFavoriteButton),
                 nameof(Settings.DifficultyRings),
+                new FieldMetadata(nameof(Settings.NavigationJumpDistance), isAdvanced: true),
                 nameof(Settings.HighScoreInfo),
                 nameof(Settings.HighScoreHistory),
                 new FieldMetadata(nameof(Settings.ShowPercentDecimals), isAdvanced: true),

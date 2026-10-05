@@ -144,6 +144,68 @@ namespace YARG.Menu.ListMenu
         }
 
         /// <summary>
+        /// Finds the selectable row approximately one viewport away from the current selection.
+        /// Uses the live layout so differently-sized rows are included in the calculation.
+        /// </summary>
+        protected int GetPageJumpIndex(int direction)
+        {
+            if (_viewList.Count == 0 || direction == 0 ||
+                _viewObjectParent is not RectTransform parentRect ||
+                parentRect.parent is not RectTransform viewportRect)
+            {
+                return SelectedIndex;
+            }
+
+            Canvas.ForceUpdateCanvases();
+            LayoutRebuilder.ForceRebuildLayoutImmediate(parentRect);
+
+            var selectedRect = _viewObjects[ExtraListViewPadding].GetComponent<RectTransform>();
+            var selectedBounds = RectTransformUtility.CalculateRelativeRectTransformBounds(viewportRect, selectedRect);
+            float targetY = selectedBounds.center.y - direction * viewportRect.rect.height;
+
+            int bestIndex = SelectedIndex;
+            float bestDistance = float.MaxValue;
+            for (int i = 0; i < _viewObjects.Count; i++)
+            {
+                int index = SelectedIndex + i - ExtraListViewPadding;
+                if (index < 0 || index >= _viewList.Count || !_viewList[index].IsSelectable)
+                {
+                    continue;
+                }
+
+                var rect = _viewObjects[i].GetComponent<RectTransform>();
+                var bounds = RectTransformUtility.CalculateRelativeRectTransformBounds(viewportRect, rect);
+                float distance = Mathf.Abs(bounds.center.y - targetY);
+                if (distance < bestDistance)
+                {
+                    bestIndex = index;
+                    bestDistance = distance;
+                }
+            }
+
+            if ((bestIndex - SelectedIndex) * direction <= 0)
+            {
+                return SelectedIndex;
+            }
+
+            // Leave one selectable row of overlap between pages. Non-selectable rows
+            // (such as secondary headers) still contribute to the measured distance,
+            // but cannot be the final navigation target.
+            int overlapIndex = bestIndex - direction;
+            while (overlapIndex >= 0 && overlapIndex < _viewList.Count)
+            {
+                if (_viewList[overlapIndex].IsSelectable)
+                {
+                    return overlapIndex;
+                }
+
+                overlapIndex -= direction;
+            }
+
+            return bestIndex;
+        }
+
+        /// <summary>
         /// Sets the <see cref="SelectedIndex"/> to the first match (via the <paramref name="predicate"/>).
         /// If the <paramref name="searchStartIndex"/> is specified, it will offset the select index by that amount.
         /// If nothing is found, the index remains unchanged.
