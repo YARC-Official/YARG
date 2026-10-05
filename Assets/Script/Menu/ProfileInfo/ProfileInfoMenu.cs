@@ -34,7 +34,11 @@ namespace YARG.Menu.ProfileInfo
                 new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Up",
                     context => _overview.NavigateUp(context.IsRepeat)),
                 new NavigationScheme.Entry(MenuAction.Down, "Menu.Common.Down",
-                    context => _overview.NavigateDown(context.IsRepeat))
+                    context => _overview.NavigateDown(context.IsRepeat)),
+                new NavigationScheme.Entry(MenuAction.Yellow, "Menu.ProfileInfo.SwapSide",
+                    _overview.SwapSide),
+                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back",
+                    () => MenuManager.Instance.PopMenu(), hide: true)
             }, true));
         }
 

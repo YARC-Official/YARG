@@ -304,6 +304,20 @@ namespace YARG.Scores
             return null;
         }
 
+        public static List<PlayerScoreWithChecksum> GetAllScoresWithChecksumsByPlayerId(Guid id)
+        {
+            try
+            {
+                return _db.QueryPlayerScoresWithChecksums(id);
+            }
+            catch (Exception e)
+            {
+                YargLogger.LogException(e, "Failed to load all PlayerScoreRecords with song checksums from database");
+            }
+
+            return null;
+        }
+
         public static List<PlayerScoreWithChecksum> GetScoresInCurrentLibraryByPlayerId(Guid id)
         {
             try
