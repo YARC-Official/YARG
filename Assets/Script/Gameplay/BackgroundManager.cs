@@ -893,16 +893,11 @@ namespace YARG.Gameplay
 
         // VLC's pictures reach the screen a fixed interval after libVLC presents them, so a video
         // aimed exactly at the song shows late; Unity's player has no such lag. About two 24fps
-        // frames on macOS, one elsewhere. Not derived from the video's frame rate: libVLC reports
-        // 0 fps for fragmented MP4s (which is fairly common), whose headers carry no sample count.
+        // frames on macOS and Linux. Not derived from the video's frame rate: libVLC reports 0 fps
+        // for fragmented MP4s (which is fairly common), whose headers carry no sample count.
         private static double VideoLeadFor(YargVideoPlayer player)
         {
-            if (!player.usingVlc)
-                return 0.0;
-
-            return Application.platform is RuntimePlatform.OSXPlayer or RuntimePlatform.OSXEditor
-                ? 0.08
-                : 0.04;
+            return player.usingVlc ? 0.08 : 0.0;
         }
 
         // The video position to aim at for a song time. The lead is wall-clock, so it scales with
