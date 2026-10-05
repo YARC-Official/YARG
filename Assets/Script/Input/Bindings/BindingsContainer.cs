@@ -104,6 +104,7 @@ namespace YARG.Input.Bindings
                         ReusableBindingSetDefaults.DefaultCrkdMode1Menu,
                         ReusableBindingSetDefaults.DefaultGamepadFiveFretGuitarMenu,
                         ReusableBindingSetDefaults.DefaultGamepadSixFretGuitarMenu,
+                        ReusableBindingSetDefaults.RB4InstrumentMapperFourLaneDrumkitMenu,
                         ReusableBindingSetDefaults.DefaultWiitarThingDrumkitMenu,
                     }},
                     { GameMode.Vocals, new() { ReusableBindingSetDefaults.DefaultGamepadVocalGameplay } },
@@ -113,6 +114,7 @@ namespace YARG.Input.Bindings
                         ReusableBindingSetDefaults.DefaultCrkdMode1Fw30Gameplay,
                     }},
                     { GameMode.SixFretGuitar, new() { ReusableBindingSetDefaults.DefaultGamepadSixFretGuitarGameplay }},
+                    { GameMode.FourLaneDrums, new() { ReusableBindingSetDefaults.RB4InstrumentMapperFourLaneDrumkitGameplay }},
                     { GameMode.FiveLaneDrums, new() {
                         ReusableBindingSetDefaults.DefaultWiitarThingDrumkitGameplay
                     }}

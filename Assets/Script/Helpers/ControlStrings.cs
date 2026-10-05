@@ -24,12 +24,14 @@ namespace YARG.Helpers
         public const string GAMEPAD_LEFT_STICK_DOWN = "leftStick/down";
         public const string GAMEPAD_LEFT_STICK_LEFT = "leftStick/left";
         public const string GAMEPAD_LEFT_STICK_RIGHT = "leftStick/right";
+        public const string GAMEPAD_LEFT_STICK_BUTTON = "leftStickButton";
         public const string GAMEPAD_LEFT_STICK_X = "leftStick/x";
         public const string GAMEPAD_LEFT_STICK_Y = "leftStick/y";
         public const string GAMEPAD_RIGHT_STICK_UP = "rightStick/up";
         public const string GAMEPAD_RIGHT_STICK_DOWN = "rightStick/down";
         public const string GAMEPAD_RIGHT_STICK_LEFT = "rightStick/left";
         public const string GAMEPAD_RIGHT_STICK_RIGHT = "rightStick/right";
+        public const string GAMEPAD_RIGHT_STICK_BUTTON = "rightStickButton";
         public const string GAMEPAD_RIGHT_STICK_X = "rightStick/x";
         public const string GAMEPAD_RIGHT_STICK_Y = "rightStick/y";
         public const string GAMEPAD_DPAD_UP = "dpad/up";
