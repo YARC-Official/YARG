@@ -1574,7 +1574,7 @@
             },
             "EffectsMode": {
                 "Name": "Effects Mode",
-                "Description": "Selects the audio effects quality trade-off. Performance uses BASS_FX for time stretching and Freeverb for reverb; Quality uses YargStretch and Dattorro reverb.",
+                "Description": "Selects the audio fx quality for reverb and time stretching.",
                 "Dropdown": {
                     "Performance": "Performance",
                     "Quality": "Quality"
