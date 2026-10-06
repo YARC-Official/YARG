@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using TMPro;
 using UnityEngine;
@@ -74,7 +75,8 @@ namespace YARG.Menu.ProfileInfo.Overview
             "Menu.ProfileInfo.Stats.AllSongsScore",
             "Menu.ProfileInfo.Stats.TotalStarsEarned",
             "Menu.ProfileInfo.Stats.ExpertGoldStarSongs",
-            "Menu.ProfileInfo.Stats.ExpertFullCombos"
+            "Menu.ProfileInfo.Stats.ExpertFullCombos",
+            "Menu.ProfileInfo.Stats.OfficialSetlistScore"
         };
 
         private static readonly string[] ProfileSummaryLabelKeys =
@@ -85,9 +87,9 @@ namespace YARG.Menu.ProfileInfo.Overview
             "Menu.ProfileInfo.Stats.TotalStarsEarned",
             "Menu.ProfileInfo.Stats.FullCombos",
             "Menu.ProfileInfo.Stats.TotalTimePlayed",
+            "Menu.ProfileInfo.Stats.FavoriteEngine",
             "Menu.ProfileInfo.Stats.FavoriteSong",
             "Menu.ProfileInfo.Stats.FavoriteGenre",
-            "Menu.ProfileInfo.Stats.FavoriteEngine",
             "Menu.ProfileInfo.Stats.AveragePercentage",
             "Menu.ProfileInfo.Stats.LongestFullComboStreak"
         };
@@ -260,8 +262,8 @@ namespace YARG.Menu.ProfileInfo.Overview
                 headerHeight: 105,
                 navigationGroup: _profileSummaryNavigationGroup);
             _profileSummaryHeader = header.GetComponentInChildren<TextMeshProUGUI>();
-            _profileSummaryHeader.fontSize = _totalScore.fontSize;
-            _profileSummaryHeader.fontStyle |= FontStyles.Bold;
+            _profileSummaryHeader.fontSize = 40;
+            _profileSummaryHeader.fontStyle = FontStyles.Bold;
             AttachProfilePicture(header);
 
             for (int i = 0; i < ProfileSummaryLabelKeys.Length; i++)
@@ -393,9 +395,9 @@ namespace YARG.Menu.ProfileInfo.Overview
                 scores.Sum(score => (long) GetProfileStarPoints(score.Stars)).ToString("N0"),
                 scores.LongCount(score => score.IsFc).ToString("N0"),
                 playHistory.TotalTime,
+                playHistory.FavoriteEngine,
                 playHistory.MostPlayedSong,
                 playHistory.MostPlayedGenre,
-                playHistory.FavoriteEngine,
                 playHistory.AveragePercentage,
                 playHistory.LongestFullComboStreak
             };
@@ -405,8 +407,9 @@ namespace YARG.Menu.ProfileInfo.Overview
             }
         }
 
-        private static (string TotalTime, string MostPlayedSong, string MostPlayedGenre,
-            string LongestFullComboStreak, string FavoriteEngine, string AveragePercentage)
+        private static (string TotalTime, string FavoriteEngine, string MostPlayedSong,
+                        string MostPlayedGenre, string LongestFullComboStreak,
+                        string AveragePercentage)
             GetPlayHistorySummary(IEnumerable<PlayerScoreWithChecksum> scores)
         {
             long totalMilliseconds = 0;
@@ -414,9 +417,9 @@ namespace YARG.Menu.ProfileInfo.Overview
             long longestFullComboStreak = 0;
             double totalPercentage = 0;
             long percentageCount = 0;
+            var enginePlayCounts = new Dictionary<Guid, int>();
             var songPlayCounts = new Dictionary<HashWrapper, (string Name, int Count)>();
             var genrePlayCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-            var enginePlayCounts = new Dictionary<Guid, int>();
 
             foreach (var score in scores)
             {
@@ -469,6 +472,11 @@ namespace YARG.Menu.ProfileInfo.Overview
             }
 
             var totalTime = TimeSpan.FromMilliseconds(totalMilliseconds);
+            var favoriteEngineId = enginePlayCounts
+                .OrderByDescending(engine => engine.Value)
+                .ThenBy(engine => engine.Key)
+                .Select(engine => (Guid?) engine.Key)
+                .FirstOrDefault();
             string mostPlayedSong = songPlayCounts.Values
                 .OrderByDescending(song => song.Count)
                 .ThenBy(song => song.Name, StringComparer.OrdinalIgnoreCase)
@@ -479,11 +487,6 @@ namespace YARG.Menu.ProfileInfo.Overview
                 .ThenBy(genre => genre.Key, StringComparer.OrdinalIgnoreCase)
                 .Select(genre => genre.Key)
                 .FirstOrDefault() ?? "-";
-            var favoriteEngineId = enginePlayCounts
-                .OrderByDescending(engine => engine.Value)
-                .ThenBy(engine => engine.Key)
-                .Select(engine => (Guid?) engine.Key)
-                .FirstOrDefault();
             string favoriteEngine = favoriteEngineId.HasValue
                 ? CustomContentManager.EnginePresets.GetPresetById(favoriteEngineId.Value)?.Name
                     ?? Localize.Key("Menu.ProfileInfo.Stats.UnknownCustomEngine")
@@ -494,9 +497,9 @@ namespace YARG.Menu.ProfileInfo.Overview
 
             return (Localize.KeyFormat("Menu.ProfileInfo.Stats.TotalTimePlayedValue",
                     totalTime.Days, totalTime.Hours, totalTime.Minutes),
-                mostPlayedSong, mostPlayedGenre,
+                    favoriteEngine, mostPlayedSong, mostPlayedGenre,
                 Localize.KeyFormat("Menu.ProfileInfo.Stats.LongestFullComboStreakValue", longestFullComboStreak),
-                favoriteEngine, averagePercentage);
+                averagePercentage);
         }
 
         private static string FormatPercentage(double percentage)
@@ -530,6 +533,16 @@ namespace YARG.Menu.ProfileInfo.Overview
                 .GroupBy(song => song.Hash)
                 .Select(group => group.First())
                 .ToList();
+            var setlistRoots = SettingsManager.Settings.SongFolders
+                .Append(PathHelper.SetlistPath)
+                .Where(path => !string.IsNullOrWhiteSpace(path))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+            var officialPackCache = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
+            var officialSetlistSongHashes = librarySongs
+                .Where(song => IsOfficialSetlistSong(song, setlistRoots, officialPackCache))
+                .Select(song => song.Hash)
+                .ToHashSet();
 
             var bestByDifficulty = scores
                 .GroupBy(score => new
@@ -554,7 +567,7 @@ namespace YARG.Menu.ProfileInfo.Overview
                 .ToList();
 
             var instrumentSections = new List<(string Name, string[] Values, long Score,
-                Instrument IconInstrument)>();
+                Instrument IconInstrument, bool HasOfficialSetlistScore)>();
             foreach (var instrument in Instruments)
             {
                 bool isDrums = MidiDrumkitHelper.Instruments.Contains(instrument);
@@ -580,7 +593,8 @@ namespace YARG.Menu.ProfileInfo.Overview
                 var chartedSongs = librarySongs
                     .Where(song => groupedInstruments.Any(song.HasInstrument))
                     .ToList();
-                var expertChartCount = instrument is Instrument.Vocals or Instrument.Harmony
+                var expertChartCount = instrument is Instrument.Vocals or Instrument.Harmony or
+                    Instrument.PartyVocals
                     ? chartedSongs.Count
                     : chartedSongs.LongCount(song => groupedInstruments.Any(groupedInstrument =>
                         song.HasDifficultyForInstrument(groupedInstrument, Difficulty.Expert)));
@@ -596,13 +610,18 @@ namespace YARG.Menu.ProfileInfo.Overview
                 var expertFullComboCount = expertScores
                     .GroupBy(score => score.Song)
                     .LongCount(song => song.Any(score => score.IsFc));
+                var officialSetlistScore = instrumentScores
+                    .Where(score => officialSetlistSongHashes.Contains(score.Song))
+                    .GroupBy(score => score.Song)
+                    .Sum(song => (long) song.Max(score => score.HighScore));
                 var maximumStars = chartedSongs.Count * 6L;
                 var statValues = new[]
                 {
                     cumulativeHighScore.ToString("N0"),
                     FormatProgress(totalStars, maximumStars),
                     FormatProgress(goldStarSongCount, expertChartCount),
-                    FormatProgress(expertFullComboCount, expertChartCount)
+                    FormatProgress(expertFullComboCount, expertChartCount),
+                    officialSetlistScore.ToString("N0")
                 };
 
                 instrumentSections.Add((
@@ -611,23 +630,81 @@ namespace YARG.Menu.ProfileInfo.Overview
                         : GetInstrumentName(instrument),
                     statValues,
                     cumulativeHighScore,
-                    isDrums ? Instrument.FourLaneDrums : instrument));
+                    isDrums ? Instrument.FourLaneDrums : instrument,
+                    officialSetlistScore > 0));
             }
 
             foreach (var section in instrumentSections.OrderByDescending(section => section.Score))
             {
-                CreateInstrumentSection(section.Name, section.Values, section.IconInstrument);
+                CreateInstrumentSection(section.Name, section.Values, section.IconInstrument,
+                    section.HasOfficialSetlistScore);
             }
 
         }
 
-        private void CreateInstrumentSection(string instrumentName, string[] statValues, Instrument instrument)
+        private static bool IsOfficialSetlistSong(SongEntry song, IEnumerable<string> setlistRoots,
+            IDictionary<string, bool> officialPackCache)
+        {
+            if (string.IsNullOrWhiteSpace(song.ActualLocation))
+            {
+                return false;
+            }
+
+            try
+            {
+                string songPath = Path.GetFullPath(song.ActualLocation);
+                foreach (string root in setlistRoots)
+                {
+                    string relativePath = Path.GetRelativePath(Path.GetFullPath(root), songPath);
+                    if (relativePath == ".." ||
+                        relativePath.StartsWith($"..{Path.DirectorySeparatorChar}",
+                            StringComparison.Ordinal) ||
+                        Path.IsPathRooted(relativePath))
+                    {
+                        continue;
+                    }
+
+                    int separatorIndex = relativePath.IndexOf(Path.DirectorySeparatorChar);
+                    if (separatorIndex <= 0)
+                    {
+                        continue;
+                    }
+
+                    string packRoot = Path.Combine(Path.GetFullPath(root),
+                        relativePath[..separatorIndex]);
+                    if (!officialPackCache.TryGetValue(packRoot, out bool isOfficial))
+                    {
+                        string tagPath = Path.Combine(packRoot, "tag.txt");
+                        isOfficial = File.Exists(tagPath) && File.ReadAllText(tagPath).Trim()
+                            .StartsWith("official-", StringComparison.OrdinalIgnoreCase);
+                        officialPackCache.Add(packRoot, isOfficial);
+                    }
+
+                    return isOfficial;
+                }
+
+                return false;
+            }
+            catch (Exception exception) when (exception is ArgumentException or IOException or
+                NotSupportedException or UnauthorizedAccessException)
+            {
+                return false;
+            }
+        }
+
+        private void CreateInstrumentSection(string instrumentName, string[] statValues, Instrument instrument,
+            bool hasOfficialSetlistScore)
         {
             CreateHeader(_statsContent, instrumentName, GetInstrumentIcon(instrument),
                 navigationGroup: _statsNavigationGroup);
 
             for (int statIndex = 0; statIndex < StatLabelKeys.Length; statIndex++)
             {
+                if (statIndex == StatLabelKeys.Length - 1 && !hasOfficialSetlistScore)
+                {
+                    continue;
+                }
+
                 CreateValueRow(_statsContent, Localize.Key(StatLabelKeys[statIndex]), statValues[statIndex],
                     statIndex, true, false, _statsNavigationGroup);
             }
