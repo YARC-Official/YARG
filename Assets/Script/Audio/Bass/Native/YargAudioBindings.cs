@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading;
 using YARG.Audio.BASS.Effects;
 using YARG.Helpers;
 
@@ -14,6 +15,7 @@ namespace YARG.Audio.BASS.Native
         private const int RTLD_GLOBAL = 8;
 #endif
 
+        private static readonly object _loadLock = new();
         private static IntPtr _libraryHandle = IntPtr.Zero;
         private static string? _loadedPath;
 
@@ -68,32 +70,47 @@ namespace YARG.Audio.BASS.Native
             EnsureLoaded();
         }
 
-        public static bool Reload()
+        public static bool HasPendingUpdate
         {
-            BindAll(IntPtr.Zero);
-            _libraryHandle = IntPtr.Zero;
-            _loadedPath = null;
-            return EnsureLoaded();
+            get
+            {
+                lock (_loadLock)
+                {
+                    return _libraryHandle != IntPtr.Zero &&
+                        !string.Equals(_loadedPath, GetLibraryPath(), StringComparison.OrdinalIgnoreCase);
+                }
+            }
         }
 
         public static bool EnsureLoaded()
         {
-            var libraryPath = GetLibraryPath();
-            if (_libraryHandle != IntPtr.Zero && string.Equals(_loadedPath, libraryPath, StringComparison.OrdinalIgnoreCase))
+            lock (_loadLock)
             {
+                if (_libraryHandle != IntPtr.Zero)
+                {
+                    return true;
+                }
+
+                var libraryPath = GetLibraryPath();
+#if UNITY_EDITOR
+                var sourcePath = GetSourcePluginPath(Directory.GetCurrentDirectory());
+                if (libraryPath != sourcePath && !File.Exists(libraryPath))
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(libraryPath));
+                    File.Copy(sourcePath, libraryPath, overwrite: true);
+                }
+#endif
+                var handle = LoadNativeLibrary(libraryPath);
+                if (handle == IntPtr.Zero)
+                {
+                    return false;
+                }
+
+                BindAll(handle);
+                _loadedPath = libraryPath;
+                Volatile.Write(ref _libraryHandle, handle);
                 return true;
             }
-
-            var handle = LoadNativeLibrary(libraryPath);
-            if (handle == IntPtr.Zero)
-            {
-                return false;
-            }
-
-            _libraryHandle = handle;
-            _loadedPath = libraryPath;
-            BindAll(handle);
-            return true;
         }
 
         internal static int StretchStreamCreate(int source, out BassStretchStream stream, out int streamHandle, out int bassError) =>
@@ -230,16 +247,15 @@ namespace YARG.Audio.BASS.Native
 
         private static T EnsureBound<T>(ref T? delegateField, string entryPoint) where T : Delegate
         {
-            if (delegateField != null)
-            {
-                return delegateField;
-            }
-
-            EnsureLoaded();
-            if (_libraryHandle == IntPtr.Zero)
+            if (Volatile.Read(ref _libraryHandle) == IntPtr.Zero && !EnsureLoaded())
             {
                 throw new DllNotFoundException(
                     $"Unable to load the YargAudio native library from '{GetLibraryPath()}' for {entryPoint}.");
+            }
+
+            if (delegateField != null)
+            {
+                return delegateField;
             }
 
             delegateField = GetFunction<T>(_libraryHandle, entryPoint);
@@ -326,19 +342,11 @@ namespace YARG.Audio.BASS.Native
             }
 
             var tempDir = Path.Combine(Path.GetTempPath(), "YargAudioShadow");
-            Directory.CreateDirectory(tempDir);
 
             var ext = Path.GetExtension(sourcePath);
             var baseName = Path.GetFileNameWithoutExtension(sourcePath);
             var writeTime = File.GetLastWriteTimeUtc(sourcePath).Ticks;
-            var shadowPath = Path.Combine(tempDir, $"{baseName}_{writeTime}{ext}");
-
-            if (!File.Exists(shadowPath))
-            {
-                File.Copy(sourcePath, shadowPath, overwrite: true);
-            }
-
-            return shadowPath;
+            return Path.Combine(tempDir, $"{baseName}_{writeTime}{ext}");
         }
 
         private static string GetSourcePluginPath(string projectRoot)

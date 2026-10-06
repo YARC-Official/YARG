@@ -68,10 +68,12 @@ Native/YargAudio/
 
 ### 1. Unity Editor (Current Platform Only)
 You do not need to manually recompile C++ code during normal development:
-- **Automatic Build on Play**: Whenever you press **Play** (or build the game), Unity checks if any C++ files have changed since the last build. If changes are found, Unity automatically compiles the library in the background, updates the plugin file, and reloads it into memory so your changes take effect immediately without restarting Unity.
+- **Automatic Build on Play**: Whenever you press **Play** (or build the game), Unity checks if any C++ files have changed since the last build. If changes are found, Unity synchronously compiles the library and updates the plugin file. Rebuilding during Play leaves the loaded version unchanged. Exit Play and enter it again to use the rebuilt plugin; restarting the editor is not required.
 - **Shows Up in Git**: The newly built binary (`.dll`, `.so`, or `.dylib`) is copied directly into `Assets/Plugins/YargAudio/`, so it will appear as a modified file in Git.
 - **Safe Fallback**: If compilation fails, Unity logs a warning in the Console and continues using the last working version so your play testing is not interrupted.
 - **Manual Menu Trigger**: You can force a rebuild at any time by choosing **YARG > Audio > Rebuild Native Audio (This Platform)** from the top menu bar.
+
+Native function bindings stay with one library version for the entire managed domain. Rebuilding does not replace functions used by existing native objects. Initial loading is serialized, including retries after a missing library. Ordinary playback calls use their cached delegates without taking the load lock. If a rebuilt plugin is pending when Play ends, the editor requests a script reload. If domain reload is disabled and an update is still pending when Play starts, it reloads scripts before automatically continuing into Play. Before a domain reload, the audio cleanup handler closes active audio and frees BASS; old shadow libraries remain mapped for callbacks and finalizers.
 
 ### 2. Command Line (Current Platform Only)
 This does the same thing as the Editor's manual rebuild option, but runs from your terminal without needing Unity open:

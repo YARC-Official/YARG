@@ -10,13 +10,13 @@
 // YARG changes on top of upstream:
 //   - Transient detection with phase snapping, so drum hits stay sharp.
 //   - Split low/high handling that keeps bass solid at extreme slowdowns.
-//   - Complex phase integration with temporal and neighboring-bin constraints.
+//   - PVDR loudest-first traversal (Prusa & Holighaus), so strong partials lead.
 //   - Reassigned STFT gradients for sharper pitch/timing estimates.
 //
 // One output block goes through process() in this order:
 //   1. Map the block to its input position for the current rate.
 //   2. STFT analysis of the new input, plus gradient spectra for reassignment.
-//   3. Complex phase integration and source-phase recovery at unity speed.
+//   3. Loudest-first phase advance (PVDR traversal).
 //   5. NoiseMorph texture resynthesis (stereo only; skipped for pitch shifts and transients).
 //   6. Inverse-STFT overlap-add into the output block.
 //
@@ -115,14 +115,24 @@ struct YargStretch {
 		transientMinFreq_ = minimumFrequency;
 	}
 
+	void setGrainStrength(Sample strength) {
+		grainStrength_ = std::clamp(strength, Sample(0), Sample(1));
+	}
+
+
+	int transientCount() const {
+		return transientCount_;
+	}
+
 	void reset(long seed) {
 		randomEngine.seed(seed);
 		reset();
+		noiseMorph.reset(seed);
 	}
 
 	void reset() {
 		stft.reset(0.1);
-		noiseMorph.clearHistory();
+		noiseMorph.reset(0);
 		envelopeEq.reset();
 		stashedInput = stft.input;
 		stashedOutput = stft.output;
@@ -134,10 +144,10 @@ struct YargStretch {
 		didSeek = false;
 		blockProcess = {};
 		smoothTimeFactor_ = 1;
-		sourcePhaseWeight_ = 0;
 		freqEstimateWeighted = freqEstimateWeight = 0;
 		transientSamples_ = int(stft.blockSamples());
 		transientCooldown_ = 0;
+		transientCount_ = 0;
 		transientState_ = TransientState::IDLE;
 		transientInputSamples_ = 0;
 		transientBg_[0] = transientBg_[1] = transientBg_[2] = 0;
@@ -188,6 +198,7 @@ struct YargStretch {
 		transientCenter_ = rampMoment/rampPower;
 		transientSamples_ = int(stft.blockSamples());
 		transientCooldown_ = 0;
+		transientCount_ = 0;
 		transientState_ = TransientState::IDLE;
 		transientInputSamples_ = 0;
 		transientBg_[0] = transientBg_[1] = transientBg_[2] = 0;
@@ -224,7 +235,6 @@ struct YargStretch {
 
 		blockProcess = {};
 		formantMetric.resize(bands + 2);
-		sourcePhaseWeight_ = 0;
 
 		tmpProcessBuffer.resize(blockSamples + intervalSamples);
 		tmpPreRollBuffer.resize(outputLatency()*channels);
@@ -335,6 +345,9 @@ struct YargStretch {
 	// Main work: render outputSamples from inputSamples.
 	template<class Inputs, class Outputs>
 	void process(Inputs &&inputs, int inputSamples, Outputs &&outputs, int outputSamples) {
+#ifdef YARG_STRETCH_PROFILE_PROCESS_START
+		YARG_STRETCH_PROFILE_PROCESS_START(inputSamples, outputSamples);
+#endif
 		int prevCopiedInput = 0;
 		auto copyInput = [&](int toIndex){
 
@@ -458,16 +471,6 @@ struct YargStretch {
 				blockProcess.processFormants = formantMultiplier != 1 || (formantCompensation && blockProcess.mappedFrequencies);
 
 				blockProcess.timeFactor = didSeek ? seekTimeFactor : stft.defaultInterval()/static_cast<Sample>(std::max(1, inputInterval));
-				const bool sourcePhase = blockProcess.timeFactor == Sample(1) &&
-					!blockProcess.mappedFrequencies && !blockProcess.processFormants;
-				if (!sourcePhase) {
-					sourcePhaseWeight_ = 0;
-				} else if (didSeek) {
-					sourcePhaseWeight_ = 1;
-				} else {
-					sourcePhaseWeight_ = std::min(Sample(1), sourcePhaseWeight_ +
-						Sample(stft.defaultInterval()) / stft.blockSamples());
-				}
 				if (blockProcess.newSpectrum) {
 					trackTimeFactor(blockProcess.timeFactor);
 				}
@@ -492,6 +495,9 @@ struct YargStretch {
 			
 			while (blockProcess.step < processToStep) {
 				size_t step = blockProcess.step++;
+#ifdef YARG_STRETCH_PROFILE_PROCESS_STEP
+				YARG_STRETCH_PROFILE_PROCESS_STEP(step, blockProcess.steps);
+#endif
 				if (blockProcess.newSpectrum) {
 					if (blockProcess.reanalysePrev) {
 						// analyse past input
@@ -604,14 +610,17 @@ struct YargStretch {
 							channelBands[b].prevOutput = channelBands[b].output;
 						}
 					}
-					if (noiseMorph.usesGrains()) {
+					if (noiseMorphEnabled_ && noiseMorph.usesGrains()) {
 						Sample strength = std::clamp(NOISE_MORPH_STRENGTH *
 							(smoothTimeFactor_ - Sample(1)) / smoothTimeFactor_, Sample(0), Sample(1));
+						strength *= grainStrength_;
 						if (blockProcess.mappedFrequencies || blockProcess.processFormants || transientSamples_ > 0) {
 							strength = 0;
 						}
-						noiseMorph.apply(stft, [&](int c, int b) { return bandsForChannel(c)[b].input; },
-							strength, transientMinFreq_);
+						Sample decorrelation = std::clamp((smoothTimeFactor_ - NOISE_DECORRELATION_START_STRETCH) /
+							(NOISE_DECORRELATION_FULL_STRETCH - NOISE_DECORRELATION_START_STRETCH), Sample(0), Sample(1));
+						noiseMorph.apply(stft, [&](int c, int b) { return bandsForChannel(c)[b].input; }, strength, transientMinFreq_, decorrelation,
+							blockProcess.sourceInterval, blockProcess.newSpectrum);
 						envelopeEq.setReference([&](int c, int b) { return bandsForChannel(c)[b].input; },
 							!blockProcess.mappedFrequencies && !blockProcess.processFormants && smoothTimeFactor_ > Sample(1.01));
 					}
@@ -624,6 +633,9 @@ struct YargStretch {
 					continue;
 				}
 			}
+#ifdef YARG_STRETCH_PROFILE_PROCESS_ENDSTEP
+			YARG_STRETCH_PROFILE_PROCESS_ENDSTEP();
+#endif
 
 			++blockProcess.samplesSinceLast;
 			if (_splitComputation) stashedOutput.swap(stft.output);
@@ -631,13 +643,15 @@ struct YargStretch {
 				auto &&outputChannel = outputs[c];
 				Sample v = 0;
 				stft.readOutput(c, 1, &v);
-				if (noiseMorph.usesGrains()) {
+				if (noiseMorphEnabled_ && noiseMorph.usesGrains() && grainStrength_ > Sample(0)) {
 					v += noiseMorph.readGrain(c);
+				}
+				if (noiseMorphEnabled_ && noiseMorph.usesGrains()) {
 					v = envelopeEq.filter(c, v);
 				}
 				outputChannel[outputIndex] = v;
 			}
-			if (noiseMorph.usesGrains()) {
+			if (noiseMorphEnabled_ && noiseMorph.usesGrains()) {
 				noiseMorph.advanceGrain();
 				envelopeEq.advance();
 			}
@@ -647,6 +661,9 @@ struct YargStretch {
 		
 		copyInput(inputSamples);
 		prevInputOffset -= inputSamples;
+#ifdef YARG_STRETCH_PROFILE_PROCESS_END
+		YARG_STRETCH_PROFILE_PROCESS_END();
+#endif
 	}
 
 	// Drain remaining output once input is exhausted.
@@ -670,7 +687,7 @@ struct YargStretch {
 		int tailSamples = outputSamples - outputBlock; // at most one interval
 		tmpProcessBuffer.resize(tailSamples);
 		stft.finishOutput(1);
-		if (noiseMorph.usesGrains()) {
+		if (noiseMorphEnabled_ && noiseMorph.usesGrains() && grainStrength_ > Sample(0)) {
 			for (int i = 0; i < tailSamples; ++i) {
 				for (int c = 0; c < channels; ++c) {
 					const Sample value = noiseMorph.readGrain(c);
@@ -699,8 +716,7 @@ struct YargStretch {
 			}
 		}
 		stft.reset(0.1f);
-		sourcePhaseWeight_ = 0;
-		noiseMorph.clearHistory();
+		noiseMorph.reset(0);
 		envelopeEq.reset();
 		tonalReferenceHistory_ = false;
 		std::fill(phaseTemporalConfidence.begin(), phaseTemporalConfidence.end(), Sample(0));
@@ -744,6 +760,7 @@ struct YargStretch {
 	}
 
 private:
+	friend struct StretchDiagnostics;
 	bool _splitComputation = false;
 	struct {
 		size_t samplesSinceLast = std::numeric_limits<size_t>::max();
@@ -778,13 +795,17 @@ private:
 	static constexpr int TRANSIENT_NEIGHBOR_BINS = 3;
 	static constexpr Sample TRANSIENT_READY_POWER_FRACTION = Sample(0.5);
 	Sample transientMinFreq_{Sample(0.03)};
+	Sample grainStrength_{Sample(1)};
 	int transientSamples_ = 0;
 	int transientCooldown_ = 0;
+	int transientCount_ = 0;
 	enum class TransientState { IDLE, COLLECTING, RESET, COOLDOWN };
 	TransientState transientState_ = TransientState::IDLE;
 	int transientInputSamples_ = 0;
 	Sample transientCenter_ = 0;
 	static constexpr Sample NOISE_MORPH_STRENGTH = Sample(2);
+	static constexpr Sample NOISE_DECORRELATION_START_STRETCH = Sample(2);
+	static constexpr Sample NOISE_DECORRELATION_FULL_STRETCH = Sample(4);
 
 	Sample transientBg_[3] = {};
 	bool transientBgReady_ = false;
@@ -801,6 +822,7 @@ private:
 	STFT stft;
 	NoiseMorph<Sample> noiseMorph;
 	EnvelopeEq<Sample> envelopeEq;
+	bool noiseMorphEnabled_ = true;
 	typename STFT::Input stashedInput;
 	typename STFT::Output stashedOutput;
 	
@@ -970,7 +992,7 @@ private:
 			weightedAgreement / totalWeight;
 	}
 
-	// Complex phase integration with temporal anchors and frequency constraints.
+	// PVDR traversal adapted from Holighaus and Prusa, "Phase vocoder done right", EUSIPCO 2017.
 	void solvePhaseIntegration(Sample twistTimeFactor) {
 		const bool trackReferences = blockProcess.newSpectrum && !blockProcess.mappedFrequencies &&
 			!blockProcess.processFormants && blockProcess.timeFactor > TRANSIENT_MIN_STRETCH &&
@@ -1228,6 +1250,7 @@ private:
 				highPower[region] > transientBg_[region] * bgNeed &&
 				risingEnergy[region] > totalEnergy[region] * onsetNeed) {
 				if (transientSamples_ == 0) {
+					++transientCount_;
 				}
 				transientSamples_ = int(stft.blockSamples()/2);
 				transientCooldown_ = int(stft.blockSamples()*3/2);
@@ -1388,12 +1411,12 @@ private:
 	}
 
 	void processSpectrum(size_t step) {
-		const bool sourcePhase = sourcePhaseWeight_ == Sample(1);
 		Sample clampedTimeFactor = std::max<Sample>(blockProcess.timeFactor, 1/maxCleanLow);
 		Sample twistTimeFactor = clampedTimeFactor > TRANSIENT_MIN_STRETCH ?
 			std::max<Sample>(smoothTimeFactor_, 1/maxCleanLow) : clampedTimeFactor;
 
 		Sample smoothingBins = Sample(stft.fftSamples())/stft.defaultInterval();
+		int lockSplit = static_cast<int>(freqToBand(transientMinFreq_));
 
 		if (blockProcess.newSpectrum) {
 			if (step < size_t(channels)) {
@@ -1515,7 +1538,7 @@ private:
 		if (step < splitMainPrediction) {
 			// Re-predict using phase differences between frequencies
 			size_t chunk = step;
-			if (chunk == 0) { // YARG phase integration, shared by later chunks
+			if (chunk == 0) { // YARG phase-2: loudest-first order, propagated to later chunks
 				solvePhaseIntegration(twistTimeFactor);
 			}
 			int startI = int(bands*chunk/splitMainPrediction);
@@ -1526,23 +1549,14 @@ private:
 				auto &prediction = predictionsForChannel(maxChannel)[b];
 				auto &outputBin = bandsForChannel(maxChannel)[b];
 				const bool snapTransient = phaseReset[b];
-				Complex phase = Complex(phaseSolution[b]);
-				if (sourcePhaseWeight_ > Sample(0) && !sourcePhase) {
-					const Complex rotation = _impl::mul<true>(prediction.input, phase);
-					const Sample angle = std::atan2(rotation.imag(), rotation.real());
-					phase = _impl::mul(phase, std::polar(Sample(1), angle * sourcePhaseWeight_));
-				}
-				outputBin.output = sourcePhase ? outputBin.input :
-					prediction.makeOutput(phase);
+				outputBin.output = prediction.makeOutput(Complex(phaseSolution[b]));
 				
 				// All other bins are locked in phase
 				for (int c = 0; c < channels; ++c) {
 					if (c != maxChannel) {
 						auto &channelBin = bandsForChannel(c)[b];
 						auto &channelPrediction = predictionsForChannel(c)[b];
-						if (sourcePhase) {
-							channelBin.output = channelBin.input;
-						} else if (snapTransient) {
+						if (snapTransient) {
 							channelBin.output = channelPrediction.makeOutput(channelPrediction.input);
 						} else {
 							Complex channelTwist = _impl::mul<true>(channelPrediction.input, prediction.input);
@@ -1570,7 +1584,6 @@ private:
 	static constexpr size_t smoothEnergySteps = 3;
 	Sample smoothEnergyState = 0;
 	Sample smoothTimeFactor_ = 1;
-	Sample sourcePhaseWeight_ = 0;
 	void trackTimeFactor(Sample measured) {
 		Sample difference = measured >= smoothTimeFactor_ ? measured - smoothTimeFactor_ : smoothTimeFactor_ - measured;
 		if (difference > smoothTimeFactor_*TIMEFACTOR_SNAP_RATIO) {

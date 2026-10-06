@@ -7,6 +7,7 @@ using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
+using YARG.Audio.BASS.Native;
 using Debug = UnityEngine.Debug;
 
 namespace YARG.Editor.YargAudio
@@ -14,11 +15,26 @@ namespace YARG.Editor.YargAudio
     [InitializeOnLoad]
     public sealed class YargAudioAutoBuilder : IPreprocessBuildWithReport
     {
+        private const string NATIVE_RELOAD_STATE = "YargAudio.ReloadState";
+
+        private enum ReloadState
+        {
+            None,
+            Reload,
+            EnterPlay
+        }
+
         public int callbackOrder => 0;
 
         static YargAudioAutoBuilder()
         {
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+            var state = (ReloadState) SessionState.GetInt(NATIVE_RELOAD_STATE, 0);
+            SessionState.EraseInt(NATIVE_RELOAD_STATE);
+            if (state == ReloadState.EnterPlay)
+            {
+                EditorApplication.delayCall += EditorApplication.EnterPlaymode;
+            }
         }
 
         public void OnPreprocessBuild(BuildReport report)
@@ -31,6 +47,15 @@ namespace YARG.Editor.YargAudio
 
         private static void OnPlayModeStateChanged(PlayModeStateChange state)
         {
+            if (state == PlayModeStateChange.EnteredEditMode)
+            {
+                if (YargAudioBindings.HasPendingUpdate)
+                {
+                    RequestReload(enterPlay: false);
+                }
+                return;
+            }
+
             if (state != PlayModeStateChange.ExitingEditMode)
             {
                 return;
@@ -39,6 +64,33 @@ namespace YARG.Editor.YargAudio
             if (!EnsureUpToDate(isExplicit: false))
             {
                 EditorApplication.isPlaying = false;
+                return;
+            }
+
+            bool reloadDomain = !EditorSettings.enterPlayModeOptionsEnabled ||
+                (EditorSettings.enterPlayModeOptions & EnterPlayModeOptions.DisableDomainReload) == 0;
+            if (!reloadDomain && YargAudioBindings.HasPendingUpdate)
+            {
+                RequestReload(enterPlay: true);
+                EditorApplication.isPlaying = false;
+            }
+        }
+
+        private static void RequestReload(bool enterPlay)
+        {
+            var state = (ReloadState) SessionState.GetInt(NATIVE_RELOAD_STATE, 0);
+            if (enterPlay)
+            {
+                SessionState.SetInt(NATIVE_RELOAD_STATE, (int) ReloadState.EnterPlay);
+            }
+            else if (state == ReloadState.None)
+            {
+                SessionState.SetInt(NATIVE_RELOAD_STATE, (int) ReloadState.Reload);
+            }
+
+            if (state == ReloadState.None)
+            {
+                EditorUtility.RequestScriptReload();
             }
         }
 
@@ -89,14 +141,8 @@ namespace YARG.Editor.YargAudio
                 Directory.CreateDirectory(pluginInfo.DestinationDirectory);
                 File.Copy(builtPath, pluginInfo.DestinationBinaryPath, overwrite: true);
 
-                if (!YARG.Audio.BASS.Native.YargAudioBindings.Reload())
-                {
-                    Debug.LogError($"[YargAudio AutoBuilder] Rebuilt {pluginInfo.BinaryName}, " +
-                        "but the native library failed to load. Native audio is unavailable until it loads.");
-                    return false;
-                }
-
-                Debug.Log($"[YargAudio AutoBuilder] Successfully rebuilt and updated {pluginInfo.BinaryName}");
+                Debug.Log($"[YargAudio AutoBuilder] Successfully rebuilt and updated {pluginInfo.BinaryName}. " +
+                    "The current Play session keeps its loaded version; the next Play session uses the update.");
                 return true;
             }
             catch (Exception ex)
