@@ -777,7 +777,7 @@
 			  },
 			  "InputCalibration": {
 				  "Title": "Input Calibration",
-				  "Text": "Apply a global timing offset to all of your gameplay inputs. Higher values mean your inputs are treated as if they occurred earlier.\n\n<b><color=\"red\">Leave this at 0 unless you're sure you know what you're doing!</color></b> If you want to account for inherent latency in your audio/video setup, use the Calibration interface under <b>Settings</b>. If you want to account for the inherent latency of a specific device, do so up above under <b>Controllers</b> or <b>Microphones</b>."
+				  "Text": "Apply a global timing offset to all of your gameplay inputs. Higher values mean your inputs are treated as if they occurred earlier."
 			  },
 			  "ConfigureFourLaneDrumsHighway": {
 				  "Title": "4-Lane Drums Highway Configuration",
