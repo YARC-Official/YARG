@@ -179,11 +179,12 @@ namespace YARG.Gameplay
 
             _videoStarted = true;
 
-            // A held load-time seek at non-100% speed (practice entry) has parked the video on this
-            // frame. Releasing it takes the rate while paused; a re-seek would change it while playing.
-            if (ParksForRate && _parkState is ParkState.Parked or ParkState.Releasing)
+            // At non-100% speed, never re-seek here: a re-seek would take the rate while playing.
+            // Release the video from where it is parked instead -- by OnVideoPrepared's seek, or a
+            // held load-time seek (practice entry) -- so the rate is applied while paused.
+            if (ParksForRate)
             {
-                if (_parkState == ParkState.Parked)
+                if (_parkState != ParkState.Releasing)
                     ArmParkRelease();
             }
             else
@@ -234,6 +235,8 @@ namespace YARG.Gameplay
                     _videoEndTime <= endTimeThreshold &&
                     player.length < _gameManager.SongLength * dontLoopThreshold)
                 {
+                    // SetTime, parks and resyncs only understand the first pass of a looping video:
+                    // past its length, SetTime stops it. Left as-is; it is a small edge case.
                     player.isLooping = true;
                     _videoEndTime = double.NaN;
                 }
