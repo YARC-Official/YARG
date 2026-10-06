@@ -3,6 +3,7 @@ using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
@@ -16,6 +17,9 @@ namespace YARG.Editor.YargAudio
     public sealed class YargAudioAutoBuilder : IPreprocessBuildWithReport
     {
         private const string NATIVE_RELOAD_STATE = "YargAudio.ReloadState";
+        private const string NATIVE_BUILD_FAILURE = "YargAudio.BuildFailure";
+        private const int MAX_ERROR_LINES = 6;
+        private const int MAX_ERROR_LINE_LENGTH = 1000;
 
         private enum ReloadState
         {
@@ -47,6 +51,17 @@ namespace YARG.Editor.YargAudio
 
         private static void OnPlayModeStateChanged(PlayModeStateChange state)
         {
+            if (state == PlayModeStateChange.EnteredPlayMode)
+            {
+                var failure = SessionState.GetString(NATIVE_BUILD_FAILURE, string.Empty);
+                SessionState.EraseString(NATIVE_BUILD_FAILURE);
+                if (failure.Length > 0)
+                {
+                    Debug.LogError(failure);
+                }
+                return;
+            }
+
             if (state == PlayModeStateChange.EnteredEditMode)
             {
                 if (YargAudioBindings.HasPendingUpdate)
@@ -140,6 +155,7 @@ namespace YARG.Editor.YargAudio
 
                 Directory.CreateDirectory(pluginInfo.DestinationDirectory);
                 File.Copy(builtPath, pluginInfo.DestinationBinaryPath, overwrite: true);
+                SessionState.EraseString(NATIVE_BUILD_FAILURE);
 
                 Debug.Log($"[YargAudio AutoBuilder] Successfully rebuilt and updated {pluginInfo.BinaryName}. " +
                     "The current Play session keeps its loaded version; the next Play session uses the update.");
@@ -198,7 +214,7 @@ namespace YARG.Editor.YargAudio
                 return true;
             }
 
-            var details = string.IsNullOrWhiteSpace(error) ? output : error;
+            var details = error.Trim() + "\n" + output.Trim();
             errorMessage = $"CMake {step} failed (exit {exitCode}):\n{details.Trim()}";
             return false;
         }
@@ -217,14 +233,49 @@ namespace YARG.Editor.YargAudio
 
         private static bool HandleBuildFailure(string errorMessage, PluginInfo pluginInfo, bool isExplicit)
         {
-            if (!isExplicit && File.Exists(pluginInfo.DestinationBinaryPath))
+            var logPath = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "Library", "YargAudioBuild.log"));
+            File.WriteAllText(logPath, errorMessage);
+            var summary = SummarizeBuildFailure(errorMessage) + $"\nFull build output: {logPath}";
+            bool useExistingBinary = !isExplicit && File.Exists(pluginInfo.DestinationBinaryPath);
+            if (useExistingBinary)
             {
-                Debug.LogWarning($"[YargAudio AutoBuilder] {errorMessage}\nFalling back to existing pre-built binary.");
-                return true;
+                summary += "\nPlay will use the existing binary. The latest native changes are unavailable.";
+                SessionState.SetString(NATIVE_BUILD_FAILURE, summary);
             }
 
-            Debug.LogError($"[YargAudio AutoBuilder] {errorMessage}");
-            return false;
+            Debug.LogError(summary);
+            if (!Application.isBatchMode &&
+                EditorUtility.DisplayDialog("Native audio rebuild failed", summary, "Open Build Log", "OK"))
+            {
+                EditorUtility.OpenWithDefaultApp(logPath);
+            }
+            return useExistingBinary;
+        }
+
+        private static string SummarizeBuildFailure(string errorMessage)
+        {
+            using var reader = new StringReader(errorMessage);
+            var summary = new StringBuilder($"[YargAudio AutoBuilder] {reader.ReadLine()}");
+            int errorCount = 0;
+            string? line;
+            while ((line = reader.ReadLine()) != null)
+            {
+                if (line.IndexOf("error:", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    line.IndexOf(": error ", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    line.IndexOf("error LNK", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    line.IndexOf("undefined reference", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    line.IndexOf("undefined symbols", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    line.IndexOf("CMake Error", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    summary.AppendLine();
+                    summary.Append(line, 0, Math.Min(line.Length, MAX_ERROR_LINE_LENGTH));
+                    if (++errorCount == MAX_ERROR_LINES)
+                    {
+                        break;
+                    }
+                }
+            }
+            return summary.ToString();
         }
 
         private static string ResolveBuiltBinaryPath(string nativeDir, PluginInfo info)

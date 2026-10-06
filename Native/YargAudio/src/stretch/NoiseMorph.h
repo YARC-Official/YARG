@@ -32,15 +32,18 @@ class NoiseMorph {
     static constexpr Sample SINE_HIGH{Sample(0.80)};
     static constexpr Sample TRANSIENT_LOW{Sample(0.75)};
     static constexpr Sample TRANSIENT_HIGH{Sample(0.85)};
-    static constexpr Sample CUTOFF_TIMES_MINIMUM{Sample(1.5)};
+    static constexpr Sample CUTOFF_TIMES_MINIMUM{Sample(3)};
     static constexpr int FLATNESS_RADIUS = 4;
     static constexpr Sample FLATNESS_LOW{Sample(0.50)};
     static constexpr Sample FLATNESS_HIGH{Sample(0.75)};
-    static constexpr Sample BROADBAND_CUTOFF_RATIO{Sample(1.0 / 3.0)};
+    static constexpr Sample MAX_REPLACEMENT_POWER{Sample(0.25)};
     static constexpr Sample SILENCE_FLOOR_RATIO{Sample(1e-6)};
     static constexpr double ENVELOPE_SMOOTHING_START_STRETCH = 2;
     static constexpr double ENVELOPE_SMOOTHING_FULL_STRETCH = 4;
     static constexpr double ENVELOPE_SMOOTHING_SECONDS = 0.040;
+    static constexpr double WIDE_ENVELOPE_STRETCH = 1.0 / 0.35;
+    static constexpr double MIN_ENVELOPE_RADIUS = 2;
+    static constexpr double MAX_ENVELOPE_RADIUS = 4;
     TextureGrains<Sample> grains;
     bool useGrains = false;
     std::vector<Sample> grainMask;
@@ -105,7 +108,10 @@ public:
         const double smoothingSeconds = ENVELOPE_SMOOTHING_SECONDS * std::clamp(
             (double(stretchFactor) - ENVELOPE_SMOOTHING_START_STRETCH) /
             (ENVELOPE_SMOOTHING_FULL_STRETCH - ENVELOPE_SMOOTHING_START_STRETCH), 0.0, 1.0);
-        replaceTexture(output, input, strength, minimumFrequency, smoothingSeconds);
+        const double envelopeRadius = MIN_ENVELOPE_RADIUS + (MAX_ENVELOPE_RADIUS - MIN_ENVELOPE_RADIUS) * std::clamp(
+            (double(stretchFactor) - ENVELOPE_SMOOTHING_START_STRETCH) /
+            (WIDE_ENVELOPE_STRETCH - ENVELOPE_SMOOTHING_START_STRETCH), 0.0, 1.0);
+        replaceTexture(output, input, strength, minimumFrequency, smoothingSeconds, envelopeRadius);
     }
 
 private:
@@ -181,24 +187,21 @@ private:
     // Slews the noise mask toward its target, removes texture from the main
     // spectrum, and hands it to the renderer.
     template<class Input>
-    void replaceTexture(STFT &output, Input input, Sample strength, Sample minimumFrequency, double smoothingSeconds) {
+    void replaceTexture(STFT &output, Input input, Sample strength, Sample minimumFrequency, double smoothingSeconds, double envelopeRadius) {
         const Sample cutoff = minimumFrequency * CUTOFF_TIMES_MINIMUM;
-        const Sample broadbandCutoff = minimumFrequency * BROADBAND_CUTOFF_RATIO;
         const Sample releaseStep = replacementStep * REPLACEMENT_RISE_SECONDS / REPLACEMENT_RELEASE_SECONDS;
         for (int b = 0; b < bands; ++b) {
             const Sample frequency = output.binToFreq(b);
-            const Sample highNoise = noise[b] *
+            const Sample highNoise = broadbandNoise[b] *
                 std::clamp((frequency - cutoff) / cutoff, Sample(0), Sample(1));
-            const Sample broadNoise = broadbandNoise[b] * std::clamp(
-                (frequency - broadbandCutoff) / (minimumFrequency - broadbandCutoff), Sample(0), Sample(1));
-            const Sample target = strength * std::max(highNoise, broadNoise);
+            const Sample target = MAX_REPLACEMENT_POWER * strength * highNoise;
             grainMask[b] = std::clamp(target, grainMask[b] - releaseStep, grainMask[b] + replacementStep);
             const Sample keep = std::sqrt(Sample(1) - grainMask[b]);
             for (int c = 0; c < channels; ++c) {
                 output.spectrum(c)[b] *= keep;
             }
         }
-        grains.add(output, input, grainMask, smoothingSeconds);
+        grains.add(output, input, grainMask, smoothingSeconds, envelopeRadius);
     }
 };
 

@@ -19,6 +19,8 @@ void runGainDspTests();
 void runFreeverbDspTests();
 void runDattorroReverbDspTests();
 void runNoiseGateDspTests();
+void runNoiseMorphTests();
+void runYargStretchTests();
 void runSineSynthDspTests();
 void runScheduledSampleSourceTests();
 void runNativeOneShotStreamTests();

@@ -120,6 +120,7 @@ namespace YARG.Settings
             },
             new MetadataTab("Sound", icon: "Sound")
             {
+                nameof(Settings.EffectsMode),
                 new HeaderMetadata("Volume"),
                 new FieldMetadata(nameof(Settings.EnableNormalization), isAdvanced: true),
                 nameof(Settings.MasterMusicVolume),
@@ -290,7 +291,6 @@ namespace YARG.Settings
                 nameof(Settings.BandComboTypeSetting),
                 nameof(Settings.DataStreamEnable),
                 nameof(Settings.SaveScoresWithBots),
-                nameof(Settings.EffectsMode),
                 new HeaderMetadata("Accessibility"),
                 nameof(Settings.FontScaling),
                 new HeaderMetadata("OutputConfiguration"),

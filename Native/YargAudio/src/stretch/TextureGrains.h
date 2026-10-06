@@ -82,7 +82,7 @@ public:
 
     // Renders texture to waveform, crossfades one block, blends it in.
     template<class Input>
-    void add(const STFT &analysis, Input input, const std::vector<Sample> &mask, double smoothingSeconds) {
+    void add(const STFT &analysis, Input input, const std::vector<Sample> &mask, double smoothingSeconds, double envelopeRadius = ENVELOPE_RADIUS) {
         if (std::all_of(mask.begin(), mask.end(), [](Sample amount) { return amount == Sample(0); })) {
             std::fill(temporalPower.begin(), temporalPower.end(), 0);
             const int block = int(analysis.blockSamples());
@@ -97,7 +97,7 @@ public:
             }
             return;
         }
-        renderWaveform(analysis, input, mask, smoothingSeconds);
+        renderWaveform(analysis, input, mask, smoothingSeconds, envelopeRadius);
         blendBlocks(analysis);
     }
 
@@ -115,8 +115,9 @@ public:
 private:
     // Envelope from input magnitude; shared random phase keeps stereo scaling exact.
     template<class Input>
-    void renderWaveform(const STFT &analysis, Input input, const std::vector<Sample> &mask, double smoothingSeconds) {
+    void renderWaveform(const STFT &analysis, Input input, const std::vector<Sample> &mask, double smoothingSeconds, double envelopeRadius) {
         const int size = int(analysis.fftSamples());
+        const int radius = int(std::ceil(envelopeRadius));
         const double rate = smoothingSeconds > 0 ? -std::expm1(-intervalSeconds / smoothingSeconds) : 1;
         double sourceTotal = 0;
         for (int b = 0; b < int(spectrum.size()); ++b) {
@@ -136,16 +137,16 @@ private:
             }
             double power = 0;
             double weight = 0;
-            const int first = std::max(0, b - ENVELOPE_RADIUS);
-            const int last = std::min(int(spectrum.size()) - 1, b + ENVELOPE_RADIUS);
+            const int first = std::max(0, b - radius);
+            const int last = std::min(int(spectrum.size()) - 1, b + radius);
             for (int k = first; k <= last; ++k) {
                 if (mask[k] > Sample(0)) {
-                    const double amount = ENVELOPE_RADIUS + 1 - std::abs(k - b);
+                    const double amount = envelopeRadius + 1 - std::abs(k - b);
                     power += texturePower[k] * amount;
-                    weight += amount;
+                    weight += amount * mask[k];
                 }
             }
-            const double envelope = power / weight / mask[b];
+            const double envelope = power / weight;
             if (temporalPower[b] == 0 || smoothingSeconds == 0) {
                 temporalPower[b] = envelope;
             } else {

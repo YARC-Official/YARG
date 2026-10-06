@@ -1,6 +1,6 @@
 # Time Stretching in YARG
 
-YARG changes playback speed in Practice Mode and makes temporary speed corrections to synchronize audio with gameplay. Choose **Quality** in the **Effects** dropdown under **Experimental** settings to use YargStretch. **Performance** uses BASS_FX. This setting also chooses the corresponding reverb implementation.
+YARG changes playback speed in Practice Mode and makes temporary speed corrections to synchronize audio with gameplay. Choose **Quality** in the **Effects** dropdown under **Sound** settings to use YargStretch. **Performance** uses BASS_FX. This setting also chooses the corresponding reverb implementation.
 
 All stems are mixed before one tempo stream processes the combined audio. The custom engine does not maintain separate playback clocks for individual stems. Its frequency processing can still affect different instruments differently because several sources can overlap within a frequency bin.
 
@@ -18,15 +18,17 @@ The custom engine reports a command-response estimate of 256 frames, about 5.8 m
 
 ## Preserving Audio at 100%
 
-When the analysis and synthesis hops match and no pitch or formant mapping is active, the engine preserves each channel's source spectrum instead of reconstructing its phase from estimates. This avoids the frequency-dependent attack spreading found in the previous 100% path.
+When the current processing call consumes and produces the same number of samples, the analysis and synthesis hops match, and no pitch or formant mapping is active, the engine preserves each channel's source spectrum instead of reconstructing its phase from estimates. Startup and seeks at 100% also use this path. Buffering and normalized overlap-add remain in place.
 
 Playback started or reset at that rate uses source phase immediately. After a speed change, a shared weight increases over one analysis window. The engine rotates reconstructed phase toward source phase while preserving spectral magnitude, then copies the source spectrum once the weight reaches one. This avoids an abrupt phase reset that could make overlapping windows partially cancel.
+
+Noise replacement is disabled on this path, and the audible envelope EQ correction fades out with the same weight. The EQ continues updating its filter state so later speed changes can resume processing normally.
 
 Gameplay can temporarily request a different effective speed even when the selected song speed is 100%. Those hops use phase reconstruction, and the return to source phase begins when the input and output hops match again. Separate pitch or formant mapping also uses reconstruction.
 
 ## Phase Reconstruction
 
-A phase vocoder estimates how a sound's phase progresses so that changing window spacing does not simply change its pitch. YARG estimates frequency from Gaussian-window log magnitudes and measured source-phase progression, and uses a time-weighted analysis to estimate timing within a window.
+A phase vocoder estimates how a sound's phase progresses so that changing window spacing does not simply change its pitch. YARG estimates frequency from the imaginary part of its Gaussian-window time-weighted analysis relative to the source spectrum. The real part estimates timing within a window. Measured source-phase progression cross-checks the temporal prediction. This reuses the existing time-weighted FFT and avoids approximating the frequency gradient from neighboring log magnitudes, which can be inaccurate where partials overlap. Synthetic overlapping-harmonic tests show improved frequency stability at 35% playback speed; improvement on dense vocal mixes still requires listening verification.
 
 Reconstruction uses a complex tridiagonal system. Temporal predictions anchor individual bins; compatible neighboring bins supply frequency constraints. Significant bins share phase relationships, while weak bins cannot couple separate significant regions. A forward elimination and backward substitution solve the system. This implementation does not use the earlier loudest-first heap traversal.
 
@@ -46,19 +48,21 @@ The noise path is bypassed during the initial protection interval and around the
 
 ## Noise Resynthesis
 
+During gameplay with Quality effects selected, noise morphing runs automatically whenever its eligibility conditions are met. It bypasses source-phase playback at 100%, pitch and formant mapping, transient protection, incomplete classification history, and unsupported channel or processing configurations.
+
 The noise path runs for mono or stereo when window overlap is sufficient and split computation is disabled. The native adapter uses this configuration. More than two channels use the main vocoder path without noise resynthesis or envelope EQ.
 
 After 17 analysis-history entries, temporal and spectral medians estimate tonal and transient content. The remainder is treated as texture. This classification is heuristic; distorted guitar and overlapping sources can be misclassified.
 
-Replacement strength is `clamp(2 * (stretchFactor - 1) / stretchFactor, 0, 1)`, using the smoothed stretch factor. It reaches one at 50% speed and below. A frequency weight begins at 2250 Hz and reaches one at 4500 Hz for the native 1500 Hz transient cutoff. The classification and frequency weights determine the actual per-bin replacement target.
+Replacement strength is `clamp(2 * (stretchFactor - 1) / stretchFactor, 0, 1)`, using the smoothed stretch factor. It reaches one at 50% speed and below, but replacement is capped at 25% of each bin's power. A frequency weight begins at 4500 Hz and reaches one at 9000 Hz for the native 1500 Hz transient cutoff. The classification and frequency weights determine the actual per-bin replacement target. At least 75% of each bin's power remains on the vocoder path.
 
-Broad noise-classified regions can also enter the replacement path above 500 Hz, reaching their full frequency weight at 1500 Hz. A nine-bin spectral power flatness measure controls this extension, rising from zero at 0.50 flatness to one at 0.75. Tonal and transient classification still limits replacement; this does not identify individual vocals or instruments in a mix.
+The earlier broadband extension into the midrange is disabled to protect vocals and guitars. High-frequency replacement requires a nine-bin spectral power flatness measure, rising from zero at 0.50 flatness to one at 0.75. This prevents narrow tonal peaks with changing frequency from being randomized when the median classifier mistakes them for noise. Tonal and transient classification still limits replacement; this does not identify individual vocals or instruments in a mix. The reduced replacement strength and frequency range still require listening verification.
 
 The mask increases by an amount corresponding to 30 ms for a full-scale change and decreases over approximately 15 ms, quantized to output hops. Pitch mapping, formant processing, and transient protection request zero replacement immediately. While the analysis history is incomplete, replacement is also zero.
 
 `TextureGrains` reconstructs each block using source magnitudes and a shared random rotation per bin. Each channel retains its own source phase, preserving the inter-channel relationship. It uses an inverse FFT and an equal-power overlap between successive waveform blocks. An all-zero mask skips the inverse FFT and fades the previous tail.
 
-The replacement spectrum uses a five-bin triangular power average to soften narrow spectral fluctuations. Smoothing stays within bins selected for replacement and preserves their combined spectral power. Both channels receive the same gain and rotation per bin, preserving their relative levels and phase. Audible improvement remains unverified.
+The replacement spectrum uses a triangular source-power average, weighted by the replacement masks, to soften narrow spectral fluctuations. It uses five bins at 50% playback speed and above, widening gradually to nine bins at 35% speed and below using the smoothed stretch factor. Fractional widths interpolate the triangular weights without an abrupt change at integer radii. Dividing by the combined mask weights keeps the source envelope bounded as individual masks change. Smoothing stays within bins selected for replacement and preserves their combined spectral power. Both channels receive the same gain and rotation per bin, preserving their relative levels and phase. Wider averaging is a tuning experiment for residual metallic texture; its effect on growling vocals in dense mixes still requires listening verification.
 
 Below 50% playback speed, the replacement envelope also receives temporal smoothing in output time. Its time constant rises from zero at 50% speed to 40 ms at 25% speed and below, approximately 17 ms at 35%. The current replacement mask and total spectral power still determine the rendered energy. Envelope history clears on zero replacement, including attack protection, and on resets or when a bin has no replacement power.
 

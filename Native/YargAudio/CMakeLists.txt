@@ -78,6 +78,8 @@ if(YARG_AUDIO_BUILD_TESTS)
         tests/FreeverbDspTests.cpp
         tests/DattorroReverbDspTests.cpp
         tests/NoiseGateDspTests.cpp
+        tests/NoiseMorphTests.cpp
+        tests/YargStretchTests.cpp
         tests/SineSynthDspTests.cpp
         tests/RenderAheadMixerTests.cpp
         tests/ScheduledSampleSourceTests.cpp
