@@ -18,13 +18,13 @@ using Object = UnityEngine.Object;
 
 namespace YARG.Settings.Metadata
 {
-    public class CareerPresetSubTab : PresetSubTab<CareerBase>
+    public class CareerPresetSubTab : PresetSubTab<CareerPreset>
     {
         private GameObject _careerInfoPrefab;
         private GameObject _careerTierPrefab;
         private GameObject _careerSongPrefab;
 
-        public CareerPresetSubTab(CustomContent<CareerBase> customContent, IPreviewBuilder previewBuilder = null,
+        public CareerPresetSubTab(CustomContent<CareerPreset> customContent, IPreviewBuilder previewBuilder = null,
             bool hasDescriptions = true) : base(customContent, previewBuilder, hasDescriptions)
         {
         }
@@ -42,23 +42,23 @@ namespace YARG.Settings.Metadata
             _ = SpawnHeader(container, "CareerInformation");
             _fieldIndex++;
 
-            // Editable CareerBase metadata fields
-            CreateField(container, navGroup, nameof(CareerBase), nameof(CareerBase.Description),
+            // Editable CareerPreset metadata fields
+            CreateField(container, navGroup, nameof(CareerPreset), nameof(CareerPreset.Description),
                 new StringSetting(_presetRef.Description ?? string.Empty, val =>
                 {
                     _presetRef.Description = val;
                     Save();
                 }));
 
-            CreateField(container, navGroup, nameof(CareerBase), nameof(CareerBase.BackgroundImageName),
+            CreateField(container, navGroup, nameof(CareerPreset), nameof(CareerPreset.BackgroundImageName),
                 new FileInfoSetting(_presetRef.BackgroundImageName, _presetRef,
-                    nameof(CareerBase.BackgroundImageName), val =>
+                    nameof(CareerPreset.BackgroundImageName), val =>
                     {
                         _presetRef.BackgroundImageName = val;
                         Save();
                     }));
 
-            CreateField(container, navGroup, nameof(CareerBase), nameof(CareerBase.Source),
+            CreateField(container, navGroup, nameof(CareerPreset), nameof(CareerPreset.Source),
                 new StringSetting(_presetRef.Source ?? string.Empty, val =>
                 {
                     _presetRef.Source = val;

@@ -12,12 +12,12 @@ namespace YARG.Menu.Career
 
         public override bool IsClickable => false;
 
-        private readonly CareerBase _career;
+        private readonly CareerPreset _career;
         private readonly CareerEvaluation _evaluation;
         private readonly CareerEvaluation.TierResult _currentTier;
         private readonly string _playerNames;
 
-        public CareerHeaderViewType(CareerBase career, CareerEvaluation evaluation)
+        public CareerHeaderViewType(CareerPreset career, CareerEvaluation evaluation)
         {
             _career = career;
             _evaluation = evaluation;

@@ -9,10 +9,10 @@ namespace YARG.Menu.Career
     {
         public override BackgroundType Background => BackgroundType.Normal;
 
-        private readonly CareerBase _career;
-        public CareerBase Career => _career;
+        private readonly CareerPreset _career;
+        public CareerPreset Career => _career;
 
-        public CareerViewType(CareerBase career)
+        public CareerViewType(CareerPreset career)
         {
             _career = career;
         }

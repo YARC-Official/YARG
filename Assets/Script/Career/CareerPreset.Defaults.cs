@@ -1,24 +1,20 @@
 ﻿using System;
-using System.IO;
-using Newtonsoft.Json;
-using YARG.Core.Song;
-using YARG.Helpers;
+using System.Collections.Generic;
 
 namespace YARG.Career
 {
-    public partial class CareerBase
+    public partial class CareerPreset
     {
-        public static CareerBase[] Defaults => GetDefaults();
+        public static CareerPreset YargRock = YargRockCareer();
+        public static CareerPreset YargSetlistPop = YargSetlistPopCareer();
 
-        private static CareerBase[] GetDefaults()
+        public static readonly List<CareerPreset> Defaults = new()
         {
-            return new[] {
-                YargRockCareer(),
-                YargSetlistPopCareer(),
-            };
-        }
+            YargRock,
+            YargSetlistPop
+        };
 
-        private static CareerBase YargRockCareer()
+        private static CareerPreset YargRockCareer()
         {
             // Set 1 [92aa777c-c33d-5eba-a180-a90d591065f4] - 5 charted song(s)
             CareerSong[] tierSet1 = new[]
@@ -321,7 +317,7 @@ namespace YARG.Career
                 },
             };
 
-            return new CareerBase(
+            return new CareerPreset(
                 new Guid("1cb75c48-ef17-52aa-bb40-f48fe0fcf2d4"),
                 "YARG Setlist Rock",
                 "Maybe you can be a rock star?",
@@ -331,7 +327,7 @@ namespace YARG.Career
                 tiers);
         }
 
-        private static CareerBase YargSetlistPopCareer()
+        private static CareerPreset YargSetlistPopCareer()
         {
             // Set 1 [92aa777c-c33d-5eba-a180-a90d591065f4] - 5 charted song(s)
             CareerSong[] tierSet1 = new[]
@@ -642,7 +638,7 @@ namespace YARG.Career
                 },
             };
 
-            return new CareerBase(
+            return new CareerPreset(
                 new Guid("7e9ba306-2dc8-4dbf-83f4-80325844b1c4"),
                 "YARG Setlist Pop",
                 "So you wanna be a pop star. Get to it!",

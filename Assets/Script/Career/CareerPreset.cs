@@ -10,7 +10,7 @@ using YARG.Settings.Customization;
 
 namespace YARG.Career
 {
-    public partial class CareerBase : BasePreset
+    public partial class CareerPreset : BasePreset
     {
         public string Title;
         [SettingType(SettingType.String)]
@@ -25,7 +25,7 @@ namespace YARG.Career
         private readonly List<CareerTier>          _tiers;
         public           IReadOnlyList<CareerTier> Tiers => _tiers;
 
-        public CareerBase(Guid id, string title, string description, bool defaultPreset) : base(title, defaultPreset)
+        public CareerPreset(Guid id, string title, string description, bool defaultPreset) : base(title, defaultPreset)
         {
             Id = id;
             Title = title;
@@ -33,7 +33,7 @@ namespace YARG.Career
             _tiers = new List<CareerTier>();
         }
 
-        public CareerBase(Guid id, string name, string description, string bgImage, bool defaultPreset, CareerTier[] tiers) : base(name, defaultPreset)
+        public CareerPreset(Guid id, string name, string description, string bgImage, bool defaultPreset, CareerTier[] tiers) : base(name, defaultPreset)
         {
             Id = id;
             Name = name;
@@ -44,7 +44,7 @@ namespace YARG.Career
         }
 
         [JsonConstructor]
-        public CareerBase(Guid id, string name, string description, string backgroundImageName, string source, bool defaultPreset,
+        public CareerPreset(Guid id, string name, string description, string backgroundImageName, string source, bool defaultPreset,
             CareerTier[] tiers) : base(name, defaultPreset)
         {
             Id = id;
@@ -161,12 +161,12 @@ namespace YARG.Career
 
             // TODO: Create extra content folder and copy content from source preset
 
-            return new CareerBase(Guid.NewGuid(), name, Description, BackgroundImageName?.Name, Source, false, tiers);
+            return new CareerPreset(Guid.NewGuid(), name, Description, BackgroundImageName?.Name, Source, false, tiers);
         }
 
         public override string ToString()
         {
-            return $"CareerBase: {Title}, Tiers: {Tiers.Count}";
+            return $"CareerPreset: {Title}, Tiers: {Tiers.Count}";
         }
     }
 }

@@ -2030,7 +2030,7 @@
             "EnginePresetContainer": "Engine Presets",
             "HighwayPresetContainer" : "Highway Presets",
 			"RockMeterPresetContainer" : "Rock Meter Presets",
-            "CareerContainer": "Careers"
+            "CareerContainer": "Career Presets"
         },
         "PresetSetting": {
             "PreviewVisuals": {
@@ -2115,7 +2115,7 @@
                     "Description": "The orthographic view size (half the vertical view height in world units). Only used when Orthographic Camera is enabled."
                 }
             },
-            "CareerBase": {
+            "CareerPreset": {
                 "Description": {
                     "Name": "Description",
                     "Description": "The long text description of the career."

@@ -30,11 +30,11 @@ namespace YARG.Menu.Career
 
         private const float RESET_HOLD_SECONDS = 1f;
 
-        private CareerBase _career;
+        private CareerPreset _career;
         private CareerEvaluation _evaluation;
         private int _careerSaveId;
 
-        private static CareerBase _sessionCareer;
+        private static CareerPreset _sessionCareer;
         private bool _progressDirty;
 
         private CancellationTokenSource _backgroundCts;
@@ -183,7 +183,7 @@ namespace YARG.Menu.Career
             return viewList;
         }
 
-        public void Initialize(CareerBase career, CareerEvaluation evaluation)
+        public void Initialize(CareerPreset career, CareerEvaluation evaluation)
         {
             _career = career;
             _sessionCareer = career;
@@ -199,12 +199,12 @@ namespace YARG.Menu.Career
             CheckUnlocks();
         }
 
-        public static CareerEvaluation LoadProgress(CareerBase career)
+        public static CareerEvaluation LoadProgress(CareerPreset career)
         {
             return Evaluate(career, FindSaveId(career));
         }
 
-        public static int FindSaveId(CareerBase career)
+        public static int FindSaveId(CareerPreset career)
         {
             if (ScoreContainer.Careers is null)
             {
@@ -226,7 +226,7 @@ namespace YARG.Menu.Career
             return save?.Id ?? 0;
         }
 
-        public static CareerEvaluation Evaluate(CareerBase career, int careerSaveId)
+        public static CareerEvaluation Evaluate(CareerPreset career, int careerSaveId)
         {
             var snapshot = careerSaveId > 0 && ScoreContainer.Careers is not null
                 ? ScoreContainer.Careers.LoadProgressSnapshot(careerSaveId)
@@ -343,7 +343,7 @@ namespace YARG.Menu.Career
             DialogManager.Instance.ShowMessage(Localize.Key("Menu.Career.UnlockTitle"), text);
         }
 
-        private void StartBackgroundLoad(CareerBase career)
+        private void StartBackgroundLoad(CareerPreset career)
         {
             _backgroundCts?.Cancel();
             _backgroundCts?.Dispose();
@@ -375,7 +375,7 @@ namespace YARG.Menu.Career
             LoadBackground(career.Id, file, _backgroundCts.Token).Forget();
         }
 
-        private static string GetCareerContentFolder(CareerBase career)
+        private static string GetCareerContentFolder(CareerPreset career)
         {
             if (career == null)
             {

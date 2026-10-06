@@ -9,18 +9,18 @@ using YARG.Helpers;
 
 namespace YARG.Settings.Customization
 {
-    public class CareerContainer : CustomContent<CareerBase>
+    public class CareerContainer : CustomContent<CareerPreset>
     {
         protected override string ContentDirectory     => "careers";
         public override    string PresetTypeStringName => "Career";
 
-        public override IReadOnlyList<CareerBase> DefaultPresets => CareerBase.Defaults;
+        public override IReadOnlyList<CareerPreset> DefaultPresets => CareerPreset.Defaults;
 
         public override BasePreset CopyPreset(BasePreset source, BasePreset destination)
         {
-            var newPreset = (CareerBase) base.CopyPreset(source, destination);
+            var newPreset = (CareerPreset) base.CopyPreset(source, destination);
 
-            if (source is not CareerBase original || destination is not CareerBase)
+            if (source is not CareerPreset original || destination is not CareerPreset)
             {
                 return newPreset;
             }
@@ -46,7 +46,7 @@ namespace YARG.Settings.Customization
 
         public override void ExportPreset(BasePreset preset, string path)
         {
-            if (preset is not CareerBase career || career.DefaultPreset)
+            if (preset is not CareerPreset career || career.DefaultPreset)
             {
                 return;
             }
@@ -56,7 +56,7 @@ namespace YARG.Settings.Customization
 
         public override BasePreset ImportPreset(string path)
         {
-            if (base.ImportPreset(path) is not CareerBase career)
+            if (base.ImportPreset(path) is not CareerPreset career)
             {
                 return null;
             }
@@ -77,7 +77,7 @@ namespace YARG.Settings.Customization
         // TODO: Refactor so highwaypresetcontainer can (mostly) share these next two
         public override void DeletePreset(BasePreset preset)
         {
-            if (preset is not CareerBase career)
+            if (preset is not CareerPreset career)
             {
                 base.DeletePreset(preset);
                 return;
@@ -95,7 +95,7 @@ namespace YARG.Settings.Customization
         public override void RenamePreset(BasePreset preset, string name)
         {
             // This is a little weird because the existing code deletes the original and renames it
-            if (preset is not CareerBase career)
+            if (preset is not CareerPreset career)
             {
                 return;
             }
@@ -129,7 +129,7 @@ namespace YARG.Settings.Customization
 
         protected override void AddAdditionalFilesToExport(BasePreset preset, ZipArchive archive)
         {
-            var careerBase = (CareerBase) preset;
+            var careerBase = (CareerPreset) preset;
             var contentFolder = preset.GetExtraContentFolder();
 
             if (careerBase.DefaultPreset || careerBase.Path == null || contentFolder == null)
@@ -145,7 +145,7 @@ namespace YARG.Settings.Customization
             }
         }
 
-        protected override void SaveAdditionalFilesFromExport(ZipArchive archive, CareerBase preset)
+        protected override void SaveAdditionalFilesFromExport(ZipArchive archive, CareerPreset preset)
         {
             var contentFolder = preset.GetExtraContentFolder();
             if (contentFolder == null)
@@ -162,7 +162,7 @@ namespace YARG.Settings.Customization
             }
         }
 
-        private static void CopyReferencedMedia(CareerBase career, string sourceFolder, string destinationFolder)
+        private static void CopyReferencedMedia(CareerPreset career, string sourceFolder, string destinationFolder)
         {
             if (destinationFolder == null)
             {

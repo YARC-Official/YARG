@@ -35,7 +35,7 @@ namespace YARG.Career
         public int CareerSaveId;
         public List<TierResult> Tiers = new();
 
-        public static CareerEvaluation Evaluate(CareerBase career, CareerProgressSnapshot snapshot)
+        public static CareerEvaluation Evaluate(CareerPreset career, CareerProgressSnapshot snapshot)
         {
             var evaluation = new CareerEvaluation
             {
