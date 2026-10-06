@@ -524,8 +524,7 @@ namespace YARG.Gameplay
 
         private void Update()
         {
-            if (_video is { Enabled: true })
-                _video.Update();
+            _video?.Update();
         }
 
         // Binds the video once it is prepared; BackgroundVideoController's own handler, subscribed
@@ -561,10 +560,12 @@ namespace YARG.Gameplay
             // The venue is dealt with in the GameManager via Time.timeScale
         }
 
-        /// <inheritdoc cref="BackgroundVideoController.ResyncVideoToSong"/>
-        public void ResyncVideoToSong()
+        /// <summary>
+        /// Re-aligns the video on the first frame the song runs after a rewinding resume.
+        /// </summary>
+        public void ResyncVideoWhenSongResumes()
         {
-            _video?.ResyncVideoToSong();
+            _video?.ResyncWhenSongResumes();
         }
 
         private async UniTask<GameObject> GetAddressableCharacter(string hint)
