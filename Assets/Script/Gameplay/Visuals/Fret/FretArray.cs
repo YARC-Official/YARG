@@ -38,6 +38,7 @@ namespace YARG.Gameplay.Visuals
 
         private readonly Dictionary<int, Fret> _frets = new();
         private readonly List<KickFret> _kickFrets = new();
+        private readonly List<(Fret Fret, int PrimaryColorIndex, int SecondaryColorIndex)> _colorBindings = new();
 
         private readonly List<int> _activeFrets  = new();
         private readonly List<int> _pulsingFrets = new();
@@ -81,6 +82,7 @@ namespace YARG.Gameplay.Visuals
             var fretPrefab = ThemeManager.Instance.CreateFretPrefabFromTheme(themePreset, style);
 
             _frets.Clear();
+            _colorBindings.Clear();
             foreach (var (noteType, highwayOrderingInfo) in highwayOrdering)
             {
                 // Check if position was already added (barre chords share the same physical fret object across lanes)
@@ -140,6 +142,7 @@ namespace YARG.Gameplay.Visuals
                         ? fretColorProvider.GetParticleColor(secondaryColorIndex)
                         : primaryParticles;
 
+                    _colorBindings.Add((fretComp, highwayOrderingInfo.ColorIndex, secondaryColorIndex));
                     fretComp.Initialize(
                         primaryColor, primaryInner, primaryParticles,
                         fretColorProvider.GetParticleColor((int)FiveFretGuitarFret.Open),
@@ -148,6 +151,7 @@ namespace YARG.Gameplay.Visuals
                 }
                 else
                 {
+                    _colorBindings.Add((fretComp, highwayOrderingInfo.ColorIndex, -1));
                     fretComp.Initialize(
                         fretColorProvider.GetFretColor(highwayOrderingInfo.ColorIndex),
                         fretColorProvider.GetFretInnerColor(highwayOrderingInfo.ColorIndex),
@@ -199,16 +203,33 @@ namespace YARG.Gameplay.Visuals
         /// color index each fret uses. Used by the settings preview to reverse the fret
         /// color order for lefty flip without rebuilding the fret array.
         /// </summary>
-        public void RecolorFrets(IFretColorProvider fretColorProvider, Func<int, int> colorIndexRemap)
+        public void RecolorFrets(IFretColorProvider fretColorProvider, Func<int, int> colorIndexRemap = null)
         {
-            foreach (var (noteType, fret) in _frets)
+            foreach (var (fret, primaryColorIndex, secondaryColorIndex) in _colorBindings)
             {
-                int colorIndex = colorIndexRemap(noteType);
-                fret.Initialize(
-                    fretColorProvider.GetFretColor(colorIndex),
-                    fretColorProvider.GetFretInnerColor(colorIndex),
-                    fretColorProvider.GetParticleColor(colorIndex),
-                    fretColorProvider.GetParticleColor((int) FiveFretGuitarFret.Open));
+                int colorIndex = colorIndexRemap != null ? colorIndexRemap(primaryColorIndex) : primaryColorIndex;
+                var top = fretColorProvider.GetFretColor(colorIndex);
+                var inner = fretColorProvider.GetFretInnerColor(colorIndex);
+                var particles = fretColorProvider.GetParticleColor(colorIndex);
+                var openParticles = fretColorProvider.GetParticleColor((int)FiveFretGuitarFret.Open);
+
+                if (secondaryColorIndex >= 0)
+                {
+                    int secondaryIndex = colorIndexRemap != null ? colorIndexRemap(secondaryColorIndex) : secondaryColorIndex;
+                    fret.Initialize(top, inner, particles, openParticles,
+                        fretColorProvider.GetFretColor(secondaryIndex),
+                        fretColorProvider.GetFretInnerColor(secondaryIndex),
+                        fretColorProvider.GetParticleColor(secondaryIndex));
+                }
+                else
+                {
+                    fret.Initialize(top, inner, particles, openParticles);
+                }
+            }
+
+            foreach (var kickFret in _kickFrets)
+            {
+                kickFret.Initialize(fretColorProvider.GetFretColor(0));
             }
         }
 

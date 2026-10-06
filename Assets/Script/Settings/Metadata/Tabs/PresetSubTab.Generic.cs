@@ -1390,6 +1390,7 @@ namespace YARG.Settings.Metadata
                     // Rebuild so the visible color rows re-read the preset values
                     // (the shared ColorSetting cache is cleared on rebuild).
                     SettingsMenu.Instance.RefreshSettingsKeepPosition();
+                    SettingsMenu.Instance.OnSettingChanged();
                 }
 
                 ShowCompactConfirmation(
