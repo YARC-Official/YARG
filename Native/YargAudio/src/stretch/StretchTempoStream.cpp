@@ -94,7 +94,12 @@ bool StretchTempoStream::destroy() noexcept {
         std::lock_guard lock(g_streamRegistryMutex);
         g_streamRegistry.erase(stream_);
     }
-    if (!bass_.freeStream(stream_)) {
+    if (!bass_.lockChannel(stream_, true)) {
+        return false;
+    }
+    const bool freed = bass_.freeStream(stream_);
+    bass_.lockChannel(stream_, false);
+    if (!freed) {
         return false;
     }
     stream_ = 0;
