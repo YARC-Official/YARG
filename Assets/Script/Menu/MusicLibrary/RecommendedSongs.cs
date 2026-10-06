@@ -12,7 +12,7 @@ namespace YARG.Menu.MusicLibrary
     {
         public const int RECOMMEND_SONGS_COUNT = 10;
 
-        private static readonly HashSet<SongEntry> _recommendedThisSession = new();
+        private static readonly HashSet<HashWrapper> _recommendedThisSession = new();
 
         public static SongEntry[] GetRecommendedSongs(System.Func<SongEntry, bool> predicate)
         {
@@ -30,7 +30,7 @@ namespace YARG.Menu.MusicLibrary
             List<SongEntry> newEligibleSongs = new(eligibleSongs.Count);
             foreach (SongEntry song in eligibleSongs)
             {
-                if (!_recommendedThisSession.Contains(song))
+                if (!_recommendedThisSession.Contains(song.Hash))
                 {
                     newEligibleSongs.Add(song);
                 }
@@ -50,7 +50,10 @@ namespace YARG.Menu.MusicLibrary
 
             SongEntry[] recommendations = songs[..index];
             recommendations.Shuffle();
-            _recommendedThisSession.UnionWith(recommendations);
+            foreach (SongEntry song in recommendations)
+            {
+                _recommendedThisSession.Add(song.Hash);
+            }
             return recommendations;
         }
 
