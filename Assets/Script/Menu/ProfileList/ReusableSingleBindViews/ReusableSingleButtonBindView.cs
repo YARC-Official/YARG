@@ -141,6 +141,7 @@ namespace YARG.Menu.ProfileList
         protected override void UpdateDummyInputVisuals(InputControl<float> dummyControl)
         {
             _valueDisplay.Value = dummyControl.value;
+            _pressedIndicator.IsPressed = dummyControl.value >= SingleBinding.PressPoint;
         }
     }
 }
