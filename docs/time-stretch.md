@@ -30,6 +30,8 @@ A phase vocoder estimates how a sound's phase progresses so that changing window
 
 Reconstruction uses a complex tridiagonal system. Temporal predictions anchor individual bins; compatible neighboring bins supply frequency constraints. Significant bins share phase relationships, while weak bins cannot couple separate significant regions. A forward elimination and backward substitution solve the system. This implementation does not use the earlier loudest-first heap traversal.
 
+Without pitch or formant mapping, reconstruction then restores bin magnitudes and refines phase with one ascending and one descending coordinate sweep. The sweeps reuse the original temporal targets and frequency constraints, hold magnitudes fixed, and leave attack-reset and insignificant bins unchanged.
+
 Stable low-frequency peaks and prominent high-frequency peaks receive stronger temporal anchors. Qualified low-frequency references cross-check their estimated advance against measured source phase. These corrections are bounded; they cannot separate unresolved instruments within the same bins.
 
 Each bin uses its strongest channel as the reconstruction reference. Other channels retain their source phase relationship to that reference. At a selected attack reset, each channel uses its own source phase.
@@ -50,9 +52,15 @@ After 17 analysis-history entries, temporal and spectral medians estimate tonal 
 
 Replacement strength is `clamp(2 * (stretchFactor - 1) / stretchFactor, 0, 1)`, using the smoothed stretch factor. It reaches one at 50% speed and below. A frequency weight begins at 2250 Hz and reaches one at 4500 Hz for the native 1500 Hz transient cutoff. The classification and frequency weights determine the actual per-bin replacement target.
 
+Broad noise-classified regions can also enter the replacement path above 500 Hz, reaching their full frequency weight at 1500 Hz. A nine-bin spectral power flatness measure controls this extension, rising from zero at 0.50 flatness to one at 0.75. Tonal and transient classification still limits replacement; this does not identify individual vocals or instruments in a mix.
+
 The mask increases by an amount corresponding to 30 ms for a full-scale change and decreases over approximately 15 ms, quantized to output hops. Pitch mapping, formant processing, and transient protection request zero replacement immediately. While the analysis history is incomplete, replacement is also zero.
 
 `TextureGrains` reconstructs each block using source magnitudes and a shared random rotation per bin. Each channel retains its own source phase, preserving the inter-channel relationship. It uses an inverse FFT and an equal-power overlap between successive waveform blocks. An all-zero mask skips the inverse FFT and fades the previous tail.
+
+The replacement spectrum uses a five-bin triangular power average to soften narrow spectral fluctuations. Smoothing stays within bins selected for replacement and preserves their combined spectral power. Both channels receive the same gain and rotation per bin, preserving their relative levels and phase. Audible improvement remains unverified.
+
+Below 50% playback speed, the replacement envelope also receives temporal smoothing in output time. Its time constant rises from zero at 50% speed to 40 ms at 25% speed and below, approximately 17 ms at 35%. The current replacement mask and total spectral power still determine the rendered energy. Envelope history clears on zero replacement, including attack protection, and on resets or when a bin has no replacement power.
 
 There is no waveform alignment search, correlation-based shift, source-coherence estimator, or speed-dependent decorrelation controller in this implementation. Random phase excitation is shared across channels and restarted on reset. Vocoder attenuation uses `sqrt(1 - mask)`; resynthesis uses the complementary masked source power.
 

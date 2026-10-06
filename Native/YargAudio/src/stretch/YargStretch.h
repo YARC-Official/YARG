@@ -222,6 +222,7 @@ struct YargStretch {
 		phaseDiagonal.resize(bands);
 		phaseUpper.resize(bands);
 		phaseSolution.resize(bands);
+		phaseTargets.resize(bands);
 		phaseCurrentEnergy.resize(bands);
 		phasePreviousEnergy.resize(bands);
 		phaseAnchorWeight.assign(bands, Sample(1));
@@ -266,7 +267,7 @@ struct YargStretch {
 	// You should ideally feed it `seekLength()` frames of input, unless it's directly after a `.reset()` (in which case `.outputSeek()` might be a better choice)
 	template<class Inputs>
 	void seek(Inputs &&inputs, int inputSamples, double playbackRate) {
-		noiseMorph.clearHistory();
+		noiseMorph.reset();
 		envelopeEq.reset();
 		tonalReferenceHistory_ = false;
 		std::fill(phaseTemporalConfidence.begin(), phaseTemporalConfidence.end(), Sample(0));
@@ -379,7 +380,7 @@ struct YargStretch {
 				if (silenceFirst) { // first block of silence processing
 					silenceFirst = false;
 					if (noiseMorph.usesGrains()) {
-						noiseMorph.clearHistory();
+						noiseMorph.reset();
 						envelopeEq.reset();
 					}
 					//stft.reset();
@@ -617,10 +618,7 @@ struct YargStretch {
 						if (blockProcess.mappedFrequencies || blockProcess.processFormants || transientSamples_ > 0) {
 							strength = 0;
 						}
-						Sample decorrelation = std::clamp((smoothTimeFactor_ - NOISE_DECORRELATION_START_STRETCH) /
-							(NOISE_DECORRELATION_FULL_STRETCH - NOISE_DECORRELATION_START_STRETCH), Sample(0), Sample(1));
-						noiseMorph.apply(stft, [&](int c, int b) { return bandsForChannel(c)[b].input; }, strength, transientMinFreq_, decorrelation,
-							blockProcess.sourceInterval, blockProcess.newSpectrum);
+						noiseMorph.apply(stft, [&](int c, int b) { return bandsForChannel(c)[b].input; }, strength, transientMinFreq_, smoothTimeFactor_);
 						envelopeEq.setReference([&](int c, int b) { return bandsForChannel(c)[b].input; },
 							!blockProcess.mappedFrequencies && !blockProcess.processFormants && smoothTimeFactor_ > Sample(1.01));
 					}
@@ -804,8 +802,6 @@ private:
 	int transientInputSamples_ = 0;
 	Sample transientCenter_ = 0;
 	static constexpr Sample NOISE_MORPH_STRENGTH = Sample(2);
-	static constexpr Sample NOISE_DECORRELATION_START_STRETCH = Sample(2);
-	static constexpr Sample NOISE_DECORRELATION_FULL_STRETCH = Sample(4);
 
 	Sample transientBg_[3] = {};
 	bool transientBgReady_ = false;
@@ -927,7 +923,7 @@ private:
 	std::vector<char> phaseSignificant, phaseReset, phaseReferences;
 	std::vector<Sample> phaseReferenceFrequency;
 	std::vector<double> phaseDiagonal;
-	std::vector<std::complex<double>> phaseUpper, phaseSolution;
+	std::vector<std::complex<double>> phaseUpper, phaseSolution, phaseTargets;
 	std::vector<Sample> phaseCurrentEnergy;
 	std::vector<Sample> phasePreviousEnergy;
 	std::vector<Sample> phaseAnchorWeight;
@@ -1103,6 +1099,7 @@ private:
 				balance : double(phaseTemporalConfidence[b]);
 			phaseDiagonal[b] = 1 + temporalWeight*phaseAnchorWeight[b];
 			phaseSolution[b] = std::complex<double>(target)*phaseDiagonal[b];
+			phaseTargets[b] = phaseSolution[b];
 			phaseUpper[b] = 0;
 		}
 		for (int b = 1; b < bands; ++b) {
@@ -1183,6 +1180,33 @@ private:
 				phaseSolution[b] -= phaseUpper[b]*phaseSolution[b + 1];
 			}
 			phaseSolution[b] /= phaseDiagonal[b];
+		}
+		if (blockProcess.mappedFrequencies || blockProcess.processFormants) {
+			return;
+		}
+		for (int b = 0; b < bands; ++b) {
+			const auto &prediction = predictionsForChannel(phaseChannels[b])[b];
+			phaseSolution[b] = std::complex<double>(prediction.makeOutput(Complex(phaseSolution[b])));
+		}
+		for (int direction : {1, -1}) {
+			const int start = direction > 0 ? 0 : bands - 1;
+			for (int b = start; b >= 0 && b < bands; b += direction) {
+				if (!phaseSignificant[b] || phaseReset[b]) {
+					continue;
+				}
+				auto target = phaseTargets[b];
+				if (b > 0) {
+					target -= std::conj(phaseUpper[b - 1])*phaseSolution[b - 1];
+				}
+				if (b + 1 < bands) {
+					target -= phaseUpper[b]*phaseSolution[b + 1];
+				}
+				const double targetPower = std::norm(target);
+				if (targetPower > 0) {
+					const double energy = predictionsForChannel(phaseChannels[b])[b].energy;
+					phaseSolution[b] = target*std::sqrt(energy/targetPower);
+				}
+			}
 		}
 	}
 

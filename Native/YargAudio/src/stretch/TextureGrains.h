@@ -29,25 +29,32 @@ class TextureGrains {
     using STFT = signalsmith::linear::DynamicSTFT<Sample, false, true>;
     static constexpr unsigned DEFAULT_SEED = 1;
     static constexpr double PI = 3.14159265358979323846;
+    static constexpr int ENVELOPE_RADIUS = 2;
     signalsmith::linear::RealFFT<Sample, false, true> fft;
     std::vector<Complex> spectrum;
     std::vector<Sample> excitation;
+    std::vector<double> texturePower, envelopePower, temporalPower;
     std::vector<Sample> waveform, previous, fade, output;
     std::minstd_rand randomEngine{DEFAULT_SEED};
     Sample normalisation = 1;
+    double intervalSeconds = 0;
     int channels = 0;
     int hop = 0;
     int block = 0;
     int outputPosition = 0;
 
 public:
-    void configure(const STFT &analysis, int count) {
+    void configure(const STFT &analysis, int count, Sample sampleRate) {
         channels = count;
         hop = int(analysis.defaultInterval());
+        intervalSeconds = double(hop) / sampleRate;
         block = int(analysis.blockSamples());
         fft.resize(analysis.fftSamples());
         spectrum.resize(analysis.bands());
         excitation.resize(analysis.bands());
+        texturePower.resize(analysis.bands());
+        envelopePower.resize(analysis.bands());
+        temporalPower.assign(analysis.bands(), 0);
         waveform.resize(channels * analysis.fftSamples());
         previous.assign(channels * hop, Sample(0));
         output.assign(channels * analysis.blockSamples(), Sample(0));
@@ -65,17 +72,19 @@ public:
         randomEngine.seed(DEFAULT_SEED);
     }
 
-    void reset() {
+    void reset(long seed = DEFAULT_SEED) {
+        std::fill(temporalPower.begin(), temporalPower.end(), 0);
         std::fill(previous.begin(), previous.end(), Sample(0));
         std::fill(output.begin(), output.end(), Sample(0));
         outputPosition = 0;
-        randomEngine.seed(DEFAULT_SEED);
+        randomEngine.seed(seed);
     }
 
     // Renders texture to waveform, crossfades one block, blends it in.
     template<class Input>
-    void add(const STFT &analysis, Input input, const std::vector<Sample> &mask) {
+    void add(const STFT &analysis, Input input, const std::vector<Sample> &mask, double smoothingSeconds) {
         if (std::all_of(mask.begin(), mask.end(), [](Sample amount) { return amount == Sample(0); })) {
+            std::fill(temporalPower.begin(), temporalPower.end(), 0);
             const int block = int(analysis.blockSamples());
             const int start = outputPosition + int(analysis.synthesisOffset()) - hop;
             for (int c = 0; c < channels; ++c) {
@@ -88,7 +97,7 @@ public:
             }
             return;
         }
-        renderWaveform(analysis, input, mask);
+        renderWaveform(analysis, input, mask, smoothingSeconds);
         blendBlocks(analysis);
     }
 
@@ -106,8 +115,46 @@ public:
 private:
     // Envelope from input magnitude; shared random phase keeps stereo scaling exact.
     template<class Input>
-    void renderWaveform(const STFT &analysis, Input input, const std::vector<Sample> &mask) {
+    void renderWaveform(const STFT &analysis, Input input, const std::vector<Sample> &mask, double smoothingSeconds) {
         const int size = int(analysis.fftSamples());
+        const double rate = smoothingSeconds > 0 ? -std::expm1(-intervalSeconds / smoothingSeconds) : 1;
+        double sourceTotal = 0;
+        for (int b = 0; b < int(spectrum.size()); ++b) {
+            double power = 0;
+            for (int c = 0; c < channels; ++c) {
+                power += std::norm(std::complex<double>(input(c, b)));
+            }
+            texturePower[b] = power * mask[b];
+            sourceTotal += texturePower[b];
+        }
+        double envelopeTotal = 0;
+        for (int b = 0; b < int(spectrum.size()); ++b) {
+            envelopePower[b] = 0;
+            if (texturePower[b] == 0) {
+                temporalPower[b] = 0;
+                continue;
+            }
+            double power = 0;
+            double weight = 0;
+            const int first = std::max(0, b - ENVELOPE_RADIUS);
+            const int last = std::min(int(spectrum.size()) - 1, b + ENVELOPE_RADIUS);
+            for (int k = first; k <= last; ++k) {
+                if (mask[k] > Sample(0)) {
+                    const double amount = ENVELOPE_RADIUS + 1 - std::abs(k - b);
+                    power += texturePower[k] * amount;
+                    weight += amount;
+                }
+            }
+            const double envelope = power / weight / mask[b];
+            if (temporalPower[b] == 0 || smoothingSeconds == 0) {
+                temporalPower[b] = envelope;
+            } else {
+                temporalPower[b] += rate * (envelope - temporalPower[b]);
+            }
+            envelopePower[b] = temporalPower[b] * mask[b];
+            envelopeTotal += envelopePower[b];
+        }
+        const double powerScale = envelopeTotal > 0 ? sourceTotal / envelopeTotal : 0;
         std::uniform_real_distribution<Sample> phaseDistribution(Sample(-PI), Sample(PI));
         for (int b = 0; b < int(spectrum.size()); ++b) {
             excitation[b] = phaseDistribution(randomEngine);
@@ -115,11 +162,9 @@ private:
         for (int c = 0; c < channels; ++c) {
             for (int b = 0; b < int(spectrum.size()); ++b) {
                 const Complex source = input(c, b);
-                const Sample power = std::norm(source);
-                const Complex unit = power > Sample(1e-30) ?
-                    source / std::sqrt(power) : Complex{Sample(1), Sample(0)};
-                spectrum[b] = std::polar(std::sqrt(power * mask[b]) * normalisation,
-                    excitation[b]) * unit;
+                const Sample gain = texturePower[b] > 0 ? Sample(std::sqrt(
+                    envelopePower[b] * powerScale * mask[b] / texturePower[b])) : Sample(0);
+                spectrum[b] = source * std::polar(gain * normalisation, excitation[b]);
             }
             fft.ifft(spectrum.data(), waveform.data() + c * size);
         }

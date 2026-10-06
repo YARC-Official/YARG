@@ -25,6 +25,7 @@ class NoiseMorph {
     using Complex = std::complex<Sample>;
     static constexpr int HISTORY = 17;
     static constexpr int RADIUS = 16;
+    static constexpr unsigned DEFAULT_SEED = 1;
     static constexpr Sample REPLACEMENT_RISE_SECONDS{Sample(0.030)};
     static constexpr Sample REPLACEMENT_RELEASE_SECONDS{Sample(0.015)};
     static constexpr Sample SINE_LOW{Sample(0.70)};
@@ -32,12 +33,19 @@ class NoiseMorph {
     static constexpr Sample TRANSIENT_LOW{Sample(0.75)};
     static constexpr Sample TRANSIENT_HIGH{Sample(0.85)};
     static constexpr Sample CUTOFF_TIMES_MINIMUM{Sample(1.5)};
+    static constexpr int FLATNESS_RADIUS = 4;
+    static constexpr Sample FLATNESS_LOW{Sample(0.50)};
+    static constexpr Sample FLATNESS_HIGH{Sample(0.75)};
+    static constexpr Sample BROADBAND_CUTOFF_RATIO{Sample(1.0 / 3.0)};
     static constexpr Sample SILENCE_FLOOR_RATIO{Sample(1e-6)};
+    static constexpr double ENVELOPE_SMOOTHING_START_STRETCH = 2;
+    static constexpr double ENVELOPE_SMOOTHING_FULL_STRETCH = 4;
+    static constexpr double ENVELOPE_SMOOTHING_SECONDS = 0.040;
     TextureGrains<Sample> grains;
     bool useGrains = false;
     std::vector<Sample> grainMask;
     Sample replacementStep = 0;
-    std::vector<Sample> history, magnitude, noise;
+    std::vector<Sample> history, magnitude, noise, broadbandNoise;
     Sample peakMagnitude = 0;
     int channels = 0;
     int bands = 0;
@@ -53,20 +61,21 @@ public:
         history.assign(bands * HISTORY, Sample(0));
         magnitude.assign(bands, Sample(0));
         noise.assign(bands, Sample(0));
+        broadbandNoise.assign(bands, Sample(0));
         if (useGrains) {
-            grains.configure(analysis, channels);
+            grains.configure(analysis, channels, sampleRate);
             grainMask.assign(bands, Sample(0));
         }
-        clearHistory();
+        reset();
     }
 
-    void clearHistory() {
+    void reset(long seed = DEFAULT_SEED) {
         historyIndex = historyCount = 0;
         peakMagnitude = 0;
         std::fill(history.begin(), history.end(), Sample(0));
         std::fill(grainMask.begin(), grainMask.end(), Sample(0));
         if (useGrains) {
-            grains.reset();
+            grains.reset(seed);
         }
     }
 
@@ -85,15 +94,18 @@ public:
 
     // Per-block split: measure bands, fuzzy-classify, move texture to the renderer.
     template<class Input>
-    void apply(STFT &output, Input input, Sample strength, Sample minimumFrequency) {
+    void apply(STFT &output, Input input, Sample strength, Sample minimumFrequency, Sample stretchFactor) {
         pushMagnitudes(input);
         if (historyCount < HISTORY || strength == 0) {
             std::fill(grainMask.begin(), grainMask.end(), Sample(0));
-            grains.add(output, input, grainMask);
+            grains.add(output, input, grainMask, 0);
             return;
         }
         detectFuzzy();
-        replaceTexture(output, input, strength, minimumFrequency);
+        const double smoothingSeconds = ENVELOPE_SMOOTHING_SECONDS * std::clamp(
+            (double(stretchFactor) - ENVELOPE_SMOOTHING_START_STRETCH) /
+            (ENVELOPE_SMOOTHING_FULL_STRETCH - ENVELOPE_SMOOTHING_START_STRETCH), 0.0, 1.0);
+        replaceTexture(output, input, strength, minimumFrequency, smoothingSeconds);
     }
 
 private:
@@ -129,9 +141,11 @@ private:
     // mirror image is a transient; whatever is neither is texture.
     void detectFuzzy() {
         const Sample floor = peakMagnitude * SILENCE_FLOOR_RATIO;
+        const double floorPower = double(floor) * floor + 1e-60;
         for (int b = 0; b < bands; ++b) {
             if (magnitude[b] < floor) {
                 noise[b] = 0;
+                broadbandNoise[b] = 0;
                 continue;
             }
             std::array<Sample, HISTORY> temporal;
@@ -142,6 +156,16 @@ private:
             for (int i = -RADIUS; i <= RADIUS; ++i) {
                 spectral[i + RADIUS] = magnitude[std::clamp(b + i, 0, bands - 1)];
             }
+            double powerSum = 0;
+            double logPowerSum = 0;
+            for (int i = -FLATNESS_RADIUS; i <= FLATNESS_RADIUS; ++i) {
+                const double value = spectral[i + RADIUS];
+                const double power = value * value + floorPower;
+                powerSum += power;
+                logPowerSum += std::log(power);
+            }
+            const double count = FLATNESS_RADIUS * 2 + 1;
+            const Sample flatness = Sample(std::exp(logPowerSum / count) / (powerSum / count));
             std::nth_element(temporal.begin(), temporal.begin() + HISTORY / 2, temporal.end());
             std::nth_element(spectral.begin(), spectral.begin() + RADIUS, spectral.end());
             const Sample steady = temporal[HISTORY / 2];
@@ -150,25 +174,31 @@ private:
             const Sample sine = saturate(tonalness, SINE_LOW, SINE_HIGH);
             const Sample hit = saturate(Sample(1) - tonalness, TRANSIENT_LOW, TRANSIENT_HIGH);
             noise[b] = std::clamp(Sample(1) - sine - hit, Sample(0), Sample(1));
+            broadbandNoise[b] = noise[b] * saturate(flatness, FLATNESS_LOW, FLATNESS_HIGH);
         }
     }
 
     // Slews the noise mask toward its target, removes texture from the main
     // spectrum, and hands it to the renderer.
     template<class Input>
-    void replaceTexture(STFT &output, Input input, Sample strength, Sample minimumFrequency) {
+    void replaceTexture(STFT &output, Input input, Sample strength, Sample minimumFrequency, double smoothingSeconds) {
         const Sample cutoff = minimumFrequency * CUTOFF_TIMES_MINIMUM;
+        const Sample broadbandCutoff = minimumFrequency * BROADBAND_CUTOFF_RATIO;
         const Sample releaseStep = replacementStep * REPLACEMENT_RISE_SECONDS / REPLACEMENT_RELEASE_SECONDS;
         for (int b = 0; b < bands; ++b) {
-            const Sample target = strength * noise[b] *
-                std::clamp((output.binToFreq(b) - cutoff) / cutoff, Sample(0), Sample(1));
+            const Sample frequency = output.binToFreq(b);
+            const Sample highNoise = noise[b] *
+                std::clamp((frequency - cutoff) / cutoff, Sample(0), Sample(1));
+            const Sample broadNoise = broadbandNoise[b] * std::clamp(
+                (frequency - broadbandCutoff) / (minimumFrequency - broadbandCutoff), Sample(0), Sample(1));
+            const Sample target = strength * std::max(highNoise, broadNoise);
             grainMask[b] = std::clamp(target, grainMask[b] - releaseStep, grainMask[b] + replacementStep);
             const Sample keep = std::sqrt(Sample(1) - grainMask[b]);
             for (int c = 0; c < channels; ++c) {
                 output.spectrum(c)[b] *= keep;
             }
         }
-        grains.add(output, input, grainMask);
+        grains.add(output, input, grainMask, smoothingSeconds);
     }
 };
 
