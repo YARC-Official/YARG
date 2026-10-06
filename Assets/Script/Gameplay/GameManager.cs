@@ -1101,30 +1101,6 @@ namespace YARG.Gameplay
             }
         }
 
-        private bool _videoResyncPending;
-
-        private async UniTaskVoid ResyncVideoOnceSongResumes()
-        {
-            // A rewind cancelled by a second pause leaves this waiting for the next resume, which
-            // then starts its own; one is enough.
-            if (_videoResyncPending)
-                return;
-
-            _videoResyncPending = true;
-            try
-            {
-                bool canceled = await UniTask
-                    .WaitUntil(() => !Paused, cancellationToken: this.GetCancellationTokenOnDestroy())
-                    .SuppressCancellationThrow();
-                if (!canceled)
-                    BackgroundManager.ResyncVideoToSong();
-            }
-            finally
-            {
-                _videoResyncPending = false;
-            }
-        }
-
         private async UniTask<bool> RewindAndResume(double seconds)
         {
             YargLogger.LogFormatDebug("Rewinding {0} seconds at VisualTime {1}", seconds, VisualTime);
@@ -1150,7 +1126,7 @@ namespace YARG.Gameplay
             // at the rewound position and plays forward before returning. Re-align the video at the
             // moment the song resumes, not when this returns: the parked frame is the rewound
             // position, and by the time this returns the song is a second past it.
-            ResyncVideoOnceSongResumes().Forget();
+            BackgroundManager.ResyncVideoWhenSongResumes();
 
             var canceled = await _songRunner.RewindAndResume(seconds, targetTime);
 
