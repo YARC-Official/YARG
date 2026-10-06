@@ -133,7 +133,7 @@ namespace YARG.Menu.ProfileList
                 connectButton.EnableButton();
             }
 
-            if (profile.Avatar != null)
+            if (profile.Avatar != null && profile.Avatar.IsValid)
             {
                 var texture = profile.Avatar.LoadTexture(false);
                 var sprite = Sprite.Create(texture,

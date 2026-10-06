@@ -294,7 +294,7 @@ namespace YARG.Menu.ProfileList
             _profilePicture.sprite = profile.IsBot ? _profileBotSprite : _profileGenericSprite;
 
             // Show/hide the custom picture rawimage depending on bot/custom pic availability
-            if (!profile.IsBot && _profile.Avatar != null)
+            if (!profile.IsBot && _profile.Avatar != null && _profile.Avatar.IsValid)
             {
                 Destroy(_customProfilePicture.texture);
                 _customProfilePicture.texture = _profile.Avatar.LoadTexture(false);
@@ -402,18 +402,8 @@ namespace YARG.Menu.ProfileList
 
         public void EditProfilePicture()
         {
-            // Open file browser that allows selection of .png and .jpg images
-            // TODO: Once career is merged, update this to use the new OpenChooseFile signature that allows multiple file types
-            FileExplorerHelper.OpenChooseFile(null, "png", path =>
+            PlayerContainer.SelectAvatar(_profile, () =>
             {
-                var picturePath = Path.Combine(PlayerContainer.ProfilesDirectory, _profile.Id.ToString());
-
-                // Copy to profile folder and tell the profile to load the data, then refresh the view
-                File.Copy(path, picturePath, true);
-
-                _profile.Avatar?.Dispose();
-                _profile.Avatar = YARGImage.Load(picturePath);
-
                 _profileView.UpdateDisplay(_profile);
                 UpdateSidebar(_profile, _profileView);
             });
@@ -421,15 +411,7 @@ namespace YARG.Menu.ProfileList
 
         public void DeleteProfilePicture()
         {
-            _profile.Avatar?.Dispose();
-            _profile.Avatar = null;
-
-            var picturePath = Path.Combine(PlayerContainer.ProfilesDirectory, _profile.Id.ToString());
-
-            if (File.Exists(picturePath))
-            {
-                File.Delete(picturePath);
-            }
+            PlayerContainer.RemoveAvatar(_profile);
 
             _profileView.UpdateDisplay(_profile);
             UpdateSidebar(_profile, _profileView);
