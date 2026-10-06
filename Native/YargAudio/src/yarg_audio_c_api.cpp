@@ -125,14 +125,6 @@ int32_t YARG_AUDIO_CALL yarg_stretch_stream_set_speed(
     return YARG_AUDIO_OK;
 }
 
-int32_t YARG_AUDIO_CALL yarg_stretch_stream_set_grains(
-    yarg_stretch_stream* stream, float strength) {
-    if (!stream || !std::isfinite(strength) || strength < 0 || strength > 1) {
-        return YARG_AUDIO_ERROR_INVALID_ARGUMENT;
-    }
-    stream->value->setGrains(strength);
-    return YARG_AUDIO_OK;
-}
 
 int32_t YARG_AUDIO_CALL yarg_stretch_stream_flush(yarg_stretch_stream* stream) {
     if (!stream) {

@@ -19,7 +19,6 @@ namespace YARG.Audio.BASS.Native
 
         private static StretchStreamCreateDelegate? _stretchStreamCreate;
         private static StretchStreamSetSpeedDelegate? _stretchStreamSetSpeed;
-        private static StretchStreamSetGrainsDelegate? _stretchStreamSetGrains;
         private static StretchStreamFlushDelegate? _stretchStreamFlush;
         private static StretchStreamGetLatencyDelegate? _stretchStreamGetLatency;
         private static StretchStreamGetPositionDelegate? _stretchStreamGetPosition;
@@ -102,9 +101,6 @@ namespace YARG.Audio.BASS.Native
 
         internal static int StretchStreamSetSpeed(BassStretchStream stream, float speed, float pitch) =>
             EnsureBound(ref _stretchStreamSetSpeed, "yarg_stretch_stream_set_speed")(stream, speed, pitch);
-
-        internal static int StretchStreamSetGrains(BassStretchStream stream, float strength) =>
-            EnsureBound(ref _stretchStreamSetGrains, "yarg_stretch_stream_set_grains")(stream, strength);
 
         internal static int StretchStreamFlush(BassStretchStream stream) =>
             EnsureBound(ref _stretchStreamFlush, "yarg_stretch_stream_flush")(stream);
@@ -259,7 +255,6 @@ namespace YARG.Audio.BASS.Native
         {
             _stretchStreamCreate = GetFunction<StretchStreamCreateDelegate>(handle, "yarg_stretch_stream_create");
             _stretchStreamSetSpeed = GetFunction<StretchStreamSetSpeedDelegate>(handle, "yarg_stretch_stream_set_speed");
-            _stretchStreamSetGrains = GetFunction<StretchStreamSetGrainsDelegate>(handle, "yarg_stretch_stream_set_grains");
             _stretchStreamFlush = GetFunction<StretchStreamFlushDelegate>(handle, "yarg_stretch_stream_flush");
             _stretchStreamGetLatency = GetFunction<StretchStreamGetLatencyDelegate>(handle, "yarg_stretch_stream_get_latency");
             _stretchStreamGetPosition = GetFunction<StretchStreamGetPositionDelegate>(handle, "yarg_stretch_stream_get_position");
@@ -403,9 +398,6 @@ namespace YARG.Audio.BASS.Native
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate int StretchStreamSetSpeedDelegate(BassStretchStream stream, float speed, float pitch);
-
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate int StretchStreamSetGrainsDelegate(BassStretchStream stream, float strength);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate int StretchStreamFlushDelegate(BassStretchStream stream);

@@ -36,10 +36,6 @@ namespace YARG.Editor
             _bassSong.SongEnd += OnSongEnd;
             _loadedSongName = songName;
             _sourcePath = sourcePath;
-            if (SettingsManager.SettingContainer.IsInitialized)
-            {
-                _activeTempoEngine = SettingsManager.Settings.CurrentTempoEngine;
-            }
             _playbackClock = 0;
             _simulatedClockDisturbance = 0;
             _simulatedClockDriftPercent = 0;
@@ -50,46 +46,10 @@ namespace YARG.Editor
             ResetStemControls();
         }
 
-        private void ReloadCurrentSong()
-        {
-            double position = _bassSong?.GetPosition() ?? 0;
-            bool playing = _bassSong != null && !_bassSong.IsPaused;
-
-            if (_loadedSongEntry != null)
-            {
-                LoadSongEntry(_loadedSongEntry);
-            }
-            else if (Directory.Exists(_sourcePath))
-            {
-                LoadSongFolder(_sourcePath);
-            }
-            else if (File.Exists(_sourcePath))
-            {
-                LoadAudioFile(_sourcePath);
-            }
-            else
-            {
-                return;
-            }
-
-            if (_bassSong == null)
-            {
-                return;
-            }
-
-            _bassSong.SetPosition(position);
-            _playbackClock = position;
-            if (playing)
-            {
-                PlaySong();
-            }
-        }
-
         private void LoadAudioFile(string filePath)
         {
             EnsureAudioInitialized();
             DisposeSong();
-            _loadedSongEntry = null;
 
             var mixer = GlobalAudioHandler.LoadCustomFile(filePath, _playbackSpeed, _volume, normalize: false, SongStem.Song);
             _bassSong = mixer as BassSong;
@@ -108,7 +68,6 @@ namespace YARG.Editor
         {
             EnsureAudioInitialized();
             DisposeSong();
-            _loadedSongEntry = null;
 
             string songName = Path.GetFileName(folderPath);
             var mixer = GlobalAudioHandler.CreateMixer(songName, _playbackSpeed, _volume, clampStemVolume: false, normalize: false);
@@ -184,7 +143,6 @@ namespace YARG.Editor
         {
             EnsureAudioInitialized();
             DisposeSong();
-            _loadedSongEntry = entry;
 
             var mixer = entry.LoadAudio(_playbackSpeed, _volume, SettingsManager.Settings?.CensorMatureContent.Value ?? false);
             _bassSong = mixer as BassSong;

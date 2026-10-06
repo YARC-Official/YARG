@@ -1,6 +1,5 @@
 #nullable enable
 using System;
-using System.Collections.Generic;
 using Microsoft.Win32.SafeHandles;
 using YARG.Audio.BASS.Native;
 using YARG.Core.Logging;
@@ -15,26 +14,6 @@ namespace YARG.Audio.BASS
 
         internal int StreamHandle { get; private set; }
         internal double CommandDelay { get; private set; }
-
-        private static readonly HashSet<BassStretchStream> _liveStreams = new();
-        private static readonly object _liveStreamsLock = new();
-        private static float _grains = 1f;
-
-        internal static void SetAllGrains(float strength)
-        {
-            strength = Math.Clamp(strength, 0f, 1f);
-            lock (_liveStreamsLock)
-            {
-                _grains = strength;
-                foreach (var stream in _liveStreams)
-                {
-                    if (YargAudioBindings.StretchStreamSetGrains(stream, strength) != 0)
-                    {
-                        YargLogger.LogFormatError("Failed to set YargStretch grains: {0}", strength);
-                    }
-                }
-            }
-        }
 
         internal static BassStretchStream? Create(int source)
         {
@@ -64,14 +43,6 @@ namespace YARG.Audio.BASS
                 }
 
                 stream.CommandDelay = seconds;
-                lock (_liveStreamsLock)
-                {
-                    _liveStreams.Add(stream);
-                }
-                if (YargAudioBindings.StretchStreamSetGrains(stream, _grains) != 0)
-                {
-                    YargLogger.LogFormatError("Failed to set YargStretch grains: {0}", _grains);
-                }
                 return stream;
             }
             catch (Exception exception) when (exception is DllNotFoundException or EntryPointNotFoundException
@@ -105,10 +76,6 @@ namespace YARG.Audio.BASS
 
         protected override bool ReleaseHandle()
         {
-            lock (_liveStreamsLock)
-            {
-                _liveStreams.Remove(this);
-            }
             YargAudioBindings.StretchStreamDestroy(handle);
             StreamHandle = 0;
             return true;

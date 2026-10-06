@@ -26,13 +26,13 @@ Three main clocks are maintained in [SongRunner.cs](../Assets/Script/Playback/So
 
 ## 2. Playback and Buffer Latencies
 
-There are two main sources of latency when playing audio:
+The pipeline distinguishes output buffering, engine command response, and startup position advance:
 
 ### 1. Device Playback Latency (used for startup/resume positioning)
 This latency represents the physical delay between starting output and hearing it. Shared output uses [BassLatencyProvider.StartupLatency](../Assets/Script/Audio/Bass/BassLatencyProvider.cs); ASIO output uses the driver's reported latency frames.
 
 ### 2. Tempo Stream Latency (used for speed changes)
-This latency represents the delay before a speed command reaches output. [BassSongConnection.GetCommandDelay](../Assets/Script/Audio/Bass/BassSongConnection.cs) calculates it as:
+This transport latency represents PCM already queued before a speed command can reach the listener. [BassSongConnection.GetCommandDelay](../Assets/Script/Audio/Bass/BassSongConnection.cs) calculates it as:
 `TempoLatency = (QueuedReadAheadFrames + EndpointDelayFrames) / SampleRate`
 
 - **Queued Read-Ahead Frames:** PCM already rendered at the previous tempo and waiting in the native ring buffer.
@@ -73,7 +73,7 @@ The song mixer is a decode mixer created with `BASS_MIXER_POSEX`. The native rea
 
 `PositionDelay = QueuedReadAheadFrames + RemainingEndpointDelayFrames`
 
-BASS maps that delayed mixer-output point back to the corresponding tempo-stream source position, including tempo changes and resampling. `BASS_CONFIG_MIXER_POSEX` retains 10,000 ms of source-position history so the lookup covers YARG's maximum 5,000 ms read-ahead buffer plus endpoint delay.
+BASS maps that delayed mixer-output point to the tempo-stream position, including resampling. BASS_FX supplies its source-time mapping; YargStretch converts the returned output bytes through its native per-block input history. `BASS_CONFIG_MIXER_POSEX` retains 10,000 ms of source-position history so the lookup covers YARG's maximum 5,000 ms read-ahead buffer plus endpoint delay.
 
 Immediately after a start, seek, or resume prefill, the requested delay can reach before the current mixer generation began. The native renderer first queries retained BASS history, which preserves position across live read-ahead buffer changes. If BASS has no earlier position and the delay provably predates the current generation, the renderer reports relative position `0`. Other BASS position failures are propagated instead of substituting the decode-head position or silently rewinding to the generation origin.
 
@@ -95,7 +95,7 @@ We handle starting, resuming, and seeking by pre-compensating their positions fo
 
 ## 4. The Challenge of Latency for Synchronization
 
-To align the audio to the target time, we make micro-adjustments to the speed of the song. These speed changes do not change the pitch as BASS has a good algorithm for time stretching. However, each speed change is subject to the **Tempo Stream Latency** described above, creating a **dead time** (lag) before the new speed is reflected in BASS's reported position.
+To align the audio to the target time, we make micro-adjustments to the speed of the song. These tempo changes use the selected BASS_FX or YargStretch engine to preserve pitch. However, each speed change is subject to the **Tempo Stream Latency** described above, creating a **dead time** (lag) before the new speed is reflected in BASS's reported position.
 
 ### Speed Change Delay
 Speed changes take effect after the **BASS Tempo Stream Buffer** latency (i.e., the remaining buffer from where the channel is currently playing). The physical **Device Playback Latency** is irrelevant here because the latency we care about is how long until the speed change takes effect; the playback latency will already have been accounted for in the last call to play the audio.
@@ -135,12 +135,9 @@ Every frame, the feedback loop calculates:
 ### How Error is Converted to a Speed Change
 `Adjustment = ControlError / CorrectionTime`
 
-Since playback speed is in units of song seconds per real-world second, we cannot directly convert a time offset (`Error` in seconds) to a speed adjustment without a time-scaling factor. YARG calculates `CorrectionTime = Math.Clamp(0.100 + tempoLatency * 0.10, 0.100, 0.500)`.
+Since playback speed is in units of song seconds per real-world second, we cannot directly convert a time offset (`Error` in seconds) to a speed adjustment without a time-scaling factor. BASS_FX uses a 100 ms correction interval because its exposed engine response estimate is zero. YargStretch uses `Math.Clamp(0.080 + responseLatency * 0.50, 0.080, 0.500)`, where its response estimate is one 256-frame processing block. This estimate does not measure the complete spectral response of the overlapping windows. Transport delay is exposed separately.
 
-This provides a bounded correction horizon that gently accounts for estimation variance on large buffers without crippling the controller's responsiveness:
-- **Low-latency ASIO (20 ms buffer):** `CorrectionTime` $\approx 102\text{ ms}$ (target $\approx 100\text{ ms}$)
-- **Standard Shared Audio (100 ms buffer):** `CorrectionTime` $\approx 110\text{ ms}$
-- **Large Audio Buffer (5000 ms buffer):** `CorrectionTime` is capped at $500\text{ ms}$ (rather than stretching out to $5.0\text{ seconds}$).
+At 44.1 kHz, the custom engine uses approximately 82.9 ms. These correction intervals depend on the engine response estimate rather than the read-ahead buffer size.
 
 The adjustment becomes visible to the controller when BASS renders it at the decode frontier. PCM already rendered at an older rate remains represented between the decode head and heard position instead of being approximated from command timestamps.
 
@@ -156,11 +153,11 @@ During normal gameplay, small speed adjustments are continuously computed by the
    - **Stop Threshold (`SYNC_STOP_SECONDS = 0.0015` / 1.5 ms):** Once actively `Correcting`, adjustments continue until `|ControlError| < 1.5 ms`.
    - This asymmetric deadband prevents rapid oscillation between active and idle states.
 3. **Proportional Adjustment & Clamping:** When correcting, the speed adjustment is calculated:
-   `Adjustment = Math.Clamp(ControlError / CorrectionTime, MinimumAdjustment, SYNC_CLAMP)`
-   - `SYNC_CLAMP` limits positive adjustment to `+2.00` (+200 percentage points).
+   `Adjustment = Math.Clamp(ControlError / CorrectionTime, MinimumAdjustment, SelectedEngineClamp)`
+   - BASS_FX limits positive adjustment to `+2.00` (+200 percentage points); YargStretch uses `+0.50` (+50 percentage points).
    - `MinimumAdjustment` prevents synchronization from reducing effective playback below `0.50 * RequestedSongSpeed`. Extreme near-zero BASS_FX tempo rates can render excessive stretched PCM before a reversal reaches the decode frontier.
 4. **Pitch-Preserving Tempo Speed:** The adjustment is applied to the mixer using `_mixer.SetPlaybackSpeed(songSpeed, adjustment, shiftPitch: false)`. This changes tempo without applying pitch shifting to temporary synchronization corrections.
-5. **Settling Window:** When a correction ends, the synchronizer enters `Settling` for `tempoLatency + 25 ms`. This prevents another correction until the final base-speed command reaches measured output. No predictor bias offset is applied.
+5. **Settling Window:** When a correction ends, the synchronizer enters `Settling` for `GetTransportLatency() + 25 ms`. This prevents another correction until the final base-speed command reaches measured output. No predictor bias offset is applied.
 
 ---
 

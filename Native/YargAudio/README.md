@@ -1,6 +1,6 @@
 # YargAudio Native Audio Library
 
-A lightweight, cross-platform C++ audio library built for YARG. It runs critical, real-time audio tasks that require minimal latency, zero memory allocations during playback, and sample-accurate timing.
+A lightweight, cross-platform C++ audio library built for YARG. It handles audio streaming, time stretching, and DSP processing outside Unity’s managed runtime.
 
 Unity's managed C# code talks to this library through standard C ABI functions (`include/yarg_audio.h`) and .NET `SafeHandle` wrappers in `Assets/Script/Audio/Bass/Native/YargAudioBindings.cs`.
 
@@ -17,8 +17,8 @@ To prevent this, YARG delegates low-level audio streaming, phase-vocoder time st
 #### 1. Real-Time Time Stretching & Pitch Shifting (`yarg_stretch_stream`)
 Used in Practice Mode to slow songs down (to 10%) or speed them up (to 200%) without altering their pitch.
 - Built on top of `signalsmith-linear` STFT/FFT.
-- Features custom transient preservation so drum attacks stay crisp rather than getting smeared into a "swishy" phasey sound.
-- Synchronizes with song playback and updates stretch factors smoothly in real time.
+- Preserves source spectra at 100% speed and uses transient protection during slowdown; quality still depends on the recording and stretch ratio.
+- Accepts tempo commands from gameplay synchronization; changes apply at native processing-block boundaries.
 - See [`docs/time-stretch.md`](../../docs/time-stretch.md) for an in-depth explanation of how the phase vocoder works.
 
 #### 2. Song Read-Ahead Streaming (`yarg_read_ahead_stream`)
@@ -112,8 +112,8 @@ When modifying or adding native features, follow this workflow:
 - Implement exported wrapper functions in `src/yarg_audio_c_api.cpp`.
 
 ### 3. Add or Update Managed C# Bindings
-- In `Assets/Script/Audio/Bass/Native/YargAudioBindings.cs`, declare matching `DllImport` signatures and .NET `SafeHandle` wrappers.
-- Verify ABI version match during initialization.
+- In `Assets/Script/Audio/Bass/Native/YargAudioBindings.cs`, declare matching Cdecl delegate signatures and dynamic export bindings. Keep ownership in the corresponding .NET `SafeHandle` wrappers.
+- Keep `BassHelpers.YARG_AUDIO_ABI_VERSION` synchronized with the native header; `YargAudioNative` checks it during initialization.
 
 ### 4. Test Locally
 - Add C++ test cases under `tests/`.
@@ -122,7 +122,7 @@ When modifying or adding native features, follow this workflow:
 
 ### 5. Publish Multi-Platform Binaries
 - Commit and push your changes to your branch.
-- Run `dotnet run --project scripts/NativeBuild -- package --ref <your-branch>` to compile and commit binaries for all platforms so other developers don't have to build them manually.
+- Run `dotnet run --project scripts/NativeBuild -- package --ref <your-branch>` to compile and download binaries for all platforms so other developers don't have to build them manually.
 
 ---
 
@@ -132,5 +132,5 @@ When modifying or adding native features, follow this workflow:
 - **Linux Compatibility**: Linux binaries are compiled on Ubuntu 20.04 (`glibc 2.31`) so they work reliably on all Linux distributions supported by Unity 6.
 - **Thread Safety & Buffering**:
   - Song decoding happens on a background worker thread.
-  - Audio playback runs exclusively from lock-free ring buffers to prevent audio thread hiccups.
+  - Endpoint callbacks consume song PCM from a lock-free ring buffer. Stretch processing and position history run on the decode side; history access uses a mutex.
   - When stopping or seeking, the stream safely waits for active callbacks to finish before resetting buffers.

@@ -118,11 +118,6 @@ void StretchTempoStream::setSpeed(float speed, float pitch) noexcept {
     pitch_.store(pitch, std::memory_order_relaxed);
 }
 
-void StretchTempoStream::setGrains(float strength) noexcept {
-    grains_.store(strength, std::memory_order_relaxed);
-}
-
-
 void StretchTempoStream::reset() noexcept {
     stretch_.reset(0);
     std::lock_guard lock(historyMutex_);
@@ -134,7 +129,6 @@ void StretchTempoStream::reset() noexcept {
     outputOffset_.store(BLOCK_FRAMES, std::memory_order_relaxed);
     primed_.store(false, std::memory_order_relaxed);
     ended_.store(false, std::memory_order_relaxed);
-    protectedTransients_.store(0, std::memory_order_relaxed);
     std::fill(history_.begin(), history_.end(), PositionBlock{});
 }
 
@@ -224,9 +218,7 @@ bool StretchTempoStream::process() noexcept {
             static_cast<double>(baseInput), frames};
     }
     stretch_.setTransposeFactor(pitch);
-    stretch_.setGrainStrength(grains_.load(std::memory_order_relaxed));
     stretch_.process(inputChannels_, frames, outputChannels_, BLOCK_FRAMES);
-    protectedTransients_.store(stretch_.transientCount(), std::memory_order_relaxed);
     inputFrames_.fetch_add(static_cast<std::uint64_t>(frames), std::memory_order_relaxed);
     processedBlocks_.fetch_add(1, std::memory_order_release);
     return true;

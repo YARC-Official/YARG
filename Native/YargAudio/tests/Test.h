@@ -22,6 +22,3 @@ void runNoiseGateDspTests();
 void runSineSynthDspTests();
 void runScheduledSampleSourceTests();
 void runNativeOneShotStreamTests();
-void runStretchTempoStreamTests();
-void runStretchQualityTests();
-void runTextureGrainsTests();

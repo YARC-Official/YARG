@@ -5,7 +5,6 @@ using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using YARG.Audio.BASS;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Engine;

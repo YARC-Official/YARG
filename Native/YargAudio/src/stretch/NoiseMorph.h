@@ -54,7 +54,7 @@ public:
         magnitude.assign(bands, Sample(0));
         noise.assign(bands, Sample(0));
         if (useGrains) {
-            grains.configure(analysis, channels, true);
+            grains.configure(analysis, channels);
             grainMask.assign(bands, Sample(0));
         }
         clearHistory();
@@ -70,28 +70,10 @@ public:
         }
     }
 
-    void reset(long seed) {
-        (void)seed;
-        clearHistory();
-    }
-
     bool usesGrains() const {
         return useGrains;
     }
 
-    Sample textureEnergyRatio() const {
-        if (grainMask.empty()) {
-            return Sample(0);
-        }
-        double textured = 0;
-        double total = 0;
-        for (int b = 0; b < bands; ++b) {
-            const double power = double(magnitude[b]) * magnitude[b];
-            total += power;
-            textured += power * double(grainMask[b]);
-        }
-        return Sample(textured / (total + 1e-30));
-    }
 
     Sample readGrain(int channel) const {
         return grains.read(channel);
@@ -102,12 +84,8 @@ public:
     }
 
     // Per-block split: measure bands, fuzzy-classify, move texture to the renderer.
-    // Signature kept stable for the call site; decorrelation, sourceInterval and
-    // newSpectrum are unused since morphing needs neither coherence nor history.
     template<class Input>
-    void apply(STFT &output, Input input, Sample strength, Sample minimumFrequency,
-        [[maybe_unused]] Sample decorrelation, [[maybe_unused]] int sourceInterval,
-        [[maybe_unused]] bool newSpectrum) {
+    void apply(STFT &output, Input input, Sample strength, Sample minimumFrequency) {
         pushMagnitudes(input);
         if (historyCount < HISTORY || strength == 0) {
             std::fill(grainMask.begin(), grainMask.end(), Sample(0));

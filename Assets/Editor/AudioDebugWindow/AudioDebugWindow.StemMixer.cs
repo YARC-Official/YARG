@@ -15,7 +15,6 @@ using YARG.Core.Song;
 using YARG.Helpers;
 using YARG.Input;
 using YARG.Playback;
-using YARG.Settings;
 using YARG.Song;
 
 namespace YARG.Editor
@@ -284,57 +283,6 @@ namespace YARG.Editor
             {
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    EditorGUILayout.LabelField("Tempo", EditorStyles.boldLabel, GUILayout.Width(50));
-
-                    bool settingsReady = SettingsManager.SettingContainer.IsInitialized;
-                    GUI.enabled = settingsReady;
-                    EffectsMode selected = settingsReady
-                        ? SettingsManager.Settings.EffectsMode.Value
-                        : (_activeTempoEngine == TempoEngine.YargStretch ? EffectsMode.Quality : EffectsMode.Performance);
-                    EditorGUI.BeginChangeCheck();
-                    var newMode = (EffectsMode) EditorGUILayout.EnumPopup(selected, GUILayout.Width(95));
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        SetEffectsMode(newMode);
-                    }
-                    GUI.enabled = true;
-
-                    if (_bassSong != null)
-                    {
-                        double latencyMs = _bassSong.GetTempoStreamLatency() * 1000.0;
-                        EditorGUILayout.LabelField($"Active: {_activeTempoEngine} \u2022 {latencyMs:F1} ms",
-                            EditorStyles.miniLabel, GUILayout.Width(170));
-                        if (settingsReady &&
-                            SettingsManager.Settings.CurrentTempoEngine != _activeTempoEngine)
-                        {
-                            if (GUILayout.Button("Reload to apply", EditorStyles.miniButton, GUILayout.Width(110)))
-                            {
-                                ReloadCurrentSong();
-                            }
-                        }
-                    }
-                    else
-                    {
-                        EditorGUILayout.LabelField("No song loaded", EditorStyles.miniLabel, GUILayout.Width(170));
-                    }
-
-                    GUILayout.FlexibleSpace();
-
-                    if (settingsReady)
-                    {
-                        bool chipmunk = SettingsManager.Settings.UseChipmunkSpeed.Value;
-                        EditorGUI.BeginChangeCheck();
-                        bool newChipmunk = GUILayout.Toggle(chipmunk, "Chipmunk", GUILayout.Width(80));
-                        if (EditorGUI.EndChangeCheck())
-                        {
-                            SettingsManager.Settings.UseChipmunkSpeed.Value = newChipmunk;
-                            SetPlaybackSpeed(_playbackSpeed);
-                        }
-                    }
-                }
-
-                using (new EditorGUILayout.HorizontalScope())
-                {
                     EditorGUILayout.LabelField("Speed", EditorStyles.miniBoldLabel, GUILayout.Width(40));
                     DrawSpeedPill(0.5f, EditorStyles.miniButtonLeft);
                     DrawSpeedPill(0.75f, EditorStyles.miniButtonMid);
@@ -356,21 +304,6 @@ namespace YARG.Editor
 
                     EditorGUILayout.LabelField($"{_playbackSpeed:0.##}x", EditorStyles.miniLabel, GUILayout.Width(40));
                 }
-            }
-        }
-
-        private void SetEffectsMode(EffectsMode mode)
-        {
-            if (!SettingsManager.SettingContainer.IsInitialized)
-            {
-                return;
-            }
-
-            SettingsManager.Settings.EffectsMode.Value = mode;
-            var engine = SettingsManager.Settings.CurrentTempoEngine;
-            if (_bassSong != null && _activeTempoEngine != engine)
-            {
-                ReloadCurrentSong();
             }
         }
 

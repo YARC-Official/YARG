@@ -41,8 +41,7 @@ class TextureGrains {
     int outputPosition = 0;
 
 public:
-    void configure(const STFT &analysis, int count, bool fullSearchGrains = false) {
-        (void)fullSearchGrains;
+    void configure(const STFT &analysis, int count) {
         channels = count;
         hop = int(analysis.defaultInterval());
         block = int(analysis.blockSamples());
@@ -75,8 +74,7 @@ public:
 
     // Renders texture to waveform, crossfades one block, blends it in.
     template<class Input>
-    void add(const STFT &analysis, Input input, const std::vector<Sample> &mask, Sample windowCoherence = Sample(1)) {
-        (void)windowCoherence;
+    void add(const STFT &analysis, Input input, const std::vector<Sample> &mask) {
         if (std::all_of(mask.begin(), mask.end(), [](Sample amount) { return amount == Sample(0); })) {
             const int block = int(analysis.blockSamples());
             const int start = outputPosition + int(analysis.synthesisOffset()) - hop;
