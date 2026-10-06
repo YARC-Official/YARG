@@ -33,6 +33,10 @@ public class YargVideoPlayer : MonoBehaviour
     // Latches prepareCompleted to one fire per Prepare() -- see OnVLCTextureResized.
     private bool _vlcPreparedFired = false;
     private VlcTimeWatch _timeWatch;
+    // Distinguishes our Stop() from libVLC stopping at the end of the media; see Update.
+    private bool _vlcStopRequested;
+    // Pictures presented when a loop restart was issued; -1 when none is pending. See BlitToTargetTexture.
+    private long _loopRestartPictures = -1;
 
     // Per-media rather than on LibVLC, which is process-wide and built once.
     private static readonly string[] VLC_MEDIA_OPTIONS =
@@ -285,6 +289,7 @@ public class YargVideoPlayer : MonoBehaviour
         if (usingVlc)
         {
             _vlcPreparedFired = false;
+            _vlcStopRequested = false;
             PrepareVlc(VLC_MEDIA_OPTIONS);
             return;
         }
@@ -336,6 +341,7 @@ public class YargVideoPlayer : MonoBehaviour
 #if VLC_SUPPORTED
         if (usingVlc)
         {
+            _vlcStopRequested = false;
             _vlc.Play();
             return;
         }
@@ -364,6 +370,7 @@ public class YargVideoPlayer : MonoBehaviour
 #if VLC_SUPPORTED
         if (usingVlc)
         {
+            _vlcStopRequested = true;
             _vlc.Stop();
             return;
         }
@@ -449,21 +456,43 @@ public class YargVideoPlayer : MonoBehaviour
 
         if (status is VlcTimeWatch.SeekStatus.Landed or VlcTimeWatch.SeekStatus.TimedOut)
             seekCompleted?.Invoke(this);
+
+        // libVLC 4 stops at the end of the media, and Play on a stopped player restarts it from
+        // the start. Only a stop we didn't request loops.
+        if (LoopsOnStop && _vlc.MediaPlayer?.State == LibVLCSharp.VLCState.Stopped)
+        {
+            _loopRestartPictures = _timeWatch.PicturesPresented;
+            _vlc.Play();
+        }
     }
 
-    // LateUpdate, not Update: VLCMediaPlayer fetches libVLC's newest picture in its own
-    // Update, and the two have no defined order. Blitting in Update ran first every frame, so
-    // the venue always showed the previous frame's picture.
+    // LateUpdate, not Update: VLCMediaPlayer fetches libVLC's newest picture in its own Update,
+    // and the two have no defined order, so blitting in Update shows the previous frame's picture.
     private void LateUpdate()
     {
         BlitToTargetTexture();
     }
+
+    // A stop now would be libVLC reaching the end of a looping video, not our Stop().
+    private bool LoopsOnStop => _isLooping && !_vlcStopRequested;
 
     private void BlitToTargetTexture()
     {
         if (!usingVlc || _targetTexture == null)
         {
             return;
+        }
+
+        // Across a loop restart VLC's output goes black until the reopened media presents its first
+        // picture, so hold the last frame blitted until then.
+        if (LoopsOnStop && _vlc.MediaPlayer?.State is LibVLCSharp.VLCState.Stopping or LibVLCSharp.VLCState.Stopped)
+            return;
+
+        if (_loopRestartPictures >= 0)
+        {
+            if (_timeWatch.PicturesPresented <= _loopRestartPictures)
+                return;
+            _loopRestartPictures = -1;
         }
 
         // Re-read each frame: VLC replaces the instance on a resize (ResizeOutputTextures
