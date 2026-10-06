@@ -649,11 +649,9 @@ namespace YARG.Gameplay
         /// Converts a gameplay visual time to a position in the background video file.
         /// </summary>
         /// <remarks>
-        /// VisualTime, not SongTime: the background video is watched, so it belongs on the same
-        /// clock as the highway. SongTime carries AudioCalibration, which absorbs device output
-        /// latency when AccountForHardwareLatency is on -- driving the video off it offsets the
-        /// video from the rest of the screen and leaves VideoCalibration with no effect on it.
-        /// The file-position conversion is a plain SongOffset shift, identical either way.
+        /// VisualTime, not SongTime: the video is watched, so it shares the highway's clock.
+        /// SongTime carries AudioCalibration (and with it device output latency), which would
+        /// offset the video from the rest of the screen and leave VideoCalibration no effect.
         /// </remarks>
         public double GetVideoPlaybackTime(double visualTime)
             => _songRunner.GetAudioPlaybackTime(visualTime);
