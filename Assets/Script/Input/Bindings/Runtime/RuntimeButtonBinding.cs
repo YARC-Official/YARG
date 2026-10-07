@@ -133,7 +133,18 @@ namespace YARG.Input.Bindings
 
         public override void UpdateForFrame(double updateTime)
         {
-            // Do nothing; we only want to send Pressed events, not regular state transitions
+            UpdateImpulseState(updateTime);
+        }
+
+        private void UpdateImpulseState(double updateTime)
+        {
+            State = false;
+
+            foreach (var binding in _bindings)
+            {
+                binding.UpdateDebounce(updateTime);
+                State = State || binding.IsPressed;
+            }
         }
 
         protected override void OnStateChanged(RuntimeSingleButtonBinding singleBinding, double time)
