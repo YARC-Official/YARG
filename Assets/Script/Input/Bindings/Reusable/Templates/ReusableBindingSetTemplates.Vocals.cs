@@ -12,7 +12,7 @@ namespace YARG.Input.Bindings
     {
         public static Dictionary<string, InputActionInfo> VOCALS = new()
         {
-            { ActionStrings.VOCAL_HIT, new(ActionStrings.VOCAL_HIT,   BindingType.Button, (int) VocalsAction.Hit) },
+            { ActionStrings.VOCAL_HIT, new(ActionStrings.VOCAL_HIT,   BindingType.Impulse, (int) VocalsAction.Hit) },
             { ActionStrings.VOCAL_STAR_POWER, new(ActionStrings.VOCAL_STAR_POWER,   BindingType.Button, (int) VocalsAction.StarPower) },
         };
     }

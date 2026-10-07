@@ -57,7 +57,7 @@ namespace YARG.Helpers
         {
             return bindingType switch
             {
-                BindingType.Button or BindingType.ImpulseButton or BindingType.DrumButton => IsButtonBeingQuickBound,
+                BindingType.Button or BindingType.Impulse => IsButtonBeingQuickBound,
                 BindingType.Axis => IsAxisBeingQuickBound,
                 BindingType.Integer => IsIntegerBeingQuickBound,
                 _ => throw new ArgumentOutOfRangeException("Unexpected binding type")
@@ -91,7 +91,7 @@ namespace YARG.Helpers
 
             var controls = LayoutHelper.GetAllControlsForControllerFamily(family);
 
-            if (bindingType is BindingType.Button or BindingType.ImpulseButton or BindingType.DrumButton)
+            if (bindingType is BindingType.Button or BindingType.Impulse)
             {
                 paths = controls
                     .Where(control => IsControlValidForButton(control))

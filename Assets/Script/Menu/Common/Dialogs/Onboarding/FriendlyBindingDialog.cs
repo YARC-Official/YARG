@@ -188,7 +188,7 @@ namespace YARG.Menu.Dialogs
 
                     switch (action.Type)
                     {
-                        case BindingType.Button or BindingType.ImpulseButton or BindingType.DrumButton:
+                        case BindingType.Button or BindingType.Impulse:
                             var buttonBinding = _bindingSet.Bindings[action.Key] as ReusableButtonBinding;
                             buttonBinding.ClearBindings();
                             var buttonConfig = new ReusableSingleButtonBindingConfig(_controllerFamily, path);

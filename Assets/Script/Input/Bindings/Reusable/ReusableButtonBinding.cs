@@ -12,20 +12,12 @@ using static YARG.Settings.Preview.FakeTrackPlayer;
 
 namespace YARG.Input.Bindings
 {
-    public enum ReusableButtonBindingSubtype
-    {
-        Regular,
-        Impulse,
-        Drum
-    }
-
     public class ReusableButtonBinding : ReusableControlBinding<ReusableSingleButtonBinding, float>
     {
-        public ReusableButtonBindingSubtype Subtype => Info.Type switch
+        public bool IsImpulse => Info.Type switch
         {
-            BindingType.Button => ReusableButtonBindingSubtype.Regular,
-            BindingType.ImpulseButton => ReusableButtonBindingSubtype.Impulse,
-            BindingType.DrumButton => ReusableButtonBindingSubtype.Drum,
+            BindingType.Button => false,
+            BindingType.Impulse => true,
             _ => throw new ArgumentOutOfRangeException($"Unexpected button binding type {Info.Type}")
         };
 
