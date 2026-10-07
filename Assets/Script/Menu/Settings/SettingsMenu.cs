@@ -189,16 +189,15 @@ namespace YARG.Menu.Settings
                 return;
             }
 
-            if (_headerTabs != null)
-            {
-                _headerTabs.RefreshTabs();
-                _headerTabs.TabChanged += OnTabChanged;
-            }
-
             if (_categorySidebar != null)
             {
                 _categorySidebar.CategoryChanged += OnTabChanged;
                 _categorySidebar.SetCollapsed(true, animate: false);
+            }
+            else if (_headerTabs != null)
+            {
+                _headerTabs.RefreshTabs();
+                _headerTabs.TabChanged += OnTabChanged;
             }
 
             _settingsNavGroup.SelectionChanged += OnSelectionChanged;
@@ -226,6 +225,8 @@ namespace YARG.Menu.Settings
                     SelectTab(SettingsManager.DisplayedSettingsTabs[0]);
                 }
             }
+
+            FocusSections();
         }
 
         private void OnTabChanged(string tab)
@@ -235,12 +236,21 @@ namespace YARG.Menu.Settings
 
         private void SelectTab(Tab tab)
         {
+            if (tab == null || CurrentTab == tab)
+            {
+                return;
+            }
+
             CurrentTab?.OnTabExit();
             _searchBar.SetTextWithoutNotify(string.Empty);
             CurrentTab = tab;
             BuildSections();
             Refresh();
-            FocusSections();
+            if (_categorySidebar == null)
+            {
+                FocusSections();
+            }
+
             CurrentTab.OnTabEnter();
         }
 
@@ -423,14 +433,13 @@ namespace YARG.Menu.Settings
                 return;
             }
 
-            if (_headerTabs != null)
-            {
-                _headerTabs.SelectTabById(name);
-            }
-
             if (_categorySidebar != null)
             {
                 _categorySidebar.SelectCategory(name);
+            }
+            else if (_headerTabs != null)
+            {
+                _headerTabs.SelectTabById(name);
             }
 
             if (CurrentTab?.Name != name)
