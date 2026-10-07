@@ -61,9 +61,6 @@ namespace YARG.Input.Bindings
                 foreach (var binding in source)
                 {
                     switch (binding) {
-                        case RuntimeImpulseBinding impulse:
-                            // Impulses are forwarded rather than aggregated
-                            break;
                         case RuntimeButtonBinding button:
                             if (_newButtonStates.TryGetValue(button.Action, out var buttonState))
                             {
@@ -195,7 +192,10 @@ namespace YARG.Input.Bindings
 
         private void OnButtonPressed(ref GameInput input)
         {
-            InputProcessed?.Invoke(ref input);
+            if (_buttonStates.TryGetValue(input.Action, out var state) && state)
+            {
+                InputProcessed?.Invoke(ref input);
+            }
         }
     }
 }
