@@ -585,6 +585,7 @@
             "ShowAdvanced": "Show Advanced",
             "HideAdvanced": "Hide Advanced",
             "NoFolder": "<i>No Folder</i>",
+            "RequiresRescan": "Requires rescan",
             "SearchHeader": {
                 "AllCategories": "All Categories",
                 "Results": "Results"
@@ -923,6 +924,7 @@
         }
     },
 	"Preview": {
+        "Title": "Preview",
 		"Experimental": {
 			"Notice": "IMPORTANT\n\nThese settings represent a work in progress. They are subject to change, may contain bugs, and could even cause major problems if enabled."
 		}

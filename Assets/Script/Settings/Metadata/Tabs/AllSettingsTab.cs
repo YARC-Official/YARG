@@ -12,8 +12,6 @@ namespace YARG.Settings.Metadata
         private static GameObject _settingCategoryViewPrefab;
         private static GameObject _searchResultPopulator;
 
-        public override bool ShowSearchBar => true;
-
         public AllSettingsTab() : base("AllSettings")
         {
         }
