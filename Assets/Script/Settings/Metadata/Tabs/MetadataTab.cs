@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
@@ -58,6 +58,12 @@ namespace YARG.Settings.Metadata
                 {
                     case HeaderMetadata header:
                     {
+                        settingIndex = 0;
+                        if (section.Length > 0 && header.HeaderName == section)
+                        {
+                            break;
+                        }
+
                         if (_headerPrefab == null)
                         {
                             _headerPrefab = Addressables
@@ -71,7 +77,6 @@ namespace YARG.Settings.Metadata
                         go.GetComponentInChildren<TextMeshProUGUI>().text =
                             Localize.Key("Settings.Header", header.HeaderName);
 
-                        settingIndex = 0;
                         break;
                     }
                     case ButtonRowMetadata buttonRow:
