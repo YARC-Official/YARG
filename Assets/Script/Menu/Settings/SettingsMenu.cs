@@ -81,8 +81,6 @@ namespace YARG.Menu.Settings
         private string _pendingTabName;
         private int _previewVersion;
 
-        private readonly Dictionary<string, string> _selectedSections = new();
-        private readonly Dictionary<(string Tab, string Section), (int? Index, float Scroll)> _positions = new();
 
         public string CurrentSection { get; private set; } = string.Empty;
         private bool IsSearching => SearchQuery.Length > 0;
@@ -205,7 +203,6 @@ namespace YARG.Menu.Settings
 
         private void SelectTab(Tab tab)
         {
-            SavePosition();
             CurrentTab?.OnTabExit();
             _searchBar.SetTextWithoutNotify(string.Empty);
             CurrentTab = tab;
@@ -240,11 +237,8 @@ namespace YARG.Menu.Settings
 
             if (sections.Count > 0)
             {
-                CurrentSection = _selectedSections.TryGetValue(CurrentTab.Name, out var selected)
-                    ? selected
-                    : sections[0].HeaderName;
-                var index = sections.ToList().FindIndex(section => section.HeaderName == CurrentSection);
-                _sectionsNavGroup.SelectAt(index);
+                CurrentSection = sections[0].HeaderName;
+                _sectionsNavGroup.SelectFirst();
             }
         }
 
@@ -254,7 +248,6 @@ namespace YARG.Menu.Settings
             {
                 if (origin == SelectionOrigin.Mouse)
                 {
-                    SavePosition();
                     _settingsNavGroup.SelectLastNavGroup();
                 }
 
@@ -263,20 +256,9 @@ namespace YARG.Menu.Settings
                     return;
                 }
 
-                SavePosition();
                 CurrentSection = view.Section;
-                _selectedSections[CurrentTab.Name] = CurrentSection;
                 _searchBar.SetTextWithoutNotify(string.Empty);
                 Refresh();
-            }
-        }
-
-        private void SavePosition()
-        {
-            if (CurrentTab != null && !IsSearching && _settingsNavGroup.SelectedIndex != null)
-            {
-                _positions[(CurrentTab.Name, CurrentSection)] =
-                    (_settingsNavGroup.SelectedIndex, _scrollRect.verticalNormalizedPosition);
             }
         }
 
@@ -284,23 +266,13 @@ namespace YARG.Menu.Settings
         {
             _sectionsNavGroup.SelectLastNavGroup();
             _settingsNavGroup.PushNavGroupToStack();
-            if (_settingsNavGroup.Count > 0 &&
-                _positions.TryGetValue((CurrentTab.Name, CurrentSection), out var position))
-            {
-                _settingsNavGroup.SelectAt(index: Math.Min(position.Index ?? 0, _settingsNavGroup.Count - 1),
-                    selectionOrigin: SelectionOrigin.Navigation);
-            }
-            else
-            {
-                _settingsNavGroup.SelectFirst(SelectionOrigin.Navigation);
-            }
+            _settingsNavGroup.SelectFirst(SelectionOrigin.Navigation);
         }
 
         private void FocusSections()
         {
             if (_sectionsPanel.activeSelf)
             {
-                SavePosition();
                 _settingsNavGroup.SelectLastNavGroup();
                 _sectionsNavGroup.PushNavGroupToStack();
                 var index = CurrentTab.Sections.ToList().FindIndex(section => section.HeaderName == CurrentSection);
@@ -610,22 +582,9 @@ namespace YARG.Menu.Settings
 
             if (resetScroll)
             {
-                // Make the settings nav group the main one
                 _scrollRect.StopMovement();
+                _scrollRect.verticalNormalizedPosition = 1f;
                 _settingsNavGroup.SelectFirst();
-
-                if (!IsSearching && _positions.TryGetValue((CurrentTab.Name, CurrentSection), out var position))
-                {
-                    if (_settingsNavGroup.Count > 0)
-                    {
-                        _settingsNavGroup.SelectAt(Math.Min(position.Index ?? 0, _settingsNavGroup.Count - 1));
-                    }
-                    _scrollRect.verticalNormalizedPosition = position.Scroll;
-                }
-                else
-                {
-                    _scrollRect.verticalNormalizedPosition = 1f;
-                }
             }
         }
 
@@ -736,8 +695,6 @@ namespace YARG.Menu.Settings
                 return;
             }
 
-            // Set the current tab back to null to avoid calling OnTabExit twice
-            SavePosition();
             _previewVersion++;
             CurrentTab?.OnTabExit();
             CurrentTab = null;
