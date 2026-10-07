@@ -41,16 +41,16 @@ namespace YARG.Input.Bindings
                 {
                     max = value;
                 }
-
-                // Ignore if state is unchanged
-                if (Mathf.Approximately(State, max))
-                {
-                    return;
-                }
-
-                State = max;
-                FireInputEvent(time, max);
             }
+
+            // Ignore if state is unchanged
+            if (Mathf.Approximately(State, max))
+            {
+                return;
+            }
+
+            State = max;
+            FireInputEvent(time, max);
         }
     }
 }
