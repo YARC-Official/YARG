@@ -25,6 +25,8 @@ namespace YARG.Menu.Settings
         [SerializeField]
         private HeaderTabs _headerTabs;
         [SerializeField]
+        private CategorySidebar _categorySidebar;
+        [SerializeField]
         private Transform _settingsContainer;
         [SerializeField]
         private NavigationGroup _settingsNavGroup;
@@ -137,6 +139,7 @@ namespace YARG.Menu.Settings
             _settingName.enableAutoSizing = true;
 
             var tabs = new List<HeaderTabs.TabInfo>();
+            var categories = new List<CategorySidebar.CategoryInfo>();
 
             // Add the main tabs
             foreach (var tab in SettingsManager.DisplayedSettingsTabs)
@@ -150,9 +153,25 @@ namespace YARG.Menu.Settings
                     Id = tab.Name,
                     DisplayName = Localize.Key("Settings.Tab", tab.Name)
                 });
+
+                categories.Add(new CategorySidebar.CategoryInfo
+                {
+                    Icon = sprite,
+                    Id = tab.Name,
+                    DisplayName = Localize.Key("Settings.Tab", tab.Name)
+                });
             }
 
-            _headerTabs.Tabs = tabs;
+            if (_headerTabs != null)
+            {
+                _headerTabs.Tabs = tabs;
+            }
+
+            if (_categorySidebar != null)
+            {
+                _categorySidebar.SetCategories(categories);
+            }
+
             _tabsInitialized = true;
 
             if (!string.IsNullOrEmpty(_pendingTabName))
@@ -170,8 +189,17 @@ namespace YARG.Menu.Settings
                 return;
             }
 
-            _headerTabs.RefreshTabs();
-            _headerTabs.TabChanged += OnTabChanged;
+            if (_headerTabs != null)
+            {
+                _headerTabs.RefreshTabs();
+                _headerTabs.TabChanged += OnTabChanged;
+            }
+
+            if (_categorySidebar != null)
+            {
+                _categorySidebar.CategoryChanged += OnTabChanged;
+                _categorySidebar.SetCollapsed(true, animate: false);
+            }
 
             _settingsNavGroup.SelectionChanged += OnSelectionChanged;
             _sectionsNavGroup.SelectionChanged += OnSectionChanged;
@@ -183,7 +211,11 @@ namespace YARG.Menu.Settings
             {
                 var tabId = !string.IsNullOrEmpty(_pendingTabName)
                     ? _pendingTabName
-                    : _headerTabs.SelectedTabId;
+                    : _categorySidebar != null
+                        ? _categorySidebar.SelectedCategoryId
+                        : _headerTabs != null
+                            ? _headerTabs.SelectedTabId
+                            : null;
 
                 if (!string.IsNullOrEmpty(tabId))
                 {
@@ -302,6 +334,21 @@ namespace YARG.Menu.Settings
             }
         }
 
+        public void OnCategoryConfirmed(string categoryId)
+        {
+            if (CurrentTab?.Name != categoryId)
+            {
+                SelectTabByName(categoryId);
+            }
+
+            if (_categorySidebar != null)
+            {
+                _categorySidebar.SetCollapsed(true);
+            }
+
+            FocusSections();
+        }
+
         public void SelectTabByName(string name)
         {
             if (!_tabsInitialized)
@@ -310,20 +357,19 @@ namespace YARG.Menu.Settings
                 return;
             }
 
-            _headerTabs.SelectTabById(name);
-
-            // If the header tab does not exist, then force update to that tab
-            if (_headerTabs.SelectedTabId is null)
+            if (_headerTabs != null)
             {
-                SelectTab(SettingsManager.GetTabByName(name));
-                return;
+                _headerTabs.SelectTabById(name);
             }
 
-            // Selecting the already-selected header tab does not fire TabChanged.
-            // This matters when reopening settings after CurrentTab was cleared on close.
-            if (CurrentTab?.Name != _headerTabs.SelectedTabId)
+            if (_categorySidebar != null)
             {
-                SelectTab(SettingsManager.GetTabByName(_headerTabs.SelectedTabId));
+                _categorySidebar.SelectCategory(name);
+            }
+
+            if (CurrentTab?.Name != name)
+            {
+                SelectTab(SettingsManager.GetTabByName(name));
             }
         }
 
@@ -702,15 +748,21 @@ namespace YARG.Menu.Settings
 
         private void PushNavigationScheme()
         {
-            _ = Navigator.Instance.PushScheme(new NavigationScheme(new()
+            var entries = new List<NavigationScheme.Entry>
             {
                 NavigationScheme.Entry.NavigateSelect,
                 new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back),
                 NavigationScheme.Entry.NavigateUp,
                 NavigationScheme.Entry.NavigateDown,
-                _headerTabs.NavigateNextTab,
-                _headerTabs.NavigatePreviousTab
-            }, true));
+            };
+
+            if (_headerTabs != null)
+            {
+                entries.Add(_headerTabs.NavigateNextTab);
+                entries.Add(_headerTabs.NavigatePreviousTab);
+            }
+
+            _ = Navigator.Instance.PushScheme(new NavigationScheme(entries, true));
         }
 
         private void OnDisable()
@@ -726,7 +778,16 @@ namespace YARG.Menu.Settings
 
             Navigator.Instance.PopScheme();
             DestroyPreview();
-            _headerTabs.TabChanged -= OnTabChanged;
+
+            if (_headerTabs != null)
+            {
+                _headerTabs.TabChanged -= OnTabChanged;
+            }
+
+            if (_categorySidebar != null)
+            {
+                _categorySidebar.CategoryChanged -= OnTabChanged;
+            }
 
             _settingsNavGroup.SelectionChanged -= OnSelectionChanged;
             _sectionsNavGroup.SelectionChanged -= OnSectionChanged;

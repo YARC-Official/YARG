@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -699,35 +699,27 @@ namespace YARG.Settings.Metadata
             if (PreviewBuilder is not TrackPreviewBuilder tpb) return;
             if (SettingsMenu.Instance?.PreviewContainerUI == null) return;
 
-            // The preview container's parent is the Sidebar. The Header is a
-            // child of the Sidebar that contains Setting Name / Description text.
-            // We add our controls container as a child of the Sidebar, positioned
-            // just below the Header and above the Preview Container.
-            var sidebar = SettingsMenu.Instance.PreviewContainerUI.parent;
-            if (sidebar == null) return;
+            var container = SettingsMenu.Instance.PreviewContainerUI;
+            if (container == null)
+            {
+                return;
+            }
 
-            // Clear any previous controls (avoids duplicates on rebuild, and
-            // removes the previous tab's dropdown when switching preset types)
-            if (PreviewControlsContainer != null)
+            if (PreviewControlsContainer != null && PreviewControlsContainer.parent == container)
             {
                 PreviewControlsContainer.DestroyChildren();
             }
             else
             {
                 var go = new GameObject("PreviewControls");
-                go.transform.SetParent(sidebar, false);
+                go.transform.SetParent(container, false);
                 var rect = go.AddComponent<RectTransform>();
 
-                // The sidebar's Header (Setting Name/Description) is a fixed
-                // 125px strip at the top. Anchor this row to the header's
-                // bottom edge in pixels (not sidebar fractions, which land
-                // inside the header at some resolutions), overlaying the top
-                // of the preview area.
                 rect.anchorMin = new Vector2(0f, 1f);
                 rect.anchorMax = new Vector2(1f, 1f);
                 rect.pivot = new Vector2(0.5f, 1f);
-                rect.offsetMin = new Vector2(20f, -199f);
-                rect.offsetMax = new Vector2(-20f, -135f);
+                rect.offsetMin = new Vector2(20f, -74f);
+                rect.offsetMax = new Vector2(-20f, -10f);
 
                 var layout = go.AddComponent<HorizontalLayoutGroup>();
                 layout.spacing = 6;
