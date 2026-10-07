@@ -189,7 +189,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 3872389268339658053}
+  m_Father: {fileID: 3290183088993509762}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -235,7 +235,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4287068259
-  m_fontColor: {r: 0.3882353, g: 0.47058824, b: 0.5294118, a: 1}
+  m_fontColor: {r: 0.5, g: 0.62, b: 0.7, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -252,10 +252,10 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 22
+  m_fontSize: 16
   m_fontSizeBase: 22
   m_fontWeight: 400
-  m_enableAutoSizing: 1
+  m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 22
   m_fontStyle: 0
@@ -311,9 +311,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.LayoutElement
   m_IgnoreLayout: 0
   m_MinWidth: -1
-  m_MinHeight: 76
+  m_MinHeight: 60
   m_PreferredWidth: -1
-  m_PreferredHeight: 76
+  m_PreferredHeight: -1
   m_FlexibleWidth: -1
   m_FlexibleHeight: 1
   m_LayoutPriority: 1
@@ -445,7 +445,7 @@ GameObject:
   - component: {fileID: 5513050876265939791}
   - component: {fileID: 8720684028357855150}
   - component: {fileID: 3655047552840867265}
-  - component: {fileID: 1823220499822922194}
+  - component: {fileID: 2376597365318065258}
   m_Layer: 5
   m_Name: Setting Name
   m_TagString: Untagged
@@ -527,12 +527,12 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 28
+  m_fontSize: 24
   m_fontSizeBase: 28
   m_fontWeight: 400
   m_enableAutoSizing: 1
-  m_fontSizeMin: 22
-  m_fontSizeMax: 28
+  m_fontSizeMin: 16
+  m_fontSizeMax: 24
   m_fontStyle: 16
   m_HorizontalAlignment: 1
   m_VerticalAlignment: 256
@@ -572,7 +572,7 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
---- !u!114 &1823220499822922194
+--- !u!114 &2376597365318065258
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -581,10 +581,17 @@ MonoBehaviour:
   m_GameObject: {fileID: 1809483297194650888}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7666ce39360a4330a733067d9e66b929, type: 3}
+  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::YARG.Localization.LocalizeText
-  _localizationKey: Preview.Title
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.LayoutElement
+  m_IgnoreLayout: 0
+  m_MinWidth: -1
+  m_MinHeight: 36
+  m_PreferredWidth: -1
+  m_PreferredHeight: 40
+  m_FlexibleWidth: -1
+  m_FlexibleHeight: 0
+  m_LayoutPriority: 1
 --- !u!1 &2659152599095069455
 GameObject:
   m_ObjectHideFlags: 0
@@ -955,6 +962,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 5513050876265939791}
+  - {fileID: 3074619470333951824}
   m_Father: {fileID: 1981843181565615172}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
@@ -1015,10 +1023,10 @@ MonoBehaviour:
   m_Padding:
     m_Left: 25
     m_Right: 25
-    m_Top: 15
-    m_Bottom: 15
-  m_ChildAlignment: 3
-  m_Spacing: 0
+    m_Top: 30
+    m_Bottom: 25
+  m_ChildAlignment: 0
+  m_Spacing: 10
   m_ChildForceExpandWidth: 1
   m_ChildForceExpandHeight: 0
   m_ChildControlWidth: 1
@@ -1164,7 +1172,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &3872389268339658053
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1178,7 +1186,6 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1179886007781910747}
-  - {fileID: 3074619470333951824}
   m_Father: {fileID: 5009541611764778104}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
@@ -1556,7 +1563,7 @@ MonoBehaviour:
   _searchHeaderText: {fileID: 5831621527235801026}
   _previewContainerWorld: {fileID: 0}
   _previewContainerUI: {fileID: 1125194357925849411}
-  _settingName: {fileID: 3002293640801153654}
+  _settingName: {fileID: 3655047552840867265}
   _settingDescription: {fileID: 5709349609861362224}
 --- !u!1 &5137344155487312910
 GameObject:
