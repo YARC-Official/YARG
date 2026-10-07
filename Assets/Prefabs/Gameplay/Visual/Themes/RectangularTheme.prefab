@@ -11082,6 +11082,7 @@ MonoBehaviour:
   - Mesh: {fileID: 3287320442275248549}
     MaterialIndex: 0
   <Animator>k__BackingField: {fileID: 4615469812679715099}
+  <HitEffect>k__BackingField: {fileID: 8881922573788954401, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
 --- !u!1 &2240317521420600101
 GameObject:
   m_ObjectHideFlags: 0
@@ -75472,7 +75473,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6000496383647664972, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
       propertyPath: _fadeOutRate
-      value: 200
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6500175386639609726, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
       propertyPath: _mode

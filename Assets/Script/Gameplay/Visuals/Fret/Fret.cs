@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using YARG.Helpers.Authoring;
 using YARG.Helpers.Extensions;
 using YARG.Themes;
 using Color = System.Drawing.Color;
@@ -21,6 +22,21 @@ namespace YARG.Gameplay.Visuals
         private static readonly int _pressed   = Animator.StringToHash("Pressed");
         private static readonly int _sustain   = Animator.StringToHash("Sustain");
         private static readonly int _secondaryPressed = Animator.StringToHash("SecondaryPressed");
+
+        // The "Hit Effects" particle group is shared with guitar/keys via the same theme prefab,
+        // so drum-specific duration/range tuning is applied here at runtime (see
+        // ApplyDrumHitEffectTuning) instead of changing the shared asset's values. Only particles
+        // with these exact names are affected, so other themes' differently-named particles are
+        // left untouched.
+        private static readonly Dictionary<string, (float Lifetime, float? Velocity)> _drumHitParticleFactors = new()
+        {
+            ["Ring"]        = (0.48f, null),
+            ["Smoke"]       = (0.48f, null),
+            ["Flash"]       = (0.48f, null),
+            ["White Smoke"] = (0.48f, null),
+            ["Sparkles"]    = (0.72f, 1.5f),
+            ["Shards"]      = (0.72f, 1.5f),
+        };
 
         // If we want info to be copied over when we copy the prefab,
         // we must make them SerializeFields.
@@ -318,6 +334,36 @@ namespace YARG.Gameplay.Visuals
         public void PlayFullWidthHitParticles()
         {
             ThemeBind.OpenHitEffect.Play();
+        }
+
+        /// <summary>
+        /// Scales this fret's hit-effect particles down to the shorter, drum-tuned
+        /// duration/range. Should only be called for drum frets (toms/cymbals).
+        /// </summary>
+        public void ApplyDrumHitEffectTuning()
+        {
+            ApplyDrumHitEffectTuning(ThemeBind.HitEffect);
+        }
+
+        /// <summary>
+        /// Scales the given hit-effect particle group down to the shorter, drum-tuned
+        /// duration/range. Also used by <see cref="KickFret"/>, which instantiates its own
+        /// copy of the hit-effect group at runtime. Only particles matching one of the names
+        /// in <see cref="_drumHitParticleFactors"/> are affected, so this is a no-op for any
+        /// unrelated particles (e.g. from another theme).
+        /// </summary>
+        public static void ApplyDrumHitEffectTuning(EffectGroup hitEffect)
+        {
+            foreach (var particle in hitEffect.EffectParticles)
+            {
+                if (!_drumHitParticleFactors.TryGetValue(particle.name, out var factors)) continue;
+
+                particle.ScaleStartLifetime(factors.Lifetime);
+                if (factors.Velocity is { } velocityFactor)
+                {
+                    particle.ScaleVelocityOverLifetime(velocityFactor);
+                }
+            }
         }
 
         public void PlayMissAnimation()

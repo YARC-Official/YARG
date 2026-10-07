@@ -157,6 +157,11 @@ namespace YARG.Gameplay.Visuals
                 }
 
                 _frets[noteType] = fretComp;
+
+                if (style is VisualStyle.FourLaneDrums or VisualStyle.FiveLaneDrums)
+                {
+                    fretComp.ApplyDrumHitEffectTuning();
+                }
             }
 
             _kickFrets.Clear();
@@ -189,7 +194,7 @@ namespace YARG.Gameplay.Visuals
                 // 0 resolves to kick in both FourLaneDrumsFret and FiveFretDrumsFret, so it isn't worth doing this the "right"
                 // way via an extra argument. If another format comes along that wants something other than 0 for the kick fret
                 // color profile index, this should be updated to remove the magic number
-                kickFret.Initialize(fretColorProvider.GetFretColor(0));
+                kickFret.Initialize(fretColorProvider.GetFretColor(0), fretColorProvider.GetParticleColor(0));
             }
         }
         #nullable restore

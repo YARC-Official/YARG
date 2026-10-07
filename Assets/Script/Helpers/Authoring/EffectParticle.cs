@@ -144,6 +144,37 @@ namespace YARG.Helpers.Authoring
             _particleSystem.Stop();
         }
 
+        // Scales this particle's start lifetime by the given factor, regardless of
+        // whether it's authored as a constant, a random range, or a curve.
+        public void ScaleStartLifetime(float factor)
+        {
+            var main = _particleSystem.main;
+            main.startLifetime = ScaleCurve(main.startLifetime, factor);
+        }
+
+        // Scales this particle's velocity-over-lifetime (x/y/z) by the given factor.
+        // No-ops if the module isn't enabled on this particle system.
+        public void ScaleVelocityOverLifetime(float factor)
+        {
+            var velocity = _particleSystem.velocityOverLifetime;
+            if (!velocity.enabled) return;
+
+            velocity.x = ScaleCurve(velocity.x, factor);
+            velocity.y = ScaleCurve(velocity.y, factor);
+            velocity.z = ScaleCurve(velocity.z, factor);
+        }
+
+        private static ParticleSystem.MinMaxCurve ScaleCurve(ParticleSystem.MinMaxCurve curve, float factor)
+        {
+            // Scale every representation so this works no matter which mode (constant,
+            // random between two constants, curve, etc.) the field is actually using.
+            curve.constant *= factor;
+            curve.constantMin *= factor;
+            curve.constantMax *= factor;
+            curve.curveMultiplier *= factor;
+            return curve;
+        }
+
         public void SetBreMode(bool breMode)
         {
             if (_breMode == breMode)

@@ -93,6 +93,17 @@ namespace YARG.Helpers.Authoring
             _light.color = c;
         }
 
+        /// <summary>
+        /// Overrides the light's hold duration (in milliseconds). Intended for runtime-cloned
+        /// instances (e.g. the kick fret's copy of the tom/cymbal hit light) that need a
+        /// different hold time than the one baked into the shared prefab.
+        /// </summary>
+        public void SetFadeOutRate(float fadeOutRate)
+        {
+            _fadeOutRate = fadeOutRate;
+            _totalDuration = _fadeOutRate * 0.001f;
+        }
+
         public void Play()
         {
             _light.intensity = GetIntensity();
