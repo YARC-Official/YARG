@@ -37,7 +37,7 @@ namespace YARG.Input.Bindings
                 {
                     bindingSet.AddBinding(key, info.Type switch
                     {
-                        BindingType.Button or BindingType.ImpulseButton or BindingType.DrumButton => new ReusableButtonBinding(info),
+                        BindingType.Button or BindingType.Impulse => new ReusableButtonBinding(info),
                         BindingType.Axis => new ReusableAxisBinding(info),
                         BindingType.Integer => new ReusableIntegerBinding(info),
                         _ => throw new ArgumentOutOfRangeException("Unreachable")

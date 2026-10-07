@@ -17,7 +17,7 @@ namespace YARG.Menu.ProfileList
         {
             return (
                 new List<string>() { Localize.Key(_bindGroup.Binding.Name) },
-                new List<string>() { Localize.Key("Menu.ProfileList.Tooltip.ButtonBindGroup", _bindGroup.Binding.Subtype.ToString()) }
+                new List<string>() { Localize.Key("Menu.ProfileList.Tooltip.ButtonBindGroup", _bindGroup.Binding.IsImpulse ? "Impulse" : "Regular") }
             );
         }
     }

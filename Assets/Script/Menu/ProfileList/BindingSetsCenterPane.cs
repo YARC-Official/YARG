@@ -228,7 +228,7 @@ namespace YARG.Menu.ProfileList
             {
                 switch (info.Type)
                 {
-                    case BindingType.Button or BindingType.ImpulseButton or BindingType.DrumButton:
+                    case BindingType.Button or BindingType.Impulse:
                         var buttonGroup = Instantiate(_buttonGroupPrefab, _bindsList);
                         buttonGroup.Init(
                             _profilesMenu,

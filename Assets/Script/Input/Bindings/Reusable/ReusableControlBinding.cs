@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEngine.InputSystem;
-using YARG.Core.Extensions;
-using YARG.Core.Game;
 using YARG.Core.Logging;
-using YARG.Helpers;
 using YARG.Input.Serialization;
 using YARG.Localization;
 

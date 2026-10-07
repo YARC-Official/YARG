@@ -15,9 +15,9 @@ namespace YARG.Input.Bindings
             { ActionStrings.FIVE_FRET_BLUE,           new(ActionStrings.FIVE_FRET_BLUE,         BindingType.Button,             (int) GuitarAction.BlueFret) },
             { ActionStrings.FIVE_FRET_ORANGE,         new(ActionStrings.FIVE_FRET_ORANGE,       BindingType.Button,             (int) GuitarAction.OrangeFret) },
 
-            { ActionStrings.GUITAR_STRUM_UP,          new(ActionStrings.GUITAR_STRUM_UP,        ActionStrings.GUITAR_STRUM_DOWN,  BindingType.Button,             (int) GuitarAction.StrumUp) },
-            { ActionStrings.GUITAR_STRUM_DOWN,        new(ActionStrings.GUITAR_STRUM_DOWN,      ActionStrings.GUITAR_STRUM_UP,    BindingType.Button,             (int) GuitarAction.StrumDown) },
-            { ActionStrings.GUITAR_STAR_POWER,        new(ActionStrings.GUITAR_STAR_POWER,      BindingType.ImpulseButton,   (int) GuitarAction.StarPower) },
+            { ActionStrings.GUITAR_STRUM_UP,          new(ActionStrings.GUITAR_STRUM_UP,        ActionStrings.GUITAR_STRUM_DOWN,BindingType.Button,             (int) GuitarAction.StrumUp) },
+            { ActionStrings.GUITAR_STRUM_DOWN,        new(ActionStrings.GUITAR_STRUM_DOWN,      ActionStrings.GUITAR_STRUM_UP,  BindingType.Button,             (int) GuitarAction.StrumDown) },
+            { ActionStrings.GUITAR_STAR_POWER,        new(ActionStrings.GUITAR_STAR_POWER,      BindingType.Button,             (int) GuitarAction.StarPower) },
             { ActionStrings.GUITAR_WHAMMY,            new(ActionStrings.GUITAR_WHAMMY,          BindingType.Axis,               (int) GuitarAction.Whammy) },
 
             { ActionStrings.FIVE_FRET_SOLO_GREEN,     new(ActionStrings.FIVE_FRET_SOLO_GREEN,   BindingType.Button,             (int) GuitarAction.SoloGreenFret,     false) },

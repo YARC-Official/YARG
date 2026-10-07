@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using YARG.Core.Input;
 using YARG.Core.Logging;
-using YARG.Input.Bindings;
 
 namespace YARG.Input.Bindings
 {
@@ -120,44 +117,39 @@ namespace YARG.Input.Bindings
         }
     }
 
-    // An impulse binding is like a button binding, but it reports only presses, and does so even
-    // if another one of its SingleBindings is being held.
-    //
-    // This honestly should probably be a sibling of RuntimeButtonBinding rather than a subclass of it,
-    // but this works for now.
+    // An impulse binding is like a button binding, with two changes:
+    //  * It sends a Pressed event whenever any of its SingleBindings is pressed, even if
+    //       another is already held. State is still aggregated, and Released events are
+    //       still only fired when the last SingleBinding is released, not per individual
+    //       release
+    //  * It includes velocity information
     public class RuntimeImpulseBinding : RuntimeButtonBinding
     {
         public event GameInputProcessed Pressed;
 
-        private double _lastPressTime = double.NegativeInfinity;
-
         public RuntimeImpulseBinding(InputDevice controller, ReusableButtonBinding reusableBinding)
             : base(controller, reusableBinding) { }
 
-        public override void UpdateForFrame(double updateTime)
-        {
-            // Do nothing; we only want to send Pressed events, not regular state transitions
-        }
-
         protected override void OnStateChanged(RuntimeSingleButtonBinding singleBinding, double time)
         {
-            if (!singleBinding.JustPressed)
-            {
-                return;
-            }
+            base.OnStateChanged(singleBinding, time);
 
-            if (time - _lastPressTime < DebounceThreshold)
+            if (singleBinding.JustPressed)
             {
-                return;
+                FirePressedEvent(time);
             }
-
-            _lastPressTime = time;
-            FirePressedEvent(time);
         }
 
-        protected virtual void FirePressedEvent(double time, float value = 1f)
+        protected virtual void FirePressedEvent(double time)
         {
-            var input = new GameInput(time, Action, value);
+            var velocity = 0f;
+
+            foreach (var binding in _bindings)
+            {
+                velocity = Math.Max(velocity, binding.Control.value);
+            }
+
+            var input = new GameInput(time, Action, true);
 
             if (!Enabled)
             {
@@ -172,29 +164,6 @@ namespace YARG.Input.Bindings
             {
                 YargLogger.LogException(ex, $"Exception when firing input event for {Key}");
             }
-        }
-    }
-
-    // A DrumPadBinding is like an ImpulseBinding, but it sends velocity information along with
-    // the Pressed event
-    //
-    // If we make Impulse a sibling of Button, this should probably stay as a child of Impulse
-    // rather than becoming yet another sibling
-    public class RuntimeDrumPadBinding : RuntimeImpulseBinding
-    {
-        public RuntimeDrumPadBinding(InputDevice controller, ReusableButtonBinding reusableBinding)
-            : base(controller, reusableBinding) { }
-
-        protected override void FirePressedEvent(double time, float value)
-        {
-            float velocity = 0f;
-
-            foreach (var binding in _bindings)
-            {
-                velocity = Math.Max(velocity, binding.Control.value);
-            }
-
-            base.FirePressedEvent(time, velocity);
         }
     }
 }

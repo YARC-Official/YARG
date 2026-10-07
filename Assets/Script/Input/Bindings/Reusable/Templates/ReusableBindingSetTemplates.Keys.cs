@@ -41,7 +41,7 @@ namespace YARG.Input.Bindings
             { ActionStrings.KEYS_FIVE_LANE_BLUE,   new(ActionStrings.KEYS_FIVE_LANE_BLUE,     BindingType.Button,           (int)ProKeysAction.BlueKey) },
             { ActionStrings.KEYS_FIVE_LANE_ORANGE, new(ActionStrings.KEYS_FIVE_LANE_ORANGE,   BindingType.Button,           (int)ProKeysAction.OrangeKey) },
 
-            { ActionStrings.KEYS_STAR_POWER,       new(ActionStrings.KEYS_STAR_POWER,         BindingType.ImpulseButton,    (int)ProKeysAction.StarPower) },
+            { ActionStrings.KEYS_STAR_POWER,       new(ActionStrings.KEYS_STAR_POWER,         BindingType.Button,           (int)ProKeysAction.StarPower) },
             { ActionStrings.KEYS_TOUCH_EFFECTS,    new(ActionStrings.KEYS_TOUCH_EFFECTS,      BindingType.Axis,             (int)ProKeysAction.TouchEffects) },
 
         };

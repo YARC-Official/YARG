@@ -811,7 +811,7 @@
 			  },
 			  "InputCalibration": {
 				  "Title": "Input Calibration",
-				  "Text": "Apply a global timing offset to all of your gameplay inputs. Higher values mean your inputs are treated as if they occurred earlier.\n\n<b><color=\"red\">Leave this at 0 unless you're sure you know what you're doing!</color></b> If you want to account for inherent latency in your audio/video setup, use the Calibration interface under <b>Settings</b>. If you want to account for the inherent latency of a specific device, do so up above under <b>Controllers</b> or <b>Microphones</b>."
+				  "Text": "Apply a global timing offset to all of your gameplay inputs. Higher values mean your inputs are treated as if they occurred earlier."
 			  },
 			  "ConfigureFourLaneDrumsHighway": {
 				  "Title": "4-Lane Drums Highway Configuration",
@@ -864,9 +864,8 @@
 			  "ButtonBindGroup": {
 				  "Title": "{0}",
 				  "Text": "{0}",
-				  "Regular": "This is a button action; its state is simply \"on\" or \"off\". Its state represents the logical OR of all the controls bound to it; that is, if at least one of them is on, then this action is considered on. Otherwise, it is off.",
-				  "Impulse": "This is an impulse action; it has no state, and only sends momentary \"pressed\" events. It sends a \"pressed\" event whenever you press any of the controls bound to it, even if another is still held. To prevent crosstalk among those controls, use the <b>Debounce Mode</b> parameter.",
-				  "Drum": "This is a drum pad action; it has no state, and only sends momentary \"hit\" events that carry velocity information. It sends a \"hit\" event whenever you press any of the controls bound to it, even if another is still held. To prevent crosstalk among those controls, use the <b>Debounce Mode</b> parameter."
+				  "Regular": "This is a button action; its state is either \"on\" or \"off\", representing the logical OR of all the controls bound to it. If at least one of them is on, then this action is considered on. Otherwise, it is off.",
+				  "Impulse": "This is an impulse action; it fires \"pressed\" events whenever you press any of its bound controls. It supports velocity information, but can also be bound with digital buttons; they will be treated as always sending maximum velocity.",
 			  },
 			  "AxisBindGroup": {
 				  "Title": "{0}",
