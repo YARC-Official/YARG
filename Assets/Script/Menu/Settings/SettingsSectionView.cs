@@ -25,7 +25,7 @@ namespace YARG.Menu.Settings
         public void ShowCurrent(bool current)
         {
             _currentMarker.SetActive(current);
-            _label.fontStyle = FontStyles.UpperCase | (current ? FontStyles.Bold : FontStyles.Normal);
+            _label.fontStyle = FontStyles.UpperCase;
             _label.color = current ? Color.white : new Color(0.5f, 0.62f, 0.7f);
         }
 
