@@ -201,7 +201,12 @@ namespace YARG.Menu.MusicLibrary
                 return;
             }
 
-            Navigator.Instance.PopScheme();
+            // The Navigator is already destroyed when this runs from OnDisable at shutdown.
+            if (Navigator.Instance != null)
+            {
+                Navigator.Instance.PopScheme();
+            }
+
             _searchNavigationActive = false;
         }
 
