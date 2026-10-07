@@ -120,7 +120,6 @@ namespace YARG.Settings
             },
             new MetadataTab("Sound", icon: "Sound")
             {
-                nameof(Settings.EffectsMode),
                 new HeaderMetadata("Volume"),
                 new FieldMetadata(nameof(Settings.EnableNormalization), isAdvanced: true),
                 nameof(Settings.MasterMusicVolume),
@@ -165,6 +164,7 @@ namespace YARG.Settings
                 nameof(Settings.UsePerformanceClaps),
 
                 new HeaderMetadata("Other"),
+                nameof(Settings.EffectsMode),
                 new FieldMetadata(nameof(Settings.UseChipmunkSpeed), isAdvanced: true),
                 new FieldMetadata(nameof(Settings.ApplyVolumesInMusicLibrary), isAdvanced: true),
                 new FieldMetadata(nameof(Settings.ApplyVolumesInMusicPlayer), isAdvanced: true),
