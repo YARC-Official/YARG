@@ -27,9 +27,6 @@ namespace YARG.Menu.Settings
         private LayoutElement _layoutElement;
 
         [SerializeField]
-        private CanvasGroup _labelGroup;
-
-        [SerializeField]
         private Transform _container;
 
         [SerializeField]
@@ -37,7 +34,6 @@ namespace YARG.Menu.Settings
 
         private NavigationGroup _navigationGroup;
         private Tween _widthTween;
-        private Tween _fadeTween;
         private readonly List<CategoryItemView> _views = new();
 
         public bool IsCollapsed { get; private set; }
@@ -62,6 +58,7 @@ namespace YARG.Menu.Settings
                 var info = categories[i];
                 var view = Instantiate(_itemPrefab, _container);
                 view.Initialize(info.Id, info.DisplayName, info.Icon);
+                view.SetLabelAlpha(IsCollapsed ? 0f : 1f, 0f);
                 _navigationGroup.AddNavigatable(view);
                 _views.Add(view);
             }
@@ -87,12 +84,14 @@ namespace YARG.Menu.Settings
             var targetAlpha = collapsed ? 0f : 1f;
 
             _widthTween?.Kill();
-            _fadeTween?.Kill();
 
             if (!animate)
             {
                 _layoutElement.preferredWidth = targetWidth;
-                _labelGroup.alpha = targetAlpha;
+                for (var i = 0; i < _views.Count; i++)
+                {
+                    _views[i].SetLabelAlpha(targetAlpha, 0f);
+                }
                 return;
             }
 
@@ -101,9 +100,10 @@ namespace YARG.Menu.Settings
                 .SetUpdate(true)
                 .SetLink(gameObject);
 
-            _fadeTween = _labelGroup.DOFade(targetAlpha, FADE_DURATION)
-                .SetUpdate(true)
-                .SetLink(gameObject);
+            for (var i = 0; i < _views.Count; i++)
+            {
+                _views[i].SetLabelAlpha(targetAlpha, FADE_DURATION);
+            }
         }
 
         private void OnSelectionChanged(NavigatableBehaviour selected, SelectionOrigin origin)

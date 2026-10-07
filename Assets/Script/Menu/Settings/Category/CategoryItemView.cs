@@ -20,6 +20,8 @@ namespace YARG.Menu.Settings
         [SerializeField]
         private CanvasGroup _labelCanvasGroup;
 
+        private Tween _fadeTween;
+
         public string CategoryId { get; private set; }
 
         public CanvasGroup LabelCanvasGroup => _labelCanvasGroup;
@@ -29,6 +31,20 @@ namespace YARG.Menu.Settings
             CategoryId = categoryId;
             _label.text = displayName;
             _icon.sprite = icon;
+        }
+
+        public void SetLabelAlpha(float alpha, float duration)
+        {
+            _fadeTween?.Kill();
+            if (duration <= 0f)
+            {
+                _labelCanvasGroup.alpha = alpha;
+                return;
+            }
+
+            _fadeTween = _labelCanvasGroup.DOFade(alpha, duration)
+                .SetUpdate(true)
+                .SetLink(gameObject);
         }
 
         public void ShowCurrent(bool current)

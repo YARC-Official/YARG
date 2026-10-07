@@ -110,7 +110,6 @@ GameObject:
   - component: {fileID: 1485681949388501630}
   - component: {fileID: 3199358082662617570}
   - component: {fileID: 5693842548033363261}
-  - component: {fileID: 5604844063687098848}
   - component: {fileID: 492293609922752252}
   - component: {fileID: 2187250397017073487}
   m_Layer: 0
@@ -239,18 +238,6 @@ MonoBehaviour:
   m_FlexibleWidth: 0
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
---- !u!225 &5604844063687098848
-CanvasGroup:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 514718899364556283}
-  m_Enabled: 1
-  m_Alpha: 1
-  m_Interactable: 1
-  m_BlocksRaycasts: 1
-  m_IgnoreParentGroups: 0
 --- !u!114 &492293609922752252
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -280,7 +267,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Settings.CategorySidebar
   _layoutElement: {fileID: 5693842548033363261}
-  _labelGroup: {fileID: 5604844063687098848}
+  _labelGroup: {fileID: 0}
   _container: {fileID: 2342173219021237218}
   _itemPrefab: {fileID: 3324120391518255503, guid: ea0a4ecdf12d3055890894c08b89a1be, type: 3}
 --- !u!1 &835214714333699635
@@ -1597,8 +1584,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: -25, y: 0}
-  m_SizeDelta: {x: 330, y: 64}
+  m_AnchoredPosition: {x: -30, y: 0}
+  m_SizeDelta: {x: 380, y: 56}
   m_Pivot: {x: 1, y: 0.5}
 --- !u!222 &7833736122690914910
 CanvasRenderer:
@@ -3290,6 +3277,10 @@ PrefabInstance:
     - target: {fileID: 3502089223560988592, guid: 0dab2d5fd611fdb4bb5ca54e023d39b7, type: 3}
       propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
       value: 1801810542
+      objectReference: {fileID: 0}
+    - target: {fileID: 3732684477406089615, guid: 0dab2d5fd611fdb4bb5ca54e023d39b7, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4363295123270859101, guid: 0dab2d5fd611fdb4bb5ca54e023d39b7, type: 3}
       propertyPath: m_Name
