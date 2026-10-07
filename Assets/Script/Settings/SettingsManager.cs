@@ -97,10 +97,11 @@ namespace YARG.Settings
             },
             new SongManagerTab("SongManager", icon: "Songs")
             {
+                new HeaderMetadata("SongFolders"),
                 new HeaderMetadata("ScanningOptions"),
-                nameof(Settings.AllowDuplicateSongs),
-                nameof(Settings.UseFullDirectoryForPlaylists),
-                nameof(Settings.Genrelizer),
+                new FieldMetadata(nameof(Settings.AllowDuplicateSongs), requiresRescan: true),
+                new FieldMetadata(nameof(Settings.UseFullDirectoryForPlaylists), requiresRescan: true),
+                new FieldMetadata(nameof(Settings.Genrelizer), requiresRescan: true),
                 new HeaderMetadata("LibraryDisplay"),
                 nameof(Settings.ShowFavoriteButton),
                 nameof(Settings.DifficultyRings),
@@ -182,7 +183,7 @@ namespace YARG.Settings
                 nameof(Settings.Resolution),
                 new FieldMetadata(nameof(Settings.FpsStats), isAdvanced: true),
 
-                new HeaderMetadata("Graphics"),
+                new HeaderMetadata("Graphics", showPreview: true),
                 nameof(Settings.LowQuality),
                 new FieldMetadata(nameof(Settings.DisableBloom), isAdvanced: true),
                 new FieldMetadata(nameof(Settings.DisableFilmGrain), isAdvanced: true),
@@ -193,7 +194,7 @@ namespace YARG.Settings
                 new FieldMetadata(nameof(Settings.VenuePostProcessing), isAdvanced: true),
                 nameof(Settings.ReduceFlashingLights),
 
-                new HeaderMetadata("Gameplay"),
+                new HeaderMetadata("Gameplay", showPreview: true),
                 nameof(Settings.StaticVocalsMode),
                 new FieldMetadata(nameof(Settings.UseThreeLaneLyricsInHarmony), isAdvanced: true),
                 nameof(Settings.EnableTrackEffects),
@@ -201,7 +202,7 @@ namespace YARG.Settings
                 new FieldMetadata(nameof(Settings.KickBounceMultiplier), isAdvanced: true),
                 new FieldMetadata(nameof(Settings.HighwayTiltMultiplier), isAdvanced: true),
 
-                new HeaderMetadata("HUD"),
+                new HeaderMetadata("HUD", showPreview: true),
                 new FieldMetadata(nameof(Settings.ShowHitWindow), isAdvanced: true),
                 nameof(Settings.DisableTextNotifications),
                 nameof(Settings.NoteStreakFrequency),
@@ -244,11 +245,11 @@ namespace YARG.Settings
             },
             new MetadataTab("LightingPeripherals", icon: "Lighting", new DMXInformationPanelBuilder())
             {
-                new HeaderMetadata("LightingGeneral"),
+                new HeaderMetadata("LightingGeneral", showPreview: true),
                 nameof(Settings.StageKitEnabled),
                 nameof(Settings.DMXEnabled),
                 nameof(Settings.RB3EEnabled),
-                new HeaderMetadata("StageKitDMXChannels"),
+                new HeaderMetadata("StageKitDMXChannels", showPreview: true),
                 nameof(Settings.DMXDimmerChannels),
                 nameof(Settings.DMXRedChannels),
                 nameof(Settings.DMXGreenChannels),
@@ -256,7 +257,7 @@ namespace YARG.Settings
                 nameof(Settings.DMXYellowChannels),
                 nameof(Settings.DMXFogChannels),
                 nameof(Settings.DMXStrobeChannels),
-                new HeaderMetadata("AdvancedDMXChannels"),
+                new HeaderMetadata("AdvancedDMXChannels", showPreview: true),
                 nameof(Settings.DMXCueChangeChannel),
                 nameof(Settings.DMXPostProcessingChannel),
                 nameof(Settings.DMXKeyframeChannel),
@@ -266,7 +267,7 @@ namespace YARG.Settings
                 nameof(Settings.DMXGuitarChannel),
                 nameof(Settings.DMXBassChannel),
                 nameof(Settings.DMXKeysChannel),
-                new HeaderMetadata("AdvancedDMXSettings"),
+                new HeaderMetadata("AdvancedDMXSettings", showPreview: true),
                 nameof(Settings.DMXLocalIP),
                 nameof(Settings.DMXUniverseChannel),
                 nameof(Settings.DMXDimmerValues),
@@ -275,7 +276,7 @@ namespace YARG.Settings
 
                 //NYI
                 //nameof(Settings.DMXPerformerChannel)
-                new HeaderMetadata("RB3E"),
+                new HeaderMetadata("RB3E", showPreview: true),
                 nameof(Settings.RB3EBroadcastIP),
 
             },

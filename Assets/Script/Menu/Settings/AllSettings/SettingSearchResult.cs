@@ -2,6 +2,7 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 using YARG.Menu.Navigation;
+using YARG.Localization;
 
 namespace YARG.Menu.Settings.AllSettings
 {
@@ -10,17 +11,22 @@ namespace YARG.Menu.Settings.AllSettings
         [SerializeField]
         private TextMeshProUGUI _settingText;
 
-        private string _tab;
-        private int _index;
-        private bool _isAdvanced;
+        [SerializeField]
+        private TextMeshProUGUI _locationText;
 
-        public void Initialize(string localizedName, string tab, int index, bool isAdvanced)
+        private string _tab;
+        private string _searchName;
+
+        public void Initialize(string localizedName, string tab, string searchName, string section)
         {
             _settingText.text = localizedName;
+            var category = Localize.Key("Settings.Tab", tab);
+            _locationText.text = section.Length > 0
+                ? $"{category} › {Localize.Key("Settings.Header", section)}"
+                : category;
 
             _tab = tab;
-            _index = index;
-            _isAdvanced = isAdvanced;
+            _searchName = searchName;
         }
 
         public override void OnPointerDown(PointerEventData eventData)
@@ -29,20 +35,6 @@ namespace YARG.Menu.Settings.AllSettings
             Confirm();
         }
 
-        public override void Confirm()
-        {
-            if (_isAdvanced)
-            {
-                SettingsMenu.Instance.EnableAdvanced(true);
-            }
-
-            SettingsMenu.Instance.SelectTabByName(_tab);
-            SettingsMenu.Instance.SelectSettingByIndex(_index);
-
-            if (_isAdvanced)
-            {
-                SettingsMenu.Instance.RefreshNavigationScheme();
-            }
-        }
+        public override void Confirm() => SettingsMenu.Instance.SelectSetting(_tab, _searchName);
     }
 }

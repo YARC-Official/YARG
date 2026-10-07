@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -21,6 +22,11 @@ namespace YARG.Settings.Metadata
         private readonly List<AbstractMetadata> _settings = new();
 
         public IReadOnlyList<AbstractMetadata> Settings => _settings;
+        public override IReadOnlyList<HeaderMetadata> Sections =>
+            _settings.OfType<HeaderMetadata>().Where(header => header.IsVisible).ToArray();
+
+        public override bool HasPreview => base.HasPreview && Sections.Any(section =>
+            section.HeaderName == SettingsMenu.Instance.CurrentSection && section.ShowPreview);
 
         public MetadataTab(string name, string icon = "Generic", IPreviewBuilder previewBuilder = null)
             : base(name, icon, previewBuilder)
@@ -31,13 +37,19 @@ namespace YARG.Settings.Metadata
         {
             _settingVisuals.Clear();
 
-            var showAdvanced = SettingsMenu.Instance.ShowAdvanced;
+            var section = SettingsMenu.Instance.CurrentSection;
+            var inSection = section.Length == 0;
             var settingIndex = 0;
 
             // Once we've found the tab, add the settings
             foreach (var settingMetadata in _settings)
             {
-                if (!settingMetadata.IsVisible || (settingMetadata.IsAdvanced && !showAdvanced))
+                if (settingMetadata is HeaderMetadata sectionHeader)
+                {
+                    inSection = sectionHeader.HeaderName == section;
+                }
+
+                if (!inSection || !settingMetadata.IsVisible)
                 {
                     continue;
                 }
@@ -102,8 +114,13 @@ namespace YARG.Settings.Metadata
 
                         var visual = SpawnSettingVisual(setting, container);
                         visual.AssignSetting(field.FieldName, field.HasDescription);
+                        if (field.RequiresRescan)
+                        {
+                            var notice = Localize.Key("Menu.Settings.RequiresRescan");
+                            visual.SettingLabel.text += $"\n<size=70%><color=#829FAF>{notice}</color></size>";
+                        }
                         visual.AssignIndex(settingIndex);
-                        visual.ShowAdvancedMarker(field.IsAdvanced);
+                        visual.ShowAdvancedMarker(false);
                         visual.SetEditable(setting.IsEditable);
 
                         _settingVisuals.Add(field.FieldName, visual);

@@ -61,7 +61,7 @@ namespace YARG.Menu.Navigation
         {
             if (_defaultGroup)
             {
-                _navGroupsStack.Add(this);
+                PushNavGroupToStack();
             }
 
             if (_selectFirst && SelectedBehaviour == null)
@@ -73,10 +73,7 @@ namespace YARG.Menu.Navigation
         private void OnDisable()
         {
             // Remove this navigation group from the stack
-            if (_navGroupsStack.Contains(this))
-            {
-                _navGroupsStack.Remove(this);
-            }
+            _navGroupsStack.Remove(this);
         }
 
         private void _AddNavigatable(NavigatableBehaviour navigatable)
@@ -289,6 +286,7 @@ namespace YARG.Menu.Navigation
         {
             if (_canBeCurrent && CurrentNavigationGroup != this)
             {
+                _navGroupsStack.Remove(this);
                 _navGroupsStack.Add(this);
             }
         }
@@ -300,8 +298,8 @@ namespace YARG.Menu.Navigation
                 return;
             }
 
+            _navGroupsStack.RemoveAt(_navGroupsStack.Count - 1);
             ClearSelection();
-            _navGroupsStack.Remove(this);
         }
     }
 }

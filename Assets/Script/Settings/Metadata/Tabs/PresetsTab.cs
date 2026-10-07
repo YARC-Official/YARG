@@ -160,6 +160,8 @@ namespace YARG.Settings.Metadata
             _watcher = null;
         }
 
+        public override bool HasPreview => CurrentSubTab?.HasPreview == true;
+
         public override void BuildSettingTab(Transform settingContainer, NavigationGroup navGroup)
         {
             if (_presetTypeDropdown == null)

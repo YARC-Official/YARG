@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Cysharp.Threading.Tasks;
-using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -33,7 +33,17 @@ namespace YARG.Menu.Settings
 
         [Space]
         [SerializeField]
-        private GameObject _searchBarContainer;
+        private Transform _sectionsContainer;
+        [SerializeField]
+        private NavigationGroup _sectionsNavGroup;
+        [SerializeField]
+        private SettingsSectionView _sectionPrefab;
+        [SerializeField]
+        private GameObject _sectionsPanel;
+        [SerializeField]
+        private GameObject _previewPanel;
+
+        [Space]
         [SerializeField]
         private TMP_InputField _searchBar;
         [SerializeField]
@@ -69,25 +79,13 @@ namespace YARG.Menu.Settings
         private bool _ready;
         private bool _tabsInitialized;
         private string _pendingTabName;
+        private int _previewVersion;
 
-        private bool _showAdvanced;
+        private readonly Dictionary<string, string> _selectedSections = new();
+        private readonly Dictionary<(string Tab, string Section), (int? Index, float Scroll)> _positions = new();
 
-        public bool ShowAdvanced
-        {
-            get => SettingsManager.Settings?.ShowAdvancedSettings?.Value ?? _showAdvanced;
-            private set
-            {
-                var setting = SettingsManager.Settings?.ShowAdvancedSettings;
-                if (setting != null)
-                {
-                    setting.SetValueWithoutNotify(value);
-                }
-                else
-                {
-                    _showAdvanced = value;
-                }
-            }
-        }
+        public string CurrentSection { get; private set; } = string.Empty;
+        private bool IsSearching => SearchQuery.Length > 0;
 
         public static void OpenOnNextMenuLoad()
         {
@@ -174,12 +172,11 @@ namespace YARG.Menu.Settings
                 return;
             }
 
-            _showAdvanced = ShowAdvanced;
-
             _headerTabs.RefreshTabs();
             _headerTabs.TabChanged += OnTabChanged;
 
             _settingsNavGroup.SelectionChanged += OnSelectionChanged;
+            _sectionsNavGroup.SelectionChanged += OnSectionChanged;
 
             // Set navigation scheme
             PushNavigationScheme();
@@ -196,9 +193,7 @@ namespace YARG.Menu.Settings
                 }
                 else
                 {
-                    CurrentTab = SettingsManager.DisplayedSettingsTabs[0];
-                    _searchBarContainer.SetActive(false);
-                    Refresh();
+                    SelectTab(SettingsManager.DisplayedSettingsTabs[0]);
                 }
             }
         }
@@ -210,16 +205,129 @@ namespace YARG.Menu.Settings
 
         private void SelectTab(Tab tab)
         {
+            SavePosition();
             CurrentTab?.OnTabExit();
-
+            _searchBar.SetTextWithoutNotify(string.Empty);
             CurrentTab = tab;
+            BuildSections();
             Refresh();
+            FocusSections();
+            CurrentTab.OnTabEnter();
+        }
 
-            CurrentTab?.OnTabEnter();
+        private void BuildSections()
+        {
+            _sectionsNavGroup.ClearNavigatables();
+            foreach (Transform child in _sectionsContainer)
+            {
+                child.gameObject.SetActive(false);
+                Destroy(child.gameObject);
+            }
+            var sections = CurrentTab.Sections;
+            _sectionsPanel.SetActive(sections.Count > 0);
+            CurrentSection = string.Empty;
+            foreach (var section in sections)
+            {
+                var view = Instantiate(_sectionPrefab, _sectionsContainer);
+                view.Initialize(section.HeaderName);
+                _sectionsNavGroup.AddNavigatable(view);
+            }
 
-            _searchBarContainer.SetActive(CurrentTab?.ShowSearchBar ?? false);
-            _searchBar.text = string.Empty;
-            OnSearchBarChanged();
+            Canvas.ForceUpdateCanvases();
+            var scroll = _sectionsNavGroup.GetComponent<ScrollRect>();
+            scroll.StopMovement();
+            scroll.verticalNormalizedPosition = 1f;
+
+            if (sections.Count > 0)
+            {
+                CurrentSection = _selectedSections.TryGetValue(CurrentTab.Name, out var selected)
+                    ? selected
+                    : sections[0].HeaderName;
+                var index = sections.ToList().FindIndex(section => section.HeaderName == CurrentSection);
+                _sectionsNavGroup.SelectAt(index);
+            }
+        }
+
+        private void OnSectionChanged(NavigatableBehaviour selected, SelectionOrigin origin)
+        {
+            if (selected is SettingsSectionView view)
+            {
+                if (origin == SelectionOrigin.Mouse)
+                {
+                    SavePosition();
+                    _settingsNavGroup.SelectLastNavGroup();
+                }
+
+                if (view.Section == CurrentSection)
+                {
+                    return;
+                }
+
+                SavePosition();
+                CurrentSection = view.Section;
+                _selectedSections[CurrentTab.Name] = CurrentSection;
+                _searchBar.SetTextWithoutNotify(string.Empty);
+                Refresh();
+            }
+        }
+
+        private void SavePosition()
+        {
+            if (CurrentTab != null && !IsSearching && _settingsNavGroup.SelectedIndex != null)
+            {
+                _positions[(CurrentTab.Name, CurrentSection)] =
+                    (_settingsNavGroup.SelectedIndex, _scrollRect.verticalNormalizedPosition);
+            }
+        }
+
+        public void EnterSettings()
+        {
+            _sectionsNavGroup.SelectLastNavGroup();
+            _settingsNavGroup.PushNavGroupToStack();
+            if (_settingsNavGroup.Count > 0 &&
+                _positions.TryGetValue((CurrentTab.Name, CurrentSection), out var position))
+            {
+                _settingsNavGroup.SelectAt(index: Math.Min(position.Index ?? 0, _settingsNavGroup.Count - 1),
+                    selectionOrigin: SelectionOrigin.Navigation);
+            }
+            else
+            {
+                _settingsNavGroup.SelectFirst(SelectionOrigin.Navigation);
+            }
+        }
+
+        private void FocusSections()
+        {
+            if (_sectionsPanel.activeSelf)
+            {
+                SavePosition();
+                _settingsNavGroup.SelectLastNavGroup();
+                _sectionsNavGroup.PushNavGroupToStack();
+                var index = CurrentTab.Sections.ToList().FindIndex(section => section.HeaderName == CurrentSection);
+                _sectionsNavGroup.SelectAt(index: index, selectionOrigin: SelectionOrigin.Navigation);
+            }
+            else
+            {
+                EnterSettings();
+            }
+        }
+
+        private void Back()
+        {
+            if (IsSearching)
+            {
+                _searchBar.SetTextWithoutNotify(string.Empty);
+                Refresh();
+                FocusSections();
+            }
+            else if (_sectionsPanel.activeSelf && NavigationGroup.CurrentNavigationGroup != _sectionsNavGroup)
+            {
+                FocusSections();
+            }
+            else
+            {
+                gameObject.SetActive(false);
+            }
         }
 
         public void SelectTabByName(string name)
@@ -247,19 +355,63 @@ namespace YARG.Menu.Settings
             }
         }
 
-        public void SelectSettingByIndex(int index)
+        public void SelectSetting(string tabName, string searchName)
         {
-            // Force it to be the navigation selection type so the scroll view properly updates
-            _settingsNavGroup.SelectAt(index, SelectionOrigin.Navigation);
+            SelectTabByName(tabName);
+            if (IsSearching)
+            {
+                _searchBar.SetTextWithoutNotify(string.Empty);
+                Refresh();
+            }
+            var tab = (MetadataTab) CurrentTab;
+            var section = string.Empty;
+            var index = 0;
+            foreach (var metadata in tab.Settings)
+            {
+                // Since the header can't be selected, we gotta skip that
+                // for the navigation index.
+                if (metadata is HeaderMetadata header)
+                {
+                    section = header.HeaderName;
+                    index = 0;
+                    continue;
+                }
+
+                if (!metadata.IsVisible)
+                {
+                    continue;
+                }
+
+                if (metadata.UnlocalizedSearchNames?.Contains(searchName) == true)
+                {
+                    var sectionIndex = tab.Sections.ToList().FindIndex(header => header.HeaderName == section);
+                    if (section.Length > 0)
+                    {
+                        _sectionsNavGroup.SelectAt(sectionIndex);
+                    }
+                    EnterSettings();
+                    // Force it to be the navigation selection type so the scroll view properly updates
+                    _settingsNavGroup.SelectAt(index: index, selectionOrigin: SelectionOrigin.Navigation);
+                    return;
+                }
+
+                if (metadata is FieldMetadata || metadata is ButtonRowMetadata)
+                {
+                    index++;
+                }
+            }
         }
 
         private void OnSelectionChanged(NavigatableBehaviour selected, SelectionOrigin selectionOrigin)
         {
-            if (selected == null || CurrentTab == null)
+            if (selected == null)
             {
-                _settingName.text = string.Empty;
-                _settingDescription.text = string.Empty;
                 return;
+            }
+
+            if (selectionOrigin == SelectionOrigin.Mouse)
+            {
+                _sectionsNavGroup.SelectLastNavGroup();
             }
 
             // Most setting rows carry a BaseSettingNavigatable, but some (e.g. the
@@ -300,27 +452,46 @@ namespace YARG.Menu.Settings
         public void RefreshPreview(bool waitForResolution = false)
         {
             // Prevent errors if this gets called when the settings aren't opened
-            if (!_ready || !gameObject.activeSelf) return;
+            if (!_ready || !gameObject.activeSelf)
+            {
+                return;
+            }
 
-            UpdatePreview(CurrentTab, waitForResolution).Forget();
+            UpdatePreview(tabInfo: CurrentTab, waitForResolution: waitForResolution,
+                version: ++_previewVersion).Forget();
         }
 
         public void Refresh()
         {
+            if (!isActiveAndEnabled)
+            {
+                return;
+            }
+
+            UpdateLayout();
             UpdateSettings(true);
             RefreshPreview();
         }
 
         public void RefreshAndKeepPosition()
         {
-            // Everything gets recreated, so we must cache the index before hand
-            int? beforeIndex = _settingsNavGroup.SelectedIndex;
+            if (!isActiveAndEnabled)
+            {
+                return;
+            }
 
+            // Everything gets recreated, so we must cache the index before hand
+            var beforeIndex = _settingsNavGroup.SelectedIndex;
+
+            UpdateLayout();
             UpdateSettings(false);
             RefreshPreview();
 
             // Restore selection
-            _settingsNavGroup.SelectAt(beforeIndex);
+            if (_settingsNavGroup.Count > 0)
+            {
+                _settingsNavGroup.SelectAt(Math.Min(beforeIndex ?? 0, _settingsNavGroup.Count - 1));
+            }
         }
 
         /// <summary>
@@ -330,43 +501,148 @@ namespace YARG.Menu.Settings
         /// </summary>
         public void RefreshSettingsKeepPosition()
         {
-            int? beforeIndex = _settingsNavGroup.SelectedIndex;
+            if (!isActiveAndEnabled)
+            {
+                return;
+            }
+
+            var beforeIndex = _settingsNavGroup.SelectedIndex;
 
             UpdateSettings(false);
 
-            _settingsNavGroup.SelectAt(beforeIndex);
+            if (_settingsNavGroup.Count > 0)
+            {
+                _settingsNavGroup.SelectAt(Math.Min(beforeIndex ?? 0, _settingsNavGroup.Count - 1));
+            }
         }
 
         private void UpdateSettings(bool resetScroll)
         {
-            _showAdvanced = ShowAdvanced;
+            _settingName.text = IsSearching
+                ? Localize.Key("Menu.Settings.SearchHeader.Results")
+                : CurrentSection.Length > 0
+                    ? Localize.Key("Settings.Header", CurrentSection)
+                    : Localize.Key("Settings.Tab", CurrentTab.Name);
+            _settingDescription.text = string.Empty;
+
+            foreach (var view in _sectionsContainer.GetComponentsInChildren<SettingsSectionView>())
+            {
+                view.ShowCurrent(view.Section == CurrentSection);
+            }
 
             _settingsNavGroup.ClearNavigatables();
 
             // Destroy all previous settings
-            _settingsContainer.DestroyChildren();
+            foreach (Transform child in _settingsContainer)
+            {
+                child.gameObject.SetActive(false);
+                Destroy(child.gameObject);
+            }
 
             // Build the settings tab
-            CurrentTab?.BuildSettingTab(_settingsContainer, _settingsNavGroup);
+            var tab = IsSearching ? SettingsManager.GetTabByName("AllSettings") : CurrentTab;
+            tab?.BuildSettingTab(_settingsContainer, _settingsNavGroup);
+            var visuals = _settingsContainer.GetComponentsInChildren<BaseSettingVisual>();
+            _settingName.transform.parent.gameObject.SetActive(visuals.Length > 0);
+            Canvas.ForceUpdateCanvases();
+
+            if (tab is MetadataTab)
+            {
+                foreach (var visual in visuals)
+                {
+                    var row = (RectTransform) visual.transform;
+                    row.sizeDelta = new Vector2(x: row.sizeDelta.x, y: 84f);
+                    var width = visual is DMXChannelsSettingVisual
+                        ? row.rect.width * 0.7f
+                        : Mathf.Min(a: 440f, b: row.rect.width * 0.45f);
+                    var controls = (RectTransform) row.Find("Container");
+                    controls.anchorMin = new Vector2(x: 1f, y: 0f);
+                    controls.anchorMax = Vector2.one;
+                    controls.pivot = new Vector2(x: 1f, y: 0.5f);
+                    controls.anchoredPosition = new Vector2(x: -25f, y: 0f);
+                    controls.sizeDelta = new Vector2(x: width, y: 0f);
+                    var label = visual.SettingLabel;
+                    label.rectTransform.anchorMin = Vector2.zero;
+                    label.rectTransform.anchorMax = Vector2.one;
+                    label.rectTransform.offsetMin = new Vector2(x: 25f, y: 8f);
+                    label.rectTransform.offsetMax = new Vector2(x: -width - 50f, y: -8f);
+                    label.enableAutoSizing = true;
+                    label.fontSizeMax = 24f;
+                    label.fontSizeMin = 18f;
+                    foreach (var slider in visual.GetComponentsInChildren<ValueSlider>())
+                    {
+                        var track = (RectTransform) slider.GetComponentInChildren<Slider>().transform;
+                        track.sizeDelta = new Vector2(x: -165f, y: track.sizeDelta.y);
+                        track.anchoredPosition = new Vector2(x: -82.5f, y: 0f);
+                        var value = slider.GetComponentInChildren<TMP_InputField>();
+                        var entry = (RectTransform) value.transform.parent;
+                        entry.anchorMin = new Vector2(x: 1f, y: 0f);
+                        entry.anchorMax = Vector2.one;
+                        entry.pivot = new Vector2(x: 1f, y: 0.5f);
+                        entry.anchoredPosition = Vector2.zero;
+                        entry.sizeDelta = new Vector2(x: 140f, y: 0f);
+                        value.textComponent.enableAutoSizing = true;
+                        value.textComponent.fontSizeMax = 28f;
+                        value.textComponent.fontSizeMin = 18f;
+                    }
+                    if (visual is DMXChannelsSettingVisual)
+                    {
+                        foreach (var input in visual.GetComponentsInChildren<TMP_InputField>())
+                        {
+                            input.textViewport.offsetMin = new Vector2(x: 8f, y: 7f);
+                            input.textViewport.offsetMax = new Vector2(x: -8f, y: -7f);
+                            input.textComponent.enableAutoSizing = true;
+                            input.textComponent.fontSizeMax = 24f;
+                            input.textComponent.fontSizeMin = 18f;
+                        }
+                    }
+                    foreach (var dropdown in visual.GetComponentsInChildren<TMP_Dropdown>())
+                    {
+                        var caption = dropdown.captionText;
+                        caption.enableAutoSizing = true;
+                        caption.fontSizeMax = 28f;
+                        caption.fontSizeMin = 18f;
+                        caption.overflowMode = TextOverflowModes.Ellipsis;
+                    }
+                }
+                Canvas.ForceUpdateCanvases();
+            }
 
             if (resetScroll)
             {
                 // Make the settings nav group the main one
+                _scrollRect.StopMovement();
                 _settingsNavGroup.SelectFirst();
 
-                _scrollRect.verticalNormalizedPosition = 1f;
+                if (!IsSearching && _positions.TryGetValue((CurrentTab.Name, CurrentSection), out var position))
+                {
+                    if (_settingsNavGroup.Count > 0)
+                    {
+                        _settingsNavGroup.SelectAt(Math.Min(position.Index ?? 0, _settingsNavGroup.Count - 1));
+                    }
+                    _scrollRect.verticalNormalizedPosition = position.Scroll;
+                }
+                else
+                {
+                    _scrollRect.verticalNormalizedPosition = 1f;
+                }
             }
         }
 
-        private void SmoothScrollToTop()
+        private void UpdateLayout()
         {
-            _scrollRect.DOKill();
-            _scrollRect
-                .DOVerticalNormalizedPos(1f, 0.4f)
-                .SetEase(Ease.OutCubic);
+            var preview = !IsSearching && CurrentTab.HasPreview;
+            _previewPanel.SetActive(preview);
+            _previewPanel.GetComponent<LayoutElement>().preferredWidth = CurrentTab is PresetsTab ? 800f : 640f;
+            _sectionsPanel.SetActive(!IsSearching && CurrentTab.Sections.Count > 0);
+            _searchHeaderText.transform.parent.gameObject.SetActive(IsSearching || CurrentTab is AllSettingsTab);
+            if (IsSearching)
+            {
+                _settingsNavGroup.PushNavGroupToStack();
+            }
         }
 
-        private async UniTask UpdatePreview(Tab tabInfo, bool waitForResolution)
+        private async UniTask UpdatePreview(Tab tabInfo, bool waitForResolution, int version)
         {
             // When Unity changes resolution, it takes two frames to apply it correctly.
             if (waitForResolution)
@@ -375,14 +651,25 @@ namespace YARG.Menu.Settings
                 await UniTask.WaitForEndOfFrame(this);
             }
 
+            if (version != _previewVersion)
+            {
+                return;
+            }
+
             DestroyPreview();
 
-            if (CurrentTab == null)
+            if (!_previewPanel.activeSelf)
+            {
                 return;
+            }
 
             // Spawn world preview
             _previewContainerWorld.gameObject.SetActive(true);
             await tabInfo.BuildPreviewWorld(_previewContainerWorld);
+            if (version != _previewVersion)
+            {
+                return;
+            }
 
             // Set render texture(s)
             CameraPreviewTexture.SetAllPreviews();
@@ -401,7 +688,10 @@ namespace YARG.Menu.Settings
 
         public void OnSettingChanged()
         {
-            if (!_ready || !gameObject.activeSelf) return;
+            if (!_ready || !gameObject.activeSelf)
+            {
+                return;
+            }
 
             CurrentTab?.OnSettingChanged();
             SettingChanged?.Invoke();
@@ -420,7 +710,7 @@ namespace YARG.Menu.Settings
             }
 
             // Refresh on search
-            if (CurrentTab?.ShowSearchBar ?? false)
+            if (CurrentTab != null)
             {
                 Refresh();
             }
@@ -428,47 +718,15 @@ namespace YARG.Menu.Settings
 
         private void PushNavigationScheme()
         {
-            string advancedKey = ShowAdvanced
-                ? "Menu.Settings.HideAdvanced"
-                : "Menu.Settings.ShowAdvanced";
-
             _ = Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
                 NavigationScheme.Entry.NavigateSelect,
-                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", () =>
-                {
-                    gameObject.SetActive(false);
-                }, hide: true),
+                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back),
                 NavigationScheme.Entry.NavigateUp,
                 NavigationScheme.Entry.NavigateDown,
                 _headerTabs.NavigateNextTab,
-                _headerTabs.NavigatePreviousTab,
-                new NavigationScheme.Entry(MenuAction.Blue, advancedKey, ToggleAdvanced)
+                _headerTabs.NavigatePreviousTab
             }, true));
-        }
-
-        public void EnableAdvanced(bool isEnabled)
-        {
-            if (isEnabled == ShowAdvanced)
-            {
-                return;
-            }
-
-            ShowAdvanced = isEnabled;
-        }
-
-        public void RefreshNavigationScheme()
-        {
-            Navigator.Instance.PopScheme();
-            PushNavigationScheme();
-        }
-
-        private void ToggleAdvanced()
-        {
-            EnableAdvanced(!ShowAdvanced);
-            RefreshNavigationScheme();
-            RefreshAndKeepPosition();
-            SmoothScrollToTop();
         }
 
         private void OnDisable()
@@ -479,6 +737,8 @@ namespace YARG.Menu.Settings
             }
 
             // Set the current tab back to null to avoid calling OnTabExit twice
+            SavePosition();
+            _previewVersion++;
             CurrentTab?.OnTabExit();
             CurrentTab = null;
 
@@ -487,6 +747,7 @@ namespace YARG.Menu.Settings
             _headerTabs.TabChanged -= OnTabChanged;
 
             _settingsNavGroup.SelectionChanged -= OnSelectionChanged;
+            _sectionsNavGroup.SelectionChanged -= OnSectionChanged;
 
             // Save on close
             SettingsManager.SaveSettings();

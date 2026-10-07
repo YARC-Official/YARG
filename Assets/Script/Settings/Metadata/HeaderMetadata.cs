@@ -5,11 +5,13 @@ namespace YARG.Settings.Metadata
         public override string[] UnlocalizedSearchNames => null;
 
         public string HeaderName { get; private set; }
+        public bool ShowPreview { get; }
 
-        public HeaderMetadata(string headerName, bool isAdvanced = false)
+        public HeaderMetadata(string headerName, bool isAdvanced = false, bool showPreview = false)
             : base(isAdvanced)
         {
             HeaderName = headerName;
+            ShowPreview = showPreview;
         }
     }
 }
