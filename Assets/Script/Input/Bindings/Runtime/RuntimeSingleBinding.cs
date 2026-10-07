@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using UnityEngine.InputSystem;
-using YARG.Core.Logging;
-using YARG.Input.Bindings;
 
 namespace YARG.Input.Bindings
 {

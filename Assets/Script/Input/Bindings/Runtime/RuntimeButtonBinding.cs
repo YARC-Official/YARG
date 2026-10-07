@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using YARG.Core.Input;
 using YARG.Core.Logging;
-using YARG.Input.Bindings;
 
 namespace YARG.Input.Bindings
 {
@@ -146,7 +143,7 @@ namespace YARG.Input.Bindings
                 return;
             }
 
-            if (time - _lastPressTime < DebounceThreshold)
+            if (time - _lastPressTime < DebounceThreshold / 1000.0)
             {
                 return;
             }
@@ -157,7 +154,7 @@ namespace YARG.Input.Bindings
 
         protected virtual void FirePressedEvent(double time, float value = 1f)
         {
-            var input = new GameInput(time, Action, value);
+            var input = new GameInput(time, Action, true);
 
             if (!Enabled)
             {
