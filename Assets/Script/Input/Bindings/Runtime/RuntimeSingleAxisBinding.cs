@@ -23,9 +23,9 @@ namespace YARG.Input.Bindings
             LowerDeadzone = reusableBinding.LowerDeadzone;
         }
 
-        public override void UpdateState(double time)
+        public override void UpdateState(double time, float value)
         {
-            RawState = Control.value;
+            RawState = value;
             State = CalculateState(RawState);
             InvokeStateChanged(State);
         }

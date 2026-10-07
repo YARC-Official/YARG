@@ -14,9 +14,9 @@ namespace YARG.Input.Bindings
             Control = control;
         }
 
-        public virtual void UpdateState(double time)
+        public virtual void UpdateState(double time, TState value)
         {
-            State = Control.value;
+            State = value;
             InvokeStateChanged(State);
         }
 

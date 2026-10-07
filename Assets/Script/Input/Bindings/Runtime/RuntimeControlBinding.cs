@@ -147,7 +147,8 @@ namespace YARG.Input.Bindings
             }
 
             double inputTime = InputManager.ClampInputTime(time);
-            binding.UpdateState(inputTime);
+            var typedControl = control as InputControl<TSingleState>;
+            binding.UpdateState(inputTime, typedControl.ReadValueFromEvent(eventPtr));
             OnStateChanged(binding, inputTime);
             FireStateChanged();
         }
