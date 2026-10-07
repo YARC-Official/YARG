@@ -82,7 +82,7 @@ namespace YARG.Menu.Settings
         private bool _tabsInitialized;
         private string _pendingTabName;
         private int _previewVersion;
-
+        private readonly List<SettingsSectionView> _sectionViews = new();
 
         public string CurrentSection { get; private set; } = string.Empty;
         private bool IsSearching => SearchQuery.Length > 0;
@@ -246,6 +246,7 @@ namespace YARG.Menu.Settings
 
         private void BuildSections()
         {
+            _sectionViews.Clear();
             _sectionsNavGroup.ClearNavigatables();
             foreach (Transform child in _sectionsContainer)
             {
@@ -260,6 +261,7 @@ namespace YARG.Menu.Settings
                 var view = Instantiate(_sectionPrefab, _sectionsContainer);
                 view.Initialize(section.HeaderName);
                 _sectionsNavGroup.AddNavigatable(view);
+                _sectionViews.Add(view);
             }
 
             Canvas.ForceUpdateCanvases();
@@ -271,6 +273,15 @@ namespace YARG.Menu.Settings
             {
                 CurrentSection = sections[0].HeaderName;
                 _sectionsNavGroup.SelectFirst();
+            }
+        }
+
+        private void UpdateSectionMarkers(bool isFocused)
+        {
+            for (var i = 0; i < _sectionViews.Count; i++)
+            {
+                var isCurrent = _sectionViews[i].Section == CurrentSection;
+                _sectionViews[i].ShowCurrent(isCurrent, isFocused);
             }
         }
 
@@ -291,6 +302,7 @@ namespace YARG.Menu.Settings
                 CurrentSection = view.Section;
                 _searchBar.SetTextWithoutNotify(string.Empty);
                 Refresh();
+                UpdateSectionMarkers(NavigationGroup.CurrentNavigationGroup == _sectionsNavGroup);
             }
         }
 
@@ -299,21 +311,64 @@ namespace YARG.Menu.Settings
             _sectionsNavGroup.SelectLastNavGroup();
             _settingsNavGroup.PushNavGroupToStack();
             _settingsNavGroup.SelectFirst(SelectionOrigin.Navigation);
+            UpdateSectionMarkers(false);
         }
 
         private void FocusSections()
         {
+            if (_categorySidebar != null && !_categorySidebar.IsCollapsed)
+            {
+                _categorySidebar.SetCollapsed(true);
+            }
+
             if (_sectionsPanel.activeSelf)
             {
-                _settingsNavGroup.SelectLastNavGroup();
+                if (_categorySidebar != null && NavigationGroup.CurrentNavigationGroup == _categorySidebar.NavigationGroup)
+                {
+                    _categorySidebar.NavigationGroup.SelectLastNavGroup();
+                }
+                else
+                {
+                    _settingsNavGroup.SelectLastNavGroup();
+                }
+
                 _sectionsNavGroup.PushNavGroupToStack();
                 var index = CurrentTab.Sections.ToList().FindIndex(section => section.HeaderName == CurrentSection);
+                if (index < 0)
+                {
+                    index = 0;
+                }
                 _sectionsNavGroup.SelectAt(index: index, selectionOrigin: SelectionOrigin.Navigation);
+                UpdateSectionMarkers(true);
             }
             else
             {
                 EnterSettings();
             }
+        }
+
+        private void FocusCategories()
+        {
+            if (_categorySidebar == null)
+            {
+                gameObject.SetActive(false);
+                return;
+            }
+
+            UpdateSectionMarkers(false);
+            _categorySidebar.SetCollapsed(false);
+
+            if (NavigationGroup.CurrentNavigationGroup == _sectionsNavGroup)
+            {
+                _sectionsNavGroup.SelectLastNavGroup();
+            }
+            else
+            {
+                _settingsNavGroup.SelectLastNavGroup();
+            }
+
+            _categorySidebar.NavigationGroup.PushNavGroupToStack();
+            _categorySidebar.SelectCategory(CurrentTab.Name);
         }
 
         private void Back()
@@ -324,9 +379,20 @@ namespace YARG.Menu.Settings
                 Refresh();
                 FocusSections();
             }
-            else if (_sectionsPanel.activeSelf && NavigationGroup.CurrentNavigationGroup != _sectionsNavGroup)
+            else if (NavigationGroup.CurrentNavigationGroup == _settingsNavGroup)
             {
-                FocusSections();
+                if (_sectionsPanel.activeSelf)
+                {
+                    FocusSections();
+                }
+                else
+                {
+                    FocusCategories();
+                }
+            }
+            else if (NavigationGroup.CurrentNavigationGroup == _sectionsNavGroup)
+            {
+                FocusCategories();
             }
             else
             {
@@ -430,6 +496,7 @@ namespace YARG.Menu.Settings
             if (selectionOrigin == SelectionOrigin.Mouse)
             {
                 _sectionsNavGroup.SelectLastNavGroup();
+                UpdateSectionMarkers(false);
             }
 
             // Most setting rows carry a BaseSettingNavigatable, but some (e.g. the
