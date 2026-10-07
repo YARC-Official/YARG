@@ -44,7 +44,7 @@ namespace YARG.Input.Bindings
             }
         }
 
-        public override void UpdateState(double time)
+        public override void UpdateState(double time, float value)
         {
             _debounceTimer.UpdateValue(Control.value * _invertSign);
 
