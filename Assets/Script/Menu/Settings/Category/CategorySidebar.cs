@@ -70,7 +70,17 @@ namespace YARG.Menu.Settings
             {
                 if (_views[i].CategoryId == categoryId)
                 {
-                    _navigationGroup.SelectAt(i, SelectionOrigin.Navigation);
+                    SelectedCategoryId = categoryId;
+                    _navigationGroup.PushNavGroupToStack();
+                    if (_navigationGroup.SelectedIndex != i)
+                    {
+                        _navigationGroup.SelectAt(i, SelectionOrigin.Navigation);
+                    }
+                    else
+                    {
+                        _views[i].SetSelected(true, SelectionOrigin.Navigation);
+                    }
+
                     UpdateMarkers(categoryId);
                     return;
                 }
