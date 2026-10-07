@@ -9,6 +9,7 @@ using PlasticBand.Devices;
 using UnityEngine.InputSystem;
 using YARG.Core;
 using YARG.Core.Game;
+using YARG.Core.IO;
 using YARG.Core.Logging;
 using YARG.Helpers;
 using YARG.Input;
@@ -123,6 +124,7 @@ namespace YARG.Player
 
             _profiles.Remove(profile);
             _profilesById.Remove(profile.Id);
+            RemoveAvatar(profile);
             ActiveProfilesChanged();
             return true;
         }
@@ -525,6 +527,7 @@ namespace YARG.Player
 
             _profiles.Add(profile);
             _profilesById.Add(profile.Id, profile);
+            LoadAvatar(profile);
             return true;
         }
 
@@ -796,6 +799,45 @@ namespace YARG.Player
             }
 
             return profiles.Count;
+        }
+
+        public static void SelectAvatar(YargProfile profile, Action callback = null)
+        {
+            // Open file browser that allows selection of .png and .jpg images
+            // TODO: Once career is merged, update this to use the new OpenChooseFile signature that allows multiple file types
+            FileExplorerHelper.OpenChooseFile(null, "png", path =>
+            {
+                var picturePath = Path.Combine(ProfilesDirectory, profile.Id.ToString());
+
+                // Copy to profile folder and tell the profile to load the data, then refresh the view
+                File.Copy(path, picturePath, true);
+
+                profile.Avatar?.Dispose();
+                profile.Avatar = YARGImage.Load(picturePath);
+
+                callback?.Invoke();
+            });
+        }
+
+        public static void LoadAvatar(YargProfile profile)
+        {
+            var imagePath = Path.Join(ProfilesDirectory, profile.Id.ToString());
+            if (File.Exists(imagePath))
+            {
+                profile.Avatar = YARGImage.Load(imagePath);
+            }
+        }
+
+        public static void RemoveAvatar(YargProfile profile)
+        {
+            profile.Avatar?.Dispose();
+            profile.Avatar = null;
+
+            var imagePath = Path.Join(ProfilesDirectory, profile.Id.ToString());
+            if (File.Exists(imagePath))
+            {
+                File.Delete(imagePath);
+            }
         }
 
         public static void Destroy()

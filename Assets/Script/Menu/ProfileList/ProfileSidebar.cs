@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using TMPro;
@@ -8,6 +9,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Game;
+using YARG.Core.IO;
+using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Localization;
 using YARG.Menu.Data;
@@ -58,6 +61,8 @@ namespace YARG.Menu.ProfileList
         private TMP_InputField _nameInput;
         [SerializeField]
         private Image _profilePicture;
+        [SerializeField]
+        private RawImage _customProfilePicture;
         [SerializeField]
         private Button[] _profileActionButtons;
 
@@ -110,6 +115,12 @@ namespace YARG.Menu.ProfileList
         private Sprite _profileGenericSprite;
         [SerializeField]
         private Sprite _profileBotSprite;
+
+        [Space]
+        [SerializeField]
+        private GameObject _deleteButton;
+        [SerializeField]
+        private GameObject _editButton;
 
         private ProfileView _profileView;
         private YargProfile _profile;
@@ -279,8 +290,20 @@ namespace YARG.Menu.ProfileList
             _nameContainer.SetActive(true);
             _editNameContainer.SetActive(false);
 
-            // Display the proper profile picture
+            // Display the proper generic profile picture
             _profilePicture.sprite = profile.IsBot ? _profileBotSprite : _profileGenericSprite;
+
+            // Show/hide the custom picture rawimage depending on bot/custom pic availability
+            if (!profile.IsBot && _profile.Avatar != null && _profile.Avatar.IsValid)
+            {
+                Destroy(_customProfilePicture.texture);
+                _customProfilePicture.texture = _profile.Avatar.LoadTexture(false);
+                _customProfilePicture.gameObject.SetActive(true);
+            }
+            else
+            {
+                _customProfilePicture.gameObject.SetActive(false);
+            }
 
             // Enable/disable the edit profile button
             bool interactable = !_profile.IsBot && PlayerContainer.IsProfileTaken(_profile);
@@ -288,6 +311,10 @@ namespace YARG.Menu.ProfileList
             {
                 button.interactable = interactable;
             }
+
+            // Enable/disable the avatar delete/edit buttons
+            _deleteButton.SetActive(!profile.IsBot && _profile.Avatar != null);
+            _editButton.SetActive(!profile.IsBot);
 
             EnableSettingsForGameMode();
         }
@@ -371,6 +398,23 @@ namespace YARG.Menu.ProfileList
 
             menu.GetComponent<ProfileInfoMenu>().CurrentProfile = _profile;
             menu.gameObject.SetActive(true);
+        }
+
+        public void EditProfilePicture()
+        {
+            PlayerContainer.SelectAvatar(_profile, () =>
+            {
+                _profileView.UpdateDisplay(_profile);
+                UpdateSidebar(_profile, _profileView);
+            });
+        }
+
+        public void DeleteProfilePicture()
+        {
+            PlayerContainer.RemoveAvatar(_profile);
+
+            _profileView.UpdateDisplay(_profile);
+            UpdateSidebar(_profile, _profileView);
         }
 
         public void AddDevice()

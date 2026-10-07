@@ -456,7 +456,7 @@ namespace YARG.Audio.BASS
         private static float GetReverbWet() => SettingsManager.Settings?.VocalReverb?.Value ?? 0.25f;
 
         private static ReverbMode GetReverbMode() =>
-            SettingsManager.Settings?.ReverbImplementation?.Value ?? ReverbMode.Performance;
+            SettingsManager.Settings?.CurrentReverbMode ?? ReverbMode.Performance;
 
         private static bool AddMonitoringEffects(int handle)
         {
