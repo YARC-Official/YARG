@@ -18,7 +18,9 @@
 extern "C" {
 #endif
 
-#define YARG_AUDIO_ABI_VERSION 8u
+#define YARG_AUDIO_ABI_VERSION 26u
+
+typedef struct yarg_stretch_stream yarg_stretch_stream;
 
 typedef struct yarg_read_ahead_stream yarg_read_ahead_stream;
 typedef struct yarg_gain_dsp yarg_gain_dsp;
@@ -118,6 +120,17 @@ typedef struct yarg_read_ahead_position_snapshot {
 } yarg_read_ahead_position_snapshot;
 
 YARG_AUDIO_API uint32_t YARG_AUDIO_CALL yarg_audio_get_abi_version(void);
+YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_stretch_stream_create(
+    uint32_t source, yarg_stretch_stream** stream, uint32_t* stream_handle,
+    int32_t* bass_error);
+YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_stretch_stream_set_speed(
+    yarg_stretch_stream* stream, float speed, float pitch);
+YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_stretch_stream_flush(yarg_stretch_stream* stream);
+YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_stretch_stream_get_latency(
+    yarg_stretch_stream* stream, double* seconds);
+YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_stretch_stream_get_position(
+    yarg_stretch_stream* stream, int64_t bytes, double* seconds);
+YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_stretch_stream_destroy(yarg_stretch_stream* stream);
 YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_gain_dsp_attach(
     uint32_t channel, float initial_gain, int32_t priority,
     yarg_gain_dsp** dsp, int32_t* bass_error);

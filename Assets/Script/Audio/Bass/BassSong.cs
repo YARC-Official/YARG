@@ -270,7 +270,9 @@ namespace YARG.Audio.BASS
 
         protected override double GetControlPosition_Internal() => GetSyncPosition_Internal().Control;
 
-        protected override double GetTempoStreamLatency_Internal() => _connection?.GetCommandDelay() ?? 0;
+        protected override double GetTempoResponseLatency_Internal() => _stemPipeline.CommandDelay;
+
+        protected override double GetTransportLatency_Internal() => _connection?.GetCommandDelay() ?? 0;
 
         protected override double GetVolume_Internal()
         {

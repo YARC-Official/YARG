@@ -1581,9 +1581,9 @@
                 "Description": "Choose the resolution of your screen. \"Default\" is recommended.",
                 "Default": "<i>Default ({0})</i>"
             },
-            "ReverbImplementation": {
-                "Name": "Reverb Implementation",
-                "Description": "Selects the reverb trade-off. Performance uses a lighter Freeverb, Quality uses a fuller Dattorro plate.",
+            "EffectsMode": {
+                "Name": "Effects Mode",
+                "Description": "Selects the audio fx quality for reverb and time stretching.",
                 "Dropdown": {
                     "Performance": "Performance",
                     "Quality": "Quality"

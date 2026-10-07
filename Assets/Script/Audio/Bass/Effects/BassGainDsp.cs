@@ -30,7 +30,7 @@ namespace YARG.Audio.BASS.Effects
 
             return YargAudioNative.Attach(EFFECT_NAME, channelHandle,
                 (out BassGainDsp handle, out int bassError) =>
-                    YargAudioBindings.GainDspAttach(unchecked((uint) channelHandle), initialGain, priority, out handle, out bassError));
+                    YargAudioBindings.GainDspAttach(channelHandle, initialGain, priority, out handle, out bassError));
         }
 
         internal bool SetGain(float gain)
