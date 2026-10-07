@@ -590,10 +590,35 @@ namespace YARG.Menu.Settings
 
         private void UpdateLayout()
         {
-            var preview = !IsSearching && CurrentTab.HasPreview;
-            _previewPanel.SetActive(preview);
-            _previewPanel.GetComponent<LayoutElement>().preferredWidth = CurrentTab is PresetsTab ? 800f : 640f;
-            _sectionsPanel.SetActive(!IsSearching && CurrentTab.Sections.Count > 0);
+            var hasPreview = !IsSearching && CurrentTab != null && CurrentTab.HasPreview;
+            _previewPanel.SetActive(true);
+            _previewPanel.GetComponent<LayoutElement>().preferredWidth = CurrentTab is PresetsTab
+                ? 800f
+                : hasPreview
+                    ? 640f
+                    : 440f;
+            _previewContainerUI.gameObject.SetActive(hasPreview);
+
+            var header = (RectTransform) _previewPanel.transform.Find("Header");
+            if (header != null)
+            {
+                if (hasPreview)
+                {
+                    header.anchorMin = new Vector2(0f, 1f);
+                    header.anchorMax = Vector2.one;
+                    header.offsetMin = new Vector2(0f, -125f);
+                    header.offsetMax = Vector2.zero;
+                }
+                else
+                {
+                    header.anchorMin = Vector2.zero;
+                    header.anchorMax = Vector2.one;
+                    header.offsetMin = Vector2.zero;
+                    header.offsetMax = Vector2.zero;
+                }
+            }
+
+            _sectionsPanel.SetActive(!IsSearching && CurrentTab?.Sections.Count > 0);
             _searchHeaderText.transform.parent.gameObject.SetActive(IsSearching || CurrentTab is AllSettingsTab);
             if (IsSearching)
             {
@@ -617,7 +642,7 @@ namespace YARG.Menu.Settings
 
             DestroyPreview();
 
-            if (!_previewPanel.activeSelf)
+            if (IsSearching || tabInfo == null || !tabInfo.HasPreview)
             {
                 return;
             }
