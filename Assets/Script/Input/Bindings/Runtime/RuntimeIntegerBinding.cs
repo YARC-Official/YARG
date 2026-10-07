@@ -27,8 +27,8 @@ namespace YARG.Input.Bindings
 
         public override bool IsControlActuated(InputControl<int> control)
         {
-            float previousValue = control.ReadValueFromPreviousFrame();
-            float value = control.ReadValue();
+            var previousValue = control.ReadValueFromPreviousFrame();
+            var value = control.ReadValue();
             return Math.Abs(value - previousValue) >= INTEGER_DELTA_THRESHOLD;
         }
 

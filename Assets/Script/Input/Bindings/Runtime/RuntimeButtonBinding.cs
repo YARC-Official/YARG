@@ -149,7 +149,7 @@ namespace YARG.Input.Bindings
                 velocity = Math.Max(velocity, binding.Control.value);
             }
 
-            var input = new GameInput(time, Action, true);
+            var input = new GameInput(time, Action, velocity);
 
             if (!Enabled)
             {
