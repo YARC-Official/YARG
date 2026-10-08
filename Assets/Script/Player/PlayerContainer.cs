@@ -2,12 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using PlasticBand.Devices;
 using UnityEngine.InputSystem;
-using YARG.Core;
 using YARG.Core.Game;
 using YARG.Core.IO;
 using YARG.Core.Logging;
@@ -18,7 +15,6 @@ using YARG.Localization;
 using YARG.Menu.MusicLibrary;
 using YARG.Menu.Filters;
 using YARG.Menu.Persistent;
-using YARG.Menu.ProfileList;
 using YARG.Settings;
 using YARG.Song;
 
@@ -139,19 +135,6 @@ namespace YARG.Player
             return _playersByProfile.ContainsKey(profile);
         }
 
-        public static bool IsControllerInUse(InputDevice controller)
-        {
-            foreach (var player in _players)
-            {
-                if (player.DeviceInfo.Controllers.Contains(controller))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         public static YargPlayer CreatePlayerFromProfile(YargProfile profile, bool resolveDevices)
         {
             if (!_profiles.Contains(profile))
@@ -164,13 +147,21 @@ namespace YARG.Player
                 return null;
             }
 
-            var bindings = BindingsContainer.GetDeviceInfoForProfile(profile);
+            var deviceInfo = BindingsContainer.GetDeviceInfoForProfile(profile);
             if (resolveDevices)
             {
-                bindings.ResolveDevices();
+                deviceInfo.ResolveDevices();
             }
 
-            var player = new YargPlayer(profile, bindings);
+            foreach (var existingPlayer in _players)
+            {
+                foreach (var claimedController in existingPlayer.DeviceInfo.Controllers)
+                {
+                    deviceInfo.RemoveController(claimedController);
+                }
+            }
+
+            var player = new YargPlayer(profile, deviceInfo);
             player.EnableInputs();
             _players.Add(player);
             _playersByProfile.Add(profile, player);
@@ -212,8 +203,8 @@ namespace YARG.Player
             _playersByProfile.Remove(player.Profile);
             _playersByProfile.Add(newProfile, player);
 
-            var bindings = BindingsContainer.GetDeviceInfoForProfile(newProfile);
-            player.SwapToProfile(newProfile, bindings, true);
+            var deviceInfo = BindingsContainer.GetDeviceInfoForProfile(newProfile);
+            player.SwapToProfile(newProfile, deviceInfo, true);
             ActiveProfilesChanged();
             return true;
         }
@@ -264,8 +255,8 @@ namespace YARG.Player
                     continue;
                 }
 
-                var bindings = BindingsContainer.GetDeviceInfoForProfile(profile);
-                if (bindings.MatchesController(device))
+                var deviceInfo = BindingsContainer.GetDeviceInfoForProfile(profile);
+                if (deviceInfo.MatchesController(device))
                 {
                     candidateProfiles.Add(profile);
                 }
