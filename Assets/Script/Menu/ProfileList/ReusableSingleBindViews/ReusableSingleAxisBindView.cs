@@ -11,7 +11,7 @@ using YARG.Menu.ProfileInfo;
 
 namespace YARG.Menu.ProfileList
 {
-    public class ReusableSingleAxisBindView : ReusableSingleBindView<ReusableAxisBinding, ReusableSingleAxisBinding, float>
+    public class ReusableSingleAxisBindView : ReusableSingleBindView<ReusableAxisBinding, float, ReusableSingleAxisBinding, float>
     {
         [SerializeField]
         private AxisDisplay _rawValueDisplay;
@@ -198,9 +198,17 @@ namespace YARG.Menu.ProfileList
             return item.DisplayName;
         }
 
-        protected override void UpdateDummyInputVisuals(InputControl<float> dummyInput)
+        protected override float UpdateDummyInputVisuals(InputControl<float> dummyInput)
         {
             _rawValueDisplay.Value = dummyInput.value;
+            var calibrated = DeriveCalibratedValue(dummyInput.value);
+            _calibratedValueDisplay.Value = calibrated;
+            return calibrated;
+        }
+
+        private float DeriveCalibratedValue(float raw)
+        {
+            return raw; // TODO-FRICK
         }
     }
 }

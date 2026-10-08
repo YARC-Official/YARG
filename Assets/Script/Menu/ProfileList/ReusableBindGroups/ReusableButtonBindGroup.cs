@@ -13,7 +13,7 @@ using YARG.Player;
 namespace YARG.Menu.ProfileList
 {
     public class ReusableButtonBindGroup
-        : ReusableBindGroup<ReusableSingleButtonBindView, ReusableButtonBinding, ReusableSingleButtonBinding, float>
+        : ReusableBindGroup<ReusableSingleButtonBindView, ReusableButtonBinding, bool, ReusableSingleButtonBinding, float>
     {
         [SerializeField]
         private SingleMidiNoteBindView _midiNoteViewPrefab;
@@ -45,6 +45,20 @@ namespace YARG.Menu.ProfileList
         public void OnDebounceValueChanged()
         {
             Binding.DebounceThreshold = (long)_debounceSlider.Value;
+        }
+
+        protected override void UpdateDisplay()
+        {
+            foreach (var state in _states)
+            {
+                if (state)
+                {
+                    _pressedIndicator.IsPressed = true;
+                    return;
+                }
+            }
+
+            _pressedIndicator.IsPressed = false;
         }
     }
 }

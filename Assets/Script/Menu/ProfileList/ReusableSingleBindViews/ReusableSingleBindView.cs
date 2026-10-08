@@ -14,8 +14,9 @@ using YARG.Menu.ProfileInfo;
 
 namespace YARG.Menu.ProfileList
 {
-    public abstract class ReusableSingleBindView<TBinding, TSingle, TSingleState> : MonoBehaviour
+    public abstract class ReusableSingleBindView<TBinding, TState, TSingle, TSingleState> : MonoBehaviour
         where TBinding : ReusableControlBinding<TSingle, TSingleState>
+        where TState : struct
         where TSingle : ReusableSingleBinding<TSingleState>
         where TSingleState : struct
     {
@@ -209,15 +210,17 @@ namespace YARG.Menu.ProfileList
 
         }
 
-        private void Update()
+        public TState? GetAndDisplayState()
         {
             if (_dummyInputControl is not null)
             {
-                UpdateDummyInputVisuals(_dummyInputControl as InputControl<TSingleState>);
+                return UpdateDummyInputVisuals(_dummyInputControl as InputControl<TSingleState>);
             }
+
+            return null;
         }
 
-        protected virtual void UpdateDummyInputVisuals(InputControl<TSingleState> dummyInput) { }
+        protected abstract TState UpdateDummyInputVisuals(InputControl<TSingleState> dummyInput);
 
         protected virtual string DisambiguateDisplayName(ControlItemInfo item)
         {

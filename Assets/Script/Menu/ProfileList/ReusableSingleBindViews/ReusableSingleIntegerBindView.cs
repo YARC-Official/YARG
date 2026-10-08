@@ -9,14 +9,15 @@ using YARG.Menu.ProfileList;
 
 namespace YARG.Menu.ProfileList
 {
-    public class ReusableSingleIntegerBindView : ReusableSingleBindView<ReusableIntegerBinding, ReusableSingleIntegerBinding, int>
+    public class ReusableSingleIntegerBindView : ReusableSingleBindView<ReusableIntegerBinding, int, ReusableSingleIntegerBinding, int>
     {
         [SerializeField]
         private TMP_InputField _valueText;
 
-        protected override void UpdateDummyInputVisuals(InputControl<int> dummyControl)
+        protected override int UpdateDummyInputVisuals(InputControl<int> dummyControl)
         {
             _valueText.text = dummyControl.value.ToString();
+            return dummyControl.value;
         }
 
         protected override void PopulateControlDropdown()

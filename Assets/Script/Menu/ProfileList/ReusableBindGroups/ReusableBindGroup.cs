@@ -28,9 +28,10 @@ namespace YARG.Menu.ProfileList
         }
     }
 
-    public abstract class ReusableBindGroup<TSingleView, TBinding, TSingle, TSingleState> : ReusableBindGroup
-        where TSingleView : ReusableSingleBindView<TBinding, TSingle, TSingleState>
+    public abstract class ReusableBindGroup<TSingleView, TBinding, TState, TSingle, TSingleState> : ReusableBindGroup
+        where TSingleView : ReusableSingleBindView<TBinding, TState, TSingle, TSingleState>
         where TBinding : ReusableControlBinding<TSingle, TSingleState>
+        where TState: struct
         where TSingle : ReusableSingleBinding<TSingleState>, new()
         where TSingleState : struct
     {
@@ -45,6 +46,8 @@ namespace YARG.Menu.ProfileList
         public TBinding Binding { get; protected set; }
 
         protected List<ControlItemInfo> _controls;
+        private List<TSingleView> _singleViews = new();
+        protected List<TState> _states = new();
 
         protected ProfilesMenu _profilesMenu;
         protected BindingSetsCenterPane _centerPane;
@@ -97,6 +100,7 @@ namespace YARG.Menu.ProfileList
         public void RefreshBindings()
         {
             _bindingList.ClearDrawer();
+            _singleViews.Clear();
 
             foreach (var control in Binding.Bindings)
             {
@@ -118,7 +122,7 @@ namespace YARG.Menu.ProfileList
         {
             var bindView = _bindingList.AddNewWithoutRebuild(_viewPrefab);
             bindView.Init(this, Binding, control, _controls, _profilesMenu, _centerPane, _quickBindDialog, _interactable);
-
+            _singleViews.Add(bindView);
             bindView.DeleteRequested += DeleteBinding;
         }
 
@@ -162,6 +166,23 @@ namespace YARG.Menu.ProfileList
 
         public void ToggleSettingsDrawer() => SetSettingsDrawer(!_settingsList.DrawerOpened);
 
+        private void Update()
+        {
+            _states.Clear();
+
+            foreach (var singleView in _singleViews)
+            {
+                var state = singleView.GetAndDisplayState();
+                if (state is not null)
+                {
+                    _states.Add(state.Value);
+                }
+            }
+
+            UpdateDisplay();
+        }
+
+        protected abstract void UpdateDisplay();
 
         private void RefreshHandedness(bool lefty)
         {
