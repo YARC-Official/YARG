@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEngine.InputSystem;
 using YARG.Core.Input;
 using YARG.Core.Logging;
 
@@ -11,6 +12,7 @@ namespace YARG.Input.Bindings
 
         private readonly Dictionary<int, bool> _buttonStates = new();
         private readonly Dictionary<int, int> _activeButtonCounts = new();
+        private readonly Dictionary<RuntimeButtonBinding, GameInputProcessed> _buttonHandlers = new();
 
         private readonly Dictionary<int, float> _axisStates = new();
         private readonly Dictionary<int, float> _newAxisStates = new();
@@ -19,6 +21,16 @@ namespace YARG.Input.Bindings
         private readonly Dictionary<int, int> _newIntegerStates = new();
 
         public event GameInputProcessed InputProcessed;
+
+        private InputDevice _suppressedController;
+        public void SuppressController(InputDevice controller) {
+            _suppressedController = controller;
+        }
+
+        public void UnsuppressController()
+        {
+            _suppressedController = null;
+        }
 
         public void Add(RuntimeBindingSet source)
         {
@@ -34,7 +46,9 @@ namespace YARG.Input.Bindings
                 if (binding is RuntimeImpulseBinding impulse)
                 {
                     impulse.Pressed += OnButtonPressed;
-                    impulse.InputProcessed += OnButtonInputProcessed;
+                    GameInputProcessed handler = (ref GameInput input) => OnButtonInputProcessed(source, ref input);
+                    _buttonHandlers[impulse] = handler;
+                    impulse.InputProcessed += handler;
 
                     if (impulse.State)
                     {
@@ -46,7 +60,9 @@ namespace YARG.Input.Bindings
                 }
                 else if (binding is RuntimeButtonBinding button)
                 {
-                    button.InputProcessed += OnButtonInputProcessed;
+                    GameInputProcessed handler = (ref GameInput input) => OnButtonInputProcessed(source, ref input);
+                    _buttonHandlers[button] = handler;
+                    button.InputProcessed += handler;
 
                     if (button.State)
                     {
@@ -68,7 +84,8 @@ namespace YARG.Input.Bindings
                 if (binding is RuntimeImpulseBinding impulse)
                 {
                     impulse.Pressed -= OnButtonPressed;
-                    impulse.InputProcessed -= OnButtonInputProcessed;
+                    impulse.InputProcessed -= _buttonHandlers[impulse];
+                    _buttonHandlers.Remove(impulse);
 
                     if (impulse.State)
                     {
@@ -88,7 +105,8 @@ namespace YARG.Input.Bindings
                 }
                 else if (binding is RuntimeButtonBinding button)
                 {
-                    button.InputProcessed -= OnButtonInputProcessed;
+                    button.InputProcessed -= _buttonHandlers[button];
+                    _buttonHandlers.Remove(button);
 
                     if (button.State)
                     {
@@ -116,6 +134,11 @@ namespace YARG.Input.Bindings
 
             foreach (var source in _sources)
             {
+                if (source.Controller == _suppressedController)
+                {
+                    continue;
+                }
+
                 foreach (var binding in source)
                 {
                     switch (binding) {
@@ -216,8 +239,13 @@ namespace YARG.Input.Bindings
             }
         }
 
-        private void OnButtonInputProcessed(ref GameInput input)
+        private void OnButtonInputProcessed(RuntimeBindingSet source, ref GameInput input)
         {
+            if (source.Controller == _suppressedController)
+            {
+                return;
+            }
+
             var count = _activeButtonCounts.GetValueOrDefault(input.Action);
 
             if (input.Button)
