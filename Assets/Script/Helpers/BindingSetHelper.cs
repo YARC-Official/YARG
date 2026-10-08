@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.XR;
@@ -108,6 +109,38 @@ namespace YARG.Helpers
 
             _allowedControlPathCache[key] = paths;
             return paths;
+        }
+
+        public static float CalculateCalibratedAxisValue(float raw, float minimum, float maximum, float upperDeadzone, float lowerDeadzone, bool inverted)
+        {
+            float effectiveMax;
+            float effectiveMin;
+            float @base;
+
+            if (raw > upperDeadzone)
+            {
+                effectiveMax = maximum;
+                effectiveMin = upperDeadzone;
+                @base = 0;
+            }
+            else if (raw < lowerDeadzone)
+            {
+                effectiveMax = lowerDeadzone;
+                effectiveMin = minimum;
+                @base = -1;
+            }
+            else
+            {
+                return 0;
+            }
+
+            float percentage = (raw - effectiveMin) / (effectiveMax - effectiveMin);
+            float value = @base + percentage;
+            if (float.IsNaN(value))
+                value = 0;
+
+            value *= inverted ? -1 : 1;
+            return value;
         }
 
         private static bool IsButtonBeingQuickBound(InputControl control) {

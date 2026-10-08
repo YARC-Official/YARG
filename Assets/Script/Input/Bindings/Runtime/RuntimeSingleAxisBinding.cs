@@ -1,5 +1,6 @@
 ﻿using UnityEditor.Experimental.GraphView;
 using UnityEngine.InputSystem;
+using YARG.Helpers;
 
 namespace YARG.Input.Bindings
 {
@@ -26,7 +27,7 @@ namespace YARG.Input.Bindings
         public override void UpdateState(double time, float value)
         {
             RawState = value;
-            State = CalculateState(RawState);
+            State = BindingSetHelper.CalculateCalibratedAxisValue(RawState, Minimum, Maximum, UpperDeadzone, LowerDeadzone, Inverted);
             InvokeStateChanged(State);
         }
 
@@ -35,38 +36,6 @@ namespace YARG.Input.Bindings
             RawState = default;
             State = default;
             InvokeStateChanged(State);
-        }
-
-        private float CalculateState(float rawValue)
-        {
-            float max;
-            float min;
-            float @base;
-
-            if (rawValue > UpperDeadzone)
-            {
-                max = Maximum;
-                min = UpperDeadzone;
-                @base = 0;
-            }
-            else if (rawValue < LowerDeadzone)
-            {
-                max = LowerDeadzone;
-                min = Minimum;
-                @base = -1;
-            }
-            else
-            {
-                return 0;
-            }
-
-            float percentage = (rawValue - min) / (max - min);
-            float value = @base + percentage;
-            if (float.IsNaN(value))
-                value = 0;
-
-            value *= Inverted ? -1 : 1;
-            return value;
         }
     }
 }
