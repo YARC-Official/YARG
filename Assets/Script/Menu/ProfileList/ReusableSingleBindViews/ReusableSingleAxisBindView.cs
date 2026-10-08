@@ -201,14 +201,18 @@ namespace YARG.Menu.ProfileList
         protected override float UpdateDummyInputVisuals(InputControl<float> dummyInput)
         {
             _rawValueDisplay.Value = dummyInput.value;
-            var calibrated = DeriveCalibratedValue(dummyInput.value);
+
+            var calibrated = BindingSetHelper.CalculateCalibratedAxisValue(
+                dummyInput.value,
+                SingleBinding.Minimum,
+                SingleBinding.Maximum,
+                SingleBinding.LowerDeadzone,
+                SingleBinding.UpperDeadzone,
+                SingleBinding.Inverted
+            );
+
             _calibratedValueDisplay.Value = calibrated;
             return calibrated;
-        }
-
-        private float DeriveCalibratedValue(float raw)
-        {
-            return raw; // TODO-FRICK
         }
     }
 }
