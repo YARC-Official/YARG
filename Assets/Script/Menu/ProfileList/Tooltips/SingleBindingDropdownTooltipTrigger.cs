@@ -6,18 +6,18 @@ using YARG.Localization;
 using YARG.Menu.ProfileList;
 using YARG.Menu.Tooltips;
 
-namespace YARG.Menu.ProfileList
+namespace YARG.Assets.Script.Menu.ProfileList.Tooltips
 {
-    public class ButtonBindGroupToolipTrigger : TooltipTrigger
+    public class SingleBindingDropdownTooltipTrigger : TooltipTrigger
     {
         [SerializeField]
-        private ReusableButtonBindGroup _bindGroup;
+        private ReusableSingleBindView _bindView;
 
         protected override (IReadOnlyList<string> titleParams, IReadOnlyList<string> textParams) GetParameters()
         {
             return (
-                new List<string>() { Localize.Key(_bindGroup.Binding.Name) },
-                new List<string>() { Localize.Key("Menu.ProfileList.Tooltip.ButtonBindGroup", _bindGroup.Binding.IsImpulse ? "Impulse" : "Regular") }
+                new List<string>() { },
+                new List<string>() { _bindView.BindGroup.CenterPane.ProfilesMenu.CurrentBindingSetFilter.ToLocalizedNamePluralSentence() }
             );
         }
     }

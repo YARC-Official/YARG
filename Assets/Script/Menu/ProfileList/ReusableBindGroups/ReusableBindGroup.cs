@@ -17,6 +17,7 @@ namespace YARG.Menu.ProfileList
         protected ReusableBindHeader _header;
 
         protected ReusableBindingSet _bindingSet;
+        public BindingSetsCenterPane CenterPane { get; protected set; }
 
         public event Action<bool> HandednessChanged;
         public event Action Unlocked;
@@ -50,7 +51,6 @@ namespace YARG.Menu.ProfileList
         protected List<TState> _states = new();
 
         protected ProfilesMenu _profilesMenu;
-        protected BindingSetsCenterPane _centerPane;
         protected BindingsCenterPaneSettingsPanel _settingsPanel;
         protected DummyControllerRecordDialogMenu _quickBindDialog;
         protected bool _interactable;
@@ -67,7 +67,7 @@ namespace YARG.Menu.ProfileList
         )
         {
             _profilesMenu = profilesMenu;
-            _centerPane = centerPane;
+            CenterPane = centerPane;
             _settingsPanel = settingsPanel;
             _quickBindDialog = quickBindDialog;
             _bindingSet = bindingSet;
@@ -76,7 +76,7 @@ namespace YARG.Menu.ProfileList
             Binding = binding;
             _controls = controls;
 
-            _header.Init(this, binding, _interactable, _centerPane.ShowLeftyNames, bindingSet.Mode is GameMode.Menu);
+            _header.Init(this, binding, _interactable, CenterPane.ShowLeftyNames, bindingSet.Mode is GameMode.Menu);
             _header.BindingsClicked += ToggleBindingsDrawer;
             _header.SettingsClicked += ToggleSettingsDrawer;
 
@@ -84,7 +84,7 @@ namespace YARG.Menu.ProfileList
             _settingsList.SetDrawerWithoutRebuild(false);
             _header.SetSettingsButtonActive(false);
             _header.SetArrowOpen(true);
-            _centerPane.HandednessChanged += RefreshHandedness;
+            CenterPane.HandednessChanged += RefreshHandedness;
             _settingsPanel.Unlocked += OnUnlocked;
             RefreshBindings();
         }
@@ -93,7 +93,7 @@ namespace YARG.Menu.ProfileList
         {
             _header.BindingsClicked -= ToggleBindingsDrawer;
             _header.SettingsClicked -= ToggleSettingsDrawer;
-            _centerPane.HandednessChanged -= RefreshHandedness;
+            CenterPane.HandednessChanged -= RefreshHandedness;
             _settingsPanel.Unlocked -= OnUnlocked;
         }
 
@@ -113,7 +113,7 @@ namespace YARG.Menu.ProfileList
         public async void AddNewBinding()
         {
             TSingle newBinding = new();
-            await newBinding.QuickBind(_centerPane.DummyController, _quickBindDialog, Binding.Info.Type); // Will return immediately if no dummy controller
+            await newBinding.QuickBind(CenterPane.DummyController, _quickBindDialog, Binding.Info.Type); // Will return immediately if no dummy controller
             Binding.AddBinding(newBinding);
             RefreshBindings();
         }
@@ -121,7 +121,7 @@ namespace YARG.Menu.ProfileList
         protected void AddBindingView(TSingle control)
         {
             var bindView = _bindingList.AddNewWithoutRebuild(_viewPrefab);
-            bindView.Init(this, Binding, control, _controls, _profilesMenu, _centerPane, _quickBindDialog, _interactable);
+            bindView.Init(this, Binding, control, _controls, _profilesMenu, CenterPane, _quickBindDialog, _interactable);
             _singleViews.Add(bindView);
             bindView.DeleteRequested += DeleteBinding;
         }

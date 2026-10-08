@@ -25,6 +25,9 @@ namespace YARG.Menu.ProfileList
     {
         [SerializeField]
         private ProfilesMenu _profilesMenu;
+
+        public ProfilesMenu ProfilesMenu => _profilesMenu;
+
         [SerializeField]
         private DummyControllerRecordDialogMenu _quickBindDialog;
         [SerializeField]

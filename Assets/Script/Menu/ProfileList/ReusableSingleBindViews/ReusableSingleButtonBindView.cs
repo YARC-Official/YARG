@@ -140,8 +140,9 @@ namespace YARG.Menu.ProfileList
 
         protected override bool UpdateDummyInputVisuals(InputControl<float> dummyControl)
         {
-            _valueDisplay.Value = dummyControl.value;
-            var pressed = dummyControl.value >= SingleBinding.PressPoint;
+            var calibrated = dummyControl.value * (SingleBinding.Inverted ? -1 : 1);
+            _valueDisplay.Value = calibrated;
+            var pressed = calibrated >= SingleBinding.PressPoint;
             _pressedIndicator.IsPressed = pressed;
             return pressed;
         }

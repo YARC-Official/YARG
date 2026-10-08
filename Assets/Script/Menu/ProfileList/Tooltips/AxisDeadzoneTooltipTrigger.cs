@@ -6,17 +6,17 @@ using YARG.Localization;
 using YARG.Menu.ProfileList;
 using YARG.Menu.Tooltips;
 
-namespace YARG.Menu.ProfileList
+namespace YARG.Assets.Script.Menu.ProfileList.Tooltips
 {
-    public class IntegerBindGroupToolipTrigger : TooltipTrigger
+    public class AxisDeadzoneTooltipTrigger : TooltipTrigger
     {
         [SerializeField]
-        private ReusableIntegerBindGroup _bindGroup;
+        private ReusableSingleAxisBindView _bindView;
 
         protected override (IReadOnlyList<string> titleParams, IReadOnlyList<string> textParams) GetParameters()
         {
             return (
-                new List<string>() { Localize.Key(_bindGroup.Binding.Name) },
+                new List<string>() { _bindView.SingleBinding.LowerDeadzone.ToString(), _bindView.SingleBinding.UpperDeadzone.ToString() },
                 new List<string>() { }
             );
         }
