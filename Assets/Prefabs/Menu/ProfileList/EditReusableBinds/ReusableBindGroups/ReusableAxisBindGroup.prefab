@@ -455,8 +455,24 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2363189801400046139, guid: 6e2667896228a7e44bf8acf6a019f0a3, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2363189801400046139, guid: 6e2667896228a7e44bf8acf6a019f0a3, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
+      objectReference: {fileID: 2066996443643632486}
+    - target: {fileID: 2363189801400046139, guid: 6e2667896228a7e44bf8acf6a019f0a3, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: ToggleSettingsDrawer
+      objectReference: {fileID: 0}
+    - target: {fileID: 2363189801400046139, guid: 6e2667896228a7e44bf8acf6a019f0a3, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: YARG.Menu.ProfileList.ReusableAxisBindGroup, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 2363189801400046139, guid: 6e2667896228a7e44bf8acf6a019f0a3, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_BoolArgument
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2546877883645274844, guid: 6e2667896228a7e44bf8acf6a019f0a3, type: 3}
       propertyPath: m_AnchorMax.y
