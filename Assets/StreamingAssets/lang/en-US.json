@@ -801,7 +801,7 @@
 			  },
 			  "BindingSetFilter": {
 				  "Title": "Binding Sets Filter",
-				  "Text": "Pick a type of controller for which to show binding sets. Most controller types are associated with a specific input mode (for example, 5-fret guitar controllers are for 5-Fret Guitar mode) but generic controller types like gamepads and MIDI devices can be used for various modes."
+				  "Text": "Pick a type of controller for which to show binding sets. Any controller can be used with any mode, but most controller types are intended for a particular mode."
 			  },
 			  "AddOtherBindingSet": {
 				  "Title": "Add Other Binding Set",
@@ -869,6 +869,14 @@
 			  "RecordBinding": {
 				  "Title": "Record Binding",
 				  "Text": "Opens a dialog where you can capture an input on your dummy controller and assign it to this binding. You must have a dummy controller selected in order to do so."
+			  },
+			  "DeleteBinding": {
+				  "Title": "Delete Binding",
+				  "Text": "Removes this control from this action binding."
+			  },
+			  "ExpandSingleBindingConfiguration": {
+				  "Title": "Expand",
+				  "Text": "Opens a configuration panel where you can calibrate this binding and view live input data from the dummy controller."
 			  }
 			}
 		  },
