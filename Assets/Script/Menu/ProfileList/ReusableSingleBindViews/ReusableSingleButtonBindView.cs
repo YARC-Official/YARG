@@ -14,7 +14,7 @@ using YARG.Menu.ProfileInfo;
 
 namespace YARG.Menu.ProfileList
 {
-    public class ReusableSingleButtonBindView : ReusableSingleBindView<ReusableButtonBinding, ReusableSingleButtonBinding, float>
+    public class ReusableSingleButtonBindView : ReusableSingleBindView<ReusableButtonBinding, bool, ReusableSingleButtonBinding, float>
     {
         [SerializeField]
         private AxisDisplay _valueDisplay;
@@ -138,10 +138,12 @@ namespace YARG.Menu.ProfileList
             return item.DisplayName;
         }
 
-        protected override void UpdateDummyInputVisuals(InputControl<float> dummyControl)
+        protected override bool UpdateDummyInputVisuals(InputControl<float> dummyControl)
         {
             _valueDisplay.Value = dummyControl.value;
-            _pressedIndicator.IsPressed = dummyControl.value >= SingleBinding.PressPoint;
+            var pressed = dummyControl.value >= SingleBinding.PressPoint;
+            _pressedIndicator.IsPressed = pressed;
+            return pressed;
         }
     }
 }
