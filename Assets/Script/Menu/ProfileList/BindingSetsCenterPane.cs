@@ -16,6 +16,7 @@ using YARG.Input;
 using YARG.Input.Bindings;
 using YARG.Menu.Persistent;
 using YARG.Menu.ProfileInfo;
+using YARG.Player;
 using YARG.Scores;
 
 namespace YARG.Menu.ProfileList
@@ -74,6 +75,7 @@ namespace YARG.Menu.ProfileList
                     _dummyController = value;
                     DummyControllerChanged?.Invoke();
                     _settingsPanel.Refresh();
+                    UpdateDummyControllerMenuSuppression();
                 }
             }
         }
@@ -354,6 +356,28 @@ namespace YARG.Menu.ProfileList
                     YargLogger.LogError("Failed to export binding set.");
                 }
             });
+        }
+
+        private void UpdateDummyControllerMenuSuppression()
+        {
+            if (_dummyController is not null)
+            {
+                foreach (var player in PlayerContainer.Players)
+                {
+                    if (player.DeviceInfo.ContainsController(_dummyController))
+                    {
+                        player.DeviceInfo.SuppressDummyControllerMenuInputs(_dummyController);
+                        return;
+                    }
+                }
+            }
+            else
+            {
+                foreach (var player in PlayerContainer.Players)
+                {
+                    player.DeviceInfo.UnsuppressDummyControllerMenuInputs();
+                }
+            }
         }
     }
 }

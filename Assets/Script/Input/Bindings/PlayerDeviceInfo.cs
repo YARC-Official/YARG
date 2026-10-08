@@ -34,6 +34,7 @@ namespace YARG.Input
 
         public List<InputDevice> Controllers => _controllers;
         private bool _inputsEnabled;
+        
 
         private readonly List<SerializedInputDevice> _unresolvedControllers = new();
         private readonly List<InputDevice> _controllers = new();
@@ -618,6 +619,16 @@ namespace YARG.Input
             }
 
             SetActiveMenuBindingsForController(controller, bindingSet);
+        }
+
+        public void SuppressDummyControllerMenuInputs(InputDevice controller)
+        {
+            _menuInputAggregator.SuppressController(controller);
+        }
+
+        public void UnsuppressDummyControllerMenuInputs()
+        {
+            _menuInputAggregator.UnsuppressController();
         }
 
         private ReusableBindingSet GetBindingSetForController(InputDevice controller, bool menu)
