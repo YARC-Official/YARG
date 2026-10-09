@@ -584,8 +584,7 @@ namespace YARG.Menu.MusicLibrary
 
                 _primaryHeaderIndex += 1;
 
-                if (SettingsManager.Settings.LibrarySort < SortAttribute.Instrument &&
-                    SettingsManager.Settings.ShowRecommendedSongs.Value)
+                if (SettingsManager.Settings.ShowRecommendedSongs.Value)
                 {
                     if (_recommendedSongs != null)
                     {

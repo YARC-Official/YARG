@@ -368,6 +368,7 @@ namespace YARG.Menu.ListMenu
             // The pool keeps invisible rows on either side of the selected row so
             // it normally remains centered. At a real list boundary, offset that
             // pool just enough to keep the first/last row against the viewport.
+            bool clampedToTop = false;
             if (SelectedIndex < ExtraListViewPadding)
             {
                 int firstVisibleObject = ExtraListViewPadding - SelectedIndex;
@@ -377,9 +378,14 @@ namespace YARG.Menu.ListMenu
                 if (offset > 0f)
                 {
                     parentRect.anchoredPosition += Vector2.up * offset;
+                    clampedToTop = true;
                 }
             }
-            else if (_viewList.Count - 1 - SelectedIndex < ExtraListViewPadding)
+
+            // With variable-height rows, both ends can be inside the pooled range even when
+            // the first row is still above the viewport. In that case the top branch has
+            // nothing to clamp and must not prevent the bottom edge from being corrected.
+            if (!clampedToTop && _viewList.Count - 1 - SelectedIndex < ExtraListViewPadding)
             {
                 int lastVisibleObject = ExtraListViewPadding + (_viewList.Count - 1 - SelectedIndex);
                 var lastRect = _viewObjects[lastVisibleObject].GetComponent<RectTransform>();
