@@ -26,7 +26,7 @@ namespace YARG.Gameplay.Player
 {
     public class DrumsPlayer : TrackPlayer<DrumsEngine, DrumNote>
     {
-        private const float DRUM_PAD_FLASH_HOLD_DURATION = 0.06f;
+        private const float DRUM_PAD_FLASH_HOLD_DURATION = 0.1f;
         private static readonly Fret.AnimType[] AnimTypes = (Fret.AnimType[])Enum.GetValues(typeof(Fret.AnimType));
 
         // Key is a FourLaneDrumPad or FiveLaneDrumPad

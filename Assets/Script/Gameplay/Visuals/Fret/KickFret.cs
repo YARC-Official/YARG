@@ -10,10 +10,12 @@ namespace YARG.Gameplay.Visuals
     {
         private static readonly int _hit = Animator.StringToHash("Hit");
 
-        // The shared tom/cymbal hit light was tuned to be near-instant (almost no hold time).
-        // Kick's cloned copy keeps its own, more visible hold time so its light isn't lost
-        // next to the purple fret pieces.
-        private const float KICK_HIT_LIGHT_FADE_OUT_RATE = 48f;
+        // The shared tom/cymbal hit light's hold time is tuned in the theme prefab. Kick's
+        // cloned copy needs its own override (rather than inheriting the clone's resolved
+        // value) because it must stay in sync with that tuning independently of code changes
+        // elsewhere. Keep this equal to the tom/cymbal hold time set on the Drums fret's
+        // EffectLight override in RectangularTheme.prefab.
+        private const float KICK_HIT_LIGHT_FADE_OUT_RATE = 90f;
 
         // If we want info to be copied over when we copy the prefab,
         // we must make them SerializeFields.

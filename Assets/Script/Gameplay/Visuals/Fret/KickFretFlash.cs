@@ -7,9 +7,10 @@ namespace YARG.Gameplay.Visuals
     {
         private const float SECONDS_PER_FRAME = 1f / 50f;
 
-        // How much taller the flash bar gets at the instant of the hit, and how
-        // long it takes to ease back down to its normal size.
-        private const float POP_SCALE_MULTIPLIER = 1.4f;
+        // How much wider (toward the outside of the highway) the flash bar gets at
+        // the instant of the hit, and how long it takes to ease back down to its
+        // normal size.
+        private const float POP_SCALE_MULTIPLIER = 1.6f;
         private const float POP_DURATION = 0.1f;
 
         [SerializeField]
@@ -80,7 +81,7 @@ namespace YARG.Gameplay.Visuals
             float ease = 1f - (1f - t) * (1f - t);
             float scale = Mathf.Lerp(POP_SCALE_MULTIPLIER, 1f, ease);
 
-            _flashTransform.localScale = new Vector3(_baseScale.x, _baseScale.y * scale, _baseScale.z);
+            _flashTransform.localScale = new Vector3(_baseScale.x * scale, _baseScale.y, _baseScale.z);
         }
 
         public void PlayHitAnimation()
@@ -91,7 +92,7 @@ namespace YARG.Gameplay.Visuals
 
             _popTimer = 0f;
             _popping = true;
-            _flashTransform.localScale = new Vector3(_baseScale.x, _baseScale.y * POP_SCALE_MULTIPLIER, _baseScale.z);
+            _flashTransform.localScale = new Vector3(_baseScale.x * POP_SCALE_MULTIPLIER, _baseScale.y, _baseScale.z);
         }
     }
 }
