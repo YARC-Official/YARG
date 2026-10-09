@@ -51,8 +51,8 @@
 
 ### Navigation Rules
 1. **Default Entry State**:
-   - Opens with `General` pre-selected and the category rail already collapsed (64px).
-   - Focus initializes on Level 2 (first section of `General`) with its options visible immediately.
+   - Opens with `General` pre-selected and the category rail expanded (240px).
+   - Focus initializes on Level 1 (Categories) with `General` highlighted and its options visible in the background.
 2. **Level 1 (Categories)**:
    - Rail is expanded (240px). Strum Up/Down navigates categories with live preview updating.
    - `Green` (`Confirm`): Collapses rail to 64px and transfers focus to Level 2 (Sections).

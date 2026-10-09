@@ -106,13 +106,12 @@ GameObject:
   m_Component:
   - component: {fileID: 85212686393348146}
   - component: {fileID: 4387440288823366112}
-  - component: {fileID: 302953735340333797}
   - component: {fileID: 1485681949388501630}
   - component: {fileID: 3199358082662617570}
   - component: {fileID: 5693842548033363261}
   - component: {fileID: 492293609922752252}
   - component: {fileID: 2187250397017073487}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Categories
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -163,23 +162,6 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
---- !u!114 &302953735340333797
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 514718899364556283}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dc42784cf147c0c48a680349fa168899, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.GraphicRaycaster
-  m_IgnoreReversedGraphics: 1
-  m_BlockingObjects: 0
-  m_BlockingMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
 --- !u!222 &1485681949388501630
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -201,14 +183,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.03, g: 0.045, b: 0.07, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 3d1a462525fed0543ac9c73b40d35e7c, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -267,7 +249,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Settings.CategorySidebar
   _layoutElement: {fileID: 5693842548033363261}
-  _labelGroup: {fileID: 0}
   _container: {fileID: 2342173219021237218}
   _itemPrefab: {fileID: 3324120391518255503, guid: ea0a4ecdf12d3055890894c08b89a1be, type: 3}
 --- !u!1 &835214714333699635
@@ -648,7 +629,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 0}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -693,7 +674,7 @@ MonoBehaviour:
   m_Padding:
     m_Left: 8
     m_Right: 8
-    m_Top: 8
+    m_Top: 0
     m_Bottom: 8
   m_ChildAlignment: 0
   m_Spacing: 4
@@ -2395,7 +2376,7 @@ GameObject:
   - component: {fileID: 325864604947390304}
   - component: {fileID: 7797979164590608935}
   - component: {fileID: 4494460832746940644}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Divider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2443,7 +2424,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 0.08}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -2469,7 +2450,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2342173219021237218}
   - component: {fileID: 3826005301413818254}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Container
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2510,7 +2491,7 @@ MonoBehaviour:
   m_Padding:
     m_Left: 0
     m_Right: 0
-    m_Top: 15
+    m_Top: 0
     m_Bottom: 15
   m_ChildAlignment: 1
   m_Spacing: 8
@@ -2611,6 +2592,10 @@ PrefabInstance:
     - target: {fileID: 1931751072317119738, guid: 81863a63e0d96cf459c263ee0ea6f98e, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2692442145375190135, guid: 81863a63e0d96cf459c263ee0ea6f98e, type: 3}
+      propertyPath: m_VerticalScrollbarVisibility
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2732038155882833699, guid: 81863a63e0d96cf459c263ee0ea6f98e, type: 3}
       propertyPath: m_Name

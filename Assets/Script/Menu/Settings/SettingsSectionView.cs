@@ -43,7 +43,7 @@ namespace YARG.Menu.Settings
         public override void OnPointerDown(PointerEventData eventData)
         {
             base.OnPointerDown(eventData);
-            Confirm();
+            SettingsMenu.Instance.OnSectionClicked(Section);
         }
 
         public override void Confirm() => SettingsMenu.Instance.EnterSettings();

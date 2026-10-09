@@ -126,6 +126,23 @@ namespace YARG.Menu.Settings
 
         private void Start()
         {
+            EnsureTabsInitialized();
+
+            if (!string.IsNullOrEmpty(_pendingTabName))
+            {
+                var pending = _pendingTabName;
+                _pendingTabName = null;
+                SelectTabByName(pending);
+            }
+        }
+
+        private void EnsureTabsInitialized()
+        {
+            if (_tabsInitialized)
+            {
+                return;
+            }
+
             // Long setting names (e.g. preset activation-note colors) can exceed
             // the sidebar width; shrink-to-fit on one line instead of wrapping,
             // with an ellipsis as the last resort below the minimum size.
@@ -162,24 +179,16 @@ namespace YARG.Menu.Settings
                 });
             }
 
-            if (_headerTabs != null)
-            {
-                _headerTabs.Tabs = tabs;
-            }
-
             if (_categorySidebar != null)
             {
                 _categorySidebar.SetCategories(categories);
             }
+            else if (_headerTabs != null)
+            {
+                _headerTabs.Tabs = tabs;
+            }
 
             _tabsInitialized = true;
-
-            if (!string.IsNullOrEmpty(_pendingTabName))
-            {
-                var pending = _pendingTabName;
-                _pendingTabName = null;
-                SelectTabByName(pending);
-            }
         }
 
         private void OnEnable()
@@ -189,10 +198,12 @@ namespace YARG.Menu.Settings
                 return;
             }
 
+            EnsureTabsInitialized();
+
             if (_categorySidebar != null)
             {
                 _categorySidebar.CategoryChanged += OnTabChanged;
-                _categorySidebar.SetCollapsed(true, animate: false);
+                _categorySidebar.SetCollapsed(false, animate: false);
             }
             else if (_headerTabs != null)
             {
@@ -216,6 +227,8 @@ namespace YARG.Menu.Settings
                             ? _headerTabs.SelectedTabId
                             : null;
 
+                _pendingTabName = null;
+
                 if (!string.IsNullOrEmpty(tabId))
                 {
                     SelectTabByName(tabId);
@@ -226,7 +239,14 @@ namespace YARG.Menu.Settings
                 }
             }
 
-            FocusSections();
+            if (_categorySidebar != null)
+            {
+                FocusCategories(animate: false);
+            }
+            else
+            {
+                FocusSections();
+            }
         }
 
         private void OnTabChanged(string tab)
@@ -318,13 +338,26 @@ namespace YARG.Menu.Settings
 
         public void EnterSettings()
         {
-            _sectionsNavGroup.SelectLastNavGroup();
+            if (_categorySidebar != null && !_categorySidebar.IsCollapsed)
+            {
+                _categorySidebar.SetCollapsed(true);
+            }
+
+            if (_categorySidebar != null && NavigationGroup.CurrentNavigationGroup == _categorySidebar.NavigationGroup)
+            {
+                _categorySidebar.NavigationGroup.SelectLastNavGroup();
+            }
+            else
+            {
+                _sectionsNavGroup.SelectLastNavGroup();
+            }
+
             _settingsNavGroup.PushNavGroupToStack();
             _settingsNavGroup.SelectFirst(SelectionOrigin.Navigation);
             UpdateSectionMarkers(false);
         }
 
-        private void FocusSections()
+        public void FocusSections()
         {
             if (_categorySidebar != null && !_categorySidebar.IsCollapsed)
             {
@@ -357,7 +390,7 @@ namespace YARG.Menu.Settings
             }
         }
 
-        private void FocusCategories()
+        public void FocusCategories(bool animate = true)
         {
             if (_categorySidebar == null)
             {
@@ -366,13 +399,13 @@ namespace YARG.Menu.Settings
             }
 
             UpdateSectionMarkers(false);
-            _categorySidebar.SetCollapsed(false);
+            _categorySidebar.SetCollapsed(false, animate);
 
             if (NavigationGroup.CurrentNavigationGroup == _sectionsNavGroup)
             {
                 _sectionsNavGroup.SelectLastNavGroup();
             }
-            else
+            else if (NavigationGroup.CurrentNavigationGroup == _settingsNavGroup)
             {
                 _settingsNavGroup.SelectLastNavGroup();
             }
@@ -408,6 +441,33 @@ namespace YARG.Menu.Settings
             {
                 gameObject.SetActive(false);
             }
+        }
+
+        public void OnCategoryClicked(string categoryId)
+        {
+            if (CurrentTab?.Name != categoryId)
+            {
+                SelectTabByName(categoryId);
+            }
+
+            FocusCategories();
+        }
+
+        public void OnSectionClicked(string section)
+        {
+            if (_categorySidebar != null && !_categorySidebar.IsCollapsed)
+            {
+                _categorySidebar.SetCollapsed(true);
+            }
+
+            if (CurrentSection != section)
+            {
+                CurrentSection = section;
+                _searchBar.SetTextWithoutNotify(string.Empty);
+                Refresh();
+            }
+
+            FocusSections();
         }
 
         public void OnCategoryConfirmed(string categoryId)
@@ -832,7 +892,7 @@ namespace YARG.Menu.Settings
                 NavigationScheme.Entry.NavigateDown,
             };
 
-            if (_headerTabs != null)
+            if (_categorySidebar == null && _headerTabs != null)
             {
                 entries.Add(_headerTabs.NavigateNextTab);
                 entries.Add(_headerTabs.NavigatePreviousTab);
@@ -855,14 +915,13 @@ namespace YARG.Menu.Settings
             Navigator.Instance.PopScheme();
             DestroyPreview();
 
-            if (_headerTabs != null)
-            {
-                _headerTabs.TabChanged -= OnTabChanged;
-            }
-
             if (_categorySidebar != null)
             {
                 _categorySidebar.CategoryChanged -= OnTabChanged;
+            }
+            else if (_headerTabs != null)
+            {
+                _headerTabs.TabChanged -= OnTabChanged;
             }
 
             _settingsNavGroup.SelectionChanged -= OnSelectionChanged;
