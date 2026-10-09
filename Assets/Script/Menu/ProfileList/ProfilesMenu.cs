@@ -199,7 +199,7 @@ namespace YARG.Menu.ProfileList
             AddProfileListGroup("ActiveProfiles", activeProfiles);
             AddProfileListGroup("Players", otherProfiles.Where(e => !e.IsBot));
             AddProfileListGroup("Bots", otherProfiles.Where(e => e.IsBot));
-            AddUnloadedGroup("Menu");
+            AddUnloadedGroup("CouldNotLoad");
 
             if (selectedProfile == null)
             {
@@ -247,8 +247,8 @@ namespace YARG.Menu.ProfileList
         private void AddProfileListHeader(string headerKey)
         {
             var headerGo = Instantiate(_profileListHeaderPrefab, _leftPaneList);
-            headerGo.GetComponentInChildren<TextMeshProUGUI>().text = Localize.Key("Menu.ProfileList", headerKey);
-            _navigationGroup.AddNavigatable(headerGo);
+            headerGo.GetComponent<ProfileListHeaderView>().Init(headerKey);
+            _navigationGroup.AddNavigatable(headerGo.gameObject);
         }
 
         private void AddBindingSetListHeader(GameMode mode, bool typical)
@@ -266,8 +266,8 @@ namespace YARG.Menu.ProfileList
             }
 
             var headerGo = Instantiate(_profileListHeaderPrefab, _leftPaneList);
-            headerGo.GetComponentInChildren<TextMeshProUGUI>().text = header;
-            _navigationGroup.AddNavigatable(headerGo);
+            headerGo.GetComponent<ProfileListHeaderView>().Init(header);
+            _navigationGroup.AddNavigatable(headerGo.gameObject);
 
             foreach (var record in PlayerContainer.UnloadedProfiles)
             {

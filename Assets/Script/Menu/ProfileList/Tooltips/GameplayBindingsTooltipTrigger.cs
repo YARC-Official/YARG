@@ -15,14 +15,11 @@ namespace YARG.Menu.ProfileList
         protected override (IReadOnlyList<string> titleParams, IReadOnlyList<string> textParams) GetParameters()
         {
             var mode = _entry.Profile.GameMode;
-
-            var modeString = mode.ToLocalizedNameShort();
-            var preposition = mode is GameMode.Vocals ? "with" : "on";
-            var controllerString = LayoutHelper.LayoutStringToControllerFamily(_entry.Controller.layout).ToLocalizedNamePluralSentence();
+            var family = LayoutHelper.LayoutStringToControllerFamily(_entry.Controller.layout);
 
             return (
                 new List<string>() { },
-                new List<string>() { modeString, preposition, controllerString }
+                new List<string>() { BindingSetHelper.GetDescriptiveName(mode, family) }
             );
         }
     }

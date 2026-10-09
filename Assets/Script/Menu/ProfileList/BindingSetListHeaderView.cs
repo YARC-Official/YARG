@@ -19,14 +19,14 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private TextMeshProUGUI _text;
 
-        private ControllerFamily _family { get; set; }
-        private GameMode _mode { get; set; }
-        private ProfilesMenu _profilesMenu { get; set; }
+        public ControllerFamily Family { get; private set; }
+        public GameMode Mode { get; private set; }
+        private ProfilesMenu _profilesMenu;
 
         public void Init(ControllerFamily family, GameMode mode, ProfilesMenu profilesMenu, bool typical)
         {
-            _family = family;
-            _mode = mode;
+            Family = family;
+            Mode = mode;
             _profilesMenu = profilesMenu;
 
             _text.text = Localize.Key("Bindings.Headers", mode.ToString()) +
@@ -35,7 +35,7 @@ namespace YARG.Menu.ProfileList
 
         public void AddBindingSet()
         {
-            var bindingSet = ReusableBindingSetTemplates.MakeBlankBindingSet(_mode, _family);
+            var bindingSet = ReusableBindingSetTemplates.MakeBlankBindingSet(Mode, Family);
             BindingsContainer.AddBindingSet(bindingSet);
             _profilesMenu.RefreshBindingSetList();
             _profilesMenu.SetSelectedBindingSet(bindingSet);

@@ -21,19 +21,17 @@ namespace YARG.Menu.ProfileList
         private Button _button;
         [SerializeField]
         private TextMeshProUGUI _buttonText;
-
-
         private ControllerFamily _family { get; set; }
         private List<GameMode> _remainingGameModes { get; set; }
-        private ProfilesMenu _profilesMenu { get; set; }
+        public ProfilesMenu ProfilesMenu { get; private set; }
 
         public void Init(ControllerFamily family, List<GameMode> remainingGameModes, ProfilesMenu profilesMenu, bool someExist)
         {
             _family = family;
             _remainingGameModes = remainingGameModes;
-            _profilesMenu = profilesMenu;
+            ProfilesMenu = profilesMenu;
 
-            if (family is ControllerFamily.Other)
+            if (ControllerFamilyIsFlexible)
             {
                 _buttonText.text = Localize.Key(someExist ? "Menu.ProfileList.AddOtherBindingSet" : "Menu.ProfileList.AddBindingSet");
                 _button.GetComponent<Image>().color = RECOMMENDED_BUTTON_COLOR;
@@ -53,9 +51,13 @@ namespace YARG.Menu.ProfileList
             {
                 dialog = DialogManager.Instance.ShowList($"Add Other Binding Set\n" +
                     "<alpha=#44><size=65%>\n<b><color=\"yellow\">Note:</color></b> Because this is a binding set for miscellaneous input devices, you " +
-                    "won't be able to select bindings from dropdowns. You'll need to assign a dummy controller and use the record buttons to " +
-                    "create your binding set.</size>"
+                    "won't be able to select bindings from dropdowns. You'll need to assign a dummy controller and use the <b>Quick Bind</b> and/or " +
+                    "<b>Record</b> buttons to create your binding set.</size>"
                 );
+            }
+            else if (ControllerFamilyIsFlexible)
+            {
+                dialog = DialogManager.Instance.ShowList($"Add Other Binding Set");
             }
             else
             {
@@ -71,9 +73,15 @@ namespace YARG.Menu.ProfileList
                 {
                     var bindingSet = ReusableBindingSetTemplates.MakeBlankBindingSet(remainingGameMode, _family);
                     BindingsContainer.AddBindingSet(bindingSet);
-                    _profilesMenu.RefreshBindingSetList();
+                    ProfilesMenu.RefreshBindingSetList();
                 });
             }
         }
+
+        private bool ControllerFamilyIsFlexible => _family is
+            ControllerFamily.Other or
+            ControllerFamily.Gamepad or
+            ControllerFamily.ComputerKeyboard or
+            ControllerFamily.MidiDevice;
     }
 }

@@ -222,7 +222,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
-  _localizationKey: NoteSpeed
+  _localizationKey: Profiles.Settings.NoteSpeed
 --- !u!1 &258514061732514230
 GameObject:
   m_ObjectHideFlags: 0
@@ -600,7 +600,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
-  _localizationKey: CameraPreset
+  _localizationKey: Profiles.Settings.CameraPreset
 --- !u!1 &572975197060413157
 GameObject:
   m_ObjectHideFlags: 0
@@ -1764,7 +1764,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
-  _localizationKey: ColorProfile
+  _localizationKey: Profiles.Settings.ColorProfile
 --- !u!1 &1198103172099223644
 GameObject:
   m_ObjectHideFlags: 0
@@ -1838,7 +1838,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
-  _localizationKey: HighwayPreset
+  _localizationKey: Profiles.Settings.HighwayPreset
 --- !u!1 &1285783844371066432
 GameObject:
   m_ObjectHideFlags: 0
@@ -2173,7 +2173,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
-  _localizationKey: Microphones
+  _localizationKey: Profiles.Settings.Microphones
 --- !u!1 &1426543459481627062
 GameObject:
   m_ObjectHideFlags: 0
@@ -2371,7 +2371,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
-  _localizationKey: Controllers
+  _localizationKey: Profiles.Settings.Controllers
 --- !u!1 &1588073712556580401
 GameObject:
   m_ObjectHideFlags: 0
@@ -2445,7 +2445,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
-  _localizationKey: DedicatedOpenNoteLane
+  _localizationKey: Profiles.Settings.DedicatedOpenNoteLane
 --- !u!1 &1590879796695218099
 GameObject:
   m_ObjectHideFlags: 0
@@ -2839,7 +2839,7 @@ MonoBehaviour:
   _importBindingSetButton: {fileID: 8974590786248097937}
   _profileViewPrefab: {fileID: 1863348019200065187, guid: 7e9189d6a05c0ba4485c260aab1a1414, type: 3}
   _bindingSetViewPrefab: {fileID: 1863348019200065187, guid: ee819031ee8e8ca458308f7c6add7eed, type: 3}
-  _profileListHeaderPrefab: {fileID: 5753369685943773599, guid: a5a6c5d6c4076054fac9e3ab3c9c3373, type: 3}
+  _profileListHeaderPrefab: {fileID: 0}
   _bindingSetListHeaderPrefab: {fileID: 7403803654580723561, guid: d57df6b2103b29a43b2b9b9db0e5e49a, type: 3}
   _bindingSetListFooterPrefab: {fileID: 1681222694297705306, guid: ff24668bae33e48498b3de476467fa53, type: 3}
 --- !u!114 &3507336066892297867
@@ -3859,6 +3859,7 @@ GameObject:
   - component: {fileID: 2865251508565016939}
   - component: {fileID: 6905518756681019440}
   - component: {fileID: 6729394837757853421}
+  - component: {fileID: 2481526759575047513}
   m_Layer: 5
   m_Name: Profile Name
   m_TagString: Untagged
@@ -3985,6 +3986,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &2481526759575047513
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2163763865318883554}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
+  _localizationKey: Profiles.Name
 --- !u!1 &2214971859243366127
 GameObject:
   m_ObjectHideFlags: 0
@@ -5204,7 +5218,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
-  _localizationKey: EnginePreset
+  _localizationKey: Profiles.Settings.EnginePreset
 --- !u!1 &2901502984568389593
 GameObject:
   m_ObjectHideFlags: 0
@@ -5479,7 +5493,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
-  _localizationKey: RockMeterPreset
+  _localizationKey: Profiles.Settings.RockMeterPreset
 --- !u!1 &2944890191332945638
 GameObject:
   m_ObjectHideFlags: 0
@@ -5553,7 +5567,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
-  _localizationKey: LeftyFlip
+  _localizationKey: Profiles.Settings.LeftyFlip
 --- !u!1 &2945878347519602604
 GameObject:
   m_ObjectHideFlags: 0
@@ -6091,7 +6105,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
-  _localizationKey: HighwayLength
+  _localizationKey: Profiles.Settings.HighwayLength
 --- !u!1 &3470546410711705900
 GameObject:
   m_ObjectHideFlags: 0
@@ -6166,7 +6180,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
-  _localizationKey: ConfigureFiveLaneDrumsHighway
+  _localizationKey: Profiles.Settings.ConfigureFiveLaneDrumsHighway
 --- !u!1 &3501717256450451707
 GameObject:
   m_ObjectHideFlags: 0
@@ -6314,6 +6328,7 @@ GameObject:
   m_Component:
   - component: {fileID: 427790149242992732}
   - component: {fileID: 7250127565607775016}
+  - component: {fileID: 1391970400919879057}
   m_Layer: 5
   m_Name: Use Cymbal Models
   m_TagString: Untagged
@@ -6364,6 +6379,19 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: 0
   m_LayoutPriority: 1
+--- !u!114 &1391970400919879057
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3552946752624083909}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
+  _localizationKey: Profiles.Settings.UseCymbalModels
 --- !u!1 &3727872495814444333
 GameObject:
   m_ObjectHideFlags: 0
@@ -6761,6 +6789,7 @@ GameObject:
   - component: {fileID: 2298790273085447107}
   - component: {fileID: 5987614951376874843}
   - component: {fileID: 4386756987044224992}
+  - component: {fileID: 8280847024064237695}
   m_Layer: 5
   m_Name: Default Profile Picture
   m_TagString: Untagged
@@ -6825,6 +6854,19 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &8280847024064237695
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4260418787698445033}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
+  _localizationKey: Profiles.Header.ProfilePicture
 --- !u!1 &4263670761946211452
 GameObject:
   m_ObjectHideFlags: 0
@@ -7099,6 +7141,39 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &7013306619269026709
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4373093285528361130}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.LayoutElement
+  m_IgnoreLayout: 0
+  m_MinWidth: -1
+  m_MinHeight: -1
+  m_PreferredWidth: -1
+  m_PreferredHeight: 84
+  m_FlexibleWidth: -1
+  m_FlexibleHeight: 0
+  m_LayoutPriority: 1
+--- !u!114 &6605212937118633251
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4373093285528361130}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
+  _localizationKey: Profiles.Settings.NoteTheme
 --- !u!1 &4373959267799155517
 GameObject:
   m_ObjectHideFlags: 0
@@ -7190,39 +7265,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Mask
   m_ShowMaskGraphic: 0
---- !u!114 &7013306619269026709
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4373093285528361130}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.LayoutElement
-  m_IgnoreLayout: 0
-  m_MinWidth: -1
-  m_MinHeight: -1
-  m_PreferredWidth: -1
-  m_PreferredHeight: 84
-  m_FlexibleWidth: -1
-  m_FlexibleHeight: 0
-  m_LayoutPriority: 1
---- !u!114 &6605212937118633251
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4373093285528361130}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
-  _localizationKey: NoteTheme
 --- !u!1 &4394698359308714901
 GameObject:
   m_ObjectHideFlags: 0
@@ -7618,7 +7660,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
-  _localizationKey: ConfigureProDrumsHighway
+  _localizationKey: Profiles.Settings.ConfigureProDrumsHighway
 --- !u!1 &4760484983025566137
 GameObject:
   m_ObjectHideFlags: 0
@@ -7917,7 +7959,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
-  _localizationKey: ConfigureFourLaneDrumsHighway
+  _localizationKey: Profiles.Settings.ConfigureFourLaneDrumsHighway
 --- !u!1 &4842587725615728863
 GameObject:
   m_ObjectHideFlags: 0
@@ -8099,6 +8141,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3158273426296125353}
   - component: {fileID: 7795312047861574372}
+  - component: {fileID: 7134867558649881917}
   m_Layer: 5
   m_Name: Star Power Activation Type
   m_TagString: Untagged
@@ -8149,6 +8192,19 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: 0
   m_LayoutPriority: 1
+--- !u!114 &7134867558649881917
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4962436279611910704}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
+  _localizationKey: Profiles.Settings.StarPowerActivationType
 --- !u!1 &5023069795036822812
 GameObject:
   m_ObjectHideFlags: 0
@@ -8665,7 +8721,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 065eba9da2bc9044aaa6a634a38fe274, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.ProfileList.InputModeTooltipTrigger
-  _localizationKey: InputMode
+  _localizationKey: Profiles.Settings.InputMode
   _centerPane: {fileID: 7898968641357467819}
 --- !u!1 &5360837810789146710
 GameObject:
@@ -9172,6 +9228,43 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &6585831789207762097
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2128586033879703065}
+  m_Layer: 5
+  m_Name: Center Pane
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &2128586033879703065
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6585831789207762097}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 4773299203027067160}
+  - {fileID: 6837417037008249973}
+  m_Father: {fileID: 1731608351740115695}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 1, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: -750, y: -42.5}
+  m_SizeDelta: {x: 900, y: -235}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &6613364484856623368
 GameObject:
   m_ObjectHideFlags: 0
@@ -9209,43 +9302,6 @@ RectTransform:
   m_AnchorMax: {x: 0, y: 0.5}
   m_AnchoredPosition: {x: 50, y: 0}
   m_SizeDelta: {x: 64, y: 64}
-  m_Pivot: {x: 0.5, y: 0.5}
---- !u!1 &6585831789207762097
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2128586033879703065}
-  m_Layer: 5
-  m_Name: Center Pane
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!224 &2128586033879703065
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6585831789207762097}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 4773299203027067160}
-  - {fileID: 6837417037008249973}
-  m_Father: {fileID: 1731608351740115695}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 1, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -750, y: -42.5}
-  m_SizeDelta: {x: 900, y: -235}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &6640084960363780291
 GameObject:
@@ -10348,7 +10404,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
-  _localizationKey: BindingSetFilter
+  _localizationKey: Bindings.List.Filter
 --- !u!114 &2015764702387435712
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11148,7 +11204,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
-  _localizationKey: InputCalibration
+  _localizationKey: Profiles.Settings.InputCalibration
 --- !u!1 &8278147601341651097
 GameObject:
   m_ObjectHideFlags: 0
@@ -11972,7 +12028,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
-  _localizationKey: RangeDisable
+  _localizationKey: Profiles.Settings.RangeDisable
 --- !u!1 &9090892100162229332
 GameObject:
   m_ObjectHideFlags: 0
@@ -13018,7 +13074,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
-  _localizationKey: Overview
+  _localizationKey: Profiles.Header.Overview
 --- !u!1001 &1855603339158816515
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -13192,8 +13248,26 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5044548799731027934, guid: 0dab2d5fd611fdb4bb5ca54e023d39b7, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7784945228513778848}
-    m_AddedComponents: []
+    m_AddedComponents: [{targetCorrespondingSourceObject: {fileID: 3919480006246497000, guid: 0dab2d5fd611fdb4bb5ca54e023d39b7, type: 3}, insertIndex: -1, addedObject: {fileID: 7596003575297641933}}]
   m_SourcePrefab: {fileID: 100100000, guid: 0dab2d5fd611fdb4bb5ca54e023d39b7, type: 3}
+--- !u!1 &3433052621068729835 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3919480006246497000, guid: 0dab2d5fd611fdb4bb5ca54e023d39b7, type: 3}
+  m_PrefabInstance: {fileID: 1855603339158816515}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &7596003575297641933
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3433052621068729835}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
+  _localizationKey: Header.Back
 --- !u!114 &5840206460443911386 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5245842211347915737, guid: 0dab2d5fd611fdb4bb5ca54e023d39b7, type: 3}
@@ -13357,13 +13431,29 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4441713907549617493, guid: 1559ee81882cd0045b6d33a64692e938, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5342786583757032478}
   m_SourcePrefab: {fileID: 100100000, guid: 1559ee81882cd0045b6d33a64692e938, type: 3}
 --- !u!1 &2439746370158396694 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 4441713907549617493, guid: 1559ee81882cd0045b6d33a64692e938, type: 3}
   m_PrefabInstance: {fileID: 2053530524130949187}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &5342786583757032478
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2439746370158396694}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
+  _localizationKey: Profiles.Header.EditProfilePicture
 --- !u!224 &3557334428281166119 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 3252069457828798820, guid: 1559ee81882cd0045b6d33a64692e938, type: 3}
@@ -13564,6 +13654,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4441713907549617493, guid: 30455cc33f47e564894a0ec80dcbed66, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1564137224114028325}
+    - targetCorrespondingSourceObject: {fileID: 8637973974686150122, guid: 30455cc33f47e564894a0ec80dcbed66, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6347722968121946916}
   m_SourcePrefab: {fileID: 100100000, guid: 30455cc33f47e564894a0ec80dcbed66, type: 3}
 --- !u!1 &2483706525546546326 stripped
 GameObject:
@@ -13595,6 +13688,24 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 3252069457828798820, guid: 30455cc33f47e564894a0ec80dcbed66, type: 3}
   m_PrefabInstance: {fileID: 2293395064294848963}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &7508619025301181481 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8637973974686150122, guid: 30455cc33f47e564894a0ec80dcbed66, type: 3}
+  m_PrefabInstance: {fileID: 2293395064294848963}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &6347722968121946916
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7508619025301181481}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
+  _localizationKey: Profiles.Header.Rename
 --- !u!1001 &2773495708328665611
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -13605,7 +13716,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 375337769934742335, guid: 81863a63e0d96cf459c263ee0ea6f98e, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: -0.000030517578
       objectReference: {fileID: 0}
     - target: {fileID: 1931751072317119738, guid: 81863a63e0d96cf459c263ee0ea6f98e, type: 3}
       propertyPath: m_AnchorMax.x
@@ -13991,7 +14102,8 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0.000030517578
       objectReference: {fileID: 0}
-    m_RemovedComponents: [{fileID: 6375567488079745359, guid: 45a81623e6e295b42b0be10d51e92565, type: 3}]
+    m_RemovedComponents:
+    - {fileID: 6375567488079745359, guid: 45a81623e6e295b42b0be10d51e92565, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
@@ -14157,6 +14269,194 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9085046f02f69544eb97fd06b6048fe2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1001 &3845920480315495163
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 5215748808372243939}
+    m_Modifications:
+    - target: {fileID: 1245898288579793007, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1245898288579793007, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1245898288579793007, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 5881746760155002837}
+    - target: {fileID: 1245898288579793007, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1245898288579793007, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: AddProfile
+      objectReference: {fileID: 0}
+    - target: {fileID: 1245898288579793007, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: YARG.Menu.Profiles.ProfilesMenu, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 1245898288579793007, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
+    - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+      propertyPath: m_Pivot.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+      propertyPath: m_Pivot.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+      propertyPath: m_RootOrder
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 222
+      objectReference: {fileID: 0}
+    - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -111.000015
+      objectReference: {fileID: 0}
+    - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4441713907549617493, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+      propertyPath: m_Name
+      value: Add Profile
+      objectReference: {fileID: 0}
+    - target: {fileID: 4441713907549617493, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5240628994194081110, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+      propertyPath: m_text
+      value: Add Profile
+      objectReference: {fileID: 0}
+    - target: {fileID: 5240628994194081110, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+      propertyPath: m_ActiveFontFeatures.Array.data[0]
+      value: 1801810542
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 8637973974686150122, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4078480666306101587}
+    - targetCorrespondingSourceObject: {fileID: 976617834159072917, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 142807409047408133}
+  m_SourcePrefab: {fileID: 100100000, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+--- !u!224 &1765094110262375327 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+  m_PrefabInstance: {fileID: 3845920480315495163}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &4094564749868938350 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 976617834159072917, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+  m_PrefabInstance: {fileID: 3845920480315495163}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &142807409047408133
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4094564749868938350}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7666ce39360a4330a733067d9e66b929, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _localizationKey: Menu.ProfileList.AddProfile
+--- !u!1 &4809646338468118289 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8637973974686150122, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+  m_PrefabInstance: {fileID: 3845920480315495163}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &4078480666306101587
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4809646338468118289}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
+  _localizationKey: Header.AddProfile
 --- !u!1001 &4060155772890000596
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -14324,173 +14624,6 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 3252069457828798820, guid: 1559ee81882cd0045b6d33a64692e938, type: 3}
   m_PrefabInstance: {fileID: 4060155772890000596}
   m_PrefabAsset: {fileID: 0}
---- !u!1001 &3845920480315495163
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 5215748808372243939}
-    m_Modifications:
-    - target: {fileID: 1245898288579793007, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1245898288579793007, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1245898288579793007, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
-      value: 
-      objectReference: {fileID: 5881746760155002837}
-    - target: {fileID: 1245898288579793007, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 1245898288579793007, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: AddProfile
-      objectReference: {fileID: 0}
-    - target: {fileID: 1245898288579793007, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: YARG.Menu.Profiles.ProfilesMenu, Assembly-CSharp
-      objectReference: {fileID: 0}
-    - target: {fileID: 1245898288579793007, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
-      value: UnityEngine.Object, UnityEngine
-      objectReference: {fileID: 0}
-    - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
-      propertyPath: m_Pivot.x
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
-      propertyPath: m_Pivot.y
-      value: 0.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
-      propertyPath: m_RootOrder
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
-      propertyPath: m_AnchorMax.x
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 0.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
-      propertyPath: m_AnchorMin.x
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
-      propertyPath: m_AnchorMin.y
-      value: 0.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
-      propertyPath: m_SizeDelta.x
-      value: 222
-      objectReference: {fileID: 0}
-    - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
-      propertyPath: m_SizeDelta.y
-      value: 100
-      objectReference: {fileID: 0}
-    - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: -111.000015
-      objectReference: {fileID: 0}
-    - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4441713907549617493, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
-      propertyPath: m_Name
-      value: Add Profile
-      objectReference: {fileID: 0}
-    - target: {fileID: 4441713907549617493, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5240628994194081110, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
-      propertyPath: m_text
-      value: Add Profile
-      objectReference: {fileID: 0}
-    - target: {fileID: 5240628994194081110, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
-      propertyPath: m_ActiveFontFeatures.Array.data[0]
-      value: 1801810542
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 976617834159072917, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 142807409047408133}
-  m_SourcePrefab: {fileID: 100100000, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
---- !u!224 &1765094110262375327 stripped
-RectTransform:
-  m_CorrespondingSourceObject: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
-  m_PrefabInstance: {fileID: 3845920480315495163}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &4094564749868938350 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 976617834159072917, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
-  m_PrefabInstance: {fileID: 3845920480315495163}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &142807409047408133
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4094564749868938350}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7666ce39360a4330a733067d9e66b929, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _localizationKey: Menu.ProfileList.AddProfile
 --- !u!1001 &4586440725845104307
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -15053,7 +15186,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
-  _localizationKey: ImportBindingSet
+  _localizationKey: Header.ImportBindingSet
 --- !u!1 &5522997812712381265 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 976617834159072917, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
@@ -15125,10 +15258,6 @@ PrefabInstance:
     - target: {fileID: 5009541612151404013, guid: a3b2677e603872648a647475adee140f, type: 3}
       propertyPath: m_Name
       value: HighwayConfigurationMenu
-      objectReference: {fileID: 0}
-    - target: {fileID: 5009541612151404013, guid: a3b2677e603872648a647475adee140f, type: 3}
-      propertyPath: m_IsActive
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5009541612151404013, guid: a3b2677e603872648a647475adee140f, type: 3}
       propertyPath: m_IsActive
@@ -15218,14 +15347,6 @@ PrefabInstance:
       propertyPath: _profileMenuLeftyFlipToggle
       value: 
       objectReference: {fileID: 506496582370905451}
-    - target: {fileID: 6284328856193187805, guid: a3b2677e603872648a647475adee140f, type: 3}
-      propertyPath: m_AnchorMax.x
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6284328856193187805, guid: a3b2677e603872648a647475adee140f, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 6284328856193187805, guid: a3b2677e603872648a647475adee140f, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0
@@ -16173,7 +16294,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 375337769934742335, guid: 81863a63e0d96cf459c263ee0ea6f98e, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0.000091552734
+      value: 0.000061035156
       objectReference: {fileID: 0}
     - target: {fileID: 1931751072317119738, guid: 81863a63e0d96cf459c263ee0ea6f98e, type: 3}
       propertyPath: m_AnchorMax.x
@@ -16285,11 +16406,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6232041351873830570, guid: 81863a63e0d96cf459c263ee0ea6f98e, type: 3}
       propertyPath: m_Size
-      value: 0.44063646
+      value: 0.4406365
       objectReference: {fileID: 0}
     - target: {fileID: 6232041351873830570, guid: 81863a63e0d96cf459c263ee0ea6f98e, type: 3}
       propertyPath: m_Value
-      value: 0.9999999
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8647224329583555657, guid: 81863a63e0d96cf459c263ee0ea6f98e, type: 3}
       propertyPath: m_IsActive
@@ -16931,10 +17052,31 @@ PrefabInstance:
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 8637973974686150122, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8909901090786296464}
     - targetCorrespondingSourceObject: {fileID: 976617834159072917, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
       insertIndex: -1
       addedObject: {fileID: 4850880909944890422}
   m_SourcePrefab: {fileID: 100100000, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+--- !u!1 &1594081539146265193 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8637973974686150122, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+  m_PrefabInstance: {fileID: 7061484952691318659}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &8909901090786296464
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1594081539146265193}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
+  _localizationKey: Header.AddBot
 --- !u!224 &5539081022582750951 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}

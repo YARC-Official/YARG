@@ -5,8 +5,10 @@ using UnityEditor.Experimental.GraphView;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.XR;
+using YARG.Core;
 using YARG.Core.Game;
 using YARG.Input.Bindings;
+using YARG.Localization;
 using YARG.Menu.ProfileList;
 using YARG.Player;
 
@@ -187,6 +189,16 @@ namespace YARG.Helpers
             float value = integerControl.ReadValue();
 
             return Math.Abs(value - previousValue) >= RuntimeIntegerBinding.INTEGER_DELTA_THRESHOLD;
+        }
+
+        public static string GetDescriptiveName(GameMode mode, ControllerFamily family)
+        {
+            var modeString = mode.ToLocalizedNameShort();
+            var gameplayString = mode is GameMode.Menu ? "" : Localize.Key("Menu.ProfileList.DescriptiveBindingSetName.Gameplay");
+            var preposition = Localize.Key("Menu.ProfileList.DescriptiveBindingSetName", mode is GameMode.Vocals ? "With" : "On");
+            var controllerString = family.ToLocalizedNamePluralSentence();
+
+            return Localize.KeyFormat("Menu.ProfileList.DescriptiveBindingSetName.Format", modeString, gameplayString, preposition, controllerString);
         }
     }
 }
