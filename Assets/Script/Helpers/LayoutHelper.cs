@@ -254,6 +254,7 @@ namespace YARG.Helpers
 
     }
 
+#nullable enable
     public struct ControlItemInfo
     {
         public string ControlPath;
@@ -296,4 +297,5 @@ namespace YARG.Helpers
             }
         }
     }
+#nullable disable
 }

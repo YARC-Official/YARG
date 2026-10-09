@@ -52,7 +52,6 @@ namespace YARG.Menu.Dialogs
 
         protected CancellationTokenSource _bindingTokenSource;
         protected State                   _state;
-        protected ActuationSettings       _bindSettings    = new();
 
         protected bool _lefty;
 

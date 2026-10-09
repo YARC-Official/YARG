@@ -5,6 +5,7 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using YARG.Assets.Script.Menu.ProfileList;
 using YARG.Helpers;
 using YARG.Input.Bindings;
 using YARG.Menu.ProfileInfo;

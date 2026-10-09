@@ -98,6 +98,7 @@ namespace YARG.Menu.Tooltips
             }
         }
 
+#nullable enable
         private TooltipTrigger? FindTooltipTrigger(PointerEventData eventData)
         {
             var results = new List<RaycastResult>();
@@ -115,5 +116,6 @@ namespace YARG.Menu.Tooltips
 
             return null;
         }
+#nullable disable
     }
 }

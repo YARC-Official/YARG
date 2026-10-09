@@ -237,6 +237,7 @@ namespace YARG.Input.Serialization
                 Parameters = serialized.Parameters;
             }
 
+#nullable enable
             public SerializedSingleBinding? Deserialize()
             {
                 return new(ControlName, SourceLayout)
@@ -244,6 +245,7 @@ namespace YARG.Input.Serialization
                     Parameters = Parameters,
                 };
             }
+#nullable disable
 
             // For conditional serialization
             public bool ShouldSerializeParameters() => Parameters.Count > 0;
@@ -281,7 +283,7 @@ namespace YARG.Input.Serialization
         {
             return new SerializedBindingsV4(serialized);
         }
-
+#nullable enable
         private static SerializedBindings? DeserializeBindingsV4(JObject obj)
         {
             var serialized = obj.ToObject<SerializedBindingsV4>();
@@ -304,5 +306,6 @@ namespace YARG.Input.Serialization
 
             return serialized.Deserialize(Guid.NewGuid());
         }
+#nullable disable
     }
 }
