@@ -853,12 +853,24 @@
                 },
                 "Bindings": {
                     "Group": {
+                        "AddNew": {
+                            "Title": "Add New Binding",
+                            "Text": "Add a new binding for this action. If you have a dummy controller, you will be prompted to provide an input to bind to. Otherwise, you can assign the binding manually."
+                        },
+                        "Expand": {
+                            "Title": "Toggle Bindings List",
+                            "Text": "Toggles the list of all individual bindings assigned to this action."
+                        },
                         "Button": {
                             "Header": {
                                 "Title": "{0}",
                                 "Text": "{0}",
                                 "Regular": "This is a button action; its state is either \"on\" or \"off\", representing the logical OR of all the controls bound to it. If at least one of them is on, then this action is considered on. Otherwise, it is off.",
                                 "Impulse": "This is an impulse action; it fires \"pressed\" events whenever you press any of its bound controls. It supports velocity information, but can also be bound with digital buttons; they will be treated as always sending maximum velocity.",
+                            },
+                            "Settings": {
+                                "Title": "Configure/Test Effective Value",
+                                "Text": "Toggles a configuration panel where you can view the effective value of this binding, aggregated from all of its bindings, based on live input from your dummy controller. You can also configure an aggregate debounce value for this action, which applies across all of its bindings."
                             },
                             "CurrentValue": {
                                 "Title": "Current Value",
@@ -868,6 +880,18 @@
                                 "Title": "Debounce Threshold",
                                 "Text": "Length of the debounce window, measured in milliseconds, for this action. Once a press is registered from any of this control's bindings, further inputs within this timeframe from any of its bindings are ignored.\n\nIn most cases, this can be left at 0. Consider using a positive value for situations where multiple bindings for an action might crosstalk with each other, such as if you have bound multiple zones of a MIDI drum pad to a single action."
                             }
+                        },
+                        "Axis": {
+                            "Settings": {
+                                "Title": "Test Effective Value",
+                                "Text": "Toggles a configuration panel where you can view the effective value of this binding, aggregated from all of its bindings, based on live input from your dummy controller."
+                            },
+                        },
+                        "Integer": {
+                            "Settings": {
+                                "Title": "Test Effective Value",
+                                "Text": "Toggles a configuration panel where you can view the effective value of this binding, aggregated from all of its bindings, based on live input from your dummy controller."
+                            },
                         }
                     },
                     "Single": {
@@ -880,8 +904,8 @@
                             "Text": "Removes this control from this action binding."
                         },
                         "Expand": {
-                            "Title": "Expand",
-                            "Text": "Opens a configuration panel where you can calibrate this binding and view live input data from the dummy controller."
+                            "Title": "Expand Binding",
+                            "Text": "Toggles a configuration panel where you can calibrate this binding and view live input data from the dummy controller."
                         },
                         "Button": {
                             "CurrentValue": {

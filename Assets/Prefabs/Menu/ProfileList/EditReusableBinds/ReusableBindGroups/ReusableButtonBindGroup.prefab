@@ -386,6 +386,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4441713907549617493, guid: fbe8e8d998d3de540abf324a8c5e65d3, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5237604679936326240}
+    - targetCorrespondingSourceObject: {fileID: 4441713907549617493, guid: fbe8e8d998d3de540abf324a8c5e65d3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4037399973344641268}
+    - targetCorrespondingSourceObject: {fileID: 4441713907549617493, guid: fbe8e8d998d3de540abf324a8c5e65d3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5507123227249271458}
   m_SourcePrefab: {fileID: 100100000, guid: fbe8e8d998d3de540abf324a8c5e65d3, type: 3}
 --- !u!224 &2997255873940866472 stripped
 RectTransform:
@@ -430,6 +436,44 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
   _localizationKey: Bindings.Group.Button.DebounceThreshold
+--- !u!222 &4037399973344641268
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4115706095338690969}
+  m_CullTransparentMesh: 1
+--- !u!114 &5507123227249271458
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4115706095338690969}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 0}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
 --- !u!1001 &1447791382544943274
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -911,6 +955,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5396120328903095159, guid: 6e2667896228a7e44bf8acf6a019f0a3, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8458547228302754618}
+    - targetCorrespondingSourceObject: {fileID: 5071566577597083582, guid: 6e2667896228a7e44bf8acf6a019f0a3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6267000053375174003}
   m_SourcePrefab: {fileID: 100100000, guid: 6e2667896228a7e44bf8acf6a019f0a3, type: 3}
 --- !u!114 &3420573901841749374 stripped
 MonoBehaviour:
@@ -939,7 +986,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 2363189801400046139, guid: 6e2667896228a7e44bf8acf6a019f0a3, type: 3}
   m_PrefabInstance: {fileID: 1876753336989516910}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 6659209602437016528}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
@@ -1004,6 +1051,24 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.ProfileList.ButtonBindGroupToolipTrigger
   _localizationKey: Bindings.Group.Button.Header
   _bindGroup: {fileID: 2112290437380438965}
+--- !u!1 &6659209602437016528 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5071566577597083582, guid: 6e2667896228a7e44bf8acf6a019f0a3, type: 3}
+  m_PrefabInstance: {fileID: 1876753336989516910}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &6267000053375174003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6659209602437016528}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
+  _localizationKey: Bindings.Group.Button.Settings
 --- !u!114 &6996481642397031445 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 8868695748306786427, guid: 6e2667896228a7e44bf8acf6a019f0a3, type: 3}
