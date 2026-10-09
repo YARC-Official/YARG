@@ -38,7 +38,7 @@ namespace YARG.Menu.ProfileList
         {
             _group = group;
             _binding = binding;
-            _group.HandednessChanged += RefreshHandedness;
+            _group.CenterPane.HandednessChanged += RefreshHandedness;
             RefreshHandedness(showLeftyNames);
 
             var icons = MenuData.NavigationIcons;
@@ -95,7 +95,7 @@ namespace YARG.Menu.ProfileList
 
         private void OnDestroy()
         {
-            _group.HandednessChanged -= RefreshHandedness;
+            _group.CenterPane.HandednessChanged -= RefreshHandedness;
         }
     }
 }

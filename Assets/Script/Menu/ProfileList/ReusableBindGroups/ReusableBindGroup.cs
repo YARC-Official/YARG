@@ -18,8 +18,6 @@ namespace YARG.Menu.ProfileList
 
         protected ReusableBindingSet _bindingSet;
         public BindingSetsCenterPane CenterPane { get; protected set; }
-
-        public event Action<bool> HandednessChanged;
         public event Action Unlocked;
 
         protected void OnUnlocked()

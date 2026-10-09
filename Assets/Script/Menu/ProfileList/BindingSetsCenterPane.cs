@@ -89,7 +89,7 @@ namespace YARG.Menu.ProfileList
         public bool ShowLeftyNames
         {
             get => _showLeftyNames;
-            private set
+            set
             {
                 _showLeftyNames = value;
                 HandednessChanged?.Invoke(value);
