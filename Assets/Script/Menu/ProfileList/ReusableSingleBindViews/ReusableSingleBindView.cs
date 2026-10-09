@@ -30,8 +30,8 @@ namespace YARG.Menu.ProfileList
 
         public event Action<TSingle> DeleteRequested;
 
-        protected TBinding Binding;
-        protected TSingle SingleBinding;
+        protected TBinding _binding;
+        public TSingle SingleBinding { get; protected set; }
         protected List<ControlItemInfo> _allControls;
         protected List<DropdownControl> _dropdownControls = new();
         private DropdownControl _adHocControl;
@@ -60,7 +60,7 @@ namespace YARG.Menu.ProfileList
             _profilesMenu = profilesMenu;
             _centerPane = centerPane;
             _quickBindDialog = quickBindDialog;
-            Binding = binding;
+            _binding = binding;
             SingleBinding = singleBinding;
             _allControls = controls;
             _interactable = interactable;
@@ -172,7 +172,7 @@ namespace YARG.Menu.ProfileList
 
         public async void OnRecord()
         {
-            if (await SingleBinding.QuickBind(_centerPane.DummyController, _quickBindDialog, Binding.Info.Type))
+            if (await SingleBinding.QuickBind(_centerPane.DummyController, _quickBindDialog, _binding.Info.Type))
             {
                 var idx = _dropdownControls.FindIndex(c =>
                             string.Equals(

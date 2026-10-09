@@ -785,6 +785,15 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4441713907549617493, guid: fbe8e8d998d3de540abf324a8c5e65d3, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8840520847572619125}
+    - targetCorrespondingSourceObject: {fileID: 4441713907549617493, guid: fbe8e8d998d3de540abf324a8c5e65d3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8994213186377834997}
+    - targetCorrespondingSourceObject: {fileID: 4441713907549617493, guid: fbe8e8d998d3de540abf324a8c5e65d3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1497869841988932912}
+    - targetCorrespondingSourceObject: {fileID: 4441713907549617493, guid: fbe8e8d998d3de540abf324a8c5e65d3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5773680975338661421}
   m_SourcePrefab: {fileID: 100100000, guid: fbe8e8d998d3de540abf324a8c5e65d3, type: 3}
 --- !u!1 &3429140155500383060 stripped
 GameObject:
@@ -811,6 +820,57 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!114 &8994213186377834997
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3429140155500383060}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
+  _localizationKey: Bindings.Single.Axis.CalibratedValue
+--- !u!222 &1497869841988932912
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3429140155500383060}
+  m_CullTransparentMesh: 1
+--- !u!114 &5773680975338661421
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3429140155500383060}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 0}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
 --- !u!224 &4545056131361314661 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 3252069457828798820, guid: fbe8e8d998d3de540abf324a8c5e65d3, type: 3}
@@ -1677,8 +1737,37 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7219051402932068663, guid: bbdf65c08f2785e45834a2ee15ff1cf2, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4770549578837695932}
+    - targetCorrespondingSourceObject: {fileID: 2737468026809922951, guid: bbdf65c08f2785e45834a2ee15ff1cf2, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6239831715502871839}
+    - targetCorrespondingSourceObject: {fileID: 1994626409247256445, guid: bbdf65c08f2785e45834a2ee15ff1cf2, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5438063473980604304}
   m_SourcePrefab: {fileID: 100100000, guid: bbdf65c08f2785e45834a2ee15ff1cf2, type: 3}
+--- !u!1 &188030824777525450 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2737468026809922951, guid: bbdf65c08f2785e45834a2ee15ff1cf2, type: 3}
+  m_PrefabInstance: {fileID: 2837678584708898125}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &6239831715502871839
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 188030824777525450}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 464103abaa8b07141befbe609d3c3a8f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Assets.Script.Menu.ProfileList.Tooltips.AxisMinMaxTooltipTrigger
+  _localizationKey: Bindings.Single.Axis.RawValue.Minimum
+  _bindView: {fileID: 1420292965105626666}
+  _isMax: 0
 --- !u!224 &897747415537217628 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 3104111711537360145, guid: bbdf65c08f2785e45834a2ee15ff1cf2, type: 3}
@@ -1695,6 +1784,45 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 721463c8255b6454d90f0a905def5d7b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &4381760020527002160 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1994626409247256445, guid: bbdf65c08f2785e45834a2ee15ff1cf2, type: 3}
+  m_PrefabInstance: {fileID: 2837678584708898125}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &5438063473980604304
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4381760020527002160}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 464103abaa8b07141befbe609d3c3a8f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Assets.Script.Menu.ProfileList.Tooltips.AxisMinMaxTooltipTrigger
+  _localizationKey: Bindings.Single.Axis.RawValue.Maximum
+  _bindView: {fileID: 1420292965105626666}
+  _isMax: 1
+--- !u!1 &4849898115635068026 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7219051402932068663, guid: bbdf65c08f2785e45834a2ee15ff1cf2, type: 3}
+  m_PrefabInstance: {fileID: 2837678584708898125}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &4770549578837695932
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4849898115635068026}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 307f2257cb587b24aa6eeec0138b6fbe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Assets.Script.Menu.ProfileList.Tooltips.AxisDeadzoneTooltipTrigger
+  _localizationKey: Bindings.Single.Axis.RawValue.Deadzone
+  _bindView: {fileID: 1420292965105626666}
 --- !u!1001 &3308145332399380930
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1853,6 +1981,15 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4441713907549617493, guid: fbe8e8d998d3de540abf324a8c5e65d3, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2133837167951970417}
+    - targetCorrespondingSourceObject: {fileID: 4441713907549617493, guid: fbe8e8d998d3de540abf324a8c5e65d3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1636378974954780468}
+    - targetCorrespondingSourceObject: {fileID: 4441713907549617493, guid: fbe8e8d998d3de540abf324a8c5e65d3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7214076541418950366}
+    - targetCorrespondingSourceObject: {fileID: 4441713907549617493, guid: fbe8e8d998d3de540abf324a8c5e65d3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 907833186037694312}
   m_SourcePrefab: {fileID: 100100000, guid: fbe8e8d998d3de540abf324a8c5e65d3, type: 3}
 --- !u!224 &56663701536667814 stripped
 RectTransform:
@@ -1884,6 +2021,57 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!222 &1636378974954780468
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1174533380849542295}
+  m_CullTransparentMesh: 1
+--- !u!114 &7214076541418950366
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1174533380849542295}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 0}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!114 &907833186037694312
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1174533380849542295}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
+  _localizationKey: Bindings.Single.Axis.RawValue
 --- !u!1001 &3453686120194926120
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -936,6 +936,28 @@
                                     "Text": "Length of the debounce window, measured in milliseconds. Once an input is registered, further inputs within this timeframe are ignored (this does not restart the timer)."
                                 }
                             }
+                        },
+                        "Axis": {
+                            "RawValue": {
+                                "Title": "Raw Value",
+                                "Text": "View live input from your dummy controller, before applying the parameters below. This display overlays your <b>Minimum</b>, <b>Maximum</b>, and <b>Upper/Lower Deadzone</b> parameters for reference.",
+                                "Deadzone": {
+                                    "Title": "Deadzone ({0}–{1})",
+                                    "Text": "If the raw value falls within this range, the calibrated value is treated as 0. Configure with the <b>Upper Deadzone</b> and <b>Lower Deadzone</b> parameters below."
+                                },
+                                "Minimum": {
+                                    "Title": "Minimum ({0})",
+                                    "Text": "If the raw value falls within this range, the calibrated value is treated as {0}."
+                                },
+                                "Maximum": {
+                                    "Title": "Maximum ({0})",
+                                    "Text": "If the raw value falls within this range, the calibrated value is treated as {0}."
+                                }
+                            },
+                            "CalibratedValue": {
+                                "Title": "Calibrated Value",
+                                "Text": "View live input from your dummy controller, as affected by the parameters below."
+                            }
                         }
                     }
                 }
