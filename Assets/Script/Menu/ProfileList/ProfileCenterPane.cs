@@ -418,10 +418,10 @@ namespace YARG.Menu.ProfileList
 
         public void EditProfilePicture()
         {
-            PlayerContainer.SelectAvatar(_profile, () =>
+            PlayerContainer.SelectAvatar(Profile, () =>
             {
                 _profileView.UpdateDisplay(Profile);
-                UpdateSidebar(Profile, _profileView);
+                UpdateCenterPane(Profile, _profileView);
             });
         }
 
