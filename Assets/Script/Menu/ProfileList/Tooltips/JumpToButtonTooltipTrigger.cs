@@ -19,8 +19,8 @@ namespace YARG.Menu.ProfileList
             return (
                 new List<string>() { },
                 new List<string>() { bindingSet is null ?
-                    Localize.Key("Menu.ProfileList.Tooltip.JumpTo.Unpopulated") :
-                    Localize.KeyFormat("Menu.ProfileList.Tooltip.JumpTo.Populated", _entry.Controller.displayName)
+                    Localize.Key("Menu.ProfileList.Tooltip.Profiles.Settings.JumpTo.Unpopulated") :
+                    Localize.KeyFormat("Menu.ProfileList.Tooltip.Profiles.Settings.JumpTo.Populated", _entry.Controller.displayName)
                 }
             );
         }

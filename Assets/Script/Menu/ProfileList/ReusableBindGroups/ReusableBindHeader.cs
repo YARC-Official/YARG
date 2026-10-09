@@ -85,7 +85,7 @@ namespace YARG.Menu.ProfileList
 
         public void RefreshHandedness(bool lefty)
         {
-            _bindingNameText.text = Localize.Key(lefty ? _binding.NameLefty : _binding.Name);
+            _bindingNameText.text = lefty ? _binding.NameLefty : _binding.Name;
         }
 
         public void SetInteractable(bool interactable)

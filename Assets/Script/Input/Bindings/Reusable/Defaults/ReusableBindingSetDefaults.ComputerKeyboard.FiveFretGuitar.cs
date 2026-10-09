@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using YARG.Helpers;
 using YARG.Core;
-using YARG.Helpers;
 using YARG.Menu.ProfileList;
 
 namespace YARG.Input.Bindings
