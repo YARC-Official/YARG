@@ -22,8 +22,7 @@ namespace YARG.Menu.ProfileList
 
         protected override void PopulateControlDropdown()
         {
-            return;
-
+            /*
             // No integer bindings currently exist, and the binding type only exists as a relic of
             // the early Pro Guitar support (where it was used for string fret values). Since Pro
             // Guitar didn't support custom bindings, the integer binding prefab never had a dropdown
@@ -37,6 +36,7 @@ namespace YARG.Menu.ProfileList
             // you, reach out to me with any questions about the reusable bindings system.
             // -Frickitickitavi
 
+            
             base.PopulateControlDropdown();
 
             foreach (var control in _allControls)
@@ -47,6 +47,7 @@ namespace YARG.Menu.ProfileList
                     _controlDropdown.options.Add(new(control.DisplayName));
                 }
             }
+            */
         }
     }
 }

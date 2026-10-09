@@ -5,6 +5,7 @@ using System.Threading;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using YARG.Assets.Script.Menu.ProfileList;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Input;
@@ -15,7 +16,6 @@ namespace YARG.Menu.ProfileInfo
 {
     public class DummyControllerRecordDialogMenu : MonoBehaviour
     {
-        private ActuationSettings _bindSettings = new();
         private InputControl _grabbedControl;
 
         private readonly List<InputControl> _possibleControls = new();

@@ -1,7 +1,7 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
-namespace YARG.Menu.ProfileInfo
+namespace YARG.Assets.Script.Menu.ProfileList
 {
     public class ButtonDisplay : MonoBehaviour
     {

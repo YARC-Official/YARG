@@ -1,8 +1,8 @@
-using System;
+﻿using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace YARG.Menu.ProfileInfo
+namespace YARG.Assets.Script.Menu.ProfileList
 {
     using Edge = RectTransform.Edge;
 

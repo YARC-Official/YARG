@@ -47,12 +47,8 @@ namespace YARG.Input
         private const float GROUP_TIME_THRESHOLD = 0.1f;
 
         private State             _state;
-        private YargPlayer        _player; // TODO-FRICK: Obsolete after implementing dummy controller
-        private ControlBinding    _binding; // TODO-FRICK: Obsolete after implementing dummy controller
         private InputDevice       _dummyController;
         private AllowedControl    _allowedControls = AllowedControl.All;
-        private ActuationSettings _bindSettings    = new();
-        private InputControl      _grabbedControl;
 
         private          float?             _bindGroupingTimer;
         private readonly List<InputControl> _possibleControls = new();
@@ -62,44 +58,6 @@ namespace YARG.Input
         private Func<InputControl, bool> _quickBindScreener;
 
         private HashSet<string> _allowedControlPaths = new();
-
-        private CancellationTokenSource _cancellationToken;
-
-        /// <summary>
-        /// Eventually returns one or more controls that the user actuated. Caller must add the binding if desired.
-        /// </summary>
-        /// <param name="player"></param>
-        /// <param name="token"></param>
-        /// <param name="binding"></param>
-        /// <returns></returns>
-        public async UniTask<List<InputControl>> GetControl(YargPlayer player, CancellationToken token, ControlBinding binding)
-        { // TODO-FRICK: Obsolete after implementing dummy
-            _state = State.Waiting;
-            _possibleControls.Clear();
-            _binding = binding;
-            _player = player;
-
-            try
-            {
-                // Listen until we cancel or an input is grabbed
-                InputState.onChange += Listen;
-                await UniTask.WaitUntil(() => _state != State.Waiting, cancellationToken: token);
-                InputState.onChange -= Listen;
-
-                return _possibleControls;
-            }
-            catch (OperationCanceledException)
-            {
-                _state = State.Waiting;
-                return _possibleControls;
-            }
-            finally
-            {
-                _state = State.Done;
-                _bindGroupingTimer = null;
-                InputState.onChange -= Listen;
-            }
-        }
 
         public async UniTask<List<InputControl>> GetControl(InputDevice controller, CancellationToken token, BindingType bindingType)
         {

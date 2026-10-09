@@ -12,7 +12,7 @@ namespace YARG.Menu.ProfileList
 
         protected override (IReadOnlyList<string> titleParams, IReadOnlyList<string> textParams) GetParameters()
         {
-            const string localizationKeyPrefix = "Menu.ProfileList.Tooltip.UserCount.";
+            const string localizationKeyPrefix = "Menu.ProfileList.Tooltip.Bindings.Header.UserCount.";
 
             var (allUsers, activeUsers) = (_settingsPanel.AllUsers, _settingsPanel.ActiveUsers);
 

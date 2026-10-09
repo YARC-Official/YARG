@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 using UnityEngine.InputSystem.Layouts;
+using YARG.Assets.Script.Menu.ProfileList;
 using YARG.Helpers;
 using YARG.Input;
 using YARG.Input.Bindings;

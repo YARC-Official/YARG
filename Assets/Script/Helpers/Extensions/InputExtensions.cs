@@ -14,14 +14,5 @@ namespace YARG.Helpers.Extensions
 
             return InputSystem.settings.defaultButtonPressPoint;
         }
-
-        public static float GetPressPoint(this InputControl<float> control, ActuationSettings settings)
-        {
-            // Explicitly-set press points take precedence over defaults
-            if (control is ButtonControl button && button.pressPoint >= 0)
-                return button.pressPoint;
-
-            return settings.ButtonPressThreshold;
-        }
     }
 }

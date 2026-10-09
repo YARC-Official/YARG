@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Layouts;
 using UnityEngine.UI;
+using YARG.Assets.Script.Menu.ProfileList;
 using YARG.Helpers;
 using YARG.Input;
 using YARG.Input.Bindings;

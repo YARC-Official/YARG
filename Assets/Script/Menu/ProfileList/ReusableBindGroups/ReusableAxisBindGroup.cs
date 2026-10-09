@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
+using YARG.Assets.Script.Menu.ProfileList;
 using YARG.Helpers;
 using YARG.Input.Bindings;
-using YARG.Menu.ProfileInfo;
 
 namespace YARG.Menu.ProfileList
 {

@@ -50,8 +50,10 @@ namespace YARG.Menu.ProfileList
         private List<ReusableBindingSet> _gameplayBindingSetsByIndex = new();
         private List<ReusableBindingSet> _menuBindingSetsByIndex = new();
 
+#nullable enable
         public ReusableBindingSet? GameplayBindingSet => _gameplayBindingSetsByIndex[_gameplayBindingSetDropdown.value];
         public ReusableBindingSet? MenuBindingSet => _menuBindingSetsByIndex[_menuBindingSetDropdown.value];
+#nullable disable
 
         private bool _open;
 

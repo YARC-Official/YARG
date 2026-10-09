@@ -18,7 +18,7 @@ namespace YARG.Menu.ProfileList
                 new List<string>(),
                 new List<string>() {
                     Localize.Key("Enum.GameMode", modeString),
-                    Localize.Key("Menu.ProfileList.Tooltip.InputMode", modeString)
+                    Localize.Key("Menu.ProfileList.Tooltip.Profiles.Settings.InputMode", modeString)
                 }
             );
         }

@@ -44,7 +44,6 @@ namespace YARG.Menu.ProfileList
         public void OnEnable()
         {
             Refresh();
-            _centerPane.HandednessChanged += (_) => Refresh();
         }
 
         public event Action Unlocked;
@@ -56,6 +55,12 @@ namespace YARG.Menu.ProfileList
             Refresh();
             Unlocked?.Invoke();
         }
+
+        public void OnChangeShowLeftyNames()
+        {
+            _centerPane.ShowLeftyNames = _leftyToggle.isOn;
+        }
+
         public void Refresh()
         {
             _quickBindButton.interactable = _centerPane.BindingSet is not null &&

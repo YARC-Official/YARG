@@ -89,7 +89,7 @@ namespace YARG.Menu.ProfileList
         public bool ShowLeftyNames
         {
             get => _showLeftyNames;
-            private set
+            set
             {
                 _showLeftyNames = value;
                 HandednessChanged?.Invoke(value);
@@ -167,6 +167,7 @@ namespace YARG.Menu.ProfileList
             SelectBindingSet(null);
         }
 
+#nullable enable
         public void SelectBindingSet(ReusableBindingSet? bindingSet)
         {
             BindingSet = bindingSet;
@@ -181,6 +182,7 @@ namespace YARG.Menu.ProfileList
 
             RefreshFromBindingSet(BindingSet);
         }
+#nullable disable
 
         public void SetDummyController()
         {

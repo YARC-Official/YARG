@@ -8,8 +8,8 @@ namespace YARG.Input.Bindings
 {
     public abstract class ReusableControlBinding
     {
-        public string Name { get; set; }
-        public string NameLefty { get; set; }
+        public string Name => Localize.Key("Bindings", Info.Key);
+        public string NameLefty => Localize.Key("Bindings", Info.LeftyLocalizationKey);
         public int Action { get; }
 
         public event Action Changed;
@@ -22,16 +22,12 @@ namespace YARG.Input.Bindings
 
         public ReusableControlBinding(InputActionInfo info)
         {
-            Name = Localize.Key("Bindings", info.Key);
-            NameLefty = Localize.Key("Bindings", info.LeftyLocalizationKey);
             Action = info.Action;
             Info = info;
         }
 
         public ReusableControlBinding(ReusableControlBinding original)
         {
-            Name = original.Name;
-            NameLefty = original.NameLefty;
             Action = original.Action;
             Info = original.Info;
         }

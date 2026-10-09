@@ -69,7 +69,7 @@ namespace YARG.Menu.ProfileList
 
             foreach (var remainingGameMode in _remainingGameModes)
             {
-                dialog.AddListButton(remainingGameMode.ToLocalizedName(), async () =>
+                dialog.AddListButton(remainingGameMode.ToLocalizedName(), () =>
                 {
                     var bindingSet = ReusableBindingSetTemplates.MakeBlankBindingSet(remainingGameMode, _family);
                     BindingsContainer.AddBindingSet(bindingSet);
