@@ -667,9 +667,21 @@
                 "MultipleUnlocked": "Used by <color=yellow>{0} profiles</color>",
             },
             "Tooltip": {
+				"Rename": {
+					"Title": "Rename",
+					"Text": "Edit the name of this profile."
+				},
                 "Overview": {
                     "Title": "Profile Overview",
                     "Text": "Open an overview of this profile's lifetime statistics."
+                },
+                "ProfilePicture": {
+                    "Title": "Profile Picture",
+                    "Text": "A custom image associated with this profile. It appears in various locations associated with this profile, such as over the player's highway at the start of a song. If no picture is provided, the game uses an icon based on the player's choice of instrument instead."
+                },
+                "EditProfilePicture": {
+                    "Title": "Edit Profile Picture",
+                    "Text": "Choose an image to use as a profile picture."
                 },
                 "InputMode": {
                     "Title": "Input Mode",
@@ -796,66 +808,71 @@
                     "Title": "Range Shift Markers",
                     "Text": "Some Easy and Medium 5-Fret Guitar charts include visual annotations that tell you when to move your hand to a new position. Use this setting to disable those visuals.\n\nNote that this setting does not change the content of the chart; to disable the position shifts themselves, select the <b>No Range Shifts</b> gameplay modifier when starting a song."
                 },
-                "BindingSetFilter": {
-                    "Title": "Binding Sets Filter",
-                    "Text": "Pick a type of controller for which to show binding sets. Any controller can be used with any mode, but most controller types are intended for a particular mode."
-                },
-                "AddOtherBindingSet": {
-                    "Title": "Add Other Binding Set",
-                    "Text": "Create a binding set for use with this controller type in a mode that isn't already listed here. <b><color=\"yellow\">Only use this if you know what you're doing!</color></b> This controller type wasn't designed for other modes."
-                },
-                "ImportBindingSet": {
-                    "Title": "Import Binding Set",
-                    "Text": "Opens a file browser that you can use to select and import an exported binding set file."
-                },
-                "ExportBindingSet": {
-                    "Title": "Export Binding Set",
-                    "Text": "Export this binding set as a JSON file that you can transfer to other <i>YARG</i> setups.\n\nNot applicable to built-in binding sets."
-                },
-                "DuplicateBindingSet": {
-                    "Title": "Duplicate Binding Set",
-                    "Text": "Create a copy of this binding set."
-                },
-                "DeleteBindingSet": {
-                    "Title": "Delete Binding Set",
-                    "Text": "Permanently delete this binding set. <b><color=\"red\">If anyone is using this binding set, they'll revert to the default bindings!</color></b>"
-                },
-                "IntegerBindGroup": {
-                    "Title": "{0}",
-                    "Text": "This is an integer action; its state can be any nonnegative integer. If you bind multiple controls, the effective value will reflect the highest value from among those controls."
-                },
-                "DummyController": {
-                    "Title": "Dummy Controller",
-                    "Text": "Select from all currently-attached {0}. You can use the selected controller to record binding controls and to test your binding parameters against live input data. If this controller has menu bindings, they will be disabled until you leave this menu or unassign it from the dummy controller dropdown."
-                },
-                "QuickBind": {
-                    "Title": "Quick Bind",
-                    "Text": "Use the dummy controller to quickly provide bindings for this binding set."
-                },
-                "ShowLeftyFlipNames": {
-                    "Title": "Show Lefty Flip Names",
-                    "Text": "Display action names as they relate to lefty-flipped gameplay."
-                },
-                "UserCount": {
-                    "Title": "User Count",
-                    "Text": "{0}",
-                    "Zero": "No profiles currently use this binding set.",
-                    "OneActive": "One profile (<color=#2DD9FE>{0}</color>) is currently using this binding set. If you edit these bindings, your changes will affect that profile immediately.",
-                    "OneInactive": "One profile (<color=#00A6D1>{0}</color>) defaults to this binding set, but that profile is not currently connected. If you edit these bindings, your changes will affect that profile in the future.",
-                    "MultipleLocked": "Multiple profiles use this binding set. <color=yellow>To prevent unintentionally editing someone else's bindings, you must click the <b>Unlock</b> button to enable editing this binding set.</color>",
-                    "MultipleUnlocked": "Multiple profiles use this binding set. <color=yellow>Editing this binding set will affect all of them! If you're making these changes just for yourself, consider making and editing a duplicate.</color>",
-                },
-                "UnlockBindingSet": {
-                    "Title": "Unlock Binding Set",
-                    "Text": "Enables editing this binding set's bindings. <color=yellow>Any changes you make will apply to all profiles that use this binding set! If you're making these changes just for yourself, consider making and editing a duplicate."
-                },
                 "Bindings": {
+                    "Import": {
+                        "Title": "Import Binding Set",
+                        "Text": "Opens a file browser that you can use to select and import an exported binding set file."
+                    },
 					"List": {
 						"Add": {
 							"Title": "Add New Binding Set",
 							"Text": "Add a new, blank binding set for {0}."
-						}
+						},
+                        "Delete": {
+                            "Title": "Delete Binding Set",
+                            "Text": "Permanently delete this binding set. <b><color=\"red\">If anyone is using this binding set, they'll revert to the default bindings!</color></b>"
+                        },
+                        "Duplicate": {
+                            "Title": "Duplicate Binding Set",
+                            "Text": "Create a copy of this binding set."
+                        },
+                        "Filter": {
+                            "Title": "Binding Sets Filter",
+                            "Text": "Pick a type of controller for which to show binding sets. Any controller can be used with any mode, but most controller types are intended for a particular mode."
+                        },
+                        "AddOtherBindingSet": {
+                            "Title": "Add Other Binding Set",
+                            "Text": "{0}",
+                            "Generic": "Create a binding set for use with miscellaneous input devices in a mode that isn't already listed here.\n\n<b><color=yellow>Note:</color></b> You won't be able to select bindings from dropdowns; you'll need to assign a dummy controller and use the <b>Quick Bind</b> and/or <b>Record</b> buttons to create your binding set.",
+                            "Flexible": "Create a binding set for use with {0} in a mode that isn't already listed here.",
+                            "NotRecommended": "Create a binding set for use with {0} in a mode that isn't already listed here. <b><color=\"yellow\">Only use this if you know what you're doing!</color></b> This controller type wasn't designed for other modes."
+                        }
 					},
+                    "Header": {
+                        "EditName": {
+                            "Title": "Rename",
+                            "Text": "Edit the name of this binding set."
+                        },
+                        "Export": {
+                            "Title": "Export Binding Set",
+                            "Text": "Export this binding set as a JSON file that you can transfer to other <i>YARG</i> setups.\n\nNot applicable to built-in binding sets."
+                        },
+                        "QuickBind": {
+                            "Title": "Quick Bind",
+                            "Text": "Use the dummy controller to quickly provide bindings for this binding set."
+                        },
+                        "DummyController": {
+                            "Title": "Dummy Controller",
+                            "Text": "Select from all currently-attached {0}. You can use the selected controller to record binding controls and to test your binding parameters against live input data. If this controller has menu bindings, they will be disabled until you leave this menu or unassign it from the dummy controller dropdown."
+                        },
+                        "UserCount": {
+                            "Title": "User Count",
+                            "Text": "{0}",
+                            "Zero": "No profiles currently use this binding set.",
+                            "OneActive": "One profile (<color=#2DD9FE>{0}</color>) is currently using this binding set. If you edit these bindings, your changes will affect that profile immediately.",
+                            "OneInactive": "One profile (<color=#00A6D1>{0}</color>) defaults to this binding set, but that profile is not currently connected. If you edit these bindings, your changes will affect that profile in the future.",
+                            "MultipleLocked": "Multiple profiles use this binding set. <color=yellow>To prevent unintentionally editing someone else's bindings, you must click the <b>Unlock</b> button to enable editing this binding set.</color>",
+                            "MultipleUnlocked": "Multiple profiles use this binding set. <color=yellow>Editing this binding set will affect all of them! If you're making these changes just for yourself, consider making and editing a duplicate.</color>",
+                        },
+                        "UnlockBindingSet": {
+                            "Title": "Unlock Binding Set",
+                            "Text": "Enables editing this binding set's bindings. <color=yellow>Any changes you make will apply to all profiles that use this binding set! If you're making these changes just for yourself, consider making and editing a duplicate."
+                        },
+                        "ShowLeftyFlipNames": {
+                            "Title": "Show Lefty Flip Names",
+                            "Text": "Display action names as they relate to lefty-flipped gameplay."
+                        }
+                    },
                     "Group": {
                         "AddNew": {
                             "Title": "Add New Binding",
@@ -900,6 +917,10 @@
                             }
                         },
                         "Integer": {
+                            "Header": {
+                                "Title": "{0}",
+                                "Text": "This is an integer action; its state can be any nonnegative integer. If you bind multiple controls, the effective value will reflect the highest value from among those controls."
+                            },
                             "Settings": {
                                 "Title": "Test Effective Value",
                                 "Text": "Toggles a configuration panel where you can view the effective value of this binding, aggregated from all of its bindings, based on live input from your dummy controller."

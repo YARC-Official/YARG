@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 6435022133501843646}
   - component: {fileID: 6104432552377380497}
   - component: {fileID: 8585252777016653596}
+  - component: {fileID: 7250544197870452665}
   m_Layer: 5
   m_Name: Button
   m_TagString: Untagged
@@ -176,6 +177,20 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!114 &7250544197870452665
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 637240995757364144}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f92fa3f871e4dd54980c0b7b9fd3bc92, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.ProfileList.AddOtherBindingSetButtonTooltipTrigger
+  _localizationKey: Bindings.List.AddOtherBindingSet
+  _footerView: {fileID: 1681222694297705306}
 --- !u!1 &2856731232007888707
 GameObject:
   m_ObjectHideFlags: 0

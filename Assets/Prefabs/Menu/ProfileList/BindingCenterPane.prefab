@@ -72,7 +72,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d221fa480214a3c4292a9a6afa0855aa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.ProfileList.UserCountTooltipTrigger
-  _localizationKey: UserCount
+  _localizationKey: Bindings.Header.UserCount
   _settingsPanel: {fileID: 8023080906555745224}
 --- !u!1 &366526288410142804
 GameObject:
@@ -305,7 +305,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7066bea34676a214890a7e7879c1856f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.ProfileList.DummyControllerToolipTrigger
-  _localizationKey: DummyController
+  _localizationKey: Bindings.Header.DummyController
   _profilesMenu: {fileID: 0}
 --- !u!114 &6096912303725260088
 MonoBehaviour:
@@ -1684,7 +1684,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
-  _localizationKey: ShowLeftyFlipNames
+  _localizationKey: Bindings.Header.ShowLeftyFlipNames
 --- !u!114 &2545485597807872958
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2753,7 +2753,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
-  _localizationKey: UnlockBindingSet
+  _localizationKey: Bindings.Header.UnlockBindingSet
 --- !u!1 &8321823407659492227
 GameObject:
   m_ObjectHideFlags: 0
@@ -3689,7 +3689,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
-  _localizationKey: QuickBind
+  _localizationKey: Bindings.Header.QuickBind
 --- !u!1001 &1985413083446603189
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4335,7 +4335,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
-  _localizationKey: ExportBindingSet
+  _localizationKey: Bindings.Header.Export
 --- !u!224 &4737497512418196201 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 3252069457828798820, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
@@ -4766,7 +4766,28 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4441713907549617493, guid: 30455cc33f47e564894a0ec80dcbed66, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7411750751020481813}
+    - targetCorrespondingSourceObject: {fileID: 8637973974686150122, guid: 30455cc33f47e564894a0ec80dcbed66, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5817116690638870814}
   m_SourcePrefab: {fileID: 100100000, guid: 30455cc33f47e564894a0ec80dcbed66, type: 3}
+--- !u!1 &50607363326630212 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8637973974686150122, guid: 30455cc33f47e564894a0ec80dcbed66, type: 3}
+  m_PrefabInstance: {fileID: 8598485152985183406}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &5817116690638870814
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 50607363326630212}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
+  _localizationKey: Bindings.Header.EditName
 --- !u!1 &5402023723631823355 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 4441713907549617493, guid: 30455cc33f47e564894a0ec80dcbed66, type: 3}
@@ -4802,7 +4823,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1245898288579793007, guid: 30455cc33f47e564894a0ec80dcbed66, type: 3}
   m_PrefabInstance: {fileID: 8598485152985183406}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 50607363326630212}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
