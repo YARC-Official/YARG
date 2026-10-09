@@ -22,9 +22,9 @@ namespace YARG.Input
 
     public class SingleButtonBinding : SingleBinding<float>
     {
-        private const bool INVERT_DEFAULT = false; // TODO-FRICK: Delete?
-        private const DebounceMode DEBOUNCE_MODE_DEFAULT = DebounceMode.Press; // TODO-FRICK: Delete?
-        private const long DEBOUNCE_THRESHOLD_DEFAULT = 5; // TODO-FRICK: Delete?
+        private const bool INVERT_DEFAULT = false;
+        private const DebounceMode DEBOUNCE_MODE_DEFAULT = DebounceMode.Press;
+        private const long DEBOUNCE_THRESHOLD_DEFAULT = 5;
 
         private DebounceTimer<float> _debounceTimer = new()
         {
