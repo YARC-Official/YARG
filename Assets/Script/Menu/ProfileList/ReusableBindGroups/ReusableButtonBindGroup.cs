@@ -15,9 +15,6 @@ namespace YARG.Menu.ProfileList
     public class ReusableButtonBindGroup
         : ReusableBindGroup<ReusableSingleButtonBindView, ReusableButtonBinding, bool, ReusableSingleButtonBinding, float>
     {
-        [SerializeField]
-        private SingleMidiNoteBindView _midiNoteViewPrefab;
-
         [Space]
         [SerializeField]
         private ButtonDisplay _pressedIndicator;
