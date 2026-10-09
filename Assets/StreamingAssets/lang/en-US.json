@@ -978,6 +978,12 @@
                                 "Title": "Upper Deadzone",
                                 "Text": "If the raw value is less than 0 and greater than or equal to this value, the calibrated value is treated as 0."
                             }
+                        },
+                        "Integer": {
+                            "CurrentValue": {
+                                "Title": "Current Value",
+                                "Text": "View live input from your dummy controller."
+                            }
                         }
                     }
                 }
