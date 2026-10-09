@@ -13,7 +13,7 @@ namespace YARG.Menu.ProfileList
         protected override (IReadOnlyList<string> titleParams, IReadOnlyList<string> textParams) GetParameters()
         {
             return (
-                new List<string>() { Localize.Key(_bindGroup.Binding.Name) },
+                new List<string>() { _bindGroup.CenterPane.ShowLeftyNames ? _bindGroup.Binding.NameLefty : _bindGroup.Binding.Name },
                 new List<string>() { }
             );
         }
