@@ -1635,6 +1635,22 @@
                     "Off": "Off"
                 }
             },
+            "SecondarySourceGroup": {
+                "Name": "Secondary Source Group",
+                "Description": "Groups songs by intensity under secondary headers when sorting the Music Library by source.",
+                "Dropdown": {
+                    "Off": "Off",
+                    "Intensity": "Intensity"
+                }
+            },
+            "SecondaryIntensityGroup": {
+                "Name": "Secondary Intensity Group",
+                "Description": "Groups songs by source under secondary headers when sorting the Music Library by intensity.",
+                "Dropdown": {
+                    "Off": "Off",
+                    "Source": "Source"
+                }
+            },
             "ShowHitWindow": {
                 "Name": "Show Hit Window",
                 "Description": "If enabled, a box will be shown on your track that represents the \"window\" in which notes can be hit."

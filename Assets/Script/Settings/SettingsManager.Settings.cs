@@ -54,6 +54,18 @@ namespace YARG.Settings
         Off,
     }
 
+    public enum SecondarySourceGroupMode
+    {
+        Off,
+        Intensity,
+    }
+
+    public enum SecondaryIntensityGroupMode
+    {
+        Off,
+        Source,
+    }
+
     public enum ShowMeanSongOffsetCalibrationMode
     {
         Off,
@@ -333,6 +345,22 @@ namespace YARG.Settings
                     SecondaryAlbumSortMode.AlbumsByYearSongsByTitle,
                     SecondaryAlbumSortMode.AlbumsByYearSongsByTrack,
                     SecondaryAlbumSortMode.Off,
+                };
+
+            public DropdownSetting<SecondarySourceGroupMode> SecondarySourceGroup { get; }
+                = new(SecondarySourceGroupMode.Off,
+                    _ => MusicLibraryMenu.SetReload(MusicLibraryReloadState.Partial))
+                {
+                    SecondarySourceGroupMode.Off,
+                    SecondarySourceGroupMode.Intensity,
+                };
+
+            public DropdownSetting<SecondaryIntensityGroupMode> SecondaryIntensityGroup { get; }
+                = new(SecondaryIntensityGroupMode.Off,
+                    _ => MusicLibraryMenu.SetReload(MusicLibraryReloadState.Partial))
+                {
+                    SecondaryIntensityGroupMode.Off,
+                    SecondaryIntensityGroupMode.Source,
                 };
 
             public ToggleSetting ShowRecommendedSongs { get; } = new(true, ShowRecommendedSongsCallback);

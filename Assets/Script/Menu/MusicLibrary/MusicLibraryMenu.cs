@@ -718,7 +718,8 @@ namespace YARG.Menu.MusicLibrary
                 }
 
                 var secondaryAlbumSort = SettingsManager.Settings.SecondaryAlbumSort.Value;
-                if (includeSongs && SettingsManager.Settings.LibrarySort == SortAttribute.Source)
+                if (includeSongs && SettingsManager.Settings.LibrarySort == SortAttribute.Source &&
+                    SettingsManager.Settings.SecondarySourceGroup.Value == SecondarySourceGroupMode.Intensity)
                 {
                     var players = PlayerContainer.Players
                         .Where(player => !player.Profile.IsBot)
@@ -765,7 +766,8 @@ namespace YARG.Menu.MusicLibrary
                         intensityHeader.HasGoldStars = !intensityHasNonGoldSong;
                     }
                 }
-                else if (includeSongs && SettingsManager.Settings.LibrarySort >= SortAttribute.Instrument)
+                else if (includeSongs && SettingsManager.Settings.LibrarySort >= SortAttribute.Instrument &&
+                    SettingsManager.Settings.SecondaryIntensityGroup.Value == SecondaryIntensityGroupMode.Source)
                 {
                     var sourceGroups = displayedSongs
                         .GroupBy(song => song.Source)

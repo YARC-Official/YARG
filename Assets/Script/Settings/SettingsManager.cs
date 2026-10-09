@@ -113,6 +113,8 @@ namespace YARG.Settings
                 nameof(Settings.CensorMatureContent),
                 nameof(Settings.RememberFilters),
                 nameof(Settings.SecondaryAlbumSort),
+                new FieldMetadata(nameof(Settings.SecondarySourceGroup), isAdvanced: true),
+                new FieldMetadata(nameof(Settings.SecondaryIntensityGroup), isAdvanced: true),
                 new FieldMetadata(nameof(Settings.SongLengthLabels), isAdvanced: true),
                 new HeaderMetadata("PlayAShow"),
                 nameof(Settings.EnablePlayAShow),
