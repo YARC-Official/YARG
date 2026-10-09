@@ -166,6 +166,15 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4441713907549617493, guid: fbe8e8d998d3de540abf324a8c5e65d3, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7652150888690009022}
+    - targetCorrespondingSourceObject: {fileID: 4441713907549617493, guid: fbe8e8d998d3de540abf324a8c5e65d3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8207239033859010678}
+    - targetCorrespondingSourceObject: {fileID: 4441713907549617493, guid: fbe8e8d998d3de540abf324a8c5e65d3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4212668939142045887}
+    - targetCorrespondingSourceObject: {fileID: 4441713907549617493, guid: fbe8e8d998d3de540abf324a8c5e65d3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5088769921058934855}
   m_SourcePrefab: {fileID: 100100000, guid: fbe8e8d998d3de540abf324a8c5e65d3, type: 3}
 --- !u!224 &3216456001271089447 stripped
 RectTransform:
@@ -197,6 +206,57 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!222 &8207239033859010678
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4334341924498412822}
+  m_CullTransparentMesh: 1
+--- !u!114 &4212668939142045887
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4334341924498412822}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 0}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!114 &5088769921058934855
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4334341924498412822}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
+  _localizationKey: Bindings.Group.Button.CurrentValue
 --- !u!1001 &340531564116616396
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -323,6 +383,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4441713907549617493, guid: fbe8e8d998d3de540abf324a8c5e65d3, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3744941915598006947}
+    - targetCorrespondingSourceObject: {fileID: 4441713907549617493, guid: fbe8e8d998d3de540abf324a8c5e65d3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5237604679936326240}
   m_SourcePrefab: {fileID: 100100000, guid: fbe8e8d998d3de540abf324a8c5e65d3, type: 3}
 --- !u!224 &2997255873940866472 stripped
 RectTransform:
@@ -354,6 +417,19 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!114 &5237604679936326240
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4115706095338690969}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
+  _localizationKey: Bindings.Group.Button.DebounceThreshold
 --- !u!1001 &1447791382544943274
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -890,7 +966,6 @@ MonoBehaviour:
   _bindingList: {fileID: 4164197597448753174}
   _settingsList: {fileID: 7063464458672938135}
   _viewPrefab: {fileID: 5555743838135242851, guid: cee282a0c2e90574598fd47a30b36645, type: 3}
-  _midiNoteViewPrefab: {fileID: 0}
   _pressedIndicator: {fileID: 5002444971698875199}
   _debounceSlider: {fileID: 9112754373932611760}
 --- !u!1 &5830279076358813465 stripped
@@ -927,7 +1002,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 19645cbe1be86664c8223341254021d2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.ProfileList.ButtonBindGroupToolipTrigger
-  _localizationKey: ButtonBindGroup
+  _localizationKey: Bindings.Group.Button.Header
   _bindGroup: {fileID: 2112290437380438965}
 --- !u!114 &6996481642397031445 stripped
 MonoBehaviour:

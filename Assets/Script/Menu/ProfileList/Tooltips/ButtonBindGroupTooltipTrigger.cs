@@ -8,7 +8,7 @@ using YARG.Menu.Tooltips;
 
 namespace YARG.Menu.ProfileList
 {
-    public class ButtonBindGroupToolipTrigger : TooltipTrigger
+    public class ButtonBindGroupHeaderToolipTrigger : TooltipTrigger
     {
         [SerializeField]
         private ReusableButtonBindGroup _bindGroup;
@@ -17,7 +17,7 @@ namespace YARG.Menu.ProfileList
         {
             return (
                 new List<string>() { Localize.Key(_bindGroup.Binding.Name) },
-                new List<string>() { Localize.Key("Menu.ProfileList.Tooltip.ButtonBindGroup", _bindGroup.Binding.IsImpulse ? "Impulse" : "Regular") }
+                new List<string>() { Localize.Key("Menu.ProfileList.Tooltip.Bindings.Group.Button.Header", _bindGroup.Binding.IsImpulse ? "Impulse" : "Regular") }
             );
         }
     }
