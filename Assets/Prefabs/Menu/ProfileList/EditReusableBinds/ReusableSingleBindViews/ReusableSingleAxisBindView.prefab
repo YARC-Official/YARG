@@ -427,7 +427,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd, type: 3}
       propertyPath: ValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: OnMaxValueChanged
+      value: OnMinValueChanged
       objectReference: {fileID: 0}
     - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd, type: 3}
       propertyPath: ValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
@@ -3672,7 +3672,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd, type: 3}
       propertyPath: ValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: OnMinValueChanged
+      value: OnMaxValueChanged
       objectReference: {fileID: 0}
     - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd, type: 3}
       propertyPath: ValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
