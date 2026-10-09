@@ -2213,6 +2213,7 @@ GameObject:
   - component: {fileID: 3375415662878964117}
   - component: {fileID: 4178318161709059621}
   - component: {fileID: 3944416314656293738}
+  - component: {fileID: 2937957565855325812}
   m_Layer: 5
   m_Name: Binding Set Name
   m_TagString: Untagged
@@ -2339,6 +2340,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &2937957565855325812
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6718073879352335729}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
+  _localizationKey: Bindings.Name
 --- !u!1 &7011260897851582188
 GameObject:
   m_ObjectHideFlags: 0

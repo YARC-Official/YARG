@@ -148,6 +148,8 @@ GameObject:
   - component: {fileID: 5753369685943773596}
   - component: {fileID: 5418030377928633389}
   - component: {fileID: 9115088283461521973}
+  - component: {fileID: 3680741219367888158}
+  - component: {fileID: 5033718631313624078}
   m_Layer: 5
   m_Name: ProfileListHeader
   m_TagString: Untagged
@@ -213,3 +215,30 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &3680741219367888158
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5753369685943773599}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e25d4740c033bf4ebe137c27f7ba859, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.ProfileList.ProfileListHeaderView
+  _text: {fileID: 5753369685925887171}
+--- !u!114 &5033718631313624078
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5753369685943773599}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea003f746d98516419b1eb305083f980, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.ProfileList.ProfileListHeaderTooltipTrigger
+  _localizationKey: Profiles.List.Header
+  _profileListHeaderView: {fileID: 3680741219367888158}
