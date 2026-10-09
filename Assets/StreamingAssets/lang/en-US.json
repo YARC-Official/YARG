@@ -35,8 +35,8 @@
                 "FiveLaneDrums": "5L Drums",
                 "ProGuitar": "Pro Guitar",
                 "ProKeys": "Keys",
-                "Menu": "Menu Navigation",
                 "Vocals": "Vocals",
+				"Menu": "menu navigation",
             }
         },
         "Instrument": {
@@ -628,6 +628,12 @@
             "AddOtherBindingSet": "ADD OTHER",
             "AddOtherBindingSetNotRecommended": "ADD OTHER (<i>Not Recommended</i>)",
             "QuickBind": "Quick Bind",
+			"DescriptiveBindingSetName": {
+				"Format": "{0}{1} {2} {3}",
+				"Gameplay": " gameplay",
+				"With": "with",
+				"On": "on"
+			},
             "Record": {
                 "Waiting": "Waiting for Input\n<color=#2A5B87><size=24>Press any button on</color> <color=#5A8BB7>{0}</color></size>",
                 "Select": "Select Input"
@@ -724,7 +730,7 @@
                 },
                 "GameplayBindings": {
                     "Title": "Gameplay Bindings",
-                    "Text": "Select from all binding sets for {0} gameplay {1} {2}."
+                    "Text": "Select from all binding sets for {0}."
                 },
                 "MenuBindings": {
                     "Title": "Menu Bindings",
@@ -844,6 +850,12 @@
                     "Text": "Enables editing this binding set's bindings. <color=yellow>Any changes you make will apply to all profiles that use this binding set! If you're making these changes just for yourself, consider making and editing a duplicate."
                 },
                 "Bindings": {
+					"List": {
+						"Add": {
+							"Title": "Add New Binding Set",
+							"Text": "Add a new, blank binding set for {0}."
+						}
+					},
                     "Group": {
                         "AddNew": {
                             "Title": "Add New Binding",

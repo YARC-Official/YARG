@@ -2,24 +2,20 @@
 using UnityEngine;
 using YARG.Core;
 using YARG.Helpers;
-using YARG.Localization;
 using YARG.Menu.Tooltips;
 
 namespace YARG.Menu.ProfileList
 {
-    public class GameplayBindingsTooltipTrigger : TooltipTrigger
+    public class AddBindingSetButtonTooltipTrigger : TooltipTrigger
     {
         [SerializeField]
-        private ControllerEntryView _entry;
+        private BindingSetListHeaderView _headerView;
 
         protected override (IReadOnlyList<string> titleParams, IReadOnlyList<string> textParams) GetParameters()
         {
-            var mode = _entry.Profile.GameMode;
-            var family = LayoutHelper.LayoutStringToControllerFamily(_entry.Controller.layout);
-
             return (
                 new List<string>() { },
-                new List<string>() { BindingSetHelper.GetDescriptiveName(mode, family) }
+                new List<string>() { BindingSetHelper.GetDescriptiveName(_headerView.Mode, _headerView.Family) }
             );
         }
     }

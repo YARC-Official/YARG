@@ -380,14 +380,36 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 8637973974686150122, guid: f6ac2a9c2f684f84792c7d7cd00ba18c, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2927297522165477430}
   m_SourcePrefab: {fileID: 100100000, guid: f6ac2a9c2f684f84792c7d7cd00ba18c, type: 3}
+--- !u!1 &4533005659705409637 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8637973974686150122, guid: f6ac2a9c2f684f84792c7d7cd00ba18c, type: 3}
+  m_PrefabInstance: {fileID: 5262534440557424015}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2927297522165477430
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4533005659705409637}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 09b808c34e7d16a46b4ffb3fdc3fd1b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.ProfileList.AddBindingSetButtonTooltipTrigger
+  _localizationKey: Bindings.List.Add
+  _headerView: {fileID: 7403803654580723561}
 --- !u!114 &6359670730010918368 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1245898288579793007, guid: f6ac2a9c2f684f84792c7d7cd00ba18c, type: 3}
   m_PrefabInstance: {fileID: 5262534440557424015}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 4533005659705409637}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
