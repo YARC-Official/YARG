@@ -1635,16 +1635,16 @@
                     "Off": "Off"
                 }
             },
-            "SecondarySourceGroup": {
-                "Name": "Secondary Source Group",
+            "SecondarySourceSort": {
+                "Name": "Secondary Source Sort",
                 "Description": "Groups songs by intensity under secondary headers when sorting the Music Library by source.",
                 "Dropdown": {
                     "Off": "Off",
                     "Intensity": "Intensity"
                 }
             },
-            "SecondaryIntensityGroup": {
-                "Name": "Secondary Intensity Group",
+            "SecondaryIntensitySort": {
+                "Name": "Secondary Intensity Sort",
                 "Description": "Groups songs by source under secondary headers when sorting the Music Library by intensity.",
                 "Dropdown": {
                     "Off": "Off",

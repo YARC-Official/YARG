@@ -719,7 +719,7 @@ namespace YARG.Menu.MusicLibrary
 
                 var secondaryAlbumSort = SettingsManager.Settings.SecondaryAlbumSort.Value;
                 if (includeSongs && SettingsManager.Settings.LibrarySort == SortAttribute.Source &&
-                    SettingsManager.Settings.SecondarySourceGroup.Value == SecondarySourceGroupMode.Intensity)
+                    SettingsManager.Settings.SecondarySourceSort.Value == SecondarySourceSortMode.Intensity)
                 {
                     var players = PlayerContainer.Players
                         .Where(player => !player.Profile.IsBot)
@@ -767,7 +767,7 @@ namespace YARG.Menu.MusicLibrary
                     }
                 }
                 else if (includeSongs && SettingsManager.Settings.LibrarySort >= SortAttribute.Instrument &&
-                    SettingsManager.Settings.SecondaryIntensityGroup.Value == SecondaryIntensityGroupMode.Source)
+                    SettingsManager.Settings.SecondaryIntensitySort.Value == SecondaryIntensitySortMode.Source)
                 {
                     var sourceGroups = displayedSongs
                         .GroupBy(song => song.Source)

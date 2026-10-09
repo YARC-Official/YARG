@@ -54,13 +54,13 @@ namespace YARG.Settings
         Off,
     }
 
-    public enum SecondarySourceGroupMode
+    public enum SecondarySourceSortMode
     {
         Off,
         Intensity,
     }
 
-    public enum SecondaryIntensityGroupMode
+    public enum SecondaryIntensitySortMode
     {
         Off,
         Source,
@@ -347,20 +347,20 @@ namespace YARG.Settings
                     SecondaryAlbumSortMode.Off,
                 };
 
-            public DropdownSetting<SecondarySourceGroupMode> SecondarySourceGroup { get; }
-                = new(SecondarySourceGroupMode.Off,
+            public DropdownSetting<SecondarySourceSortMode> SecondarySourceSort { get; }
+                = new(SecondarySourceSortMode.Off,
                     _ => MusicLibraryMenu.SetReload(MusicLibraryReloadState.Partial))
                 {
-                    SecondarySourceGroupMode.Off,
-                    SecondarySourceGroupMode.Intensity,
+                    SecondarySourceSortMode.Off,
+                    SecondarySourceSortMode.Intensity,
                 };
 
-            public DropdownSetting<SecondaryIntensityGroupMode> SecondaryIntensityGroup { get; }
-                = new(SecondaryIntensityGroupMode.Off,
+            public DropdownSetting<SecondaryIntensitySortMode> SecondaryIntensitySort { get; }
+                = new(SecondaryIntensitySortMode.Off,
                     _ => MusicLibraryMenu.SetReload(MusicLibraryReloadState.Partial))
                 {
-                    SecondaryIntensityGroupMode.Off,
-                    SecondaryIntensityGroupMode.Source,
+                    SecondaryIntensitySortMode.Off,
+                    SecondaryIntensitySortMode.Source,
                 };
 
             public ToggleSetting ShowRecommendedSongs { get; } = new(true, ShowRecommendedSongsCallback);
