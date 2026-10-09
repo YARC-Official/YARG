@@ -2906,14 +2906,17 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 450096836518303239, guid: 5f7c905be0699a94b8dc56fc6105c02d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7773793204720845227}
   m_SourcePrefab: {fileID: 100100000, guid: 5f7c905be0699a94b8dc56fc6105c02d, type: 3}
 --- !u!114 &1886140878664517221 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 4622602834413321867, guid: 5f7c905be0699a94b8dc56fc6105c02d, type: 3}
   m_PrefabInstance: {fileID: 6488037707683412206}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 6644273293890973417}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7b743370ac3e4ec2a1668f5455a8ef8a, type: 3}
@@ -2924,6 +2927,25 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 7665614177142481491, guid: 5f7c905be0699a94b8dc56fc6105c02d, type: 3}
   m_PrefabInstance: {fileID: 6488037707683412206}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &6644273293890973417 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 450096836518303239, guid: 5f7c905be0699a94b8dc56fc6105c02d, type: 3}
+  m_PrefabInstance: {fileID: 6488037707683412206}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &7773793204720845227
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6644273293890973417}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 60e05077d1e8b714b8306d55d8bfdc2c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Assets.Script.Menu.ProfileList.Tooltips.SingleBindingDropdownTooltipTrigger
+  _localizationKey: Bindings.Single.Dropdown
+  _bindView: {fileID: 1420292965105626666}
 --- !u!1001 &6501896615234370747
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -14,7 +14,12 @@ using YARG.Menu.ProfileInfo;
 
 namespace YARG.Menu.ProfileList
 {
-    public abstract class ReusableSingleBindView<TBinding, TState, TSingle, TSingleState> : MonoBehaviour
+    public abstract class ReusableSingleBindView : MonoBehaviour
+    {
+        public ReusableBindGroup BindGroup { get; protected set; }
+    }
+
+    public abstract class ReusableSingleBindView<TBinding, TState, TSingle, TSingleState> : ReusableSingleBindView
         where TBinding : ReusableControlBinding<TSingle, TSingleState>
         where TState : struct
         where TSingle : ReusableSingleBinding<TSingleState>
@@ -37,7 +42,6 @@ namespace YARG.Menu.ProfileList
         private DropdownControl _adHocControl;
 
         protected ControlItemInfo? _current;
-        protected ReusableBindGroup _bindGroup;
         protected ProfilesMenu _profilesMenu;
         protected BindingSetsCenterPane _centerPane;
         protected DummyControllerRecordDialogMenu _quickBindDialog;
@@ -56,7 +60,7 @@ namespace YARG.Menu.ProfileList
             bool interactable
         )
         {
-            _bindGroup = bindGroup;
+            BindGroup = bindGroup;
             _profilesMenu = profilesMenu;
             _centerPane = centerPane;
             _quickBindDialog = quickBindDialog;
@@ -107,7 +111,7 @@ namespace YARG.Menu.ProfileList
         private void OnDestroy()
         {
             _centerPane.DummyControllerChanged -= OnDummyControllerChanged;
-            _bindGroup.Unlocked -= OnUnlocked;
+            BindGroup.Unlocked -= OnUnlocked;
         }
 
         protected virtual void PopulateControlDropdown()

@@ -911,6 +911,10 @@
                             "Title": "Expand Binding",
                             "Text": "Toggles a configuration panel where you can calibrate this binding and view live input data from the dummy controller."
                         },
+                        "Dropdown": {
+                            "Title": "Select Input",
+                            "Text": "Select from applicable inputs supported by {0}."
+                        },
                         "Button": {
                             "CurrentValue": {
                                 "Title": "Current Value",
