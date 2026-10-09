@@ -38,11 +38,13 @@ namespace YARG.Menu
 
         public NavigationScheme.Entry NavigateNextTab => new(MenuAction.Right, "Menu.Common.NextTab", () =>
         {
-            _navigationGroup.SelectNext();
+            EnsureInitialized();
+            _navigationGroup?.SelectNext();
         });
         public NavigationScheme.Entry NavigatePreviousTab => new(MenuAction.Left, "Menu.Common.PreviousTab", () =>
         {
-            _navigationGroup.SelectPrevious();
+            EnsureInitialized();
+            _navigationGroup?.SelectPrevious();
         });
 
         public event Action<string> TabChanged;
@@ -51,8 +53,21 @@ namespace YARG.Menu
 
         private void Awake()
         {
+            EnsureInitialized();
+        }
+
+        private void EnsureInitialized()
+        {
+            if (_navigationGroup != null)
+            {
+                return;
+            }
+
             _navigationGroup = GetComponent<NavigationGroup>();
-            _navigationGroup.SelectionChanged += OnSelectionChanged;
+            if (_navigationGroup != null)
+            {
+                _navigationGroup.SelectionChanged += OnSelectionChanged;
+            }
         }
 
         private void Start()

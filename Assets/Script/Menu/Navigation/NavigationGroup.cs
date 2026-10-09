@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -268,6 +268,7 @@ namespace YARG.Menu.Navigation
 
         public void ClearSelection()
         {
+            SelectedIndex = null;
             foreach (var navigatable in _navigatables)
             {
                 navigatable.SetSelected(false, SelectionOrigin.Programmatically);

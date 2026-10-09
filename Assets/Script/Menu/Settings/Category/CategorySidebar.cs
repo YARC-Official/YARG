@@ -2,13 +2,14 @@ using System;
 using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using YARG.Menu.Navigation;
 
 namespace YARG.Menu.Settings
 {
     [RequireComponent(typeof(NavigationGroup))]
-    public sealed class CategorySidebar : MonoBehaviour
+    public sealed class CategorySidebar : MonoBehaviour, IPointerDownHandler
     {
         public const float EXPANDED_WIDTH = 240f;
         public const float COLLAPSED_WIDTH = 64f;
@@ -38,18 +39,36 @@ namespace YARG.Menu.Settings
 
         public bool IsCollapsed { get; private set; }
         public string SelectedCategoryId { get; private set; }
-        public NavigationGroup NavigationGroup => _navigationGroup;
+        public NavigationGroup NavigationGroup
+        {
+            get
+            {
+                EnsureInitialized();
+                return _navigationGroup;
+            }
+        }
 
         public event Action<string> CategoryChanged;
 
         private void Awake()
         {
+            EnsureInitialized();
+        }
+
+        private void EnsureInitialized()
+        {
+            if (_navigationGroup != null)
+            {
+                return;
+            }
+
             _navigationGroup = GetComponent<NavigationGroup>();
             _navigationGroup.SelectionChanged += OnSelectionChanged;
         }
 
         public void SetCategories(IReadOnlyList<CategoryInfo> categories)
         {
+            EnsureInitialized();
             _views.Clear();
             _navigationGroup.ClearNavigatables();
 
@@ -89,6 +108,11 @@ namespace YARG.Menu.Settings
 
         public void SetCollapsed(bool collapsed, bool animate = true)
         {
+            if (IsCollapsed == collapsed && Mathf.Approximately(_layoutElement.preferredWidth, collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH))
+            {
+                return;
+            }
+
             IsCollapsed = collapsed;
             var targetWidth = collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH;
             var targetAlpha = collapsed ? 0f : 1f;
@@ -134,6 +158,11 @@ namespace YARG.Menu.Settings
             {
                 _views[i].ShowCurrent(_views[i].CategoryId == currentId);
             }
+        }
+
+        public void OnPointerDown(PointerEventData eventData)
+        {
+            SettingsMenu.Instance.FocusCategories();
         }
     }
 }
