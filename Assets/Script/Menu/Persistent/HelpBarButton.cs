@@ -332,16 +332,23 @@ namespace YARG.Menu.Persistent
         // triggered by the Navigator when the hold is complete
         private void HandleControllerHold()
         {
-            var rawHoldProgress = _entry.HasValue
-                ? Navigator.Instance.GetHoldProgress(_entry.Value.Action)
-                : -1f;
-            if (rawHoldProgress >= 0f)
+            if (!_entry.HasValue) return;
+
+            var action = _entry.Value.Action;
+            bool isHeld = Navigator.Instance.IsActionHeld(action);
+            var rawHoldProgress = Navigator.Instance.GetHoldProgress(action);
+            if (isHeld)
             {
                 if (_currentState != ButtonState.HOLD)
                 {
                     ApplyState(ButtonState.HOLD);
                 }
-                var visualProgress = _holdTracker.GetVisualHoldProgress(rawHoldProgress);
+
+                // A modifier chord can cancel the pending hold action while the physical button
+                // remains pressed. Keep the pressed highlight, but clear the canceled hold fill.
+                var visualProgress = rawHoldProgress >= 0f
+                    ? _holdTracker.GetVisualHoldProgress(rawHoldProgress)
+                    : 0f;
                 UpdateButtonFillAmount(visualProgress);
             }
             else if (_buttonHoldFill.fillAmount > 0f || _currentState == ButtonState.HOLD)

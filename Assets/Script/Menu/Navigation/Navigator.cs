@@ -317,6 +317,11 @@ namespace YARG.Menu.Navigation
             return _holdInputs.Any(i => i.Context.Player == player && i.Context.Action == action);
         }
 
+        public bool IsActionHeld(MenuAction action)
+        {
+            return _holdInputs.Any(i => i.Context.Action == action);
+        }
+
         public void CancelHold(YargPlayer player, MenuAction action)
         {
             foreach (var hold in _holdInputs.Where(i =>

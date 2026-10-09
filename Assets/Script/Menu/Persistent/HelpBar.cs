@@ -155,7 +155,7 @@ namespace YARG.Menu.Persistent
                 return;
             }
 
-            _directionButton.SetDirectionalIconVertical(Navigator.Instance.GetHoldProgress(modifier) >= 0f);
+            _directionButton.SetDirectionalIconVertical(Navigator.Instance.IsActionHeld(modifier));
         }
     }
 }
