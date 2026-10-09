@@ -94,7 +94,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4441713907549617493, guid: fbe8e8d998d3de540abf324a8c5e65d3, type: 3}
       propertyPath: m_Name
-      value: Current Value
+      value: Effective Value
       objectReference: {fileID: 0}
     - target: {fileID: 6981444744848945192, guid: fbe8e8d998d3de540abf324a8c5e65d3, type: 3}
       propertyPath: m_Pivot.y
@@ -126,7 +126,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7134153350828247700, guid: fbe8e8d998d3de540abf324a8c5e65d3, type: 3}
       propertyPath: m_text
-      value: Current Value
+      value: Effective Value
       objectReference: {fileID: 0}
     - target: {fileID: 7134153350828247700, guid: fbe8e8d998d3de540abf324a8c5e65d3, type: 3}
       propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
@@ -142,6 +142,15 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4441713907549617493, guid: fbe8e8d998d3de540abf324a8c5e65d3, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8173774171577289183}
+    - targetCorrespondingSourceObject: {fileID: 4441713907549617493, guid: fbe8e8d998d3de540abf324a8c5e65d3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6848376619846603807}
+    - targetCorrespondingSourceObject: {fileID: 4441713907549617493, guid: fbe8e8d998d3de540abf324a8c5e65d3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5937059718785067593}
+    - targetCorrespondingSourceObject: {fileID: 4441713907549617493, guid: fbe8e8d998d3de540abf324a8c5e65d3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8522487463729094130}
   m_SourcePrefab: {fileID: 100100000, guid: fbe8e8d998d3de540abf324a8c5e65d3, type: 3}
 --- !u!1 &3409337162353011508 stripped
 GameObject:
@@ -168,6 +177,57 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!222 &6848376619846603807
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3409337162353011508}
+  m_CullTransparentMesh: 1
+--- !u!114 &5937059718785067593
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3409337162353011508}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 0}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!114 &8522487463729094130
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3409337162353011508}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
+  _localizationKey: Bindings.Group.Axis.EffectiveValue
 --- !u!224 &4599844969253353221 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 3252069457828798820, guid: fbe8e8d998d3de540abf324a8c5e65d3, type: 3}
@@ -551,6 +611,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7941692760580847090, guid: 6e2667896228a7e44bf8acf6a019f0a3, type: 3}
+      propertyPath: m_Colors.m_DisabledColor.r
+      value: 0.5176471
+      objectReference: {fileID: 0}
+    - target: {fileID: 7941692760580847090, guid: 6e2667896228a7e44bf8acf6a019f0a3, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
       objectReference: {fileID: 0}
@@ -603,6 +667,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5396120328903095159, guid: 6e2667896228a7e44bf8acf6a019f0a3, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7820494006832012319}
+    - targetCorrespondingSourceObject: {fileID: 5071566577597083582, guid: 6e2667896228a7e44bf8acf6a019f0a3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4581092803045243421}
   m_SourcePrefab: {fileID: 100100000, guid: 6e2667896228a7e44bf8acf6a019f0a3, type: 3}
 --- !u!114 &752042820505493538 stripped
 MonoBehaviour:
@@ -647,6 +714,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &2575056496434578452 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5071566577597083582, guid: 6e2667896228a7e44bf8acf6a019f0a3, type: 3}
+  m_PrefabInstance: {fileID: 7340201995256556458}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &4581092803045243421
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2575056496434578452}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
+  _localizationKey: Bindings.Group.Axis.Settings
 --- !u!1 &3404576227643168989 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5396120328903095159, guid: 6e2667896228a7e44bf8acf6a019f0a3, type: 3}
@@ -681,7 +766,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8eaca297d86f7ae47b641cf8235708ba, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.ProfileList.AxisBindGroupToolipTrigger
-  _localizationKey: AxisBindGroup
+  _localizationKey: Bindings.Group.Axis.Header
   _bindGroup: {fileID: 2066996443643632486}
 --- !u!1 &4411761303019523586 stripped
 GameObject:
@@ -710,7 +795,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 2363189801400046139, guid: 6e2667896228a7e44bf8acf6a019f0a3, type: 3}
   m_PrefabInstance: {fileID: 7340201995256556458}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 2575056496434578452}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}

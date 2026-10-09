@@ -94,7 +94,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4441713907549617493, guid: fbe8e8d998d3de540abf324a8c5e65d3, type: 3}
       propertyPath: m_Name
-      value: Current Value
+      value: Effective Value
       objectReference: {fileID: 0}
     - target: {fileID: 4729924195103497305, guid: fbe8e8d998d3de540abf324a8c5e65d3, type: 3}
       propertyPath: m_SizeDelta.x
@@ -150,7 +150,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7134153350828247700, guid: fbe8e8d998d3de540abf324a8c5e65d3, type: 3}
       propertyPath: m_text
-      value: Current Value
+      value: Effective Value
       objectReference: {fileID: 0}
     - target: {fileID: 7134153350828247700, guid: fbe8e8d998d3de540abf324a8c5e65d3, type: 3}
       propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
@@ -256,7 +256,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
-  _localizationKey: Bindings.Group.Button.CurrentValue
+  _localizationKey: Bindings.Group.Button.EffectiveValue
 --- !u!1001 &340531564116616396
 PrefabInstance:
   m_ObjectHideFlags: 0

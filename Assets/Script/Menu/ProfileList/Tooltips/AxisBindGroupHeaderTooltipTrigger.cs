@@ -1,17 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using YARG.Localization;
-using YARG.Menu.ProfileList;
 using YARG.Menu.Tooltips;
 
 namespace YARG.Menu.ProfileList
 {
-    public class IntegerBindGroupToolipTrigger : TooltipTrigger
+    public class AxisBindGroupHeaderToolipTrigger : TooltipTrigger
     {
         [SerializeField]
-        private ReusableIntegerBindGroup _bindGroup;
+        private ReusableAxisBindGroup _bindGroup;
 
         protected override (IReadOnlyList<string> titleParams, IReadOnlyList<string> textParams) GetParameters()
         {

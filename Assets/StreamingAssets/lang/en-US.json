@@ -814,14 +814,6 @@
                     "Title": "Delete Binding Set",
                     "Text": "Permanently delete this binding set. <b><color=\"red\">If anyone is using this binding set, they'll revert to the default bindings!</color></b>"
                 },
-                "AddNewSingleBinding": {
-                    "Title": "Add New Binding",
-                    "Text": ""
-                },
-                "AxisBindGroup": {
-                    "Title": "{0}",
-                    "Text": "This is an axis action; its state ranges from -1.0 to 1.0 (inclusive). If you bind multiple controls, the effective value will reflect whichever control's value has the greatest magnitude. For example, if one control reports 0.2 and another reports -0.8, the effective value is -0.8 because its magnitude (0.8) is greater than the other control's magnitude (0.2)."
-                },
                 "IntegerBindGroup": {
                     "Title": "{0}",
                     "Text": "This is an integer action; its state can be any nonnegative integer. If you bind multiple controls, the effective value will reflect the highest value from among those controls."
@@ -872,9 +864,9 @@
                                 "Title": "Configure/Test Effective Value",
                                 "Text": "Toggles a configuration panel where you can view the effective value of this binding, aggregated from all of its bindings, based on live input from your dummy controller. You can also configure an aggregate debounce value for this action, which applies across all of its bindings."
                             },
-                            "CurrentValue": {
-                                "Title": "Current Value",
-                                "Text": "View live input from your dummy controller. The \"pressed\" state of a button action represents the logical OR of all of its bindings. That is, if any one of those bindings is pressed, then the button action is considered pressed. Otherwise, it is not pressed."
+                            "EffectiveValue": {
+                                "Title": "Effective Value",
+                                "Text": "View aggregated live input from your dummy controller. The effective state of a button action represents the logical OR of all of its bindings. That is, if any one of those bindings is pressed, then the button action is considered pressed. Otherwise, it is not pressed."
                             },
                             "DebounceThreshold": {
                                 "Title": "Debounce Threshold",
@@ -882,16 +874,28 @@
                             }
                         },
                         "Axis": {
+                            "Header": {
+                                "Title": "{0}",
+                                "Text": "This is an axis action; its state ranges from -1.0 to 1.0 (inclusive). If you bind multiple controls, the effective value will reflect whichever control's value has the greatest magnitude. For example, if one control reports 0.2 and another reports -0.8, the effective value is -0.8 because its magnitude (0.8) is greater than the other control's magnitude (0.2)."
+                            },
                             "Settings": {
                                 "Title": "Test Effective Value",
                                 "Text": "Toggles a configuration panel where you can view the effective value of this binding, aggregated from all of its bindings, based on live input from your dummy controller."
                             },
+                            "EffectiveValue": {
+                                "Title": "Effective Value",
+                                "Text": "View aggregated live input from your dummy controller. The effective state of an axis action represents the highest-value magnitude of all of its bindings. For example, if one binding reports 0.2 and another reports -0.8, the effective value is -0.8 because its magnitude (0.8) is greater than the other control's magnitude (0.2)."
+                            }
                         },
                         "Integer": {
                             "Settings": {
                                 "Title": "Test Effective Value",
                                 "Text": "Toggles a configuration panel where you can view the effective value of this binding, aggregated from all of its bindings, based on live input from your dummy controller."
                             },
+                            "EffectiveValue": {
+                                "Title": "Effective Value",
+                                "Text": "View aggregated live input from your dummy controller. The effective state of an integer action represents the maximum of all of its bindings."
+                            }
                         }
                     },
                     "Single": {
