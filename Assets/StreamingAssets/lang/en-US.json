@@ -704,6 +704,28 @@
                             "Text": "Choose an image to use as a profile picture."
                         }
                     },
+                    "List": {
+                        "Connect": {
+                            "Title": "Connect Profile",
+                            "Text": "Connect this profile as an active player."
+                        },
+                        "Disonnect": {
+                            "Title": "Connect Profile",
+                            "Text": "Set this profile as inactive."
+                        },
+                        "Delete": {
+                            "Title": "Delete Profile",
+                            "Text": "Permanently delete this profile. <b><color=red>This cannot be undone!</color></b>"
+                        },
+                        "MoveUp": {
+                            "Title": "Move Up",
+                            "Text": "Move this profile up in the list.\n\nFor non-Vocals profiles, this affects the arrangement of the highways on the screen.\n\nFor Vocals profiles, the highest profile in the list is the one who gets to choose between Vocals and Harmonies and whose visual settings are applied to the vocal highway."
+                        },
+                        "MoveDown": {
+                            "Title": "Move Down",
+                            "Text": "Move this profile down in the list.\n\nFor non-Vocals profiles, this affects the arrangement of the highways on the screen.\n\nFor Vocals profiles, the highest profile in the list is the one who gets to choose between Vocals and Harmonies and whose visual settings are applied to the vocal highway."
+                        }
+                    },
                     "Settings": {
                         "InputMode": {
                             "Title": "Input Mode",
