@@ -176,7 +176,6 @@ namespace YARG.Player
         {
             DisableInputs();
             DeviceInfo?.Dispose();
-            Profile.Avatar?.Dispose();
         }
     }
 }

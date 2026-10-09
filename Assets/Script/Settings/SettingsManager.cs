@@ -164,6 +164,7 @@ namespace YARG.Settings
                 nameof(Settings.UsePerformanceClaps),
 
                 new HeaderMetadata("Other"),
+                nameof(Settings.EffectsMode),
                 new FieldMetadata(nameof(Settings.UseChipmunkSpeed), isAdvanced: true),
                 new FieldMetadata(nameof(Settings.ApplyVolumesInMusicLibrary), isAdvanced: true),
                 new FieldMetadata(nameof(Settings.ApplyVolumesInMusicPlayer), isAdvanced: true),
@@ -290,7 +291,6 @@ namespace YARG.Settings
                 nameof(Settings.BandComboTypeSetting),
                 nameof(Settings.DataStreamEnable),
                 nameof(Settings.SaveScoresWithBots),
-                nameof(Settings.ReverbImplementation),
                 new HeaderMetadata("Accessibility"),
                 nameof(Settings.FontScaling),
                 new HeaderMetadata("OutputConfiguration"),

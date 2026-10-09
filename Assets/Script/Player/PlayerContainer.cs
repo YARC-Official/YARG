@@ -120,7 +120,7 @@ namespace YARG.Player
 
             _profiles.Remove(profile);
             _profilesById.Remove(profile.Id);
-            profile.Avatar?.Dispose();
+            RemoveAvatar(profile);
             ActiveProfilesChanged();
             return true;
         }
@@ -800,12 +800,42 @@ namespace YARG.Player
             return profiles.Count;
         }
 
-        private static void LoadAvatar(YargProfile profile)
+        public static void SelectAvatar(YargProfile profile, Action callback = null)
+        {
+            // Open file browser that allows selection of .png and .jpg images
+            // TODO: Once career is merged, update this to use the new OpenChooseFile signature that allows multiple file types
+            FileExplorerHelper.OpenChooseFile(null, "png", path =>
+            {
+                var picturePath = Path.Combine(ProfilesDirectory, profile.Id.ToString());
+
+                // Copy to profile folder and tell the profile to load the data, then refresh the view
+                File.Copy(path, picturePath, true);
+
+                profile.Avatar?.Dispose();
+                profile.Avatar = YARGImage.Load(picturePath);
+
+                callback?.Invoke();
+            });
+        }
+
+        public static void LoadAvatar(YargProfile profile)
         {
             var imagePath = Path.Join(ProfilesDirectory, profile.Id.ToString());
             if (File.Exists(imagePath))
             {
                 profile.Avatar = YARGImage.Load(imagePath);
+            }
+        }
+
+        public static void RemoveAvatar(YargProfile profile)
+        {
+            profile.Avatar?.Dispose();
+            profile.Avatar = null;
+
+            var imagePath = Path.Join(ProfilesDirectory, profile.Id.ToString());
+            if (File.Exists(imagePath))
+            {
+                File.Delete(imagePath);
             }
         }
 

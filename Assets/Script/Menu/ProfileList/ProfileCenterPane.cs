@@ -317,7 +317,7 @@ namespace YARG.Menu.ProfileList
             _overviewButton.SetActive(!Profile.IsBot && PlayerContainer.IsProfileTaken(Profile));
 
             // Show/hide the custom picture rawimage depending on bot/custom pic availability
-            if (!profile.IsBot && Profile.Avatar != null)
+            if (!profile.IsBot && Profile.Avatar != null && Profile.Avatar.IsValid)
             {
                 Destroy(_customProfilePicture.texture);
                 _customProfilePicture.texture = Profile.Avatar.LoadTexture(false);
@@ -418,34 +418,16 @@ namespace YARG.Menu.ProfileList
 
         public void EditProfilePicture()
         {
-            // Open file browser that allows selection of .png and .jpg images
-            // TODO: Once career is merged, update this to use the new OpenChooseFile signature that allows multiple file types
-            FileExplorerHelper.OpenChooseFile(null, "png", path =>
+            PlayerContainer.SelectAvatar(_profile, () =>
             {
-                var picturePath = Path.Combine(PlayerContainer.ProfilesDirectory, Profile.Id.ToString());
-
-                // Copy to profile folder and tell the profile to load the data, then refresh the view
-                File.Copy(path, picturePath, true);
-
-                Profile.Avatar?.Dispose();
-                Profile.Avatar = YARGImage.Load(picturePath);
-
                 _profileView.UpdateDisplay(Profile);
-                UpdateCenterPane(Profile, _profileView);
+                UpdateSidebar(Profile, _profileView);
             });
         }
 
         public void DeleteProfilePicture()
         {
-            Profile.Avatar?.Dispose();
-            Profile.Avatar = null;
-
-            var picturePath = Path.Combine(PlayerContainer.ProfilesDirectory, Profile.Id.ToString());
-
-            if (File.Exists(picturePath))
-            {
-                File.Delete(picturePath);
-            }
+            PlayerContainer.RemoveAvatar(Profile);
 
             _profileView.UpdateDisplay(Profile);
             UpdateCenterPane(Profile, _profileView);

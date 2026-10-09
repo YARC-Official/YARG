@@ -545,25 +545,6 @@ namespace YARG.Editor
 
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    EditorGUILayout.LabelField("Speed", EditorStyles.miniBoldLabel, GUILayout.Width(40));
-                    DrawSpeedPill(0.5f, EditorStyles.miniButtonLeft);
-                    DrawSpeedPill(0.75f, EditorStyles.miniButtonMid);
-                    DrawSpeedPill(1.0f, EditorStyles.miniButtonMid);
-                    DrawSpeedPill(1.25f, EditorStyles.miniButtonMid);
-                    DrawSpeedPill(1.5f, EditorStyles.miniButtonRight);
-
-                    GUILayout.Space(4);
-                    float newSpeed = EditorGUILayout.Slider(_playbackSpeed, 0.1f, 2.5f, GUILayout.Width(85));
-                    if (Mathf.Abs(newSpeed - _playbackSpeed) > 0.001f)
-                    {
-                        SetPlaybackSpeed(newSpeed);
-                    }
-
-                    if (GUILayout.Button("1x", EditorStyles.miniButton, GUILayout.Width(32)))
-                    {
-                        SetPlaybackSpeed(1f);
-                    }
-
                     GUILayout.FlexibleSpace();
 
                     EditorGUILayout.LabelField("🔊 Volume", EditorStyles.miniBoldLabel, GUILayout.Width(62));
@@ -577,46 +558,5 @@ namespace YARG.Editor
                 }
             }
         }
-
-        private void SetPlaybackSpeed(float speed)
-        {
-            _playbackSpeed = speed;
-            if (_bassSong == null)
-            {
-                return;
-            }
-
-            double currentInputSystemTime = InputManager.CurrentInputTime;
-            double currentPos = _bassSong.GetPosition();
-            _inputTimeOffset = currentInputSystemTime - ((currentPos - _simulatedClockDisturbance) / _playbackSpeed);
-
-            if (_audioSynchronizer != null && _modelSongSync)
-            {
-                _audioSynchronizer.ChangeSongSpeed(_playbackSpeed);
-            }
-            else
-            {
-                _bassSong.SetPlaybackSpeed(_playbackSpeed);
-            }
-        }
-
-        private void DrawSpeedPill(float speed, GUIStyle? style = null)
-        {
-            style ??= EditorStyles.miniButton;
-            bool isActive = Mathf.Approximately(_playbackSpeed, speed);
-            var prevBg = GUI.backgroundColor;
-            if (isActive)
-            {
-                GUI.backgroundColor = new Color(0.25f, 0.65f, 1f, 1f);
-            }
-
-            if (GUILayout.Button($"{speed:0.##}x", style, GUILayout.Width(46), GUILayout.Height(18)))
-            {
-                SetPlaybackSpeed(speed);
-            }
-
-            GUI.backgroundColor = prevBg;
-        }
-
     }
 }

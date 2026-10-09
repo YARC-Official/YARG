@@ -115,8 +115,8 @@ Because audio frames sit in the read-ahead buffer before reaching the speakers, 
    - **Drift Protection**: If the sound card clock and computer clock run at slightly different speeds, the game remembers the highest timestamp it has ever shown (`lastHeardFrame_`) to guarantee song time never goes backward.
 
 3. **Position History & Startup Safety ([`BassRuntime.cs`](../Assets/Script/Audio/Bass/BassRuntime.cs) & [`RenderAheadMixer.cpp`](../Native/YargAudio/src/RenderAheadMixer.cpp))**:
-   - The game uses `BASS_Mixer_ChannelGetPositionEx`: you pass it the total delay (buffered audio + sound card delay), and BASS automatically calculates and returns the exact timestamp currently coming out of the speakers (taking tempo and speed changes into account).
-   - **Extended Timestamp Memory (`BASS_CONFIG_MIXER_POSEX`)**: To calculate timestamps from delayed audio, BASS must remember what it recently decoded. By default, BASS only remembers the last 2 seconds—which fails if large buffers or 50% Practice Mode slow-motion stretch the delay past 2 seconds. We increase this memory to **10,000 ms (10 seconds)** so BASS never forgets past timestamps and lookups never fail.
+   - The game uses `BASS_Mixer_ChannelGetPositionEx`: you pass it the total delay (buffered audio + sound card delay), and BASS reports the delayed tempo-stream position. BASS_FX provides its source-time mapping; YargStretch converts output bytes through its native per-block input history.
+   - **Extended Timestamp Memory (`BASS_CONFIG_MIXER_POSEX`)**: To calculate timestamps from delayed audio, BASS must remember what it recently decoded. By default, BASS only remembers the last 2 seconds—which fails if large buffers or 50% Practice Mode slow-motion stretch the delay past 2 seconds. We increase this memory to **10,000 ms (10 seconds)** so the retained history covers the configured read-ahead buffer and endpoint delay. Position errors outside that coverage are still reported.
    - On song start or seek (when the delay reaches before the start of the song), the native layer pins the heard position to `0.000s` rather than returning errors or negative timestamps.
 
 ---
@@ -164,4 +164,4 @@ Device switching is orchestrated by [`BassAudioManager`](../Assets/Script/Audio/
 
 To ensure gameplay notes and input timing remain accurately synchronized with what the player hears:
 - **Heard Latency**: Calculated directly from the ASIO driver’s reported hardware buffer delay (`BassAsio.GetLatency()`) or the OS endpoint delay.
-- **Song Position**: Calculated by taking the decoder's raw position and subtracting both the queued frames currently sitting in the read-ahead buffer and the remaining hardware output delay.
+- **Song Position**: Obtained by mapping the delayed mixer output through BASS position history and, for YargStretch, its output-to-input block history. The delay includes queued read-ahead frames and the remaining endpoint delay.

@@ -133,15 +133,19 @@ namespace YARG.Menu.ProfileList
                 connectButton.EnableButton();
             }
 
-            if (profile.Avatar != null)
+            if (profile.Avatar != null && profile.Avatar.IsValid)
             {
                 var texture = profile.Avatar.LoadTexture(false);
                 var sprite = Sprite.Create(texture,
                     new Rect(0f, 0f, texture.width, texture.height),
                     new Vector2(0.5f, 0.5f));
                 _profilePicture.sprite = sprite;
-
                 _profilePicture.rectTransform.localScale = new Vector3(1f, -1f);
+            }
+            else if (profile.IsBot)
+            {
+                _profilePicture.sprite = _profileBotSprite;
+                _profilePicture.rectTransform.localScale = new Vector3(1f, 1f);
             }
             else
             {

@@ -15,7 +15,6 @@ using YARG.Core.Song;
 using YARG.Helpers;
 using YARG.Input;
 using YARG.Playback;
-using YARG.Settings;
 using YARG.Song;
 
 namespace YARG.Editor
@@ -50,6 +49,8 @@ namespace YARG.Editor
                     }
                 }
 
+                EditorGUILayout.Space(4);
+                DrawTempoSection();
                 EditorGUILayout.Space(4);
 
                 if (_bassSong?.Channels == null || !_bassSong.Channels.Any())
@@ -274,6 +275,75 @@ namespace YARG.Editor
             }
 
             GlobalAudioHandler.SetVolumeSetting(stem, effectiveVol);
+        }
+
+        private void DrawTempoSection()
+        {
+            using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
+            {
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    EditorGUILayout.LabelField("Speed", EditorStyles.miniBoldLabel, GUILayout.Width(40));
+                    DrawSpeedPill(0.5f, EditorStyles.miniButtonLeft);
+                    DrawSpeedPill(0.75f, EditorStyles.miniButtonMid);
+                    DrawSpeedPill(1.0f, EditorStyles.miniButtonMid);
+                    DrawSpeedPill(1.25f, EditorStyles.miniButtonMid);
+                    DrawSpeedPill(1.5f, EditorStyles.miniButtonRight);
+
+                    GUILayout.Space(4);
+                    float newSpeed = EditorGUILayout.Slider(_playbackSpeed, 0.1f, 2.5f, GUILayout.Width(85));
+                    if (Mathf.Abs(newSpeed - _playbackSpeed) > 0.001f)
+                    {
+                        SetPlaybackSpeed(newSpeed);
+                    }
+
+                    if (GUILayout.Button("1x", EditorStyles.miniButton, GUILayout.Width(32)))
+                    {
+                        SetPlaybackSpeed(1f);
+                    }
+
+                    EditorGUILayout.LabelField($"{_playbackSpeed:0.##}x", EditorStyles.miniLabel, GUILayout.Width(40));
+                }
+            }
+        }
+
+        private void SetPlaybackSpeed(float speed)
+        {
+            _playbackSpeed = speed;
+            if (_bassSong == null)
+            {
+                return;
+            }
+
+            double currentInputSystemTime = InputManager.CurrentInputTime;
+            double currentPos = _bassSong.GetPosition();
+            _inputTimeOffset = currentInputSystemTime - ((currentPos - _simulatedClockDisturbance) / _playbackSpeed);
+
+            if (_audioSynchronizer != null && _modelSongSync)
+            {
+                _audioSynchronizer.ChangeSongSpeed(_playbackSpeed);
+            }
+            else
+            {
+                _bassSong.SetPlaybackSpeed(_playbackSpeed);
+            }
+        }
+
+        private void DrawSpeedPill(float speed, GUIStyle style)
+        {
+            bool isActive = Mathf.Approximately(_playbackSpeed, speed);
+            var prevBg = GUI.backgroundColor;
+            if (isActive)
+            {
+                GUI.backgroundColor = new Color(0.25f, 0.65f, 1f, 1f);
+            }
+
+            if (GUILayout.Button($"{speed:0.##}x", style, GUILayout.Width(46), GUILayout.Height(18)))
+            {
+                SetPlaybackSpeed(speed);
+            }
+
+            GUI.backgroundColor = prevBg;
         }
 
     }

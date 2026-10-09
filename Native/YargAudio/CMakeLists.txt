@@ -24,6 +24,7 @@ set(YARG_AUDIO_SOURCES
     src/PlatformDynamicLibrary.cpp
     src/ReadAheadStream.cpp
     src/RenderAheadMixer.cpp
+    src/stretch/StretchTempoStream.cpp
     src/yarg_audio_c_api.cpp
 )
 
@@ -36,6 +37,7 @@ target_include_directories(yarg_audio
     PUBLIC include
     PRIVATE src
 )
+target_include_directories(yarg_audio SYSTEM PRIVATE third_party)
 target_link_libraries(yarg_audio PRIVATE Threads::Threads ${CMAKE_DL_LIBS})
 set_target_properties(yarg_audio PROPERTIES
     CXX_VISIBILITY_PRESET hidden
@@ -76,11 +78,14 @@ if(YARG_AUDIO_BUILD_TESTS)
         tests/FreeverbDspTests.cpp
         tests/DattorroReverbDspTests.cpp
         tests/NoiseGateDspTests.cpp
+        tests/NoiseMorphTests.cpp
+        tests/YargStretchTests.cpp
         tests/SineSynthDspTests.cpp
         tests/RenderAheadMixerTests.cpp
         tests/ScheduledSampleSourceTests.cpp
         tests/NativeOneShotStreamTests.cpp
         tests/ReadAheadStreamTests.cpp
+        tests/StretchTempoStreamTests.cpp
         src/AudioRingBuffer.cpp
         src/BassCoreBindings.cpp
         src/BassMixBindings.cpp
@@ -94,9 +99,11 @@ if(YARG_AUDIO_BUILD_TESTS)
         src/PlatformDynamicLibrary.cpp
         src/ReadAheadStream.cpp
         src/RenderAheadMixer.cpp
+        src/stretch/StretchTempoStream.cpp
     )
     target_compile_features(yarg_audio_tests PRIVATE cxx_std_20)
     target_include_directories(yarg_audio_tests PRIVATE include src)
+    target_include_directories(yarg_audio_tests SYSTEM PRIVATE third_party)
     target_link_libraries(yarg_audio_tests PRIVATE Threads::Threads ${CMAKE_DL_LIBS})
     if(MSVC)
         target_compile_definitions(yarg_audio_tests PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
