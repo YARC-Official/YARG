@@ -62,7 +62,7 @@ namespace YARG.Menu.ProfileInfo.Overview
         private TextMeshProUGUI _profileSummaryHeader;
         private int? _profileSummarySelectedIndex;
         private int? _statsSelectedIndex;
-        private readonly TextMeshProUGUI[] _profileSummaryValues = new TextMeshProUGUI[11];
+        private readonly TextMeshProUGUI[] _profileSummaryValues = new TextMeshProUGUI[13];
         private static readonly Dictionary<string, Sprite> InstrumentIconCache = new();
 
         private static readonly Instrument[] Instruments = Enum.GetValues(typeof(Instrument))
@@ -70,10 +70,17 @@ namespace YARG.Menu.ProfileInfo.Overview
             .Where(instrument => instrument != Instrument.Band)
             .ToArray();
 
+        private static readonly Instrument[] VocalInstruments =
+        {
+            Instrument.Vocals,
+            Instrument.PartyVocals,
+            Instrument.Harmony
+        };
+
         private static readonly string[] StatLabelKeys =
         {
             "Menu.ProfileInfo.Stats.AllSongsScore",
-            "Menu.ProfileInfo.Stats.TotalStarsEarned",
+            "Menu.ProfileInfo.Stats.StarsEarned",
             "Menu.ProfileInfo.Stats.ExpertGoldStarSongs",
             "Menu.ProfileInfo.Stats.ExpertFullCombos",
             "Menu.ProfileInfo.Stats.OfficialSetlistScore"
@@ -83,13 +90,15 @@ namespace YARG.Menu.ProfileInfo.Overview
         {
             "Menu.ProfileInfo.Stats.SongsOwned",
             "Menu.ProfileInfo.Stats.TotalSongPlays",
-            "Menu.ProfileInfo.Stats.TotalScore",
-            "Menu.ProfileInfo.Stats.TotalStarsEarned",
-            "Menu.ProfileInfo.Stats.FullCombos",
+            "Menu.ProfileInfo.Stats.LifetimeScore",
+            "Menu.ProfileInfo.Stats.LifetimeStars",
+            "Menu.ProfileInfo.Stats.LifetimeFullCombos",
             "Menu.ProfileInfo.Stats.TotalTimePlayed",
             "Menu.ProfileInfo.Stats.FavoriteEngine",
             "Menu.ProfileInfo.Stats.FavoriteSong",
+            "Menu.ProfileInfo.Stats.FavoriteArtist",
             "Menu.ProfileInfo.Stats.FavoriteGenre",
+            "Menu.ProfileInfo.Stats.FavoriteSource",
             "Menu.ProfileInfo.Stats.AveragePercentage",
             "Menu.ProfileInfo.Stats.LongestFullComboStreak"
         };
@@ -397,7 +406,9 @@ namespace YARG.Menu.ProfileInfo.Overview
                 playHistory.TotalTime,
                 playHistory.FavoriteEngine,
                 playHistory.MostPlayedSong,
+                playHistory.MostPlayedArtist,
                 playHistory.MostPlayedGenre,
+                playHistory.MostPlayedSource,
                 playHistory.AveragePercentage,
                 playHistory.LongestFullComboStreak
             };
@@ -408,7 +419,8 @@ namespace YARG.Menu.ProfileInfo.Overview
         }
 
         private static (string TotalTime, string FavoriteEngine, string MostPlayedSong,
-                        string MostPlayedGenre, string LongestFullComboStreak,
+                        string MostPlayedArtist, string MostPlayedGenre, string MostPlayedSource,
+                        string LongestFullComboStreak,
                         string AveragePercentage)
             GetPlayHistorySummary(IEnumerable<PlayerScoreWithChecksum> scores)
         {
@@ -419,7 +431,9 @@ namespace YARG.Menu.ProfileInfo.Overview
             long percentageCount = 0;
             var enginePlayCounts = new Dictionary<Guid, int>();
             var songPlayCounts = new Dictionary<HashWrapper, (string Name, int Count)>();
+            var artistPlayCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
             var genrePlayCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            var sourcePlayCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var score in scores)
             {
@@ -462,11 +476,25 @@ namespace YARG.Menu.ProfileInfo.Overview
                             "Menu.ProfileInfo.Stats.FavoriteSongValue", song.Name, song.Artist), 1);
                     }
 
+                    string artist = song.Artist;
+                    if (!string.IsNullOrWhiteSpace(artist))
+                    {
+                        artistPlayCounts.TryGetValue(artist, out int artistPlayCount);
+                        artistPlayCounts[artist] = artistPlayCount + 1;
+                    }
+
                     string genre = song.Genre;
                     if (!string.IsNullOrWhiteSpace(genre))
                     {
                         genrePlayCounts.TryGetValue(genre, out int genrePlayCount);
                         genrePlayCounts[genre] = genrePlayCount + 1;
+                    }
+
+                    string source = SongSources.SourceToGameName(song.Source);
+                    if (!string.IsNullOrWhiteSpace(source))
+                    {
+                        sourcePlayCounts.TryGetValue(source, out int sourcePlayCount);
+                        sourcePlayCounts[source] = sourcePlayCount + 1;
                     }
                 }
             }
@@ -487,6 +515,16 @@ namespace YARG.Menu.ProfileInfo.Overview
                 .ThenBy(genre => genre.Key, StringComparer.OrdinalIgnoreCase)
                 .Select(genre => genre.Key)
                 .FirstOrDefault() ?? "-";
+            string mostPlayedArtist = artistPlayCounts
+                .OrderByDescending(artist => artist.Value)
+                .ThenBy(artist => artist.Key, StringComparer.OrdinalIgnoreCase)
+                .Select(artist => artist.Key)
+                .FirstOrDefault() ?? "-";
+            string mostPlayedSource = sourcePlayCounts
+                .OrderByDescending(source => source.Value)
+                .ThenBy(source => source.Key, StringComparer.OrdinalIgnoreCase)
+                .Select(source => source.Key)
+                .FirstOrDefault() ?? "-";
             string favoriteEngine = favoriteEngineId.HasValue
                 ? CustomContentManager.EnginePresets.GetPresetById(favoriteEngineId.Value)?.Name
                     ?? Localize.Key("Menu.ProfileInfo.Stats.UnknownCustomEngine")
@@ -497,7 +535,7 @@ namespace YARG.Menu.ProfileInfo.Overview
 
             return (Localize.KeyFormat("Menu.ProfileInfo.Stats.TotalTimePlayedValue",
                     totalTime.Days, totalTime.Hours, totalTime.Minutes),
-                    favoriteEngine, mostPlayedSong, mostPlayedGenre,
+                    favoriteEngine, mostPlayedSong, mostPlayedArtist, mostPlayedGenre, mostPlayedSource,
                 Localize.KeyFormat("Menu.ProfileInfo.Stats.LongestFullComboStreakValue", longestFullComboStreak),
                 averagePercentage);
         }
@@ -571,13 +609,15 @@ namespace YARG.Menu.ProfileInfo.Overview
             foreach (var instrument in Instruments)
             {
                 bool isDrums = MidiDrumkitHelper.Instruments.Contains(instrument);
-                if (isDrums && instrument != MidiDrumkitHelper.Instruments[0])
-                {
-                    continue;
-                }
+                if (isDrums && instrument != MidiDrumkitHelper.Instruments[0]) continue;
+
+                bool isVocals = VocalInstruments.Contains(instrument);
+                if (isVocals && instrument != VocalInstruments[0]) continue;
 
                 var groupedInstruments = isDrums
                     ? MidiDrumkitHelper.Instruments
+                    : isVocals
+                        ? VocalInstruments
                     : new[] { instrument };
                 var instrumentScores = bestByDifficulty
                     .Where(score => groupedInstruments.Contains(score.Instrument))
@@ -627,10 +667,12 @@ namespace YARG.Menu.ProfileInfo.Overview
                 instrumentSections.Add((
                     isDrums
                         ? Localize.Key("Menu.ProfileInfo.Instruments.AggregateDrums")
+                        : isVocals
+                            ? Localize.Key("Menu.ProfileInfo.Instruments.AggregateVocals")
                         : GetInstrumentName(instrument),
                     statValues,
                     cumulativeHighScore,
-                    isDrums ? Instrument.FourLaneDrums : instrument,
+                    isDrums ? Instrument.FourLaneDrums : isVocals ? Instrument.Harmony : instrument,
                     officialSetlistScore > 0));
             }
 
