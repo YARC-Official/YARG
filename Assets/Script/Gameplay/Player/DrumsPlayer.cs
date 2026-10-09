@@ -859,11 +859,15 @@ namespace YARG.Gameplay.Player
             }
             else
             {
-                _fretArray.PlayKickFretAnimation();
                 if (isDrumFreestyle)
                 {
+                    _fretArray.PlayKickFretAnimation();
                     _kickFretFlash.PlayHitAnimation();
                     CameraPositioner.Bounce();
+                }
+                else
+                {
+                    _fretArray.PlayKickFretMissAnimation();
                 }
             }
         }

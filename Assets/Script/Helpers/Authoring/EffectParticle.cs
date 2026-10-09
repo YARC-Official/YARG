@@ -164,6 +164,52 @@ namespace YARG.Helpers.Authoring
             velocity.z = ScaleCurve(velocity.z, factor);
         }
 
+        // Scales this particle's start color RGB (not alpha) by the given factor, regardless of
+        // which mode (single color, single gradient, random between two colors/gradients) the
+        // field is actually using. This is applied after any InitializeColor/SetColor tinting,
+        // so it boosts the particle's actual (already fret-colored) RGB into HDR range - which,
+        // combined with this particle's additive blend mode and the scene's bloom, reads as a
+        // genuinely brighter/more vivid flash rather than one simply capped at non-HDR white.
+        public void ScaleStartColorBrightness(float factor)
+        {
+            var main = _particleSystem.main;
+            main.startColor = ScaleGradientBrightness(main.startColor, factor);
+        }
+
+        private static ParticleSystem.MinMaxGradient ScaleGradientBrightness(ParticleSystem.MinMaxGradient gradient, float factor)
+        {
+            gradient.color = ScaleColorBrightness(gradient.color, factor);
+            gradient.colorMin = ScaleColorBrightness(gradient.colorMin, factor);
+            gradient.colorMax = ScaleColorBrightness(gradient.colorMax, factor);
+
+            // The gradient fields are reference types and may be unset for modes that don't use
+            // them (e.g. single/two-color mode), so only scale the ones actually present.
+            if (gradient.gradient != null) gradient.gradient = ScaleGradientColorKeys(gradient.gradient, factor);
+            if (gradient.gradientMin != null) gradient.gradientMin = ScaleGradientColorKeys(gradient.gradientMin, factor);
+            if (gradient.gradientMax != null) gradient.gradientMax = ScaleGradientColorKeys(gradient.gradientMax, factor);
+
+            return gradient;
+        }
+
+        private static Color ScaleColorBrightness(Color color, float factor)
+        {
+            color.r *= factor;
+            color.g *= factor;
+            color.b *= factor;
+            return color;
+        }
+
+        private static Gradient ScaleGradientColorKeys(Gradient gradient, float factor)
+        {
+            var colorKeys = gradient.colorKeys;
+            for (int i = 0; i < colorKeys.Length; i++)
+            {
+                colorKeys[i].color = ScaleColorBrightness(colorKeys[i].color, factor);
+            }
+            gradient.colorKeys = colorKeys;
+            return gradient;
+        }
+
         private static ParticleSystem.MinMaxCurve ScaleCurve(ParticleSystem.MinMaxCurve curve, float factor)
         {
             // Scale every representation so this works no matter which mode (constant,

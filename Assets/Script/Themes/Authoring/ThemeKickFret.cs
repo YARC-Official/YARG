@@ -24,6 +24,9 @@ namespace YARG.Themes
         [field: SerializeField]
         public EffectGroup HitEffect { get; private set; }
 
+        [field: SerializeField]
+        public EffectGroup MissEffect { get; private set; }
+
         private void OnDrawGizmos()
         {
             Gizmos.color = Color.green;

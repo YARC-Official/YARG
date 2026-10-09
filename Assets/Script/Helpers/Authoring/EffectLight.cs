@@ -104,6 +104,24 @@ namespace YARG.Helpers.Authoring
             _totalDuration = _fadeOutRate * 0.001f;
         }
 
+        /// <summary>
+        /// Overrides the light's base intensity. Intended for runtime-cloned instances (e.g.
+        /// the kick fret's copy of the tom/cymbal miss light) that need different tuning than
+        /// what's baked into the shared prefab.
+        /// </summary>
+        public void SetIntensity(float intensity)
+        {
+            _initialIntensity = intensity;
+        }
+
+        /// <summary>
+        /// Overrides the light's range. See <see cref="SetIntensity"/> for why this exists.
+        /// </summary>
+        public void SetRange(float range)
+        {
+            _light.range = range;
+        }
+
         public void Play()
         {
             _light.intensity = GetIntensity();

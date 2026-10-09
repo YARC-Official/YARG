@@ -313,6 +313,14 @@ namespace YARG.Gameplay.Visuals
             }
         }
 
+        public void PlayKickFretMissAnimation()
+        {
+            foreach (var kick in _kickFrets)
+            {
+                kick.PlayMissAnimation();
+            }
+        }
+
         public void ResetAll()
         {
             foreach (var (_, fret) in _frets)
