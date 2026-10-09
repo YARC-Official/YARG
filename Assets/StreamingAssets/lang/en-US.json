@@ -957,6 +957,26 @@
                             "CalibratedValue": {
                                 "Title": "Calibrated Value",
                                 "Text": "View live input from your dummy controller, as affected by the parameters below."
+                            },
+                            "Invert": {
+                                "Title": "Invert",
+                                "Text": "Inverts the raw input. For example, if the raw value is 0.1, the calibrated value is treated as -0.1."
+                            },
+                            "Maximum": {
+                                "Title": "Maximum",
+                                "Text": "If the raw value is higher than this value, the calibrated value is clamped to this value."
+                            },
+                            "Minimum": {
+                                "Title": "Minimum",
+                                "Text": "If the raw value is lower than this value, the calibrated value is clamped to this value."
+                            },
+                            "UpperDeadzone": {
+                                "Title": "Upper Deadzone",
+                                "Text": "If the raw value is greater than 0 and less than or equal to this value, the calibrated value is treated as 0."
+                            },
+                            "LowerDeadzone": {
+                                "Title": "Upper Deadzone",
+                                "Text": "If the raw value is less than 0 and greater than or equal to this value, the calibrated value is treated as 0."
                             }
                         }
                     }
