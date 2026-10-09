@@ -26,6 +26,13 @@ namespace YARG.Audio.BASS
             : 0;
         internal override double SongPlaybackStartDelay => BassLatencyProvider.StartupLatency;
 
+        internal override int GetQueuedFrames()
+        {
+            var bytes = Bass.ChannelGetData(Handle: OutputMixerHandle, Buffer: IntPtr.Zero, Length: (int) DataFlags.Available);
+            BassX.Require(bytes >= 0, "get shared output buffer size");
+            return bytes / (ChannelCount * sizeof(float));
+        }
+
         private BassSharedOutput(string name, BassOutputDevice device, BassAudioRouter router)
             : base(name, device)
         {

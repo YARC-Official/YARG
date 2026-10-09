@@ -187,6 +187,15 @@ int ReadAheadStream::getPositionSnapshot(std::uint32_t source,
     // busy; a changed value means retry.
     SourcePositionSnapshot position{};
     for (;;) {
+        struct OutputLock {
+            BassCoreBindings& bass;
+            std::uint32_t handle = 0;
+            ~OutputLock() {
+                if (handle != 0) {
+                    bass.lockChannel(handle, false);
+                }
+            }
+        } outputLock{bass_};
         const auto sequence = consumerSequence_.load(std::memory_order_acquire);
         if ((sequence & 1u) != 0) {
             std::this_thread::yield();
@@ -194,9 +203,24 @@ int ReadAheadStream::getPositionSnapshot(std::uint32_t source,
         }
 
         const auto succeeded = renderer_->sourcePositionSnapshotAfterLock(
-            source, position, [this, endpointDelayFrames] {
-                return remainingPlaybackDelayFrames(
+            source, position, [this, endpointDelayFrames, &outputLock](std::uint32_t& delayFrames) {
+                if (config_.output_stream != 0) {
+                    if (!bass_.lockChannel(config_.output_stream, true)) {
+                        lastError_.store(bass_.error(), std::memory_order_relaxed);
+                        return false;
+                    }
+                    outputLock.handle = config_.output_stream;
+                    const auto bytes = bass_.getData(config_.output_stream, nullptr, 0);
+                    if (bytes < 0) {
+                        lastError_.store(bass_.error(), std::memory_order_relaxed);
+                        return false;
+                    }
+                    delayFrames = static_cast<std::uint32_t>(bytes / (config_.channels * sizeof(float)));
+                    return true;
+                }
+                delayFrames = remainingPlaybackDelayFrames(
                     endpointDelayFrames, timestampProvider_());
+                return true;
             });
         if (!succeeded) {
             return YARG_AUDIO_ERROR_BASS;

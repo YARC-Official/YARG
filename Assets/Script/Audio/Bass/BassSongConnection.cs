@@ -38,9 +38,11 @@ namespace YARG.Audio.BASS
         private          int                 _bufferLengthMilliseconds;
         private          bool                _bufferNeedsPrefill = true;
         private          bool                _disposed;
-        private          int                 _endpointDelayFrames;
         private          bool                _mixerCanReset;
         private          bool                _wasPlayed;
+        private          bool                _positionPaused;
+
+        private BassSourcePositionSnapshot _pausedPosition;
 
         private BassSongConnection(BassOutput output, int tempoStreamHandle, BassMixer songMixer,
             BassMixer volumeMixer, BassReadAheadStream readAhead, int sampleRate, int bufferLengthMilliseconds)
@@ -105,7 +107,8 @@ namespace YARG.Audio.BASS
 
             var readAhead = BassReadAheadStream.Create(output.Device.DeviceId, songMixer.Handle, output.SampleRate,
                 output.ChannelCount, output.MinimumBlockFrames, bufferLengthMilliseconds,
-                output.UsesIndependentClock);
+                useIndependentClock: output.UsesIndependentClock,
+                outputStream: output.UsesIndependentClock ? 0 : output.OutputMixerHandle);
             if (readAhead == null)
             {
                 songMixer.Dispose();
@@ -187,6 +190,7 @@ namespace YARG.Audio.BASS
 
             _wasPlayed = true;
             _mixerCanReset = false;
+            _positionPaused = false;
             SetSongOutputPaused(false);
             return 0;
         }
@@ -197,6 +201,7 @@ namespace YARG.Audio.BASS
             if (error == 0)
             {
                 SetSongOutputPaused(true);
+                _positionPaused = !_output.UsesIndependentClock && TryGetPositionSnapshot(out _pausedPosition);
             }
 
             return error;
@@ -204,6 +209,7 @@ namespace YARG.Audio.BASS
 
         public void PrepareForSeek()
         {
+            _positionPaused = false;
             if (!_wasPlayed)
             {
                 return;
@@ -257,7 +263,13 @@ namespace YARG.Audio.BASS
 
         public bool TryGetPositionSnapshot(out BassSourcePositionSnapshot snapshot)
         {
-            if (!_readAhead.TryGetPositionSnapshot(TempoStreamHandle, _endpointDelayFrames, out var native))
+            if (_positionPaused)
+            {
+                snapshot = _pausedPosition;
+                return true;
+            }
+
+            if (!_readAhead.TryGetPositionSnapshot(TempoStreamHandle, _output.EndpointDelayFrames, out var native))
             {
                 snapshot = default;
                 return false;
@@ -271,7 +283,7 @@ namespace YARG.Audio.BASS
         public double GetCommandDelay()
         {
             var stats = _readAhead.GetStats();
-            return (stats.QueuedFrames + _endpointDelayFrames) / (double) _sampleRate;
+            return (stats.QueuedFrames + _output.GetQueuedFrames()) / (double) _sampleRate;
         }
 
         public void SetBufferLength(int lengthMilliseconds)
@@ -323,9 +335,9 @@ namespace YARG.Audio.BASS
 
         private void UpdateMixerLatency()
         {
-            _endpointDelayFrames = Math.Max(0, _output.EndpointDelayFrames);
+            var endpointDelayFrames = Math.Max(0, _output.EndpointDelayFrames);
             uint readAheadFrames = _readAhead.GetStats().TargetFrames;
-            float latency = (readAheadFrames + _endpointDelayFrames) / (float) _sampleRate;
+            float latency = (readAheadFrames + endpointDelayFrames) / (float) _sampleRate;
             if (!_songMixer.SetAttribute(ChannelAttribute.MixerLatency, latency))
             {
                 YargLogger.LogFormatError("Failed to set song mixer latency: {0}", Bass.LastError);

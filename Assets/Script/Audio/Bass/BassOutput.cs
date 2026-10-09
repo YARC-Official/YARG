@@ -44,6 +44,8 @@ namespace YARG.Audio.BASS
         // instead of BASS's software mixer timeline.
         internal virtual bool UsesIndependentClock => false;
 
+        internal virtual int GetQueuedFrames() => EndpointDelayFrames;
+
         public void Dispose()
         {
             if (IsDisposed)

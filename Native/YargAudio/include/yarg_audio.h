@@ -18,7 +18,7 @@
 extern "C" {
 #endif
 
-#define YARG_AUDIO_ABI_VERSION 26u
+#define YARG_AUDIO_ABI_VERSION 27u
 
 typedef struct yarg_stretch_stream yarg_stretch_stream;
 
@@ -90,6 +90,7 @@ typedef struct yarg_read_ahead_config {
     uint32_t channels;
     uint32_t minimum_block_frames;
     uint32_t buffer_milliseconds;
+    uint32_t output_stream;
 } yarg_read_ahead_config;
 
 typedef struct yarg_read_ahead_stats {

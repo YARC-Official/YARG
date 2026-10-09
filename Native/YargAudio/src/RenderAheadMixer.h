@@ -58,7 +58,11 @@ public:
     bool sourcePositionSnapshotAfterLock(std::uint32_t sourceHandle,
         SourcePositionSnapshot& snapshot, DelayProvider delayProvider) noexcept {
         std::lock_guard lock(sourceMutex_);
-        return sourcePositionSnapshotLocked(sourceHandle, delayProvider(), snapshot);
+        std::uint32_t delayFrames;
+        if (!delayProvider(delayFrames)) {
+            return false;
+        }
+        return sourcePositionSnapshotLocked(sourceHandle, delayFrames, snapshot);
     }
 
     std::size_t queuedFrames() const noexcept { return ring_.available(); }

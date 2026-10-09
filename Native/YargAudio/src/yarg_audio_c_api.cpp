@@ -16,7 +16,7 @@
 #include <limits>
 #include <memory>
 
-static_assert(sizeof(yarg_read_ahead_config) == 28);
+static_assert(sizeof(yarg_read_ahead_config) == 32);
 static_assert(sizeof(yarg_read_ahead_stats) == 104);
 static_assert(sizeof(yarg_read_ahead_position_snapshot) == 24);
 static_assert(sizeof(yarg_one_shot_config) == 24);
