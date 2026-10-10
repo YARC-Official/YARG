@@ -79,57 +79,5 @@ namespace YARG.Input.Bindings
         public const string XINPUT_PRO_KEYBOARD = "XInputProKeyboard";
 
         public const string PRO_GUITAR = nameof(ProGuitar);
-
-
-        public static string GetBaseLayout(string layout)
-        {
-            return layout switch
-            {
-                GUITAR_HERO_GUITAR or
-                PS3_GUITAR_HERO_GUITAR or
-                SANTROLLER_HID_GUITAR_HERO_GUITAR or
-                SANTROLLER_XINPUT_GUITAR_HERO_GUITAR or
-                XINPUT_GUITAR_HERO_GUITAR or
-                RIFFMASTER_GUITAR or
-                PS4_RIFFMASTER_GUITAR or
-                PS5_RIFFMASTER_GUITAR or
-                XBOX_ONE_RIFFMASTER_GUITAR or
-                ROCK_BAND_GUITAR or
-                PS3_ROCK_BAND_GUITAR or
-                PS4_ROCK_BAND_GUITAR or
-                SANTROLLER_HID_ROCK_BAND_GUITAR or
-                SANTROLLER_XINPUT_ROCK_BAND_GUITAR or
-                WII_ROCK_BAND_GUITAR or
-                XINPUT_ROCK_BAND_GUITAR or
-                XBOX_ONE_ROCK_BAND_GUITAR or
-                GUITAR_PRAISE_GUITAR => FIVE_FRET_GUITAR,
-
-                PS3_WII_U_SIX_FRET_GUITAR or
-                PS4_SIX_FRET_GUITAR or
-                SANTROLLER_HID_SIX_FRET_GUITAR or
-                SANTROLLER_XINPUT_SIX_FRET_GUITAR or
-                XINPUT_SIX_FRET_GUITAR or
-                XBOX_ONE_SIX_FRET_GUITAR => SIX_FRET_GUITAR,
-
-                PS3_FOUR_LANE_DRUMKIT or
-                PS4_FOUR_LANE_DRUMKIT or
-                SANTROLLER_HID_FOUR_LANE_DRUMKIT or
-                SANTROLLER_XINPUT_FOUR_LANE_DRUMKIT or
-                WII_FOUR_LANE_DRUMKIT or
-                XINPUT_FOUR_LANE_DRUMKIT or
-                XBOX_ONE_FOUR_LANE_DRUMKIT => FOUR_LANE_DRUMKIT,
-
-                PS3_FIVE_LANE_DRUMKIT or
-                SANTROLLER_HID_FIVE_LANE_DRUMKIT or
-                SANTROLLER_XINPUT_FIVE_LANE_DRUMKIT or
-                XINPUT_FIVE_LANE_DRUMKIT => FIVE_LANE_DRUMKIT,
-
-                PS3_PRO_KEYBOARD or
-                WII_PRO_KEYBOARD or 
-                XINPUT_PRO_KEYBOARD => PRO_KEYBOARD,
-
-                _ => layout
-            };
-        }
     }
 }
