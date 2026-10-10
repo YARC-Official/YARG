@@ -1,11 +1,14 @@
-﻿/*using System;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using UnityEngine;
 using YARG.Core;
 using YARG.Core.Logging;
+using YARG.Helpers;
+using YARG.Input.Bindings;
+using YARG.Player;
 
 #nullable enable
 
@@ -27,20 +30,13 @@ namespace YARG.Input.Serialization
         [JsonConstructor]
         public SerializedBindingsV2() { }
 
-        public SerializedBindingsV2(SerializedBindings serialized)
-        {
-            foreach (var (id, bind) in serialized.Profiles)
-            {
-                Profiles[id] = new SerializedProfileBindingsV2(bind);
-            }
-        }
-
         public SerializedBindings Deserialize()
         {
             var deserialized = new SerializedBindings();
             foreach (var (id, bind) in Profiles)
             {
-                deserialized.Profiles[id] = bind.Deserialize();
+                var profileName = PlayerContainer.GetProfileById(id)?.Name ?? "Someone";
+                deserialized.Profiles[id] = bind.Deserialize(deserialized.ReusableBindingSets, profileName);
             }
 
             return deserialized;
@@ -58,25 +54,10 @@ namespace YARG.Input.Serialization
         [JsonConstructor]
         public SerializedProfileBindingsV2() { }
 
-        public SerializedProfileBindingsV2(SerializedProfileDeviceInfo serialized)
+
+        public SerializedPlayerDeviceInfo Deserialize(Dictionary<Guid, SerializedReusableBindingSet> reusableBindingSets, string profileName)
         {
-            Devices.AddRange(serialized.Controllers.Select((device) => new SerializedInputDeviceV2(device)));
-
-            if (serialized.Microphone is not null)
-                Microphone = new SerializedMicV2(serialized.Microphone);
-
-            foreach (var (gameMode, bindings) in serialized.ModeMappings)
-            {
-                ModeMappings[gameMode] = new SerializedBindingCollectionV2(this, bindings);
-            }
-
-            if (serialized.MenuMappings is not null)
-                MenuMappings = new SerializedBindingCollectionV2(this, serialized.MenuMappings);
-        }
-
-        public SerializedProfileDeviceInfo Deserialize()
-        {
-            var deserialized = new SerializedProfileDeviceInfo()
+            var deserialized = new SerializedPlayerDeviceInfo()
             {
                 Microphone = Microphone?.Deserialize(),
             };
@@ -85,11 +66,11 @@ namespace YARG.Input.Serialization
 
             foreach (var (gameMode, bindings) in ModeMappings)
             {
-                deserialized.ModeMappings[gameMode] = bindings.Deserialize(this);
+                deserialized.ModeMappings[gameMode] = bindings.Deserialize(this, gameMode, Devices, reusableBindingSets, profileName);
             }
 
             if (MenuMappings is not null)
-                deserialized.MenuMappings = MenuMappings.Deserialize(this);
+                deserialized.ModeMappings[GameMode.Menu] = MenuMappings.Deserialize(this, GameMode.Menu, Devices, reusableBindingSets, profileName);
 
             return deserialized;
         }
@@ -102,20 +83,47 @@ namespace YARG.Input.Serialization
         [JsonConstructor]
         public SerializedBindingCollectionV2() { }
 
-        public SerializedBindingCollectionV2(SerializedProfileBindingsV2 binds, SerializedBindingCollection serialized)
+        public SerializedModeMappingCollection Deserialize(
+            SerializedProfileBindingsV2 binds,
+            GameMode mode,
+            List<SerializedInputDeviceV2> controllers,
+            Dictionary<Guid, SerializedReusableBindingSet> reusableBindingSets,
+            string profileName
+        )
         {
-            foreach (var (id, serializedBinds) in serialized.Bindings)
-            {
-                Bindings[id] = new SerializedControlBindingV2(binds, serializedBinds);
-            }
-        }
+            var converted = new SerializedModeMappingCollection();
 
-        public SerializedBindingCollection Deserialize(SerializedProfileBindingsV2 binds)
-        {
-            var converted = new SerializedBindingCollection();
-            foreach (var (id, serializedBinds) in Bindings)
+            foreach (var controller in controllers)
             {
-                converted.Bindings[id] = serializedBinds.Deserialize(binds);
+                SerializedReusableBindingSet? reusableBindingSet = null;
+
+                foreach (var (actionId, controlBinding) in Bindings)
+                {
+                    foreach (var singleBinding in controlBinding.Controls)
+                    {
+                        if (singleBinding?.Device is not null && singleBinding.Device.Hash == controller.Hash)
+                        {
+                            reusableBindingSet ??= new SerializedReusableBindingSet(
+                                $"{profileName}'s {controller.Layout} Bindings",
+                                LayoutHelper.LayoutStringToControllerFamily(controller.Layout),
+                                mode
+                            )
+                            { Guid = Guid.NewGuid() };
+
+                            if (singleBinding?.Device is not null && singleBinding.Device.Hash == controller.Hash)
+                            {
+                                reusableBindingSet.Bindings[actionId] = controlBinding.Deserialize(binds);
+                            }
+                        }
+                    }
+                }
+
+                // We don't want to flood a first-time upgrader with a bazillion redundant copies of the same default binding set, or really any duplicates at all
+                if (reusableBindingSet is not null && BindingSetHelper.SerializedBindingSetIsUnique(reusableBindingSet, reusableBindingSets.Values.ToList()))
+                {
+                    converted.MappingsByControllerFamily[reusableBindingSet.Family] = reusableBindingSet.Guid!.Value;
+                    reusableBindingSets[reusableBindingSet.Guid!.Value] = reusableBindingSet;
+                }
             }
 
             return converted;
@@ -130,19 +138,9 @@ namespace YARG.Input.Serialization
         [JsonConstructor]
         public SerializedControlBindingV2() { }
 
-        public SerializedControlBindingV2(SerializedProfileBindingsV2 binds, SerializedControlBinding serialized)
+        public SerializedReusableControlBinding Deserialize(SerializedProfileBindingsV2 binds)
         {
-            foreach (var (name, value) in serialized.Parameters)
-            {
-                Parameters.Add(name, value);
-            }
-
-            Controls.AddRange(serialized.Controls.Select((bind) => new SerializedInputControlV2(binds, bind)));
-        }
-
-        public SerializedControlBinding Deserialize(SerializedProfileBindingsV2 binds)
-        {
-            var control = new SerializedControlBinding();
+            var control = new SerializedReusableControlBinding();
 
             foreach (var (name, value) in Parameters)
             {
@@ -178,20 +176,7 @@ namespace YARG.Input.Serialization
             ControlPath = string.Empty;
         }
 
-        public SerializedInputControlV2(SerializedProfileBindingsV2 binds, SerializedInputControl serialized)
-        {
-            int deviceIndex = binds.Devices.FindIndex(
-                (device) => device.Layout == serialized.Device.Layout && device.Hash == serialized.Device.Hash);
-            if (deviceIndex < 0)
-                Device = new(serialized.Device);
-            else
-                DeviceIndex = deviceIndex;
-
-            ControlPath = serialized.ControlPath;
-            Parameters = serialized.Parameters;
-        }
-
-        public SerializedInputControl? Deserialize(SerializedProfileBindingsV2 binds)
+        public SerializedSingleBinding? Deserialize(SerializedProfileBindingsV2 binds)
         {
             if (DeviceIndex >= 0)
             {
@@ -209,7 +194,7 @@ namespace YARG.Input.Serialization
                 return null;
             }
 
-            return new(Device.Deserialize(), ControlPath)
+            return new(ControlPath, LayoutHelper.LayoutStringToSourceLayout(Device.Layout))
             {
                 Parameters = Parameters,
             };
@@ -223,11 +208,6 @@ namespace YARG.Input.Serialization
 
     public static partial class BindingSerialization
     {
-        private static SerializedBindingsV2 SerializeBindingsV2(SerializedBindings serialized)
-        {
-            return new SerializedBindingsV2(serialized);
-        }
-
         private static SerializedBindings? DeserializeBindingsV2(JObject obj)
         {
             var serialized = obj.ToObject<SerializedBindingsV2>();
@@ -237,4 +217,4 @@ namespace YARG.Input.Serialization
             return serialized.Deserialize();
         }
     }
-}*/
+}
