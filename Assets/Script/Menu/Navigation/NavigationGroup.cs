@@ -11,6 +11,8 @@ namespace YARG.Menu.Navigation
     {
         private static readonly List<NavigationGroup> _navGroupsStack = new();
 
+        public static event Action CurrentChanged;
+
         public static NavigationGroup CurrentNavigationGroup => _navGroupsStack.Count <= 0
             ? null
             : _navGroupsStack[^1];
@@ -29,6 +31,8 @@ namespace YARG.Menu.Navigation
         private bool _selectFirst;
 
         public int Count => _navigatables.Count;
+
+        public IReadOnlyList<NavigatableBehaviour> Navigatables => _navigatables;
 
         public int? SelectedIndex { get; private set; } = null;
 
@@ -72,8 +76,13 @@ namespace YARG.Menu.Navigation
 
         private void OnDisable()
         {
+            var wasCurrent = CurrentNavigationGroup == this;
             // Remove this navigation group from the stack
             _navGroupsStack.Remove(this);
+            if (wasCurrent)
+            {
+                CurrentChanged?.Invoke();
+            }
         }
 
         private void _AddNavigatable(NavigatableBehaviour navigatable)
@@ -289,6 +298,7 @@ namespace YARG.Menu.Navigation
             {
                 _navGroupsStack.Remove(this);
                 _navGroupsStack.Add(this);
+                CurrentChanged?.Invoke();
             }
         }
 
@@ -301,6 +311,7 @@ namespace YARG.Menu.Navigation
 
             _navGroupsStack.RemoveAt(_navGroupsStack.Count - 1);
             ClearSelection();
+            CurrentChanged?.Invoke();
         }
     }
 }

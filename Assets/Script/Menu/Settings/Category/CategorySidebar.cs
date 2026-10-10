@@ -76,9 +76,10 @@ namespace YARG.Menu.Settings
             {
                 var info = categories[i];
                 var view = Instantiate(_itemPrefab, _container);
+                _navigationGroup.AddNavigatable(view);
+                SettingsItemVisual.Attach(view);
                 view.Initialize(info.Id, info.DisplayName, info.Icon);
                 view.SetLabelAlpha(IsCollapsed ? 0f : 1f, 0f);
-                _navigationGroup.AddNavigatable(view);
                 _views.Add(view);
             }
         }

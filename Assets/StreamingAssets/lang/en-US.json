@@ -1584,8 +1584,8 @@
                 "Default": "<i>Default ({0})</i>"
             },
             "EffectsMode": {
-                "Name": "Effects Mode",
-                "Description": "Selects the audio fx quality for reverb and time stretching.",
+                "Name": "High-quality audio effects",
+                "Description": "Higher-quality reverb and time stretching with increased CPU use.",
                 "Dropdown": {
                     "Performance": "Performance",
                     "Quality": "Quality"
