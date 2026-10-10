@@ -198,7 +198,7 @@ namespace YARG.Input.Serialization
                     // TODO: Remember to generalize control path layouts when deserializing old versions
                     //0 => DeserializeBindingsV0(jObject),
                     //1 => DeserializeBindingsV1(jObject),
-                    //2 => DeserializeBindingsV2(jObject),
+                    2 => DeserializeBindingsV2(jObject),
                     3 => DeserializeBindingsV3(jObject),
                     4 => DeserializeBindingsV4(jObject),
                     _ => throw new NotImplementedException($"Unhandled bindings version {version}!")

@@ -11,7 +11,8 @@ using YARG.Input.Bindings;
 #nullable enable
 
 namespace YARG.Input.Serialization
-{/*
+{
+    /*
     // Version 0: Initial version of the bindings format.
     // v0 instead of v1 for easier handling of the case where the version field isn't present,
     // which this version doesn't contain.
@@ -114,7 +115,7 @@ namespace YARG.Input.Serialization
             Parameters = Parameters,
         };
     }
-
+*/
     public class SerializedMicV0
     {
         public string DisplayName;
@@ -132,7 +133,7 @@ namespace YARG.Input.Serialization
 
         public SerializedMic Deserialize() => new(DisplayName);
     }
-
+    /*
     public static partial class BindingSerialization
     {
         private static SerializedBindingsV0 SerializeBindingsV0(SerializedBindings serialized)
