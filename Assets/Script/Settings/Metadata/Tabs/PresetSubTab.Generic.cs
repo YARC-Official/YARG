@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -699,35 +699,27 @@ namespace YARG.Settings.Metadata
             if (PreviewBuilder is not TrackPreviewBuilder tpb) return;
             if (SettingsMenu.Instance?.PreviewContainerUI == null) return;
 
-            // The preview container's parent is the Sidebar. The Header is a
-            // child of the Sidebar that contains Setting Name / Description text.
-            // We add our controls container as a child of the Sidebar, positioned
-            // just below the Header and above the Preview Container.
-            var sidebar = SettingsMenu.Instance.PreviewContainerUI.parent;
-            if (sidebar == null) return;
+            var container = SettingsMenu.Instance.PreviewContainerUI;
+            if (container == null)
+            {
+                return;
+            }
 
-            // Clear any previous controls (avoids duplicates on rebuild, and
-            // removes the previous tab's dropdown when switching preset types)
-            if (PreviewControlsContainer != null)
+            if (PreviewControlsContainer != null && PreviewControlsContainer.parent == container)
             {
                 PreviewControlsContainer.DestroyChildren();
             }
             else
             {
                 var go = new GameObject("PreviewControls");
-                go.transform.SetParent(sidebar, false);
+                go.transform.SetParent(container, false);
                 var rect = go.AddComponent<RectTransform>();
 
-                // The sidebar's Header (Setting Name/Description) is a fixed
-                // 125px strip at the top. Anchor this row to the header's
-                // bottom edge in pixels (not sidebar fractions, which land
-                // inside the header at some resolutions), overlaying the top
-                // of the preview area.
                 rect.anchorMin = new Vector2(0f, 1f);
                 rect.anchorMax = new Vector2(1f, 1f);
                 rect.pivot = new Vector2(0.5f, 1f);
-                rect.offsetMin = new Vector2(20f, -199f);
-                rect.offsetMax = new Vector2(-20f, -135f);
+                rect.offsetMin = new Vector2(20f, -74f);
+                rect.offsetMax = new Vector2(-20f, -10f);
 
                 var layout = go.AddComponent<HorizontalLayoutGroup>();
                 layout.spacing = 6;
@@ -917,29 +909,7 @@ namespace YARG.Settings.Metadata
                     () => RuntimeNavigatable.OpenDropdownList(dropdown), captionTargets.ToArray());
                 navGroup.AddNavigatable(nav);
 
-                // The authored dropdown background does not provide the desired
-                // focused fill, so add a pure-color rounded overlay behind it.
-                var overlay = new GameObject("DropdownFocusFill", typeof(RectTransform));
-                var overlayRect = overlay.GetComponent<RectTransform>();
-                overlayRect.SetParent(dropdown.transform, false);
-                overlayRect.anchorMin = Vector2.zero;
-                overlayRect.anchorMax = Vector2.one;
-                overlayRect.offsetMin = new Vector2(3f, 3f);
-                overlayRect.offsetMax = new Vector2(-3f, -3f);
 
-                var overlayImage = overlay.AddComponent<Image>();
-                overlayImage.sprite = SpriteHelper.GetRoundedRect(10);
-                overlayImage.type = Image.Type.Sliced;
-                overlayImage.color = new Color(0.1f, 0.1f, 0f, 1f); // #1a1a00
-                overlayImage.raycastTarget = false;
-
-                overlayRect.SetSiblingIndex(0);
-
-                overlay.SetActive(false);
-                nav.SelectionStateChanged += (_, selected, _) =>
-                {
-                    if (overlay != null) overlay.SetActive(selected);
-                };
             }
             else
             {

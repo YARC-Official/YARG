@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -10,6 +10,8 @@ namespace YARG.Menu.Navigation
     public sealed class NavigationGroup : MonoBehaviour
     {
         private static readonly List<NavigationGroup> _navGroupsStack = new();
+
+        public static event Action CurrentChanged;
 
         public static NavigationGroup CurrentNavigationGroup => _navGroupsStack.Count <= 0
             ? null
@@ -29,6 +31,8 @@ namespace YARG.Menu.Navigation
         private bool _selectFirst;
 
         public int Count => _navigatables.Count;
+
+        public IReadOnlyList<NavigatableBehaviour> Navigatables => _navigatables;
 
         public int? SelectedIndex { get; private set; } = null;
 
@@ -61,7 +65,7 @@ namespace YARG.Menu.Navigation
         {
             if (_defaultGroup)
             {
-                _navGroupsStack.Add(this);
+                PushNavGroupToStack();
             }
 
             if (_selectFirst && SelectedBehaviour == null)
@@ -72,10 +76,12 @@ namespace YARG.Menu.Navigation
 
         private void OnDisable()
         {
+            var wasCurrent = CurrentNavigationGroup == this;
             // Remove this navigation group from the stack
-            if (_navGroupsStack.Contains(this))
+            _navGroupsStack.Remove(this);
+            if (wasCurrent)
             {
-                _navGroupsStack.Remove(this);
+                CurrentChanged?.Invoke();
             }
         }
 
@@ -271,9 +277,16 @@ namespace YARG.Menu.Navigation
 
         public void ClearSelection()
         {
+            var hadSelection = SelectedIndex.HasValue;
+            SelectedIndex = null;
             foreach (var navigatable in _navigatables)
             {
                 navigatable.SetSelected(false, SelectionOrigin.Programmatically);
+            }
+
+            if (hadSelection)
+            {
+                SelectionChanged?.Invoke(null, SelectionOrigin.Programmatically);
             }
         }
 
@@ -289,7 +302,9 @@ namespace YARG.Menu.Navigation
         {
             if (_canBeCurrent && CurrentNavigationGroup != this)
             {
+                _navGroupsStack.Remove(this);
                 _navGroupsStack.Add(this);
+                CurrentChanged?.Invoke();
             }
         }
 
@@ -300,8 +315,9 @@ namespace YARG.Menu.Navigation
                 return;
             }
 
+            _navGroupsStack.RemoveAt(_navGroupsStack.Count - 1);
             ClearSelection();
-            _navGroupsStack.Remove(this);
+            CurrentChanged?.Invoke();
         }
     }
 }

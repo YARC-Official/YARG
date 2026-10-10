@@ -90,6 +90,12 @@ namespace YARG.Menu.Settings
 
         public override void Confirm()
         {
+            if (_navGroup.Count == 1)
+            {
+                _navGroup.Navigatables[0].Confirm();
+                return;
+            }
+
             var scheme = new NavigationScheme(new()
             {
                 NavigationScheme.Entry.NavigateSelect,

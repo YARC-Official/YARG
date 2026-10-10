@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using YARG.Helpers;
@@ -14,9 +14,9 @@ namespace YARG.Menu.Settings.AllSettings
         private struct SearchResult
         {
             public string Tab;
-            public int Index;
-            public bool IsAdvanced;
+            public string SearchName;
             public string LocalizedName;
+            public string Section;
         }
 
         private const float WAIT_TIME = 0.25f;
@@ -47,26 +47,20 @@ namespace YARG.Menu.Settings.AllSettings
                     continue;
                 }
 
-                bool showAdvanced = SettingsMenu.Instance.ShowAdvanced;
-                int navIndexAll = 0;
-                int navIndexBasic = 0;
+                var section = string.Empty;
                 foreach (var metadata in metadataTab.Settings)
                 {
                     if (!metadata.IsVisible)
                     {
                         continue;
                     }
+                    if (metadata is HeaderMetadata header)
+                    {
+                        section = header.HeaderName;
+                    }
                     var unlocalizedSearch = metadata.UnlocalizedSearchNames;
                     if (unlocalizedSearch is null)
                     {
-                        if (metadata is not HeaderMetadata)
-                        {
-                            navIndexAll++;
-                            if (!metadata.IsAdvanced)
-                            {
-                                navIndexBasic++;
-                            }
-                        }
                         continue;
                     }
 
@@ -75,32 +69,17 @@ namespace YARG.Menu.Settings.AllSettings
                         var localized = Localize.Key("Settings", unlocalized);
                         if (localized.ToLowerInvariant().Contains(query))
                         {
-                            bool isAdvanced = metadata.IsAdvanced;
-                            int index = (isAdvanced || showAdvanced)
-                                ? navIndexAll
-                                : navIndexBasic;
-
                             results.Add(new SearchResult
                             {
                                 Tab = tab.Name,
-                                Index = index,
-                                IsAdvanced = isAdvanced,
-                                LocalizedName = localized
+                                SearchName = unlocalized,
+                                LocalizedName = localized,
+                                Section = section
                             });
                             break;
                         }
                     }
 
-                    // Since the header can't be selected, we gotta skip that
-                    // for the navigation index.
-                    if (metadata is not HeaderMetadata)
-                    {
-                        navIndexAll++;
-                        if (!metadata.IsAdvanced)
-                        {
-                            navIndexBasic++;
-                        }
-                    }
                 }
 
                 if (results.Count >= MAX_RESULTS)
@@ -115,7 +94,8 @@ namespace YARG.Menu.Settings.AllSettings
             foreach (var result in results)
             {
                 var resultObject = Instantiate(_resultPrefab, container);
-                resultObject.Initialize(result.LocalizedName, result.Tab, result.Index, result.IsAdvanced);
+                resultObject.Initialize(localizedName: result.LocalizedName, tab: result.Tab,
+                    searchName: result.SearchName, section: result.Section);
                 navGroup.AddNavigatable(resultObject);
             }
         }

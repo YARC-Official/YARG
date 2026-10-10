@@ -1,5 +1,6 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -13,7 +14,6 @@ namespace YARG.Settings.Metadata
     public class MetadataTab : Tab, IEnumerable<AbstractMetadata>
     {
         // Prefabs needed for this tab type
-        private static GameObject _headerPrefab;
         private static GameObject _buttonPrefab;
         private static GameObject _textPrefab;
 
@@ -21,6 +21,40 @@ namespace YARG.Settings.Metadata
         private readonly List<AbstractMetadata> _settings = new();
 
         public IReadOnlyList<AbstractMetadata> Settings => _settings;
+        public override IReadOnlyList<HeaderMetadata> Sections =>
+            _settings.OfType<HeaderMetadata>().Where(header => header.IsVisible).ToArray();
+
+        public override bool HasPreview
+        {
+            get
+            {
+                if (!base.HasPreview)
+                {
+                    return false;
+                }
+
+                var currentSection = SettingsMenu.Instance.CurrentSection;
+                foreach (var metadata in _settings)
+                {
+                    if (metadata is not HeaderMetadata section)
+                    {
+                        continue;
+                    }
+
+                    if (!section.IsVisible || !section.ShowPreview)
+                    {
+                        continue;
+                    }
+
+                    if (section.HeaderName == currentSection)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        }
 
         public MetadataTab(string name, string icon = "Generic", IPreviewBuilder previewBuilder = null)
             : base(name, icon, previewBuilder)
@@ -31,37 +65,19 @@ namespace YARG.Settings.Metadata
         {
             _settingVisuals.Clear();
 
-            var showAdvanced = SettingsMenu.Instance.ShowAdvanced;
+            var currentSection = SettingsMenu.Instance.CurrentSection;
             var settingIndex = 0;
 
             // Once we've found the tab, add the settings
-            foreach (var settingMetadata in _settings)
+            foreach (var (settingMetadata, section) in VisibleSettings())
             {
-                if (!settingMetadata.IsVisible || (settingMetadata.IsAdvanced && !showAdvanced))
+                if (section != currentSection)
                 {
                     continue;
                 }
 
                 switch (settingMetadata)
                 {
-                    case HeaderMetadata header:
-                    {
-                        if (_headerPrefab == null)
-                        {
-                            _headerPrefab = Addressables
-                                .LoadAssetAsync<GameObject>("SettingTab/Header")
-                                .WaitForCompletion();
-                        }
-                        // Spawn in the header
-                        var go = Object.Instantiate(_headerPrefab, container);
-
-                        // Set header text
-                        go.GetComponentInChildren<TextMeshProUGUI>().text =
-                            Localize.Key("Settings.Header", header.HeaderName);
-
-                        settingIndex = 0;
-                        break;
-                    }
                     case ButtonRowMetadata buttonRow:
                     {
                         if (_buttonPrefab == null)
@@ -100,10 +116,9 @@ namespace YARG.Settings.Metadata
                     {
                         var setting = SettingsManager.GetSettingByName(field.FieldName);
 
-                        var visual = SpawnSettingVisual(setting, container);
+                        var visual = SpawnSettingVisual(setting: setting, container: container);
                         visual.AssignSetting(field.FieldName, field.HasDescription);
                         visual.AssignIndex(settingIndex);
-                        visual.ShowAdvancedMarker(field.IsAdvanced);
                         visual.SetEditable(setting.IsEditable);
 
                         _settingVisuals.Add(field.FieldName, visual);
@@ -114,6 +129,52 @@ namespace YARG.Settings.Metadata
                     }
                 }
             }
+        }
+
+        private IEnumerable<(AbstractMetadata Metadata, string Section)> VisibleSettings()
+        {
+            var section = string.Empty;
+            foreach (var metadata in _settings)
+            {
+                if (metadata is HeaderMetadata header)
+                {
+                    section = header.HeaderName;
+                    continue;
+                }
+
+                if (metadata.IsVisible)
+                {
+                    yield return (metadata, section);
+                }
+            }
+        }
+
+        public (string Section, int Index) GetSettingPosition(string searchName)
+        {
+            var currentSection = string.Empty;
+            var index = 0;
+            foreach (var (metadata, section) in VisibleSettings())
+            {
+                if (section != currentSection)
+                {
+                    currentSection = section;
+                    index = 0;
+                }
+
+                if (metadata is not FieldMetadata && metadata is not ButtonRowMetadata)
+                {
+                    continue;
+                }
+
+                if (metadata.UnlocalizedSearchNames.Contains(searchName))
+                {
+                    return (section, index);
+                }
+
+                index++;
+            }
+
+            throw new System.ArgumentException($"Setting '{searchName}' is not visible in tab '{Name}'.", nameof(searchName));
         }
 
         public override void OnSettingChanged()

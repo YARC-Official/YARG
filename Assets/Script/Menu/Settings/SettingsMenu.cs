@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Cysharp.Threading.Tasks;
-using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -23,7 +23,7 @@ namespace YARG.Menu.Settings
     public class SettingsMenu : MonoSingleton<SettingsMenu>
     {
         [SerializeField]
-        private HeaderTabs _headerTabs;
+        private CategorySidebar _categorySidebar;
         [SerializeField]
         private Transform _settingsContainer;
         [SerializeField]
@@ -33,11 +33,19 @@ namespace YARG.Menu.Settings
 
         [Space]
         [SerializeField]
-        private GameObject _searchBarContainer;
+        private Transform _sectionsContainer;
+        [SerializeField]
+        private NavigationGroup _sectionsNavGroup;
+        [SerializeField]
+        private SettingsSectionView _sectionPrefab;
+        [SerializeField]
+        private GameObject _sectionsPanel;
+        [SerializeField]
+        private GameObject _previewPanel;
+
+        [Space]
         [SerializeField]
         private TMP_InputField _searchBar;
-        [SerializeField]
-        private TextMeshProUGUI _searchHeaderText;
 
         [Space]
         [SerializeField]
@@ -69,24 +77,26 @@ namespace YARG.Menu.Settings
         private bool _ready;
         private bool _tabsInitialized;
         private string _pendingTabName;
+        private int _previewVersion;
+        private readonly List<SettingsSectionView> _sectionViews = new();
 
-        private bool _showAdvanced;
+        public string CurrentSection { get; private set; } = string.Empty;
+        private bool IsSearching => SearchQuery.Length > 0;
 
-        public bool ShowAdvanced
+        public bool IsNavigationLevelActive(NavigationGroup group)
         {
-            get => SettingsManager.Settings?.ShowAdvancedSettings?.Value ?? _showAdvanced;
-            private set
+            var current = NavigationGroup.CurrentNavigationGroup;
+            if (current == _settingsNavGroup || current?.transform.IsChildOf(_settingsContainer) == true)
             {
-                var setting = SettingsManager.Settings?.ShowAdvancedSettings;
-                if (setting != null)
-                {
-                    setting.SetValueWithoutNotify(value);
-                }
-                else
-                {
-                    _showAdvanced = value;
-                }
+                return true;
             }
+
+            if (current == _sectionsNavGroup)
+            {
+                return group == _sectionsNavGroup || group == _categorySidebar.NavigationGroup;
+            }
+
+            return current == _categorySidebar.NavigationGroup && group == current;
         }
 
         public static void OpenOnNextMenuLoad()
@@ -128,36 +138,7 @@ namespace YARG.Menu.Settings
 
         private void Start()
         {
-            // Long setting names (e.g. preset activation-note colors) can exceed
-            // the sidebar width; shrink-to-fit on one line instead of wrapping,
-            // with an ellipsis as the last resort below the minimum size.
-            // TODO: bake these five properties into the SettingsMenu prefab's
-            // Setting Name TMP text and delete this block. They're set in code
-            // only because prefab edits happen in the Unity runtime tree, not here.
-            _settingName.textWrappingMode = TextWrappingModes.NoWrap;
-            _settingName.overflowMode = TextOverflowModes.Ellipsis;
-            _settingName.fontSizeMax = _settingName.fontSize;
-            _settingName.fontSizeMin = 18f;
-            _settingName.enableAutoSizing = true;
-
-            var tabs = new List<HeaderTabs.TabInfo>();
-
-            // Add the main tabs
-            foreach (var tab in SettingsManager.DisplayedSettingsTabs)
-            {
-                // Load the tab sprite
-                var sprite = Addressables.LoadAssetAsync<Sprite>($"TabIcons[{tab.Icon}]").WaitForCompletion();
-
-                tabs.Add(new HeaderTabs.TabInfo
-                {
-                    Icon = sprite,
-                    Id = tab.Name,
-                    DisplayName = Localize.Key("Settings.Tab", tab.Name)
-                });
-            }
-
-            _headerTabs.Tabs = tabs;
-            _tabsInitialized = true;
+            EnsureTabsInitialized();
 
             if (!string.IsNullOrEmpty(_pendingTabName))
             {
@@ -167,6 +148,34 @@ namespace YARG.Menu.Settings
             }
         }
 
+        private void EnsureTabsInitialized()
+        {
+            if (_tabsInitialized)
+            {
+                return;
+            }
+
+            var categories = new List<CategorySidebar.CategoryInfo>();
+
+            // Add the main tabs
+            foreach (var tab in SettingsManager.AllSettingsTabs.Where(tab => tab is not AllSettingsTab))
+            {
+                // Load the tab sprite
+                var sprite = Addressables.LoadAssetAsync<Sprite>($"TabIcons[{tab.Icon}]").WaitForCompletion();
+
+                categories.Add(new CategorySidebar.CategoryInfo
+                {
+                    Icon = sprite,
+                    Id = tab.Name,
+                    DisplayName = Localize.Key("Settings.Tab", tab.Name)
+                });
+            }
+
+            _categorySidebar.SetCategories(categories);
+
+            _tabsInitialized = true;
+        }
+
         private void OnEnable()
         {
             if (!_ready)
@@ -174,12 +183,13 @@ namespace YARG.Menu.Settings
                 return;
             }
 
-            _showAdvanced = ShowAdvanced;
+            EnsureTabsInitialized();
 
-            _headerTabs.RefreshTabs();
-            _headerTabs.TabChanged += OnTabChanged;
+            _categorySidebar.CategoryChanged += OnTabChanged;
+            _categorySidebar.SetCollapsed(collapsed: false, animate: false);
 
             _settingsNavGroup.SelectionChanged += OnSelectionChanged;
+            _sectionsNavGroup.SelectionChanged += OnSectionChanged;
 
             // Set navigation scheme
             PushNavigationScheme();
@@ -188,7 +198,9 @@ namespace YARG.Menu.Settings
             {
                 var tabId = !string.IsNullOrEmpty(_pendingTabName)
                     ? _pendingTabName
-                    : _headerTabs.SelectedTabId;
+                    : _categorySidebar.SelectedCategoryId;
+
+                _pendingTabName = null;
 
                 if (!string.IsNullOrEmpty(tabId))
                 {
@@ -196,11 +208,11 @@ namespace YARG.Menu.Settings
                 }
                 else
                 {
-                    CurrentTab = SettingsManager.DisplayedSettingsTabs[0];
-                    _searchBarContainer.SetActive(false);
-                    Refresh();
+                    SelectTab(SettingsManager.DisplayedSettingsTabs[0]);
                 }
             }
+
+            FocusCategories(animate: false);
         }
 
         private void OnTabChanged(string tab)
@@ -210,16 +222,187 @@ namespace YARG.Menu.Settings
 
         private void SelectTab(Tab tab)
         {
+            if (tab == null || CurrentTab == tab)
+            {
+                return;
+            }
+
             CurrentTab?.OnTabExit();
-
+            _searchBar.SetTextWithoutNotify(string.Empty);
             CurrentTab = tab;
+            BuildSections();
             Refresh();
+            CurrentTab.OnTabEnter();
+        }
 
-            CurrentTab?.OnTabEnter();
+        private void BuildSections()
+        {
+            _sectionViews.Clear();
+            _sectionsNavGroup.ClearNavigatables();
+            foreach (Transform child in _sectionsContainer)
+            {
+                child.gameObject.SetActive(false);
+                Destroy(child.gameObject);
+            }
+            var sections = CurrentTab.Sections;
+            _sectionsPanel.SetActive(sections.Count > 0);
+            CurrentSection = string.Empty;
+            foreach (var section in sections)
+            {
+                var view = Instantiate(_sectionPrefab, _sectionsContainer);
+                view.Initialize(section.HeaderName);
+                _sectionsNavGroup.AddNavigatable(view);
+                _sectionViews.Add(view);
+            }
 
-            _searchBarContainer.SetActive(CurrentTab?.ShowSearchBar ?? false);
-            _searchBar.text = string.Empty;
-            OnSearchBarChanged();
+            Canvas.ForceUpdateCanvases();
+            var scroll = _sectionsNavGroup.GetComponent<ScrollRect>();
+            scroll.StopMovement();
+            scroll.verticalNormalizedPosition = 1f;
+
+            if (sections.Count > 0)
+            {
+                CurrentSection = sections[0].HeaderName;
+                _sectionsNavGroup.SelectFirst();
+            }
+        }
+
+        private void UpdateSectionMarkers()
+        {
+            for (var i = 0; i < _sectionViews.Count; i++)
+            {
+                var isCurrent = _sectionViews[i].Section == CurrentSection;
+                _sectionViews[i].GetComponent<SettingsItemVisual>().ShowCurrent(isCurrent);
+            }
+        }
+
+        private void OnSectionChanged(NavigatableBehaviour selected, SelectionOrigin origin)
+        {
+            if (selected is SettingsSectionView view)
+            {
+                if (origin == SelectionOrigin.Mouse)
+                {
+                    FocusNavigation(_sectionsNavGroup);
+                }
+
+                if (view.Section == CurrentSection)
+                {
+                    return;
+                }
+
+                CurrentSection = view.Section;
+                _searchBar.SetTextWithoutNotify(string.Empty);
+                Refresh();
+                UpdateSectionMarkers();
+            }
+        }
+
+        private void FocusNavigation(NavigationGroup target, bool animate = true)
+        {
+            _categorySidebar.SetCollapsed(collapsed: target != _categorySidebar.NavigationGroup, animate: animate);
+
+            var current = NavigationGroup.CurrentNavigationGroup;
+            while (current != target && current != null && current.transform.IsChildOf(transform) &&
+                !target.transform.IsChildOf(current.transform))
+            {
+                current.SelectLastNavGroup();
+                current = NavigationGroup.CurrentNavigationGroup;
+            }
+
+            target.PushNavGroupToStack();
+            UpdateSectionMarkers();
+        }
+
+        public void EnterSettings()
+        {
+            FocusNavigation(_settingsNavGroup);
+            _settingsNavGroup.SelectFirst(SelectionOrigin.Navigation);
+        }
+
+        public void FocusSections()
+        {
+            if (IsSearching || _sectionViews.Count == 0)
+            {
+                EnterSettings();
+                return;
+            }
+
+            FocusNavigation(_sectionsNavGroup);
+            var index = _sectionViews.FindIndex(view => view.Section == CurrentSection);
+            _sectionsNavGroup.SelectAt(index: index, selectionOrigin: SelectionOrigin.Navigation);
+        }
+
+        public void FocusCategories(bool animate = true)
+        {
+            FocusNavigation(target: _categorySidebar.NavigationGroup, animate: animate);
+            _categorySidebar.SelectCategory(CurrentTab.Name);
+        }
+
+        private void Back()
+        {
+            if (IsSearching)
+            {
+                _searchBar.SetTextWithoutNotify(string.Empty);
+                Refresh();
+                FocusSections();
+            }
+            else if (NavigationGroup.CurrentNavigationGroup == _settingsNavGroup)
+            {
+                if (_sectionsPanel.activeSelf)
+                {
+                    FocusSections();
+                }
+                else
+                {
+                    FocusCategories();
+                }
+            }
+            else if (NavigationGroup.CurrentNavigationGroup == _sectionsNavGroup)
+            {
+                FocusCategories();
+            }
+            else
+            {
+                gameObject.SetActive(false);
+            }
+        }
+
+        public void OnCategoryClicked(string categoryId)
+        {
+            if (CurrentTab?.Name != categoryId)
+            {
+                SelectTabByName(categoryId);
+            }
+
+            FocusCategories();
+        }
+
+        public void OnSettingClicked(NavigatableBehaviour selected)
+        {
+            FocusNavigation(selected.NavigationGroup);
+            selected.SetSelected(true, SelectionOrigin.Mouse);
+        }
+
+        public void OnSectionClicked(string section)
+        {
+            if (CurrentSection != section)
+            {
+                CurrentSection = section;
+                _searchBar.SetTextWithoutNotify(string.Empty);
+                Refresh();
+            }
+
+            FocusSections();
+        }
+
+        public void OnCategoryConfirmed(string categoryId)
+        {
+            if (CurrentTab?.Name != categoryId)
+            {
+                SelectTabByName(categoryId);
+            }
+
+            FocusSections();
         }
 
         public void SelectTabByName(string name)
@@ -230,46 +413,48 @@ namespace YARG.Menu.Settings
                 return;
             }
 
-            _headerTabs.SelectTabById(name);
+            _categorySidebar.SelectCategory(name);
 
-            // If the header tab does not exist, then force update to that tab
-            if (_headerTabs.SelectedTabId is null)
+            if (CurrentTab?.Name != name)
             {
                 SelectTab(SettingsManager.GetTabByName(name));
-                return;
-            }
-
-            // Selecting the already-selected header tab does not fire TabChanged.
-            // This matters when reopening settings after CurrentTab was cleared on close.
-            if (CurrentTab?.Name != _headerTabs.SelectedTabId)
-            {
-                SelectTab(SettingsManager.GetTabByName(_headerTabs.SelectedTabId));
             }
         }
 
-        public void SelectSettingByIndex(int index)
+        public void SelectSetting(string tabName, string searchName)
         {
+            SelectTabByName(tabName);
+            if (IsSearching)
+            {
+                _searchBar.SetTextWithoutNotify(string.Empty);
+                Refresh();
+            }
+            var tab = (MetadataTab) CurrentTab;
+            // Since the header can't be selected, we gotta skip that
+            // for the navigation index.
+            var position = tab.GetSettingPosition(searchName);
+            if (position.Section.Length > 0)
+            {
+                OnSectionClicked(position.Section);
+            }
+            EnterSettings();
             // Force it to be the navigation selection type so the scroll view properly updates
-            _settingsNavGroup.SelectAt(index, SelectionOrigin.Navigation);
+            _settingsNavGroup.SelectAt(index: position.Index, selectionOrigin: SelectionOrigin.Navigation);
         }
 
         private void OnSelectionChanged(NavigatableBehaviour selected, SelectionOrigin selectionOrigin)
         {
-            if (selected == null || CurrentTab == null)
+            if (selected == null)
             {
-                _settingName.text = string.Empty;
-                _settingDescription.text = string.Empty;
                 return;
             }
 
-            // Most setting rows carry a BaseSettingNavigatable, but some (e.g. the
-            // preset color rows, whose confirm opens a color picker instead of the
-            // stock edit scheme) swap in a RuntimeNavigatable. Either way the
-            // BaseSettingVisual lives on the same GameObject, so fall back to it.
-            var settingNav = selected.GetComponent<BaseSettingNavigatable>();
-            var settingVisual = settingNav != null
-                ? settingNav.BaseSettingVisual
-                : selected.GetComponent<BaseSettingVisual>();
+            if (selectionOrigin == SelectionOrigin.Mouse)
+            {
+                OnSettingClicked(selected);
+            }
+
+            var settingVisual = selected.GetComponent<BaseSettingVisual>();
 
             // If we're not selecting a setting (for example, buttons or headers) skip
             if (settingVisual == null)
@@ -300,27 +485,46 @@ namespace YARG.Menu.Settings
         public void RefreshPreview(bool waitForResolution = false)
         {
             // Prevent errors if this gets called when the settings aren't opened
-            if (!_ready || !gameObject.activeSelf) return;
+            if (!_ready || !gameObject.activeSelf)
+            {
+                return;
+            }
 
-            UpdatePreview(CurrentTab, waitForResolution).Forget();
+            UpdatePreview(tabInfo: CurrentTab, waitForResolution: waitForResolution,
+                version: ++_previewVersion).Forget();
         }
 
         public void Refresh()
         {
+            if (!isActiveAndEnabled)
+            {
+                return;
+            }
+
+            UpdateLayout();
             UpdateSettings(true);
             RefreshPreview();
         }
 
         public void RefreshAndKeepPosition()
         {
-            // Everything gets recreated, so we must cache the index before hand
-            int? beforeIndex = _settingsNavGroup.SelectedIndex;
+            if (!isActiveAndEnabled)
+            {
+                return;
+            }
 
+            // Everything gets recreated, so we must cache the index before hand
+            var beforeIndex = _settingsNavGroup.SelectedIndex;
+
+            UpdateLayout();
             UpdateSettings(false);
             RefreshPreview();
 
             // Restore selection
-            _settingsNavGroup.SelectAt(beforeIndex);
+            if (_settingsNavGroup.Count > 0)
+            {
+                _settingsNavGroup.SelectAt(Math.Min(beforeIndex ?? 0, _settingsNavGroup.Count - 1));
+            }
         }
 
         /// <summary>
@@ -330,43 +534,94 @@ namespace YARG.Menu.Settings
         /// </summary>
         public void RefreshSettingsKeepPosition()
         {
-            int? beforeIndex = _settingsNavGroup.SelectedIndex;
+            if (!isActiveAndEnabled)
+            {
+                return;
+            }
+
+            var beforeIndex = _settingsNavGroup.SelectedIndex;
 
             UpdateSettings(false);
 
-            _settingsNavGroup.SelectAt(beforeIndex);
+            if (_settingsNavGroup.Count > 0)
+            {
+                _settingsNavGroup.SelectAt(Math.Min(beforeIndex ?? 0, _settingsNavGroup.Count - 1));
+            }
         }
 
         private void UpdateSettings(bool resetScroll)
         {
-            _showAdvanced = ShowAdvanced;
+            _settingName.text = IsSearching
+                ? Localize.Key("Menu.Settings.SearchHeader.Results")
+                : CurrentSection.Length > 0
+                    ? Localize.Key("Settings.Header", CurrentSection)
+                    : Localize.Key("Settings.Tab", CurrentTab.Name);
+            _settingDescription.text = string.Empty;
+
+            UpdateSectionMarkers();
 
             _settingsNavGroup.ClearNavigatables();
 
             // Destroy all previous settings
-            _settingsContainer.DestroyChildren();
+            foreach (Transform child in _settingsContainer)
+            {
+                child.gameObject.SetActive(false);
+                Destroy(child.gameObject);
+            }
 
             // Build the settings tab
-            CurrentTab?.BuildSettingTab(_settingsContainer, _settingsNavGroup);
+            var tab = IsSearching ? SettingsManager.GetTabByName("AllSettings") : CurrentTab;
+            tab?.BuildSettingTab(_settingsContainer, _settingsNavGroup);
+            var visuals = _settingsContainer.GetComponentsInChildren<BaseSettingVisual>();
+            _settingName.transform.parent.gameObject.SetActive(visuals.Length > 0);
+            Canvas.ForceUpdateCanvases();
 
             if (resetScroll)
             {
-                // Make the settings nav group the main one
-                _settingsNavGroup.SelectFirst();
-
+                _scrollRect.StopMovement();
                 _scrollRect.verticalNormalizedPosition = 1f;
+                _settingsNavGroup.SelectFirst();
             }
         }
 
-        private void SmoothScrollToTop()
+        private void UpdateLayout()
         {
-            _scrollRect.DOKill();
-            _scrollRect
-                .DOVerticalNormalizedPos(1f, 0.4f)
-                .SetEase(Ease.OutCubic);
+            var hasPreview = !IsSearching && CurrentTab != null && CurrentTab.HasPreview;
+            _previewPanel.SetActive(true);
+            _previewPanel.GetComponent<LayoutElement>().preferredWidth = CurrentTab is PresetsTab
+                ? 800f
+                : hasPreview
+                    ? 640f
+                    : 440f;
+            _previewContainerUI.gameObject.SetActive(hasPreview);
+
+            var header = (RectTransform) _previewPanel.transform.Find("Header");
+            if (header != null)
+            {
+                if (hasPreview)
+                {
+                    header.anchorMin = new Vector2(0f, 1f);
+                    header.anchorMax = Vector2.one;
+                    header.offsetMin = new Vector2(0f, -125f);
+                    header.offsetMax = Vector2.zero;
+                }
+                else
+                {
+                    header.anchorMin = Vector2.zero;
+                    header.anchorMax = Vector2.one;
+                    header.offsetMin = Vector2.zero;
+                    header.offsetMax = Vector2.zero;
+                }
+            }
+
+            _sectionsPanel.SetActive(!IsSearching && CurrentTab?.Sections.Count > 0);
+            if (IsSearching)
+            {
+                FocusNavigation(_settingsNavGroup);
+            }
         }
 
-        private async UniTask UpdatePreview(Tab tabInfo, bool waitForResolution)
+        private async UniTask UpdatePreview(Tab tabInfo, bool waitForResolution, int version)
         {
             // When Unity changes resolution, it takes two frames to apply it correctly.
             if (waitForResolution)
@@ -375,14 +630,25 @@ namespace YARG.Menu.Settings
                 await UniTask.WaitForEndOfFrame(this);
             }
 
+            if (version != _previewVersion)
+            {
+                return;
+            }
+
             DestroyPreview();
 
-            if (CurrentTab == null)
+            if (IsSearching || tabInfo == null || !tabInfo.HasPreview)
+            {
                 return;
+            }
 
             // Spawn world preview
             _previewContainerWorld.gameObject.SetActive(true);
             await tabInfo.BuildPreviewWorld(_previewContainerWorld);
+            if (version != _previewVersion)
+            {
+                return;
+            }
 
             // Set render texture(s)
             CameraPreviewTexture.SetAllPreviews();
@@ -401,7 +667,10 @@ namespace YARG.Menu.Settings
 
         public void OnSettingChanged()
         {
-            if (!_ready || !gameObject.activeSelf) return;
+            if (!_ready || !gameObject.activeSelf)
+            {
+                return;
+            }
 
             CurrentTab?.OnSettingChanged();
             SettingChanged?.Invoke();
@@ -409,18 +678,8 @@ namespace YARG.Menu.Settings
 
         public void OnSearchBarChanged()
         {
-            // Update header
-            if (string.IsNullOrEmpty(_searchBar.text))
-            {
-                _searchHeaderText.text = Localize.Key("Menu.Settings.SearchHeader.AllCategories");
-            }
-            else
-            {
-                _searchHeaderText.text = Localize.Key("Menu.Settings.SearchHeader.Results");
-            }
-
             // Refresh on search
-            if (CurrentTab?.ShowSearchBar ?? false)
+            if (CurrentTab != null)
             {
                 Refresh();
             }
@@ -428,47 +687,15 @@ namespace YARG.Menu.Settings
 
         private void PushNavigationScheme()
         {
-            string advancedKey = ShowAdvanced
-                ? "Menu.Settings.HideAdvanced"
-                : "Menu.Settings.ShowAdvanced";
-
-            _ = Navigator.Instance.PushScheme(new NavigationScheme(new()
+            var entries = new List<NavigationScheme.Entry>
             {
                 NavigationScheme.Entry.NavigateSelect,
-                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", () =>
-                {
-                    gameObject.SetActive(false);
-                }, hide: true),
+                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back),
                 NavigationScheme.Entry.NavigateUp,
                 NavigationScheme.Entry.NavigateDown,
-                _headerTabs.NavigateNextTab,
-                _headerTabs.NavigatePreviousTab,
-                new NavigationScheme.Entry(MenuAction.Blue, advancedKey, ToggleAdvanced)
-            }, true));
-        }
+            };
 
-        public void EnableAdvanced(bool isEnabled)
-        {
-            if (isEnabled == ShowAdvanced)
-            {
-                return;
-            }
-
-            ShowAdvanced = isEnabled;
-        }
-
-        public void RefreshNavigationScheme()
-        {
-            Navigator.Instance.PopScheme();
-            PushNavigationScheme();
-        }
-
-        private void ToggleAdvanced()
-        {
-            EnableAdvanced(!ShowAdvanced);
-            RefreshNavigationScheme();
-            RefreshAndKeepPosition();
-            SmoothScrollToTop();
+            _ = Navigator.Instance.PushScheme(new NavigationScheme(entries, true));
         }
 
         private void OnDisable()
@@ -478,15 +705,17 @@ namespace YARG.Menu.Settings
                 return;
             }
 
-            // Set the current tab back to null to avoid calling OnTabExit twice
+            _previewVersion++;
             CurrentTab?.OnTabExit();
             CurrentTab = null;
 
             Navigator.Instance.PopScheme();
             DestroyPreview();
-            _headerTabs.TabChanged -= OnTabChanged;
+
+            _categorySidebar.CategoryChanged -= OnTabChanged;
 
             _settingsNavGroup.SelectionChanged -= OnSelectionChanged;
+            _sectionsNavGroup.SelectionChanged -= OnSectionChanged;
 
             // Save on close
             SettingsManager.SaveSettings();
@@ -500,6 +729,11 @@ namespace YARG.Menu.Settings
 
             // The settings menu overlays the current menu, so avoid toggling an already-active menu.
             MenuManager.Instance.ReactivateCurrentMenu(false);
+        }
+
+        private void OnApplicationQuit()
+        {
+            gameObject.SetActive(false);
         }
 
         protected override void SingletonDestroy()

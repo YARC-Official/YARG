@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+using System;
+using UnityEngine;
 using YARG.Menu.Navigation;
 using YARG.Menu.Settings.Visuals;
 
@@ -10,6 +11,8 @@ namespace YARG.Menu.Settings
         private GameObject _activeBackground;
 
         public BaseSettingVisual BaseSettingVisual { get; private set; }
+
+        public event Action<bool> EditingChanged;
 
         private bool _focused;
         internal bool IsFocused => _focused;
@@ -28,17 +31,25 @@ namespace YARG.Menu.Settings
                 return;
             }
 
+            if (BaseSettingVisual is ToggleSettingVisual toggle)
+            {
+                toggle.ToggleValue();
+                return;
+            }
+
             var scheme = BaseSettingVisual.GetNavigationScheme();
             scheme.PopCallback = () =>
             {
                 _focused = false;
                 _activeBackground.SetActive(false);
+                EditingChanged?.Invoke(false);
             };
 
             _ = Navigator.Instance.PushScheme(scheme);
 
             _focused = true;
             _activeBackground.SetActive(true);
+            EditingChanged?.Invoke(true);
         }
 
         protected override void OnSelectionChanged(bool selected)

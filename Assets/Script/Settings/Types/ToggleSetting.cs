@@ -1,8 +1,15 @@
+// This abstraction allows non-boolean settings to render as toggle controls in the UI.
+
 using System;
 
 namespace YARG.Settings.Types
 {
-    public class ToggleSetting : AbstractSetting<bool>
+    public interface IToggleSetting : ISettingType
+    {
+        bool Value { get; set; }
+    }
+
+    public class ToggleSetting : AbstractSetting<bool>, IToggleSetting
     {
         public override string AddressableName => "Setting/Toggle";
 
