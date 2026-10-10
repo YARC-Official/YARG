@@ -57,8 +57,8 @@ namespace YARG.Input.Bindings
         {
             Name = serialized.Name;
             Guid = serialized.Guid ?? Guid.NewGuid();
-            Mode = serialized.GameMode;
-            ControllerFamily = LayoutHelper.LayoutStringToControllerFamily(serialized.BaseLayout);
+            Mode = serialized.Mode;
+            ControllerFamily = serialized.Family;
 
             var template = ReusableBindingSetTemplates.GetTemplate(Mode);
 
@@ -104,12 +104,9 @@ namespace YARG.Input.Bindings
                 serializedBindings[key] = binding.Serialize();
             }
 
-            return new SerializedReusableBindingSet(Name, LayoutHelper.ControllerFamilyToLayoutString(ControllerFamily)) {
+            return new SerializedReusableBindingSet(Name, ControllerFamily, Mode) {
                 Guid = export ? null : Guid, // When exporting, don't include a GUID; we'll make a fresh one on import
                 Version = export ? BindingSerialization.CURRENT_VERSION : null, // But DO include a version number, since we'll deserialize this in a vacuum
-                GameMode = Mode,
-                BaseLayout = LayoutHelper.ControllerFamilyToLayoutString(ControllerFamily),
-
                 Bindings = serializedBindings
             };
         }
