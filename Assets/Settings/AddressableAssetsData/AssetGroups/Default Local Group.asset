@@ -35,6 +35,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 0ad42144338a81adcbc40b7ee05f41a2
+    m_Address: Setting/Int/Row
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 12e5f769dd812a2418ee2365934e5343
     m_Address: NoInstrumentIcons
     m_ReadOnly: 0
@@ -75,6 +80,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 373155af9f9b915e284b635423c7d96a
+    m_Address: Setting/IPv4/Row
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 38b7af833df3b304aae452f8475324f7
     m_Address: SettingTab/SearchResultPopulator
     m_ReadOnly: 0
@@ -92,6 +102,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 47970bda16e44c543b7f1b72e04335f7
     m_Address: MusicLibraryUpIcon
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4ad19f08b3e3c1362ac9d21b49544f3a
+    m_Address: Setting/DMXChannels/Row
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -117,6 +132,16 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 60f34417203db20409cbad721139466b
     m_Address: VocalNeedleTexture/6
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6201ae251c40c3e168d101cfdf9e9746
+    m_Address: Setting/Dropdown/Row
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 621652453d4946a01a79dd00ef9cafaf
+    m_Address: Setting/Color/Row
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -165,6 +190,16 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7c0da1f1b4656dffea4447fc6adefa51
+    m_Address: Setting/Toggle/Row
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7f285c0f8588cce0395c4bb48c5b7d54
+    m_Address: Setting/Volume/Row
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 8644ff72d188351429aeb73a1d49386e
     m_Address: Setting/DMXChannels
     m_ReadOnly: 0
@@ -187,6 +222,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 9d036fb0b1366674c947c508eacbef3b
     m_Address: SettingTab/SettingCategoryView
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9f97b873b8506a819b5d0f913e31247e
+    m_Address: Setting/Slider/Row
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

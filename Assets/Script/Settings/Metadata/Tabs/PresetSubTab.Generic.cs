@@ -909,29 +909,7 @@ namespace YARG.Settings.Metadata
                     () => RuntimeNavigatable.OpenDropdownList(dropdown), captionTargets.ToArray());
                 navGroup.AddNavigatable(nav);
 
-                // The authored dropdown background does not provide the desired
-                // focused fill, so add a pure-color rounded overlay behind it.
-                var overlay = new GameObject("DropdownFocusFill", typeof(RectTransform));
-                var overlayRect = overlay.GetComponent<RectTransform>();
-                overlayRect.SetParent(dropdown.transform, false);
-                overlayRect.anchorMin = Vector2.zero;
-                overlayRect.anchorMax = Vector2.one;
-                overlayRect.offsetMin = new Vector2(3f, 3f);
-                overlayRect.offsetMax = new Vector2(-3f, -3f);
 
-                var overlayImage = overlay.AddComponent<Image>();
-                overlayImage.sprite = SpriteHelper.GetRoundedRect(10);
-                overlayImage.type = Image.Type.Sliced;
-                overlayImage.color = new Color(0.1f, 0.1f, 0f, 1f); // #1a1a00
-                overlayImage.raycastTarget = false;
-
-                overlayRect.SetSiblingIndex(0);
-
-                overlay.SetActive(false);
-                nav.SelectionStateChanged += (_, selected, _) =>
-                {
-                    if (overlay != null) overlay.SetActive(selected);
-                };
             }
             else
             {

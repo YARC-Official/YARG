@@ -79,10 +79,11 @@ namespace YARG.Settings.Metadata
         {
         }
 
-        protected static BaseSettingVisual SpawnSettingVisual(ISettingType setting, Transform container)
+        protected static BaseSettingVisual SpawnSettingVisual(ISettingType setting, Transform container, bool rowLayout = false)
         {
             // Spawn the setting
-            var settingPrefab = Addressables.LoadAssetAsync<GameObject>(setting.AddressableName)
+            var address = rowLayout ? $"{setting.AddressableName}/Row" : setting.AddressableName;
+            var settingPrefab = Addressables.LoadAssetAsync<GameObject>(address)
                 .WaitForCompletion();
             var go = Object.Instantiate(settingPrefab, container);
 

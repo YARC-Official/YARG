@@ -27,9 +27,6 @@ namespace YARG.Menu.Settings.Visuals
         [SerializeField]
         protected GameObject _evenBackground;
 
-        [SerializeField]
-        private GameObject _advancedMarker;
-
         public bool IsPresetSetting { get; private set; }
         public bool HasDescription { get; private set; }
         public bool IsEditable { get; private set; } = true;
@@ -72,14 +69,6 @@ namespace YARG.Menu.Settings.Visuals
         public virtual void AssignIndex(int index)
         {
             _evenBackground.SetActive(index % 2 == 0);
-        }
-
-        public void ShowAdvancedMarker(bool show)
-        {
-            if (_advancedMarker != null)
-            {
-                _advancedMarker.SetActive(show);
-            }
         }
 
         public virtual void SetEditable(bool editable, bool dim = true)

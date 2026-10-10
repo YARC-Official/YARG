@@ -22,8 +22,6 @@ namespace YARG.Menu.Settings
             _label.text = Localize.Key("Settings.Header", section);
         }
 
-        public void ShowCurrent(bool current) => GetComponent<SettingsItemVisual>().ShowCurrent(current);
-
         public void ShowActive(bool current)
         {
             _currentMarker.SetActive(current);

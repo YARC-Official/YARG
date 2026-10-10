@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -15,9 +16,24 @@ namespace YARG.Menu.Settings
         private static readonly Color FOCUS_COLOR = new(0.06f, 0.55f, 0.75f, 0.2f);
 
         private NavigatableBehaviour _navigatable;
+        [SerializeField]
         private Image _background;
+        [SerializeField]
         private Image _marker;
+        [SerializeField]
         private RectTransform _focus;
+        [SerializeField]
+        private GameObject _focusFill;
+        [SerializeField]
+        private Image[] _focusEdges = Array.Empty<Image>();
+        [SerializeField]
+        private Image[] _hiddenImages = Array.Empty<Image>();
+        [SerializeField]
+        private Image[] _evenBackgrounds = Array.Empty<Image>();
+        [SerializeField]
+        private Image[] _dividers = Array.Empty<Image>();
+        [SerializeField]
+        private Transform _controls;
         private bool _hovered;
         private bool _current;
 
@@ -30,8 +46,14 @@ namespace YARG.Menu.Settings
 
         public static void Attach(NavigatableBehaviour navigatable)
         {
-            var visual = navigatable.gameObject.AddComponent<SettingsItemVisual>();
+            if (!navigatable.TryGetComponent<SettingsItemVisual>(out var visual))
+            {
+                visual = navigatable.gameObject.AddComponent<SettingsItemVisual>();
+                visual._controls = navigatable.transform;
+                visual.CreateGraphics();
+            }
             visual.Initialize(navigatable);
+            visual.enabled = true;
         }
 
         private void Initialize(NavigatableBehaviour navigatable)
@@ -41,6 +63,7 @@ namespace YARG.Menu.Settings
 
             if (navigatable is RuntimeNavigatable runtime)
             {
+                runtime.SelectionVisual?.Invoke(false);
                 runtime.SelectionVisual = _ => { };
             }
             else
@@ -52,71 +75,22 @@ namespace YARG.Menu.Settings
                 }
             }
 
-            foreach (var image in GetComponentsInChildren<Image>(true))
+            foreach (var image in _hiddenImages)
             {
-                if (image.name == "SelectedOutline" || image.name == "DropdownFocusFill" ||
-                    image.name == "Active Background")
-                {
-                    image.color = Color.clear;
-                    image.raycastTarget = false;
-                }
-                else if (image.name == "Even Background")
-                {
-                    image.color = new Color(0.04f, 0.11f, 0.16f, 0.2f);
-                    image.raycastTarget = false;
-                }
-                else if (image.name == "Divider" || image.name == "Divder")
-                {
-                    image.color = new Color(0.15f, 0.28f, 0.35f, 0.15f);
-                    image.raycastTarget = false;
-                }
-                else if (image.name == "ActiveMarker" || image.name == "Current Section")
-                {
-                    _marker = image;
-                }
+                image.color = Color.clear;
+                image.raycastTarget = false;
             }
-
-            _background = CreateImage(name: "Hover and Current", parent: transform, color: Color.clear);
-            _background.raycastTarget = true;
-            _background.transform.SetAsFirstSibling();
-
-            if (!IsSidebar)
+            foreach (var image in _evenBackgrounds)
             {
-                _marker = CreateImage(name: "Current Setting", parent: transform, color: CYAN);
+                image.color = new Color(0.04f, 0.11f, 0.16f, 0.2f);
+                image.raycastTarget = false;
             }
-            _marker.color = CYAN;
-            var marker = _marker.rectTransform;
-            marker.anchorMin = Vector2.zero;
-            marker.anchorMax = new Vector2(0f, 1f);
-            marker.offsetMin = Vector2.zero;
-            marker.offsetMax = new Vector2(4f, 0f);
-
-            var focus = new GameObject(IsSidebar ? "Focus Outline" : "Focus Highlight",
-                typeof(RectTransform), typeof(LayoutElement));
-            _focus = focus.GetComponent<RectTransform>();
-            _focus.SetParent(transform, worldPositionStays: false);
-            Stretch(_focus);
-            focus.GetComponent<LayoutElement>().ignoreLayout = true;
-
-            AddEdge("Top", anchorMin: new Vector2(0f, 1f), anchorMax: Vector2.one,
-                offsetMin: new Vector2(0f, -2f), offsetMax: Vector2.zero);
-            AddEdge("Bottom", anchorMin: Vector2.zero, anchorMax: new Vector2(1f, 0f),
-                offsetMin: Vector2.zero, offsetMax: new Vector2(0f, 2f));
-            AddEdge("Left", anchorMin: Vector2.zero, anchorMax: new Vector2(0f, 1f),
-                offsetMin: Vector2.zero, offsetMax: new Vector2(2f, 0f));
-            AddEdge("Right", anchorMin: new Vector2(1f, 0f), anchorMax: Vector2.one,
-                offsetMin: new Vector2(-2f, 0f), offsetMax: Vector2.zero);
-
-            if (!IsSidebar)
+            foreach (var image in _dividers)
             {
-                foreach (Transform edge in _focus)
-                {
-                    edge.gameObject.SetActive(false);
-                }
-                CreateImage(name: "Focus Fill", parent: _focus, color: FOCUS_COLOR);
-                _focus.SetSiblingIndex(1);
+                image.color = new Color(0.15f, 0.28f, 0.35f, 0.15f);
+                image.raycastTarget = false;
             }
-
+            _background.gameObject.SetActive(true);
             if (navigatable.TryGetComponent<BaseSettingVisual>(out _))
             {
                 foreach (var control in GetComponentsInChildren<Selectable>())
@@ -128,10 +102,64 @@ namespace YARG.Menu.Settings
             Refresh();
         }
 
-        private void Start()
+        private void CreateGraphics()
+        {
+            _background = CreateImage(name: "Hover and Current", parent: transform, color: Color.clear);
+            _background.raycastTarget = true;
+            _background.transform.SetAsFirstSibling();
+            _background.gameObject.SetActive(false);
+
+            _marker = CreateImage(name: "Current Setting", parent: transform, color: CYAN);
+            var marker = _marker.rectTransform;
+            marker.anchorMin = Vector2.zero;
+            marker.anchorMax = new Vector2(0f, 1f);
+            marker.offsetMin = Vector2.zero;
+            marker.offsetMax = new Vector2(4f, 0f);
+            _marker.gameObject.SetActive(false);
+
+            var focus = new GameObject("Focus Highlight",
+                typeof(RectTransform), typeof(LayoutElement));
+            _focus = focus.GetComponent<RectTransform>();
+            _focus.SetParent(transform, worldPositionStays: false);
+            Stretch(_focus);
+            focus.GetComponent<LayoutElement>().ignoreLayout = true;
+            _focusEdges = new[]
+            {
+                AddEdge(name: "Top", anchorMin: new Vector2(0f, 1f), anchorMax: Vector2.one,
+                    offsetMin: new Vector2(0f, -2f), offsetMax: Vector2.zero),
+                AddEdge(name: "Bottom", anchorMin: Vector2.zero, anchorMax: new Vector2(1f, 0f),
+                    offsetMin: Vector2.zero, offsetMax: new Vector2(0f, 2f)),
+                AddEdge(name: "Left", anchorMin: Vector2.zero, anchorMax: new Vector2(0f, 1f),
+                    offsetMin: Vector2.zero, offsetMax: new Vector2(2f, 0f)),
+                AddEdge(name: "Right", anchorMin: new Vector2(1f, 0f), anchorMax: Vector2.one,
+                    offsetMin: new Vector2(-2f, 0f), offsetMax: Vector2.zero)
+            };
+            foreach (var edge in _focusEdges)
+            {
+                edge.gameObject.SetActive(false);
+            }
+            _focusFill = CreateImage(name: "Focus Fill", parent: _focus, color: FOCUS_COLOR).gameObject;
+            _focus.SetSiblingIndex(1);
+            focus.SetActive(false);
+        }
+
+        private void Awake()
+        {
+            _navigatable = GetComponent<NavigatableBehaviour>();
+        }
+
+        private void OnEnable()
         {
             _navigatable.SelectionStateChanged += OnSelectionChanged;
+            if (_navigatable is BaseSettingNavigatable setting)
+            {
+                setting.EditingChanged += SetEditing;
+            }
             NavigationGroup.CurrentChanged += Refresh;
+        }
+
+        private void Start()
+        {
             OnSelectionChanged(navigatable: _navigatable, selected: _navigatable.Selected,
                 origin: SelectionOrigin.Programmatically);
         }
@@ -157,13 +185,15 @@ namespace YARG.Menu.Settings
             rect.offsetMax = Vector2.zero;
         }
 
-        private void AddEdge(string name, Vector2 anchorMin, Vector2 anchorMax, Vector2 offsetMin, Vector2 offsetMax)
+        private Image AddEdge(string name, Vector2 anchorMin, Vector2 anchorMax, Vector2 offsetMin, Vector2 offsetMax)
         {
-            var edge = CreateImage(name: name, parent: _focus, color: CYAN).rectTransform;
+            var image = CreateImage(name: name, parent: _focus, color: CYAN);
+            var edge = image.rectTransform;
             edge.anchorMin = anchorMin;
             edge.anchorMax = anchorMax;
             edge.offsetMin = offsetMin;
             edge.offsetMax = offsetMax;
+            return image;
         }
 
         public void ShowCurrent(bool current)
@@ -174,7 +204,7 @@ namespace YARG.Menu.Settings
 
         public void SetEditing(bool editing)
         {
-            var target = editing ? transform.Find("Container") : transform;
+            var target = editing ? _controls : transform;
             if (editing)
             {
                 var controls = target.GetComponentsInChildren<Selectable>();
@@ -207,11 +237,11 @@ namespace YARG.Menu.Settings
             {
                 _focus.SetSiblingIndex(1);
             }
-            foreach (Transform edge in _focus)
+            foreach (var edge in _focusEdges)
             {
                 edge.gameObject.SetActive(editing);
             }
-            _focus.Find("Focus Fill").gameObject.SetActive(!editing);
+            _focusFill.SetActive(!editing);
         }
 
         public void ReleaseControl()
@@ -270,14 +300,14 @@ namespace YARG.Menu.Settings
 
         private void OnDisable()
         {
+            _navigatable.SelectionStateChanged -= OnSelectionChanged;
+            if (_navigatable is BaseSettingNavigatable setting)
+            {
+                setting.EditingChanged -= SetEditing;
+            }
+            NavigationGroup.CurrentChanged -= Refresh;
             _hovered = false;
             _background.color = IsCurrent ? CURRENT_COLOR : Color.clear;
-        }
-
-        private void OnDestroy()
-        {
-            _navigatable.SelectionStateChanged -= OnSelectionChanged;
-            NavigationGroup.CurrentChanged -= Refresh;
         }
     }
 }
