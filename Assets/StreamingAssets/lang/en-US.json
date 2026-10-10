@@ -1369,6 +1369,14 @@
                     "LegacyLabels": "Short, Medium, Long, Epic"
                 }
             },
+            "DateAddedSort": {
+                "Name": "Date Added Sort",
+                "Description": "Choose which date is used when sorting the music library by Date Added. Songs without release date metadata use the chart file date.",
+                "Dropdown": {
+                    "ChartFileDate": "Chart File Date",
+                    "ReleaseDate": "Release Date"
+                }
+            },
             "HighwayTiltMultiplier": {
                 "Name": "Highway Tilt Multiplier",
                 "Description": "Controls the amount that the tracks should tilt inward during multiplayer gameplay only."
