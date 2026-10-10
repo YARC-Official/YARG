@@ -144,7 +144,6 @@ namespace YARG.Menu.MusicLibrary
         private PopupMenu _popupMenu;
 
         protected override int ExtraListViewPadding => 15;
-        protected override bool ClampListToViewport => true;
         protected override bool CanScroll => !_popupMenu.gameObject.activeSelf;
 
         public bool ShouldDisplaySoloHighScores { get; private set; }

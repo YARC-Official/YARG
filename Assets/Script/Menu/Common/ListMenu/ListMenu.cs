@@ -17,12 +17,6 @@ namespace YARG.Menu.ListMenu
 
         protected abstract int ExtraListViewPadding { get; }
 
-        /// <summary>
-        /// Prevents the beginning or end of the list from being scrolled into the
-        /// middle of the viewport when the selection approaches either boundary.
-        /// </summary>
-        protected virtual bool ClampListToViewport => false;
-
         [SerializeField]
         private TViewObject _viewObjectPrefab;
 
@@ -299,7 +293,7 @@ namespace YARG.Menu.ListMenu
 
             RealignParentViewObject();
 
-            if (ClampListToViewport && !_realignBeforeRender)
+            if (!_realignBeforeRender)
             {
                 _realignBeforeRender = true;
                 Canvas.willRenderCanvases += RealignParentViewObjectBeforeRender;
@@ -335,7 +329,7 @@ namespace YARG.Menu.ListMenu
             // Unity has not performed the canvas layout pass for this frame yet. The clamp below
             // must measure the final viewport, otherwise it is corrected only after the first
             // scroll triggers another refresh.
-            if (ClampListToViewport && updateCanvas)
+            if (updateCanvas)
             {
                 Canvas.ForceUpdateCanvases();
             }
@@ -360,9 +354,27 @@ namespace YARG.Menu.ListMenu
 
             parentRect.anchoredPosition = new Vector2(0, (topHeight - bottomHeight) / 2);
 
-            if (!ClampListToViewport || _viewList.Count == 0 || parentRect.parent is not RectTransform viewportRect)
+            if (_viewList.Count == 0 || parentRect.parent is not RectTransform viewportRect)
             {
                 return;
+            }
+
+            // If the entire list fits inside the viewport, keep it top-aligned. It cannot touch
+            // both viewport edges, so this gives short lists a stable position as selection moves.
+            int firstObjectIndex = ExtraListViewPadding - SelectedIndex;
+            int lastObjectIndex = firstObjectIndex + _viewList.Count - 1;
+            if (firstObjectIndex >= 0 && lastObjectIndex < _viewObjects.Count)
+            {
+                var firstRect = _viewObjects[firstObjectIndex].GetComponent<RectTransform>();
+                var lastRect = _viewObjects[lastObjectIndex].GetComponent<RectTransform>();
+                var firstBounds = RectTransformUtility.CalculateRelativeRectTransformBounds(viewportRect, firstRect);
+                var lastBounds = RectTransformUtility.CalculateRelativeRectTransformBounds(viewportRect, lastRect);
+                float contentHeight = firstBounds.max.y - lastBounds.min.y;
+                if (contentHeight <= viewportRect.rect.height)
+                {
+                    parentRect.anchoredPosition += Vector2.up * (viewportRect.rect.yMax - firstBounds.max.y);
+                    return;
+                }
             }
 
             // The pool keeps invisible rows on either side of the selected row so
