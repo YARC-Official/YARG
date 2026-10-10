@@ -22,22 +22,13 @@ namespace YARG.Menu.Settings
             _label.text = Localize.Key("Settings.Header", section);
         }
 
-        public void ShowCurrent(bool current, bool focused = true)
+        public void ShowCurrent(bool current) => GetComponent<SettingsItemVisual>().ShowCurrent(current);
+
+        public void ShowActive(bool current)
         {
             _currentMarker.SetActive(current);
             _label.fontStyle = FontStyles.UpperCase;
-            if (!current)
-            {
-                _label.color = new Color(0.5f, 0.62f, 0.7f);
-            }
-            else if (focused)
-            {
-                _label.color = Color.white;
-            }
-            else
-            {
-                _label.color = new Color(0.75f, 0.85f, 0.95f, 0.85f);
-            }
+            _label.color = current ? Color.white : new Color(0.5f, 0.62f, 0.7f);
         }
 
         public override void OnPointerDown(PointerEventData eventData)

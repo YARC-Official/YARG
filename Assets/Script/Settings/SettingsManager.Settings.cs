@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -849,12 +850,7 @@ namespace YARG.Settings
                 BandComboType.Lenient,
                 BandComboType.Strict
             };
-            public DropdownSetting<EffectsMode> EffectsMode { get; } = new(YARG.Settings.EffectsMode.Performance,
-                EffectsModeCallback)
-            {
-                YARG.Settings.EffectsMode.Performance,
-                YARG.Settings.EffectsMode.Quality
-            };
+            public EffectsModeSetting EffectsMode { get; } = new(mode => EffectsModeCallback(mode).Forget());
 
             public ReverbMode CurrentReverbMode => EffectsMode.Value == YARG.Settings.EffectsMode.Quality
                 ? ReverbMode.Quality
@@ -1172,9 +1168,17 @@ namespace YARG.Settings
                 }
             }
 
-            private static void EffectsModeCallback(EffectsMode mode)
+            private static async UniTaskVoid EffectsModeCallback(EffectsMode mode)
             {
                 if (!IsInitialized)
+                {
+                    return;
+                }
+
+                await UniTask.WaitForEndOfFrame();
+                await UniTask.NextFrame();
+
+                if (mode != Settings.EffectsMode.Value)
                 {
                     return;
                 }

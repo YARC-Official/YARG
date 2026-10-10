@@ -28,17 +28,25 @@ namespace YARG.Menu.Settings
                 return;
             }
 
+            if (BaseSettingVisual is ToggleSettingVisual toggle)
+            {
+                toggle.ToggleValue();
+                return;
+            }
+
             var scheme = BaseSettingVisual.GetNavigationScheme();
             scheme.PopCallback = () =>
             {
                 _focused = false;
                 _activeBackground.SetActive(false);
+                GetComponent<SettingsItemVisual>()?.SetEditing(false);
             };
 
             _ = Navigator.Instance.PushScheme(scheme);
 
             _focused = true;
             _activeBackground.SetActive(true);
+            GetComponent<SettingsItemVisual>()?.SetEditing(true);
         }
 
         protected override void OnSelectionChanged(bool selected)

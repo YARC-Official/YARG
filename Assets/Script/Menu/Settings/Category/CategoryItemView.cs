@@ -48,11 +48,14 @@ namespace YARG.Menu.Settings
                 .SetLink(gameObject);
         }
 
-        public void ShowCurrent(bool current)
+        public void ShowCurrent(bool current) => GetComponent<SettingsItemVisual>().ShowCurrent(current);
+
+        public void ShowActive(bool current)
         {
             _currentMarker.SetActive(current);
             _label.fontStyle = FontStyles.UpperCase;
             _label.color = current ? Color.white : new Color(0.5f, 0.62f, 0.7f);
+            _icon.color = current ? Color.white : new Color(0.5f, 0.62f, 0.7f);
         }
 
         public override void OnPointerDown(PointerEventData eventData)

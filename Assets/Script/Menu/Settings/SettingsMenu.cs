@@ -87,6 +87,22 @@ namespace YARG.Menu.Settings
         public string CurrentSection { get; private set; } = string.Empty;
         private bool IsSearching => SearchQuery.Length > 0;
 
+        public bool IsNavigationLevelActive(NavigationGroup group)
+        {
+            var current = NavigationGroup.CurrentNavigationGroup;
+            if (current == _settingsNavGroup || current?.transform.IsChildOf(_settingsContainer) == true)
+            {
+                return true;
+            }
+
+            if (current == _sectionsNavGroup)
+            {
+                return group == _sectionsNavGroup || group == _categorySidebar?.NavigationGroup;
+            }
+
+            return current == _categorySidebar?.NavigationGroup && group == current;
+        }
+
         public static void OpenOnNextMenuLoad()
         {
             _openOnNextMenuLoad = true;
@@ -159,7 +175,7 @@ namespace YARG.Menu.Settings
             var categories = new List<CategorySidebar.CategoryInfo>();
 
             // Add the main tabs
-            foreach (var tab in SettingsManager.DisplayedSettingsTabs)
+            foreach (var tab in SettingsManager.AllSettingsTabs.Where(tab => tab is not AllSettingsTab))
             {
                 // Load the tab sprite
                 var sprite = Addressables.LoadAssetAsync<Sprite>($"TabIcons[{tab.Icon}]").WaitForCompletion();
@@ -291,6 +307,7 @@ namespace YARG.Menu.Settings
                 var view = Instantiate(_sectionPrefab, _sectionsContainer);
                 view.Initialize(section.HeaderName);
                 _sectionsNavGroup.AddNavigatable(view);
+                SettingsItemVisual.Attach(view);
                 _sectionViews.Add(view);
             }
 
@@ -306,12 +323,12 @@ namespace YARG.Menu.Settings
             }
         }
 
-        private void UpdateSectionMarkers(bool isFocused)
+        private void UpdateSectionMarkers()
         {
             for (var i = 0; i < _sectionViews.Count; i++)
             {
                 var isCurrent = _sectionViews[i].Section == CurrentSection;
-                _sectionViews[i].ShowCurrent(isCurrent, isFocused);
+                _sectionViews[i].ShowCurrent(isCurrent);
             }
         }
 
@@ -332,7 +349,7 @@ namespace YARG.Menu.Settings
                 CurrentSection = view.Section;
                 _searchBar.SetTextWithoutNotify(string.Empty);
                 Refresh();
-                UpdateSectionMarkers(NavigationGroup.CurrentNavigationGroup == _sectionsNavGroup);
+                UpdateSectionMarkers();
             }
         }
 
@@ -354,7 +371,7 @@ namespace YARG.Menu.Settings
 
             _settingsNavGroup.PushNavGroupToStack();
             _settingsNavGroup.SelectFirst(SelectionOrigin.Navigation);
-            UpdateSectionMarkers(false);
+            UpdateSectionMarkers();
         }
 
         public void FocusSections()
@@ -382,7 +399,7 @@ namespace YARG.Menu.Settings
                     index = 0;
                 }
                 _sectionsNavGroup.SelectAt(index: index, selectionOrigin: SelectionOrigin.Navigation);
-                UpdateSectionMarkers(true);
+                UpdateSectionMarkers();
             }
             else
             {
@@ -398,7 +415,7 @@ namespace YARG.Menu.Settings
                 return;
             }
 
-            UpdateSectionMarkers(false);
+            UpdateSectionMarkers();
             _categorySidebar.SetCollapsed(false, animate);
 
             if (NavigationGroup.CurrentNavigationGroup == _sectionsNavGroup)
@@ -451,6 +468,24 @@ namespace YARG.Menu.Settings
             }
 
             FocusCategories();
+        }
+
+        public void OnSettingClicked(NavigatableBehaviour selected)
+        {
+            if (_categorySidebar != null && !_categorySidebar.IsCollapsed)
+            {
+                _categorySidebar.SetCollapsed(true);
+            }
+
+            if (_categorySidebar != null && NavigationGroup.CurrentNavigationGroup == _categorySidebar.NavigationGroup)
+            {
+                _categorySidebar.NavigationGroup.SelectLastNavGroup();
+            }
+
+            _sectionsNavGroup.SelectLastNavGroup();
+            selected.NavigationGroup.PushNavGroupToStack();
+            selected.SetSelected(true, SelectionOrigin.Mouse);
+            UpdateSectionMarkers();
         }
 
         public void OnSectionClicked(string section)
@@ -564,8 +599,7 @@ namespace YARG.Menu.Settings
 
             if (selectionOrigin == SelectionOrigin.Mouse)
             {
-                _sectionsNavGroup.SelectLastNavGroup();
-                UpdateSectionMarkers(false);
+                OnSettingClicked(selected);
             }
 
             // Most setting rows carry a BaseSettingNavigatable, but some (e.g. the
@@ -696,6 +730,14 @@ namespace YARG.Menu.Settings
             // Build the settings tab
             var tab = IsSearching ? SettingsManager.GetTabByName("AllSettings") : CurrentTab;
             tab?.BuildSettingTab(_settingsContainer, _settingsNavGroup);
+            var groups = _settingsContainer.GetComponentsInChildren<NavigationGroup>().Prepend(_settingsNavGroup);
+            foreach (var group in groups)
+            {
+                foreach (var navigatable in group.Navigatables)
+                {
+                    SettingsItemVisual.Attach(navigatable);
+                }
+            }
             var visuals = _settingsContainer.GetComponentsInChildren<BaseSettingVisual>();
             _settingName.transform.parent.gameObject.SetActive(visuals.Length > 0);
             Canvas.ForceUpdateCanvases();
@@ -706,21 +748,21 @@ namespace YARG.Menu.Settings
                 {
                     var row = (RectTransform) visual.transform;
                     row.sizeDelta = new Vector2(x: row.sizeDelta.x, y: 84f);
-                    var width = visual is DMXChannelsSettingVisual
-                        ? row.rect.width * 0.7f
-                        : Mathf.Min(a: 440f, b: row.rect.width * 0.45f);
+                    var controlFraction = visual is DMXChannelsSettingVisual ? 0.7f : 0.45f;
                     var controls = (RectTransform) row.Find("Container");
-                    controls.anchorMin = new Vector2(x: 1f, y: 0f);
+                    controls.anchorMin = new Vector2(x: 1f - controlFraction, y: 0f);
                     controls.anchorMax = Vector2.one;
                     controls.pivot = new Vector2(x: 1f, y: 0.5f);
                     controls.anchoredPosition = new Vector2(x: -25f, y: 0f);
-                    controls.sizeDelta = new Vector2(x: width, y: 0f);
+                    controls.sizeDelta = new Vector2(x: -25f, y: 0f);
                     var label = visual.SettingLabel;
                     label.rectTransform.anchorMin = Vector2.zero;
-                    label.rectTransform.anchorMax = Vector2.one;
+                    label.rectTransform.anchorMax = new Vector2(x: 1f - controlFraction, y: 1f);
                     label.rectTransform.offsetMin = new Vector2(x: 25f, y: 8f);
-                    label.rectTransform.offsetMax = new Vector2(x: -width - 50f, y: -8f);
+                    label.rectTransform.offsetMax = new Vector2(x: -25f, y: -8f);
                     label.enableAutoSizing = true;
+                    label.textWrappingMode = TextWrappingModes.NoWrap;
+                    label.overflowMode = TextOverflowModes.Ellipsis;
                     label.fontSizeMax = 24f;
                     label.fontSizeMin = 18f;
                     foreach (var slider in visual.GetComponentsInChildren<ValueSlider>())
@@ -801,7 +843,7 @@ namespace YARG.Menu.Settings
             }
 
             _sectionsPanel.SetActive(!IsSearching && CurrentTab?.Sections.Count > 0);
-            _searchHeaderText.transform.parent.gameObject.SetActive(IsSearching || CurrentTab is AllSettingsTab);
+            _searchHeaderText.transform.parent.gameObject.SetActive(false);
             if (IsSearching)
             {
                 _settingsNavGroup.PushNavGroupToStack();

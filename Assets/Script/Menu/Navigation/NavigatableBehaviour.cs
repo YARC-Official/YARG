@@ -19,6 +19,8 @@ namespace YARG.Menu.Navigation
 
         public bool Selected { get; private set; }
 
+        public GameObject SelectedVisual => _selectedVisual;
+
         /// <summary>
         /// Whether moving the pointer over this element selects it. Disable this
         /// for rows that never join a navigation group (like menu titles), so the
