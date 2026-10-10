@@ -579,7 +579,6 @@
             "ShowAdvanced": "Show Advanced",
             "HideAdvanced": "Hide Advanced",
             "NoFolder": "<i>No Folder</i>",
-            "RequiresRescan": "Requires rescan",
             "SearchHeader": {
                 "AllCategories": "All Categories",
                 "Results": "Results"
@@ -1584,8 +1583,8 @@
                 "Default": "<i>Default ({0})</i>"
             },
             "EffectsMode": {
-                "Name": "High-quality audio effects",
-                "Description": "Higher-quality reverb and time stretching with increased CPU use.",
+                "Name": "High quality audio effects",
+                "Description": "Uses improved reverb and time stretching effects, with increased CPU usage.",
                 "Dropdown": {
                     "Performance": "Performance",
                     "Quality": "Quality"

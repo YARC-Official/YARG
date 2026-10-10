@@ -1,3 +1,5 @@
+// This abstraction allows non-boolean settings to render as toggle controls in the UI.
+
 using System;
 
 namespace YARG.Settings.Types

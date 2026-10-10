@@ -1134,9 +1134,11 @@ namespace YARG.Settings
                     return;
                 }
 
+                // This toggle will reinitialize audio which blocks the ui briefly, so flip the toggle first then execute
                 await UniTask.WaitForEndOfFrame();
                 await UniTask.NextFrame();
 
+                // Abort if the setting was changed again while yielding
                 if (mode != Settings.EffectsMode.Value)
                 {
                     return;

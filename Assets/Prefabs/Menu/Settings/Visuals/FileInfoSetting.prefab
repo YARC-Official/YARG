@@ -179,7 +179,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4420504316707193967, guid: 6f46741e648c07044852bd3391146600, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 100
+      value: 84
       objectReference: {fileID: 0}
     - target: {fileID: 4420504316707193967, guid: 6f46741e648c07044852bd3391146600, type: 3}
       propertyPath: m_LocalPosition.x
@@ -273,14 +273,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Settings.Visuals.FileInfoSettingVisual
   _settingLabel: {fileID: 8398173980181265035}
   _evenBackground: {fileID: 8036200387225160625}
-  _advancedMarker: {fileID: 2771391343436603804}
   _statusText: {fileID: 1482936140848510206}
   _removeButton: {fileID: 4312601872095803265}
---- !u!1 &2771391343436603804 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 948307881895838089, guid: 6f46741e648c07044852bd3391146600, type: 3}
-  m_PrefabInstance: {fileID: 3124624307905060885}
-  m_PrefabAsset: {fileID: 0}
 --- !u!224 &6395833747087873664 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8331225728328382101, guid: 6f46741e648c07044852bd3391146600, type: 3}

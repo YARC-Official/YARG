@@ -10,10 +10,8 @@ namespace YARG.Menu.Settings
 {
     public sealed class SettingsItemVisual : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler
     {
-        private static readonly Color CYAN = new(0f, 0.8f, 1f);
         private static readonly Color CURRENT_COLOR = new(0.035f, 0.3f, 0.42f, 0.9f);
         private static readonly Color HOVER_COLOR = new(0.28f, 0.55f, 0.65f, 0.15f);
-        private static readonly Color FOCUS_COLOR = new(0.06f, 0.55f, 0.75f, 0.2f);
 
         private NavigatableBehaviour _navigatable;
         [SerializeField]
@@ -27,12 +25,6 @@ namespace YARG.Menu.Settings
         [SerializeField]
         private Image[] _focusEdges = Array.Empty<Image>();
         [SerializeField]
-        private Image[] _hiddenImages = Array.Empty<Image>();
-        [SerializeField]
-        private Image[] _evenBackgrounds = Array.Empty<Image>();
-        [SerializeField]
-        private Image[] _dividers = Array.Empty<Image>();
-        [SerializeField]
         private Transform _controls;
         private bool _hovered;
         private bool _current;
@@ -44,137 +36,56 @@ namespace YARG.Menu.Settings
         public bool HasFocus => _navigatable.Selected &&
             NavigationGroup.CurrentNavigationGroup == _navigatable.NavigationGroup;
 
-        public static void Attach(NavigatableBehaviour navigatable)
-        {
-            if (!navigatable.TryGetComponent<SettingsItemVisual>(out var visual))
-            {
-                visual = navigatable.gameObject.AddComponent<SettingsItemVisual>();
-                visual._controls = navigatable.transform;
-                visual.CreateGraphics();
-            }
-            visual.Initialize(navigatable);
-            visual.enabled = true;
-        }
-
-        private void Initialize(NavigatableBehaviour navigatable)
-        {
-            _navigatable = navigatable;
-            navigatable.SelectOnHover = false;
-
-            if (navigatable is RuntimeNavigatable runtime)
-            {
-                runtime.SelectionVisual?.Invoke(false);
-                runtime.SelectionVisual = _ => { };
-            }
-            else
-            {
-                foreach (var image in navigatable.SelectedVisual.GetComponentsInChildren<Image>(true))
-                {
-                    image.color = Color.clear;
-                    image.raycastTarget = false;
-                }
-            }
-
-            foreach (var image in _hiddenImages)
-            {
-                image.color = Color.clear;
-                image.raycastTarget = false;
-            }
-            foreach (var image in _evenBackgrounds)
-            {
-                image.color = new Color(0.04f, 0.11f, 0.16f, 0.2f);
-                image.raycastTarget = false;
-            }
-            foreach (var image in _dividers)
-            {
-                image.color = new Color(0.15f, 0.28f, 0.35f, 0.15f);
-                image.raycastTarget = false;
-            }
-            _background.gameObject.SetActive(true);
-            if (navigatable.TryGetComponent<BaseSettingVisual>(out _))
-            {
-                foreach (var control in GetComponentsInChildren<Selectable>())
-                {
-                    control.gameObject.AddComponent<SettingsControlFocus>().Item = this;
-                }
-            }
-
-            Refresh();
-        }
-
-        private void CreateGraphics()
-        {
-            _background = CreateImage(name: "Hover and Current", parent: transform, color: Color.clear);
-            _background.raycastTarget = true;
-            _background.transform.SetAsFirstSibling();
-            _background.gameObject.SetActive(false);
-
-            _marker = CreateImage(name: "Current Setting", parent: transform, color: CYAN);
-            var marker = _marker.rectTransform;
-            marker.anchorMin = Vector2.zero;
-            marker.anchorMax = new Vector2(0f, 1f);
-            marker.offsetMin = Vector2.zero;
-            marker.offsetMax = new Vector2(4f, 0f);
-            _marker.gameObject.SetActive(false);
-
-            var focus = new GameObject("Focus Highlight",
-                typeof(RectTransform), typeof(LayoutElement));
-            _focus = focus.GetComponent<RectTransform>();
-            _focus.SetParent(transform, worldPositionStays: false);
-            Stretch(_focus);
-            focus.GetComponent<LayoutElement>().ignoreLayout = true;
-            _focusEdges = new[]
-            {
-                AddEdge(name: "Top", anchorMin: new Vector2(0f, 1f), anchorMax: Vector2.one,
-                    offsetMin: new Vector2(0f, -2f), offsetMax: Vector2.zero),
-                AddEdge(name: "Bottom", anchorMin: Vector2.zero, anchorMax: new Vector2(1f, 0f),
-                    offsetMin: Vector2.zero, offsetMax: new Vector2(0f, 2f)),
-                AddEdge(name: "Left", anchorMin: Vector2.zero, anchorMax: new Vector2(0f, 1f),
-                    offsetMin: Vector2.zero, offsetMax: new Vector2(2f, 0f)),
-                AddEdge(name: "Right", anchorMin: new Vector2(1f, 0f), anchorMax: Vector2.one,
-                    offsetMin: new Vector2(-2f, 0f), offsetMax: Vector2.zero)
-            };
-            foreach (var edge in _focusEdges)
-            {
-                edge.gameObject.SetActive(false);
-            }
-            _focusFill = CreateImage(name: "Focus Fill", parent: _focus, color: FOCUS_COLOR).gameObject;
-            _focus.SetSiblingIndex(1);
-            focus.SetActive(false);
-        }
-
         private void Awake()
         {
             _navigatable = GetComponent<NavigatableBehaviour>();
+            if (_navigatable != null)
+            {
+                _navigatable.SelectOnHover = false;
+                if (_navigatable is RuntimeNavigatable runtime)
+                {
+                    runtime.SelectionVisual?.Invoke(false);
+                    runtime.SelectionVisual = _ => { };
+                }
+            }
+
+            if (TryGetComponent<BaseSettingVisual>(out _))
+            {
+                foreach (var control in GetComponentsInChildren<Selectable>(true))
+                {
+                    if (!control.TryGetComponent<SettingsControlFocus>(out var focus))
+                    {
+                        focus = control.gameObject.AddComponent<SettingsControlFocus>();
+                    }
+                    focus.Item = this;
+                }
+            }
         }
 
         private void OnEnable()
         {
-            _navigatable.SelectionStateChanged += OnSelectionChanged;
-            if (_navigatable is BaseSettingNavigatable setting)
+            if (_navigatable != null)
             {
-                setting.EditingChanged += SetEditing;
+                _navigatable.SelectionStateChanged += OnSelectionChanged;
+                if (_navigatable is BaseSettingNavigatable setting)
+                {
+                    setting.EditingChanged += SetEditing;
+                }
             }
             NavigationGroup.CurrentChanged += Refresh;
         }
 
         private void Start()
         {
-            OnSelectionChanged(navigatable: _navigatable, selected: _navigatable.Selected,
-                origin: SelectionOrigin.Programmatically);
-        }
-
-        private static Image CreateImage(string name, Transform parent, Color color)
-        {
-            var child = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(LayoutElement));
-            var rect = child.GetComponent<RectTransform>();
-            rect.SetParent(parent, worldPositionStays: false);
-            Stretch(rect);
-            child.GetComponent<LayoutElement>().ignoreLayout = true;
-            var image = child.GetComponent<Image>();
-            image.color = color;
-            image.raycastTarget = false;
-            return image;
+            if (_navigatable != null)
+            {
+                OnSelectionChanged(navigatable: _navigatable, selected: _navigatable.Selected,
+                    origin: SelectionOrigin.Programmatically);
+            }
+            else
+            {
+                Refresh();
+            }
         }
 
         private static void Stretch(RectTransform rect)
@@ -183,17 +94,6 @@ namespace YARG.Menu.Settings
             rect.anchorMax = Vector2.one;
             rect.offsetMin = Vector2.zero;
             rect.offsetMax = Vector2.zero;
-        }
-
-        private Image AddEdge(string name, Vector2 anchorMin, Vector2 anchorMax, Vector2 offsetMin, Vector2 offsetMax)
-        {
-            var image = CreateImage(name: name, parent: _focus, color: CYAN);
-            var edge = image.rectTransform;
-            edge.anchorMin = anchorMin;
-            edge.anchorMax = anchorMax;
-            edge.offsetMin = offsetMin;
-            edge.offsetMax = offsetMax;
-            return image;
         }
 
         public void ShowCurrent(bool current)
@@ -227,6 +127,11 @@ namespace YARG.Menu.Settings
 
         private void SetFocusTarget(Transform target, bool editing)
         {
+            if (_focus == null)
+            {
+                return;
+            }
+
             _focus.SetParent(target, worldPositionStays: false);
             Stretch(_focus);
             if (editing)
@@ -241,7 +146,7 @@ namespace YARG.Menu.Settings
             {
                 edge.gameObject.SetActive(editing);
             }
-            _focusFill.SetActive(!editing);
+            _focusFill?.SetActive(!editing);
         }
 
         public void ReleaseControl()
@@ -271,17 +176,17 @@ namespace YARG.Menu.Settings
 
         private void OnSelectionChanged(NavigatableBehaviour navigatable, bool selected, SelectionOrigin origin)
         {
-            if (selected && navigatable.TryGetComponent<BaseSettingVisual>(out var setting))
-            {
-                setting.SettingLabel.color = Color.white;
-            }
             Refresh();
         }
 
         private void Refresh()
         {
             var current = IsCurrent;
-            _focus.gameObject.SetActive(HasFocus);
+            if (_focus != null)
+            {
+                _focus.gameObject.SetActive(HasFocus);
+            }
+
             if (_navigatable is CategoryItemView category)
             {
                 category.ShowActive(current);
@@ -290,24 +195,34 @@ namespace YARG.Menu.Settings
             {
                 section.ShowActive(current);
             }
-            else
+            else if (_marker != null)
             {
                 _marker.gameObject.SetActive(current);
             }
+
             var background = current ? CURRENT_COLOR : Color.clear;
-            _background.color = _hovered && !current ? HOVER_COLOR : background;
+            if (_background != null)
+            {
+                _background.color = _hovered && !current ? HOVER_COLOR : background;
+            }
         }
 
         private void OnDisable()
         {
-            _navigatable.SelectionStateChanged -= OnSelectionChanged;
-            if (_navigatable is BaseSettingNavigatable setting)
+            if (_navigatable != null)
             {
-                setting.EditingChanged -= SetEditing;
+                _navigatable.SelectionStateChanged -= OnSelectionChanged;
+                if (_navigatable is BaseSettingNavigatable setting)
+                {
+                    setting.EditingChanged -= SetEditing;
+                }
             }
             NavigationGroup.CurrentChanged -= Refresh;
             _hovered = false;
-            _background.color = IsCurrent ? CURRENT_COLOR : Color.clear;
+            if (_background != null)
+            {
+                _background.color = IsCurrent ? CURRENT_COLOR : Color.clear;
+            }
         }
     }
 }
