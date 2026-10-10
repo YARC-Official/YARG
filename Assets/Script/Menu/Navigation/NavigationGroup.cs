@@ -277,10 +277,16 @@ namespace YARG.Menu.Navigation
 
         public void ClearSelection()
         {
+            var hadSelection = SelectedIndex.HasValue;
             SelectedIndex = null;
             foreach (var navigatable in _navigatables)
             {
                 navigatable.SetSelected(false, SelectionOrigin.Programmatically);
+            }
+
+            if (hadSelection)
+            {
+                SelectionChanged?.Invoke(null, SelectionOrigin.Programmatically);
             }
         }
 

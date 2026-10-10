@@ -48,8 +48,6 @@ namespace YARG.Menu.Settings
                 .SetLink(gameObject);
         }
 
-        public void ShowCurrent(bool current) => GetComponent<SettingsItemVisual>().ShowCurrent(current);
-
         public void ShowActive(bool current)
         {
             _currentMarker.SetActive(current);

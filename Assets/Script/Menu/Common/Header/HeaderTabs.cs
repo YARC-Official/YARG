@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using YARG.Core.Input;
 using YARG.Helpers.Extensions;
 using YARG.Menu.Navigation;
 
@@ -36,38 +35,14 @@ namespace YARG.Menu
 
         public string SelectedTabId { get; private set; }
 
-        public NavigationScheme.Entry NavigateNextTab => new(MenuAction.Right, "Menu.Common.NextTab", () =>
-        {
-            EnsureInitialized();
-            _navigationGroup?.SelectNext();
-        });
-        public NavigationScheme.Entry NavigatePreviousTab => new(MenuAction.Left, "Menu.Common.PreviousTab", () =>
-        {
-            EnsureInitialized();
-            _navigationGroup?.SelectPrevious();
-        });
-
         public event Action<string> TabChanged;
 
         private NavigationGroup _navigationGroup;
 
         private void Awake()
         {
-            EnsureInitialized();
-        }
-
-        private void EnsureInitialized()
-        {
-            if (_navigationGroup != null)
-            {
-                return;
-            }
-
             _navigationGroup = GetComponent<NavigationGroup>();
-            if (_navigationGroup != null)
-            {
-                _navigationGroup.SelectionChanged += OnSelectionChanged;
-            }
+            _navigationGroup.SelectionChanged += OnSelectionChanged;
         }
 
         private void Start()

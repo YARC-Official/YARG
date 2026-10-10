@@ -157,7 +157,7 @@ namespace YARG.Menu.Settings
         {
             for (var i = 0; i < _views.Count; i++)
             {
-                _views[i].ShowCurrent(_views[i].CategoryId == currentId);
+                _views[i].GetComponent<SettingsItemVisual>().ShowCurrent(_views[i].CategoryId == currentId);
             }
         }
 
