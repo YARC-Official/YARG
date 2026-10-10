@@ -343,6 +343,11 @@
             "Sort": {
                 "Intensity": "Intensity: {0}",
                 "Unplayed": "Unplayed Songs",
+                "PlayCount": {
+                    "Singular": "1 Play",
+                    "Plural": "{0:N0} Plays",
+                    "Bucket": "{0:N0}+ Plays"
+                },
                 "NoPart": "No Part",
                 "Percentage": {
                     "100": "100%",

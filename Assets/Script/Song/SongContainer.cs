@@ -456,9 +456,10 @@ namespace YARG.Song
                 Comparer<int>.Create((left, right) => right.CompareTo(left)));
             foreach ((SongEntry song, int count) in counts)
             {
-                if (!categorySongs.TryGetValue(count, out var songs))
+                int bucket = GetPlaycountBucket(count);
+                if (!categorySongs.TryGetValue(bucket, out var songs))
                 {
-                    categorySongs.Add(count, songs = new List<SongEntry>());
+                    categorySongs.Add(bucket, songs = new List<SongEntry>());
                 }
 
                 InsertSorted(songs, song, comparer);
@@ -480,7 +481,11 @@ namespace YARG.Song
             int categoryIndex = 0;
             foreach ((int count, List<SongEntry> songs) in categorySongs)
             {
-                string category = count.ToString();
+                string category = count == 1
+                    ? Localize.Key("Menu.MusicLibrary.Sort.PlayCount.Singular")
+                    : Localize.KeyFormat(count < 10
+                        ? "Menu.MusicLibrary.Sort.PlayCount.Plural"
+                        : "Menu.MusicLibrary.Sort.PlayCount.Bucket", count);
                 categories[categoryIndex++] = new SongCategory(category, songs.ToArray(), category);
             }
 
@@ -491,6 +496,27 @@ namespace YARG.Song
             }
 
             return categories;
+        }
+
+        /// <summary>
+        /// Groups play counts logarithmically. Within each order of magnitude, buckets advance
+        /// by half of that magnitude from 1x through 5x, then by the full magnitude through 10x.
+        /// </summary>
+        private static int GetPlaycountBucket(int count)
+        {
+            if (count < 10)
+                return count;
+
+            long magnitude = 10;
+            while (count >= magnitude * 10)
+            {
+                magnitude *= 10;
+            }
+
+            long interval = count < magnitude * 5
+                ? magnitude / 2
+                : magnitude;
+            return (int) (count / interval * interval);
         }
 
         private static SongCategory[] GetStars()
