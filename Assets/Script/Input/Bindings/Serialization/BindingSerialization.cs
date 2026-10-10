@@ -14,6 +14,7 @@ using YARG.Audio;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
+using YARG.Helpers;
 using YARG.Input.Bindings;
 using YARG.Menu.ProfileList;
 using static YARG.Input.Serialization.SerializedBindingsV4;
@@ -97,7 +98,7 @@ namespace YARG.Input.Serialization
 
         public SerializedInputDevice(InputDevice device)
         {
-            BaseLayout = LayoutStrings.GetBaseLayout(device.layout);
+            BaseLayout = LayoutHelper.LayoutStringToSourceLayout(device.layout);
             Layout = device.layout;
             Hash = device.GetHash();
         }
@@ -195,7 +196,7 @@ namespace YARG.Input.Serialization
 
                 var bindings = version switch
                 {
-                    //0 => DeserializeBindingsV0(jObject),
+                    0 => DeserializeBindingsV0(jObject),
                     1 => DeserializeBindingsV1(jObject),
                     2 => DeserializeBindingsV2(jObject),
                     3 => DeserializeBindingsV3(jObject),
