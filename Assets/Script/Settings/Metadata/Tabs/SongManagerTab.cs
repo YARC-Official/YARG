@@ -18,6 +18,7 @@ namespace YARG.Settings.Metadata
 
         public override void BuildSettingTab(Transform settingContainer, NavigationGroup navGroup)
         {
+            // Only SongFolders uses a custom directory UI; other sections in this tab render standard metadata
             if (SettingsMenu.Instance.CurrentSection != "SongFolders")
             {
                 // Build the rest of the metadata

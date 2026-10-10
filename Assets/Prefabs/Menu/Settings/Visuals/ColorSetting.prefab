@@ -1159,7 +1159,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4420504316707193967, guid: 6f46741e648c07044852bd3391146600, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 100
+      value: 84
       objectReference: {fileID: 0}
     - target: {fileID: 4420504316707193967, guid: 6f46741e648c07044852bd3391146600, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1275,12 +1275,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _settingLabel: {fileID: 3424729177075475668}
   _evenBackground: {fileID: 3786693973871400430}
-  _advancedMarker: {fileID: 9042856458688905155}
   _colorRectangle: {fileID: 3009981232021390853}
   _inputField: {fileID: 6052348257469417757}
   _opacityField: {fileID: 7671639029682681352}
---- !u!1 &9042856458688905155 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 948307881895838089, guid: 6f46741e648c07044852bd3391146600, type: 3}
-  m_PrefabInstance: {fileID: 8095148824242519626}
-  m_PrefabAsset: {fileID: 0}

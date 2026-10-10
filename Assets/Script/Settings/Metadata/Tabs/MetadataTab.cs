@@ -4,7 +4,6 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
-using UnityEngine.UI;
 using YARG.Localization;
 using YARG.Menu.Navigation;
 using YARG.Menu.Settings;
@@ -119,14 +118,8 @@ namespace YARG.Settings.Metadata
 
                         var visual = SpawnSettingVisual(setting: setting, container: container);
                         visual.AssignSetting(field.FieldName, field.HasDescription);
-                        if (field.RequiresRescan)
-                        {
-                            var notice = Localize.Key("Menu.Settings.RequiresRescan");
-                            visual.SettingLabel.text += $"\n<size=70%><color=#829FAF>{notice}</color></size>";
-                        }
                         visual.AssignIndex(settingIndex);
                         visual.SetEditable(setting.IsEditable);
-                        ApplyRowLayout(visual);
 
                         _settingVisuals.Add(field.FieldName, visual);
                         navGroup.AddNavigatable(visual.gameObject);
@@ -135,68 +128,6 @@ namespace YARG.Settings.Metadata
                         break;
                     }
                 }
-            }
-        }
-
-        private static void ApplyRowLayout(BaseSettingVisual visual)
-        {
-            var row = (RectTransform) visual.transform;
-            row.sizeDelta = new Vector2(x: row.sizeDelta.x, y: 84f);
-            var controlFraction = visual is DMXChannelsSettingVisual ? 0.7f : 0.45f;
-            var controls = (RectTransform) row.Find("Container");
-            controls.anchorMin = new Vector2(x: 1f - controlFraction, y: 0f);
-            controls.anchorMax = Vector2.one;
-            controls.pivot = new Vector2(x: 1f, y: 0.5f);
-            controls.anchoredPosition = new Vector2(x: -25f, y: 0f);
-            controls.sizeDelta = new Vector2(x: -25f, y: 0f);
-
-            var label = visual.SettingLabel;
-            label.rectTransform.anchorMin = Vector2.zero;
-            label.rectTransform.anchorMax = new Vector2(x: 1f - controlFraction, y: 1f);
-            label.rectTransform.offsetMin = new Vector2(x: 25f, y: 8f);
-            label.rectTransform.offsetMax = new Vector2(x: -25f, y: -8f);
-            label.enableAutoSizing = true;
-            label.textWrappingMode = TextWrappingModes.NoWrap;
-            label.overflowMode = TextOverflowModes.Ellipsis;
-            label.fontSizeMax = 24f;
-            label.fontSizeMin = 18f;
-
-            foreach (var slider in visual.GetComponentsInChildren<YARG.Menu.ValueSlider>())
-            {
-                var track = (RectTransform) slider.GetComponentInChildren<Slider>().transform;
-                track.sizeDelta = new Vector2(x: -165f, y: track.sizeDelta.y);
-                track.anchoredPosition = new Vector2(x: -82.5f, y: 0f);
-                var value = slider.GetComponentInChildren<TMP_InputField>();
-                var entry = (RectTransform) value.transform.parent;
-                entry.anchorMin = new Vector2(x: 1f, y: 0f);
-                entry.anchorMax = Vector2.one;
-                entry.pivot = new Vector2(x: 1f, y: 0.5f);
-                entry.anchoredPosition = Vector2.zero;
-                entry.sizeDelta = new Vector2(x: 140f, y: 0f);
-                value.textComponent.enableAutoSizing = true;
-                value.textComponent.fontSizeMax = 28f;
-                value.textComponent.fontSizeMin = 18f;
-            }
-
-            if (visual is DMXChannelsSettingVisual)
-            {
-                foreach (var input in visual.GetComponentsInChildren<TMP_InputField>())
-                {
-                    input.textViewport.offsetMin = new Vector2(x: 8f, y: 7f);
-                    input.textViewport.offsetMax = new Vector2(x: -8f, y: -7f);
-                    input.textComponent.enableAutoSizing = true;
-                    input.textComponent.fontSizeMax = 24f;
-                    input.textComponent.fontSizeMin = 18f;
-                }
-            }
-
-            foreach (var dropdown in visual.GetComponentsInChildren<TMP_Dropdown>())
-            {
-                var caption = dropdown.captionText;
-                caption.enableAutoSizing = true;
-                caption.fontSizeMax = 28f;
-                caption.fontSizeMin = 18f;
-                caption.overflowMode = TextOverflowModes.Ellipsis;
             }
         }
 

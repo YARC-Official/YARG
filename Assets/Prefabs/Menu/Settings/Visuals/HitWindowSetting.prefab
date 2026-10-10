@@ -607,7 +607,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4420504316707193967, guid: 6f46741e648c07044852bd3391146600, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 100
+      value: 84
       objectReference: {fileID: 0}
     - target: {fileID: 4420504316707193967, guid: 6f46741e648c07044852bd3391146600, type: 3}
       propertyPath: m_LocalPosition.x
@@ -711,17 +711,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _settingLabel: {fileID: 3424729177075475668}
   _evenBackground: {fileID: 3786693973871400430}
-  _advancedMarker: {fileID: 9042856458688905155}
   _dynamicContainer: {fileID: 1586354057203421423}
   _constantContainer: {fileID: 3525017439092179544}
   _minField: {fileID: 6364425538196112323}
   _maxField: {fileID: 2593987423202954201}
   _constantField: {fileID: 8977277718312825675}
---- !u!1 &9042856458688905155 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 948307881895838089, guid: 6f46741e648c07044852bd3391146600, type: 3}
-  m_PrefabInstance: {fileID: 8095148824242519626}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &8157898341530990004
 PrefabInstance:
   m_ObjectHideFlags: 0

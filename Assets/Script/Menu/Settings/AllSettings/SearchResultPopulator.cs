@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using YARG.Helpers;
@@ -97,7 +97,6 @@ namespace YARG.Menu.Settings.AllSettings
                 resultObject.Initialize(localizedName: result.LocalizedName, tab: result.Tab,
                     searchName: result.SearchName, section: result.Section);
                 navGroup.AddNavigatable(resultObject);
-                SettingsItemVisual.Attach(resultObject);
             }
         }
 

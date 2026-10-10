@@ -84,6 +84,18 @@ PrefabInstance:
       propertyPath: m_OnEndEdit.m_PersistentCalls.m_Calls.Array.data[1].m_Arguments.m_ObjectArgumentAssemblyTypeName
       value: UnityEngine.Object, UnityEngine
       objectReference: {fileID: 0}
+    - target: {fileID: 6274164203294727049, guid: 8f25b12de267d7544aa2ff7993247fcd, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: -16
+      objectReference: {fileID: 0}
+    - target: {fileID: 7421987709479303017, guid: 8f25b12de267d7544aa2ff7993247fcd, type: 3}
+      propertyPath: m_fontSizeMax
+      value: 24
+      objectReference: {fileID: 0}
+    - target: {fileID: 7421987709479303017, guid: 8f25b12de267d7544aa2ff7993247fcd, type: 3}
+      propertyPath: m_enableAutoSizing
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7665614177142481491, guid: 8f25b12de267d7544aa2ff7993247fcd, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -276,6 +288,18 @@ PrefabInstance:
     - target: {fileID: 4722467204755374586, guid: 8f25b12de267d7544aa2ff7993247fcd, type: 3}
       propertyPath: m_OnEndEdit.m_PersistentCalls.m_Calls.Array.data[1].m_Arguments.m_ObjectArgumentAssemblyTypeName
       value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
+    - target: {fileID: 6274164203294727049, guid: 8f25b12de267d7544aa2ff7993247fcd, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: -16
+      objectReference: {fileID: 0}
+    - target: {fileID: 7421987709479303017, guid: 8f25b12de267d7544aa2ff7993247fcd, type: 3}
+      propertyPath: m_fontSizeMax
+      value: 24
+      objectReference: {fileID: 0}
+    - target: {fileID: 7421987709479303017, guid: 8f25b12de267d7544aa2ff7993247fcd, type: 3}
+      propertyPath: m_enableAutoSizing
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7665614177142481491, guid: 8f25b12de267d7544aa2ff7993247fcd, type: 3}
       propertyPath: m_Pivot.x
@@ -470,6 +494,18 @@ PrefabInstance:
       propertyPath: m_OnEndEdit.m_PersistentCalls.m_Calls.Array.data[1].m_Arguments.m_ObjectArgumentAssemblyTypeName
       value: UnityEngine.Object, UnityEngine
       objectReference: {fileID: 0}
+    - target: {fileID: 6274164203294727049, guid: 8f25b12de267d7544aa2ff7993247fcd, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: -16
+      objectReference: {fileID: 0}
+    - target: {fileID: 7421987709479303017, guid: 8f25b12de267d7544aa2ff7993247fcd, type: 3}
+      propertyPath: m_fontSizeMax
+      value: 24
+      objectReference: {fileID: 0}
+    - target: {fileID: 7421987709479303017, guid: 8f25b12de267d7544aa2ff7993247fcd, type: 3}
+      propertyPath: m_enableAutoSizing
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7665614177142481491, guid: 8f25b12de267d7544aa2ff7993247fcd, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -662,6 +698,18 @@ PrefabInstance:
     - target: {fileID: 4722467204755374586, guid: 8f25b12de267d7544aa2ff7993247fcd, type: 3}
       propertyPath: m_OnEndEdit.m_PersistentCalls.m_Calls.Array.data[1].m_Arguments.m_ObjectArgumentAssemblyTypeName
       value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
+    - target: {fileID: 6274164203294727049, guid: 8f25b12de267d7544aa2ff7993247fcd, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: -16
+      objectReference: {fileID: 0}
+    - target: {fileID: 7421987709479303017, guid: 8f25b12de267d7544aa2ff7993247fcd, type: 3}
+      propertyPath: m_fontSizeMax
+      value: 24
+      objectReference: {fileID: 0}
+    - target: {fileID: 7421987709479303017, guid: 8f25b12de267d7544aa2ff7993247fcd, type: 3}
+      propertyPath: m_enableAutoSizing
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7665614177142481491, guid: 8f25b12de267d7544aa2ff7993247fcd, type: 3}
       propertyPath: m_Pivot.x
@@ -856,6 +904,18 @@ PrefabInstance:
       propertyPath: m_OnEndEdit.m_PersistentCalls.m_Calls.Array.data[1].m_Arguments.m_ObjectArgumentAssemblyTypeName
       value: UnityEngine.Object, UnityEngine
       objectReference: {fileID: 0}
+    - target: {fileID: 6274164203294727049, guid: 8f25b12de267d7544aa2ff7993247fcd, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: -16
+      objectReference: {fileID: 0}
+    - target: {fileID: 7421987709479303017, guid: 8f25b12de267d7544aa2ff7993247fcd, type: 3}
+      propertyPath: m_fontSizeMax
+      value: 24
+      objectReference: {fileID: 0}
+    - target: {fileID: 7421987709479303017, guid: 8f25b12de267d7544aa2ff7993247fcd, type: 3}
+      propertyPath: m_enableAutoSizing
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7665614177142481491, guid: 8f25b12de267d7544aa2ff7993247fcd, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -1049,6 +1109,18 @@ PrefabInstance:
       propertyPath: m_OnEndEdit.m_PersistentCalls.m_Calls.Array.data[1].m_Arguments.m_ObjectArgumentAssemblyTypeName
       value: UnityEngine.Object, UnityEngine
       objectReference: {fileID: 0}
+    - target: {fileID: 6274164203294727049, guid: 8f25b12de267d7544aa2ff7993247fcd, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: -16
+      objectReference: {fileID: 0}
+    - target: {fileID: 7421987709479303017, guid: 8f25b12de267d7544aa2ff7993247fcd, type: 3}
+      propertyPath: m_fontSizeMax
+      value: 24
+      objectReference: {fileID: 0}
+    - target: {fileID: 7421987709479303017, guid: 8f25b12de267d7544aa2ff7993247fcd, type: 3}
+      propertyPath: m_enableAutoSizing
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7665614177142481491, guid: 8f25b12de267d7544aa2ff7993247fcd, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -1209,6 +1281,18 @@ PrefabInstance:
     - target: {fileID: 4722467204755374586, guid: 8f25b12de267d7544aa2ff7993247fcd, type: 3}
       propertyPath: m_OnEndEdit.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
       value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
+    - target: {fileID: 6274164203294727049, guid: 8f25b12de267d7544aa2ff7993247fcd, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: -16
+      objectReference: {fileID: 0}
+    - target: {fileID: 7421987709479303017, guid: 8f25b12de267d7544aa2ff7993247fcd, type: 3}
+      propertyPath: m_fontSizeMax
+      value: 24
+      objectReference: {fileID: 0}
+    - target: {fileID: 7421987709479303017, guid: 8f25b12de267d7544aa2ff7993247fcd, type: 3}
+      propertyPath: m_enableAutoSizing
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7665614177142481491, guid: 8f25b12de267d7544aa2ff7993247fcd, type: 3}
       propertyPath: m_Pivot.x
@@ -1403,6 +1487,18 @@ PrefabInstance:
       propertyPath: m_OnEndEdit.m_PersistentCalls.m_Calls.Array.data[1].m_Arguments.m_ObjectArgumentAssemblyTypeName
       value: UnityEngine.Object, UnityEngine
       objectReference: {fileID: 0}
+    - target: {fileID: 6274164203294727049, guid: 8f25b12de267d7544aa2ff7993247fcd, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: -16
+      objectReference: {fileID: 0}
+    - target: {fileID: 7421987709479303017, guid: 8f25b12de267d7544aa2ff7993247fcd, type: 3}
+      propertyPath: m_fontSizeMax
+      value: 24
+      objectReference: {fileID: 0}
+    - target: {fileID: 7421987709479303017, guid: 8f25b12de267d7544aa2ff7993247fcd, type: 3}
+      propertyPath: m_enableAutoSizing
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7665614177142481491, guid: 8f25b12de267d7544aa2ff7993247fcd, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -1558,7 +1654,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4420504316707193967, guid: 6f46741e648c07044852bd3391146600, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 100
+      value: 84
       objectReference: {fileID: 0}
     - target: {fileID: 4420504316707193967, guid: 6f46741e648c07044852bd3391146600, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1607,6 +1703,22 @@ PrefabInstance:
     - target: {fileID: 4420504316707193967, guid: 6f46741e648c07044852bd3391146600, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4519988491260517421, guid: 6f46741e648c07044852bd3391146600, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0.3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4519988491260517421, guid: 6f46741e648c07044852bd3391146600, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 25
+      objectReference: {fileID: 0}
+    - target: {fileID: 4519988491260517421, guid: 6f46741e648c07044852bd3391146600, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0.0000076293945
+      objectReference: {fileID: 0}
+    - target: {fileID: 8331225728328382101, guid: 6f46741e648c07044852bd3391146600, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0.3
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1686,7 +1798,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _settingLabel: {fileID: 3424729177075475668}
   _evenBackground: {fileID: 3786693973871400430}
-  _advancedMarker: {fileID: 9042856458688905155}
   _inputField:
   - {fileID: 1887982916101165759}
   - {fileID: 7173341596254397587}
@@ -1743,8 +1854,3 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
---- !u!1 &9042856458688905155 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 948307881895838089, guid: 6f46741e648c07044852bd3391146600, type: 3}
-  m_PrefabInstance: {fileID: 8095148824242519626}
-  m_PrefabAsset: {fileID: 0}

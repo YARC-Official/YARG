@@ -252,7 +252,6 @@ namespace YARG.Menu.Settings
                 var view = Instantiate(_sectionPrefab, _sectionsContainer);
                 view.Initialize(section.HeaderName);
                 _sectionsNavGroup.AddNavigatable(view);
-                SettingsItemVisual.Attach(view);
                 _sectionViews.Add(view);
             }
 
@@ -573,14 +572,6 @@ namespace YARG.Menu.Settings
             // Build the settings tab
             var tab = IsSearching ? SettingsManager.GetTabByName("AllSettings") : CurrentTab;
             tab?.BuildSettingTab(_settingsContainer, _settingsNavGroup);
-            var groups = _settingsContainer.GetComponentsInChildren<NavigationGroup>().Prepend(_settingsNavGroup);
-            foreach (var group in groups)
-            {
-                foreach (var navigatable in group.Navigatables)
-                {
-                    SettingsItemVisual.Attach(navigatable);
-                }
-            }
             var visuals = _settingsContainer.GetComponentsInChildren<BaseSettingVisual>();
             _settingName.transform.parent.gameObject.SetActive(visuals.Length > 0);
             Canvas.ForceUpdateCanvases();

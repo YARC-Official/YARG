@@ -8,16 +8,14 @@ namespace YARG.Settings.Metadata
 
         public string FieldName { get; }
         public bool HasDescription { get; } = true;
-        public bool RequiresRescan { get; }
 
         public FieldMetadata(string fieldName, bool hasDescription = true,
-            Func<bool> visibleWhen = null, bool requiresRescan = false)
+            Func<bool> visibleWhen = null)
             : base(visibleWhen)
         {
             UnlocalizedSearchNames = new[] { $"Setting.{fieldName}.Name" };
             FieldName = fieldName;
             HasDescription = hasDescription;
-            RequiresRescan = requiresRescan;
         }
     }
 }

@@ -99,9 +99,9 @@ namespace YARG.Settings
             {
                 new HeaderMetadata("SongFolders"),
                 new HeaderMetadata("ScanningOptions"),
-                new FieldMetadata(nameof(Settings.AllowDuplicateSongs), requiresRescan: true),
-                new FieldMetadata(nameof(Settings.UseFullDirectoryForPlaylists), requiresRescan: true),
-                new FieldMetadata(nameof(Settings.Genrelizer), requiresRescan: true),
+                nameof(Settings.AllowDuplicateSongs),
+                nameof(Settings.UseFullDirectoryForPlaylists),
+                nameof(Settings.Genrelizer),
                 new HeaderMetadata("LibraryDisplay"),
                 nameof(Settings.ShowFavoriteButton),
                 nameof(Settings.DifficultyRings),

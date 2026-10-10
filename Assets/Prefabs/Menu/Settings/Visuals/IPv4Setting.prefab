@@ -211,7 +211,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4420504316707193967, guid: 6f46741e648c07044852bd3391146600, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 100
+      value: 84
       objectReference: {fileID: 0}
     - target: {fileID: 4420504316707193967, guid: 6f46741e648c07044852bd3391146600, type: 3}
       propertyPath: m_LocalPosition.x
@@ -286,8 +286,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &3786693973871400430 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 4961476867242781604, guid: 6f46741e648c07044852bd3391146600, type: 3}
@@ -312,10 +312,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _settingLabel: {fileID: 3424729177075475668}
   _evenBackground: {fileID: 3786693973871400430}
-  _advancedMarker: {fileID: 9042856458688905155}
   _inputField: {fileID: 1887982916101165759}
---- !u!1 &9042856458688905155 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 948307881895838089, guid: 6f46741e648c07044852bd3391146600, type: 3}
-  m_PrefabInstance: {fileID: 8095148824242519626}
-  m_PrefabAsset: {fileID: 0}
