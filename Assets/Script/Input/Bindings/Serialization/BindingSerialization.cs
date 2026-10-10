@@ -110,9 +110,6 @@ namespace YARG.Input.Serialization
 
     public class SerializedSingleBinding
     {
-        [Obsolete]
-        public string ControlPath = string.Empty;
-
         public string SourceLayout;
 
         public string ControlName;
