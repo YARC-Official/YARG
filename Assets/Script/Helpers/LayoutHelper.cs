@@ -89,6 +89,23 @@ namespace YARG.Helpers
             return LayoutStringToControllerFamily(device.layout);
         }
 
+        public static string LayoutStringToSourceLayout(string layout)
+        {
+            return LayoutStringToControllerFamily(layout) switch {
+                ControllerFamily.FiveFretGuitar => LayoutStrings.FIVE_FRET_GUITAR,
+                ControllerFamily.SixFretGuitar => LayoutStrings.SIX_FRET_GUITAR,
+                ControllerFamily.FourLaneDrumkit => LayoutStrings.FOUR_LANE_DRUMKIT,
+                ControllerFamily.FiveLaneDrumkit => LayoutStrings.FIVE_LANE_DRUMKIT,
+                ControllerFamily.ProKeyboard => LayoutStrings.PRO_KEYBOARD,
+                ControllerFamily.ProGuitar => LayoutStrings.PRO_GUITAR,
+                ControllerFamily.ComputerKeyboard => LayoutStrings.KEYBOARD,
+                ControllerFamily.Mouse => LayoutStrings.MOUSE,
+                ControllerFamily.Gamepad => LayoutStrings.GAMEPAD,
+                ControllerFamily.MidiDevice => LayoutStrings.MIDI_DEVICE,
+                _ => layout,
+            };
+        }
+
         public static ControllerFamily LayoutStringToControllerFamily(string layout)
         {
             switch (layout)

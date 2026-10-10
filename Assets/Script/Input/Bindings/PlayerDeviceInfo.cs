@@ -115,11 +115,9 @@ namespace YARG.Input
                 List<GameMode> modesToRemove = new();
                 foreach (var (mode, modeMappings) in serialized.ModeMappings)
                 {
-                    foreach (var (baseLayout, bindings) in modeMappings.MappingsByBaseLayout)
+                    foreach (var (controllerFamily, bindings) in modeMappings.MappingsByControllerFamily)
                     {
-                        var controllerFamily = LayoutHelper.LayoutStringToControllerFamily(baseLayout);
-
-                        if (modeMappings.MappingsByBaseLayout.TryGetValue(baseLayout, out var bindingSetGuid))
+                        if (modeMappings.MappingsByControllerFamily.TryGetValue(controllerFamily, out var bindingSetGuid))
                         {
                             if (BindingsContainer.TryGetBindingCollectionById(bindingSetGuid, out var modeMapping))
                             {
@@ -176,8 +174,7 @@ namespace YARG.Input
                     serialized.ModeMappings[mode] = new();
                 }
 
-                var baseLayout = LayoutHelper.ControllerFamilyToLayoutString(controllerFamily);
-                serialized.ModeMappings[mode].MappingsByBaseLayout[baseLayout] = bindingSet.Guid;
+                serialized.ModeMappings[mode].MappingsByControllerFamily[controllerFamily] = bindingSet.Guid;
             }
 
             return serialized;

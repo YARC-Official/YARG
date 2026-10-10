@@ -15,6 +15,7 @@ using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
 using YARG.Input.Bindings;
+using YARG.Menu.ProfileList;
 using static YARG.Input.Serialization.SerializedBindingsV4;
 
 #nullable enable
@@ -52,22 +53,23 @@ namespace YARG.Input.Serialization
 
     public class SerializedModeMappingCollection
     {
-        public Dictionary<string, Guid> MappingsByBaseLayout = new();
+        public Dictionary<ControllerFamily, Guid> MappingsByControllerFamily = new();
     }
 
     public class SerializedReusableBindingSet
     {
-        public SerializedReusableBindingSet(string name, string baseLayout)
+        public SerializedReusableBindingSet(string name, ControllerFamily family, GameMode mode)
         {
             Name = name;
-            BaseLayout = baseLayout;
+            Family = family;
+            Mode = mode;
         }
 
         public string Name;
         public Guid? Guid;
         public int? Version;
-        public GameMode GameMode;
-        public string BaseLayout;
+        public GameMode Mode;
+        public ControllerFamily Family;
 
         // Key is binding name, like "FiveFret.Green" or "FourDrums.RedPad"
         // These names come from BindingCollection.Templates.cs; they are YARG's, not PlasticBand's
@@ -200,7 +202,7 @@ namespace YARG.Input.Serialization
                     //0 => DeserializeBindingsV0(jObject),
                     //1 => DeserializeBindingsV1(jObject),
                     //2 => DeserializeBindingsV2(jObject),
-                    //3 => DeserializeBindingsV3(jObject),
+                    3 => DeserializeBindingsV3(jObject),
                     4 => DeserializeBindingsV4(jObject),
                     _ => throw new NotImplementedException($"Unhandled bindings version {version}!")
                 };

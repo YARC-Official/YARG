@@ -3,10 +3,8 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using YARG.Core;
-using YARG.Core.Audio;
-using YARG.Core.Logging;
+using YARG.Menu.ProfileList;
 
 namespace YARG.Input.Serialization
 {
@@ -110,16 +108,16 @@ namespace YARG.Input.Serialization
 
         public class SerializedModeMappingCollectionV4
         {
-            public Dictionary<string, Guid> MappingsByBaseLayout = new();
+            public Dictionary<ControllerFamily, Guid> MappingsByControllerFamily = new();
 
             [JsonConstructor]
             public SerializedModeMappingCollectionV4() { }
 
             public SerializedModeMappingCollectionV4(SerializedModeMappingCollection serialized)
             {
-                foreach (var (baseLayout, bindingSetGuid) in serialized.MappingsByBaseLayout)
+                foreach (var (family, bindingSetGuid) in serialized.MappingsByControllerFamily)
                 {
-                    MappingsByBaseLayout[baseLayout] = bindingSetGuid;
+                    MappingsByControllerFamily[family] = bindingSetGuid;
                 }
             }
 
@@ -127,9 +125,9 @@ namespace YARG.Input.Serialization
             {
                 var deserialized = new SerializedModeMappingCollection();
 
-                foreach (var (baseLayout, serializedBindingCollection) in MappingsByBaseLayout)
+                foreach (var (family, serializedBindingCollection) in MappingsByControllerFamily)
                 {
-                    deserialized.MappingsByBaseLayout[baseLayout] = serializedBindingCollection;
+                    deserialized.MappingsByControllerFamily[family] = serializedBindingCollection;
                 }
 
                 return deserialized;
@@ -142,7 +140,7 @@ namespace YARG.Input.Serialization
             public int? Version; // Populated only in single-set export files
             public Dictionary<string, SerializedControlBindingV4> Bindings = new();
             public GameMode GameMode;
-            public string BaseLayout;
+            public ControllerFamily Family;
 
             [JsonConstructor]
             public SerializedReusableBindingSetV4() { }
@@ -150,8 +148,8 @@ namespace YARG.Input.Serialization
             public SerializedReusableBindingSetV4(SerializedReusableBindingSet serialized)
             {
                 Name = serialized.Name;
-                GameMode = serialized.GameMode;
-                BaseLayout = serialized.BaseLayout;
+                GameMode = serialized.Mode;
+                Family = serialized.Family;
 
                 foreach (var (id, serializedBindings) in serialized.Bindings)
                 {
@@ -161,8 +159,7 @@ namespace YARG.Input.Serialization
 
             public SerializedReusableBindingSet Deserialize(Guid guid)
             {
-                var converted = new SerializedReusableBindingSet(Name, BaseLayout) {
-                    GameMode = GameMode,
+                var converted = new SerializedReusableBindingSet(Name, Family, GameMode) {
                     Guid = guid
                 };
 
