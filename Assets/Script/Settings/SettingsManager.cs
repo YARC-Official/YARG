@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -293,6 +293,8 @@ namespace YARG.Settings
                 new HeaderMetadata("Other"),
                 nameof(Settings.BandComboTypeSetting),
                 nameof(Settings.DataStreamEnable),
+                nameof(Settings.StreakCounter),
+                nameof(Settings.Judgement),
                 nameof(Settings.SaveScoresWithBots),
                 new HeaderMetadata("Accessibility"),
                 nameof(Settings.FontScaling),
