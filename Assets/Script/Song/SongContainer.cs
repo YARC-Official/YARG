@@ -465,19 +465,35 @@ namespace YARG.Song
                 InsertSorted(songs, song, comparer);
             }
 
-            // Collect all unplayed songs into one group, sorted by intensity and title.
-            var zeroPlaySongs = new List<SongEntry>();
-            foreach (SongEntry song in _songs)
+            // Keep unplayed songs grouped and sorted by the previous library sort.
+            var zeroPlayCategories = new List<SongCategory>();
+            SortAttribute previousSort = SettingsManager.Settings.PreviousLibrarySort;
+            if (previousSort == SortAttribute.Unspecified)
             {
-                if (!counts.ContainsKey(song))
+                previousSort = SortAttribute.Name;
+            }
+
+            foreach (SongCategory category in GetSortedCategory(previousSort))
+            {
+                var zeroPlaySongs = new List<SongEntry>();
+                foreach (SongEntry song in category.Songs)
                 {
-                    InsertSorted(zeroPlaySongs, song, comparer);
+                    if (!counts.ContainsKey(song))
+                    {
+                        zeroPlaySongs.Add(song);
+                    }
+                }
+
+                if (zeroPlaySongs.Count > 0)
+                {
+                    zeroPlayCategories.Add(new SongCategory(category.Category,
+                        zeroPlaySongs.ToArray(), category.CategoryGroup));
                 }
             }
 
-            var categories = new SongCategory[categorySongs.Count + (zeroPlaySongs.Count > 0 ? 1 : 0)];
+            var categories = new SongCategory[categorySongs.Count + zeroPlayCategories.Count];
 
-            // Build one category for every exact play count, highest first.
+            // Build the played categories, highest first.
             int categoryIndex = 0;
             foreach ((int count, List<SongEntry> songs) in categorySongs)
             {
@@ -489,10 +505,9 @@ namespace YARG.Song
                 categories[categoryIndex++] = new SongCategory(category, songs.ToArray(), category);
             }
 
-            if (zeroPlaySongs.Count > 0)
+            foreach (SongCategory category in zeroPlayCategories)
             {
-                string label = Localize.Key("Menu.MusicLibrary.Sort.Unplayed");
-                categories[categoryIndex] = new SongCategory(label, zeroPlaySongs.ToArray(), label);
+                categories[categoryIndex++] = category;
             }
 
             return categories;
@@ -689,7 +704,8 @@ namespace YARG.Song
         {
             var shuffled = new List<SongEntry>(_songs);
             shuffled.Shuffle();
-            return new[] { new SongCategory(string.Empty, shuffled.ToArray(), null) };
+            string category = SortAttribute.Random.ToLocalizedName();
+            return new[] { new SongCategory(category, shuffled.ToArray(), category) };
         }
 
         private static SongCategory[] GetPercentage()
