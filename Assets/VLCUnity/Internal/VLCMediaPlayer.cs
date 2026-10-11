@@ -80,9 +80,13 @@ namespace LibVLCSharp
         private int _cachedVolume = 100;
 
         private Texture2D _vlcTexture = null;
+        private bool _usesDirectVulkanOutput;
         private VLCAudioSource _vlcAudioSource;
 
         private readonly ConcurrentQueue<Action> _mainThreadActions = new();
+
+        [Tooltip("Invoked when the texture receives new data.")]
+        public event Action OnFrameGenerated;
 
         #region unity
         private void Awake()
@@ -136,15 +140,28 @@ namespace LibVLCSharp
             if (width == 0 || height == 0)
                 return;
 
-            if (_vlcTexture == null || _vlcTexture.width != width || _vlcTexture.height != height)
+            bool wantsDirectVulkanOutput =
+                TextureHelper.IsVulkanTexturePathActive() &&
+                !flipTextureX && !flipTextureY;
+            Texture activeTexture = _usesDirectVulkanOutput
+                ? OutputTexture
+                : _vlcTexture;
+            if (activeTexture == null || activeTexture.width != width ||
+                activeTexture.height != height ||
+                wantsDirectVulkanOutput != _usesDirectVulkanOutput)
                 ResizeOutputTextures(width, height);
 
-            if (_vlcTexture != null)
+            if (_usesDirectVulkanOutput)
+            {
+                TextureHelper.UpdateVulkanTexture(OutputTexture, MediaPlayer);
+            }
+            else if (_vlcTexture != null)
             {
                 if (TextureHelper.UpdateTexture(_vlcTexture, MediaPlayer))
                 {
                     var flip = new Vector2(flipTextureX ? -1 : 1, flipTextureY ? -1 : 1);
                     Graphics.Blit(_vlcTexture, OutputTexture, flip, Vector2.zero); // If you wanted to do post processing outside of VLC you could use a shader here.
+                    OnFrameGenerated?.Invoke();
                 }
             }
         }
@@ -153,8 +170,15 @@ namespace LibVLCSharp
         {
             CancelPreload();
 
-            DestroyMediaPlayer();
+#if UNITY_EDITOR
+            // Exiting Play Mode owns all runtime-created Unity objects. Calling
+            // Destroy here defers their destruction into the next Editor frame,
+            // where it can overlap the next Play Mode texture generation.
+            DestroyTextures(!VLCEditorPlayModeLifecycle.IsExitingPlayMode);
+#else
             DestroyTextures();
+#endif
+            DestroyMediaPlayer();
         }
         #endregion
 
@@ -165,7 +189,8 @@ namespace LibVLCSharp
 
             var trimmedPath = mediaPath.Trim(new char[] { '"' });
             var finalOptions = options?.Length > 0 ? options : mediaOptions;
-            MediaPlayer.Media = new Media(new Uri(trimmedPath), finalOptions);
+            using var media = new Media(new Uri(trimmedPath), finalOptions);
+            MediaPlayer.Media = media;
             Play();
         }
 
@@ -174,9 +199,11 @@ namespace LibVLCSharp
             PrepareForNewMedia(path);
 
             var finalOptions = options?.Length > 0 ? options : mediaOptions;
-            var media = await CreateAndParseMediaAsync(mediaPath, false, finalOptions);
+            using var media = await CreateAndParseMediaAsync(mediaPath, false, finalOptions);
+            using var subItems = media.SubItems;
+            using var selected = subItems?.FirstOrDefault();
 
-            MediaPlayer.Media = media.SubItems.FirstOrDefault() ?? media;
+            MediaPlayer.Media = selected ?? media;
             Play();
         }
 
@@ -207,15 +234,14 @@ namespace LibVLCSharp
 
             try
             {
-                Media media = await CreateAndParseMediaAsync(path, true, finalOptions);
+                using var media = await CreateAndParseMediaAsync(path, true, finalOptions);
 
                 if (_backgroundNativePlayer != player)
-                {
-                    media?.Dispose();
                     return;
-                }
 
-                player.Media = media.SubItems.FirstOrDefault() ?? media;
+                using var subItems = media.SubItems;
+                using var selected = subItems?.FirstOrDefault();
+                player.Media = selected ?? media;
                 player.Play();
             }
             catch (Exception ex)
@@ -254,7 +280,14 @@ namespace LibVLCSharp
                 return;
             }
 
-            if (CurrentPreloadState == PreloadState.Preparing && _backgroundNativePlayer.Media == null)
+            bool mediaIsStillPreparing = false;
+            if (CurrentPreloadState == PreloadState.Preparing)
+            {
+                using var backgroundMedia = _backgroundNativePlayer.Media;
+                mediaIsStillPreparing = backgroundMedia == null;
+            }
+
+            if (mediaIsStillPreparing)
             {
                 Log("Swap requested before parsing finished. Falling back to OpenAsync.");
                 var path = PreloadedMediaPath;
@@ -266,6 +299,9 @@ namespace LibVLCSharp
 
             Log("Swapping to preloaded video: " + PreloadedMediaPath);
 
+            // Keep the old external texture alive until Unity has released its
+            // wrapper, then retire the native renderer that owns the GL name.
+            DestroyTextures();
             DestroyMediaPlayer();
 
             MediaPlayer = _backgroundNativePlayer;
@@ -285,7 +321,6 @@ namespace LibVLCSharp
             _preloadedOptions = Array.Empty<string>();
             CurrentPreloadState = PreloadState.None;
 
-            DestroyTextures();
             MediaPlayer.SetVolume(_cachedVolume);
 
             MediaPlayer.Play();
@@ -340,16 +375,30 @@ namespace LibVLCSharp
         public int Volume => MediaPlayer != null ? MediaPlayer.Volume : 0;
         public bool IsPlaying => MediaPlayer != null && MediaPlayer.IsPlaying;
         /// <summary>Gets the media duration in milliseconds.</summary>
-        public long Duration => (MediaPlayer != null && MediaPlayer.Media != null) ? FromLibVLCTime(MediaPlayer.Media.Duration) : 0;
+        public long Duration
+        {
+            get
+            {
+                using var media = MediaPlayer?.Media;
+                return media == null ? 0 : FromLibVLCTime(media.Duration);
+            }
+        }
 
         /// <summary>Gets the current playback time in milliseconds.</summary>
         public long Time => MediaPlayer != null ? FromLibVLCTime(MediaPlayer.Time) : 0;
 
+        /// <summary>
+        /// Gets the requested native tracks. The caller must dispose every
+        /// returned <see cref="MediaTrack"/>.
+        /// </summary>
         public List<MediaTrack> Tracks(TrackType type)
         {
             return ConvertMediaTrackList(MediaPlayer?.Tracks(type));
         }
 
+        /// <summary>
+        /// Gets the selected native track. The caller must dispose the result.
+        /// </summary>
         public MediaTrack SelectedTrack(TrackType type)
         {
             return MediaPlayer?.SelectedTrack(type);
@@ -369,14 +418,14 @@ namespace LibVLCSharp
 
         public VideoOrientation? GetVideoOrientation()
         {
-            var tracks = MediaPlayer?.Tracks(TrackType.Video);
+            using var tracks = MediaPlayer?.Tracks(TrackType.Video);
 
             if (tracks == null || tracks.Count == 0)
                 return null;
 
-            var orientation = tracks[0]?.Data.Video.Orientation; // At the moment we're assuming the track we're playing is the first track
-
-            return orientation;
+            using var track = tracks[0];
+            // At the moment we're assuming the track we're playing is the first track.
+            return track?.Data.Video.Orientation;
         }
         #endregion
 
@@ -426,8 +475,10 @@ namespace LibVLCSharp
 
         private void DestroyMediaPlayer()
         {
-            MediaPlayer?.Stop();
-            MediaPlayer?.Dispose();
+            if (MediaPlayer == null)
+                return;
+            MediaPlayer.Stop();
+            MediaPlayer.Dispose();
             MediaPlayer = null;
         }
 
@@ -464,6 +515,18 @@ namespace LibVLCSharp
             if (GetVideoOrientation() == VideoOrientation.BottomRight)
                 (py, px) = (px, py);
 
+            if (!flipTextureX && !flipTextureY &&
+                TextureHelper.IsVulkanTexturePathActive())
+            {
+                OutputTexture = TextureHelper.CreateDirectVulkanOutput(MediaPlayer);
+                if (OutputTexture != null)
+                {
+                    _usesDirectVulkanOutput = true;
+                    OnTextureResized?.Invoke(OutputTexture);
+                    return;
+                }
+            }
+
             _vlcTexture = TextureHelper.CreateNativeTexture(MediaPlayer, linear: true);
 
             if (_vlcTexture != null)
@@ -475,22 +538,33 @@ namespace LibVLCSharp
             }
         }
 
-        private void DestroyTextures()
+        private void DestroyTextures(bool destroyUnityObjects = true)
         {
+            // Remove the texture from UGUI/mesh consumers before scheduling
+            // either Unity or plugin-owned graphics resources for retirement.
+            // This is especially important while the Editor is leaving Play
+            // Mode: its final GUI repaint can otherwise retain the old native
+            // texture pointer after OnDestroy has run.
+            if (OutputTexture != null || _vlcTexture != null)
+                OnTextureResized?.Invoke(null);
+
             if (OutputTexture != null)
             {
                 if (RenderTexture.active == OutputTexture)
                     RenderTexture.active = null;
-                OutputTexture.Release();
-                DestroyImmediate(OutputTexture);
+
+                if (destroyUnityObjects)
+                    Destroy(OutputTexture);
                 OutputTexture = null;
             }
 
             if (_vlcTexture != null)
             {
-                DestroyImmediate(_vlcTexture);
+                if (destroyUnityObjects)
+                    Destroy(_vlcTexture);
                 _vlcTexture = null;
             }
+            _usesDirectVulkanOutput = false;
         }
 
         private void AttachMainPlayerEvents(MediaPlayer player)
@@ -536,9 +610,16 @@ namespace LibVLCSharp
                 media.AddOption(":start-paused");
 
             var parseOptions = uri.IsFile ? MediaParseOptions.ParseLocal : MediaParseOptions.ParseNetwork;
-            await media.ParseAsync(LibVLC, parseOptions);
-
-            return media;
+            try
+            {
+                await media.ParseAsync(LibVLC, parseOptions);
+                return media;
+            }
+            catch
+            {
+                media.Dispose();
+                throw;
+            }
         }
 
         private void OnBackgroundPlayerReady(object sender, EventArgs e)
@@ -596,12 +677,13 @@ namespace LibVLCSharp
             if (tracklist == null)
                 return new List<MediaTrack>();
 
-            var tracks = new List<MediaTrack>((int)tracklist.Count);
-            for (uint i = 0; i < tracklist.Count; i++)
+            using (tracklist)
             {
-                tracks.Add(tracklist[i]);
+                var tracks = new List<MediaTrack>((int)tracklist.Count);
+                for (uint i = 0; i < tracklist.Count; i++)
+                    tracks.Add(tracklist[i]);
+                return tracks;
             }
-            return tracks;
         }
 
         private void Log(object message)
@@ -611,4 +693,31 @@ namespace LibVLCSharp
         }
         #endregion
     }
+
+#if UNITY_EDITOR
+    [UnityEditor.InitializeOnLoad]
+    static class VLCEditorPlayModeLifecycle
+    {
+        internal static bool IsExitingPlayMode { get; private set; }
+
+        static VLCEditorPlayModeLifecycle()
+        {
+            UnityEditor.EditorApplication.playModeStateChanged += OnStateChanged;
+        }
+
+        static void OnStateChanged(UnityEditor.PlayModeStateChange state)
+        {
+            switch (state)
+            {
+                case UnityEditor.PlayModeStateChange.ExitingPlayMode:
+                    IsExitingPlayMode = true;
+                    break;
+                case UnityEditor.PlayModeStateChange.EnteredEditMode:
+                case UnityEditor.PlayModeStateChange.EnteredPlayMode:
+                    IsExitingPlayMode = false;
+                    break;
+            }
+        }
+    }
+#endif
 }
