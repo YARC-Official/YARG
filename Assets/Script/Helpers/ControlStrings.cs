@@ -40,8 +40,26 @@ namespace YARG.Helpers
         public const string GAMEPAD_DPAD_RIGHT = "dpad/right";
 
 
+        public const string GUITAR_STRUM_UP = "strumUp";
+        public const string GUITAR_STRUM_DOWN = "strumDown";
         public const string GUITAR_WHAMMY = "whammy";
         public const string GUITAR_TILT = "tilt";
+        public const string GUITAR_5F_GREEN_FRET = "greenFret";
+        public const string GUITAR_5F_RED_FRET = "redFret";
+        public const string GUITAR_5F_YELLOW_FRET = "yellowFret";
+        public const string GUITAR_5F_BLUE_FRET = "blueFret";
+        public const string GUITAR_5F_ORANGE_FRET = "orangeFret";
+        public const string GUITAR_5F_SOLO_GREEN_FRET = "soloGreen";
+        public const string GUITAR_5F_SOLO_RED_FRET = "soloRed";
+        public const string GUITAR_5F_SOLO_YELLOW_FRET = "soloYellow";
+        public const string GUITAR_5F_SOLO_BLUE_FRET = "soloBlue";
+        public const string GUITAR_5F_SOLO_ORANGE_FRET = "soloOrange";
+        public const string GUITAR_5F_TOUCH_GREEN = "touchGreen";
+        public const string GUITAR_5F_TOUCH_RED = "touchRed";
+        public const string GUITAR_5F_TOUCH_YELLOW = "touchYellow";
+        public const string GUITAR_5F_TOUCH_BLUE = "touchBlue";
+        public const string GUITAR_5F_TOUCH_ORANGE = "touchOrange";
+        public const string GUITAR_SP_PEDAL = "spPedal";
         public const string GUITAR_6F_BLACK_1 = "black1";
         public const string GUITAR_6F_BLACK_2 = "black2";
         public const string GUITAR_6F_BLACK_3 = "black3";
