@@ -16,12 +16,18 @@ namespace YARG.Menu.Settings
         private const float ANIM_DURATION = 0.15f;
         private const float FADE_DURATION = 0.12f;
 
-        [Serializable]
-        public struct CategoryInfo
+        public readonly struct CategoryInfo
         {
-            public string Id;
-            public string DisplayName;
-            public Sprite Icon;
+            public CategoryInfo(string id, string displayName, Sprite icon)
+            {
+                Id = id;
+                DisplayName = displayName;
+                Icon = icon;
+            }
+
+            public readonly string Id;
+            public readonly string DisplayName;
+            public readonly Sprite Icon;
         }
 
         [SerializeField]
@@ -72,9 +78,8 @@ namespace YARG.Menu.Settings
             _views.Clear();
             NavigationGroup.ClearNavigatables();
 
-            for (var i = 0; i < categories.Count; i++)
+            foreach (var info in categories)
             {
-                var info = categories[i];
                 var view = Instantiate(_itemPrefab, _container);
                 NavigationGroup.AddNavigatable(view);
                 view.Initialize(info.Id, info.DisplayName, info.Icon);
@@ -122,9 +127,9 @@ namespace YARG.Menu.Settings
             if (!animate)
             {
                 _layoutElement.preferredWidth = targetWidth;
-                for (var i = 0; i < _views.Count; i++)
+                foreach (var view in _views)
                 {
-                    _views[i].SetLabelAlpha(targetAlpha, 0f);
+                    view.SetLabelAlpha(targetAlpha, 0f);
                 }
                 return;
             }
@@ -134,9 +139,9 @@ namespace YARG.Menu.Settings
                 .SetUpdate(true)
                 .SetLink(gameObject);
 
-            for (var i = 0; i < _views.Count; i++)
+            foreach (var view in _views)
             {
-                _views[i].SetLabelAlpha(targetAlpha, FADE_DURATION);
+                view.SetLabelAlpha(targetAlpha, FADE_DURATION);
             }
         }
 
@@ -154,9 +159,9 @@ namespace YARG.Menu.Settings
 
         private void UpdateMarkers(string currentId)
         {
-            for (var i = 0; i < _views.Count; i++)
+            foreach (var view in _views)
             {
-                _views[i].SetCurrent(_views[i].CategoryId == currentId);
+                view.SetCurrent(view.CategoryId == currentId);
             }
         }
 

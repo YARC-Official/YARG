@@ -17,7 +17,7 @@ namespace YARG.Settings.Metadata
         private static GameObject _buttonPrefab;
         private static GameObject _textPrefab;
 
-        private Dictionary<string, BaseSettingVisual> _settingVisuals = new();
+        private readonly Dictionary<string, BaseSettingVisual> _settingVisuals = new();
         private readonly List<AbstractMetadata> _settings = new();
 
         public IReadOnlyList<AbstractMetadata> Settings => _settings;

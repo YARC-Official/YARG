@@ -49,7 +49,7 @@ namespace YARG.Menu.Settings.Visuals
                 dropdown.captionText.fontSizeMax = CAPTION_FONT_MAX;
             }
 
-            if (_placeholder != null && alignRight)
+            if (alignRight)
             {
                 _placeholder.textWrappingMode = TextWrappingModes.NoWrap;
                 _placeholder.fontSizeMin = CAPTION_FONT_MIN;

@@ -271,6 +271,7 @@ namespace YARG.Menu.ProfileList
                 if (PlayerContainer.IsDeviceTaken(device)) continue;
 
                 inputDeviceCount++;
+                // Only Windows awaits the XInput mode prompt.
 #if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
                 dialog.AddListButton(device.displayName, async () =>
 #else

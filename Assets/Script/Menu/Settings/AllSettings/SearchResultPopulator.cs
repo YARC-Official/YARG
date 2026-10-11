@@ -11,12 +11,20 @@ namespace YARG.Menu.Settings.AllSettings
 {
     public class SearchResultPopulator : MonoBehaviour
     {
-        private struct SearchResult
+        private readonly struct SearchResult
         {
-            public string Tab;
-            public string SearchName;
-            public string LocalizedName;
-            public string Section;
+            public SearchResult(string tab, string searchName, string localizedName, string section)
+            {
+                Tab = tab;
+                SearchName = searchName;
+                LocalizedName = localizedName;
+                Section = section;
+            }
+
+            public readonly string Tab;
+            public readonly string SearchName;
+            public readonly string LocalizedName;
+            public readonly string Section;
         }
 
         private const float WAIT_TIME = 0.25f;
@@ -26,18 +34,16 @@ namespace YARG.Menu.Settings.AllSettings
         [SerializeField]
         private SettingSearchResult _resultPrefab;
 
-        private Coroutine _coroutine;
-
         public void Initialize(string query, Transform container, NavigationGroup navGroup)
         {
-            _coroutine = StartCoroutine(SearchCoroutine(query, container, navGroup));
+            StartCoroutine(SearchCoroutine(query, container, navGroup));
         }
 
         private IEnumerator SearchCoroutine(string query, Transform container, NavigationGroup navGroup)
         {
             yield return new WaitForSeconds(WAIT_TIME);
 
-            query = query.ToLowerInvariant();
+            var normalizedQuery = query.ToLowerInvariant();
 
             var results = new List<SearchResult>();
             foreach (var tab in SettingsManager.AllSettingsTabs)
@@ -67,15 +73,10 @@ namespace YARG.Menu.Settings.AllSettings
                     foreach (var unlocalized in unlocalizedSearch)
                     {
                         var localized = Localize.Key("Settings", unlocalized);
-                        if (localized.ToLowerInvariant().Contains(query))
+                        if (localized.ToLowerInvariant().Contains(normalizedQuery))
                         {
-                            results.Add(new SearchResult
-                            {
-                                Tab = tab.Name,
-                                SearchName = unlocalized,
-                                LocalizedName = localized,
-                                Section = section
-                            });
+                            results.Add(new SearchResult(tab: tab.Name, searchName: unlocalized,
+                                localizedName: localized, section: section));
                             break;
                         }
                     }
@@ -98,11 +99,6 @@ namespace YARG.Menu.Settings.AllSettings
                     searchName: result.SearchName, section: result.Section);
                 navGroup.AddNavigatable(resultObject);
             }
-        }
-
-        public void OnDestroy()
-        {
-            StopCoroutine(_coroutine);
         }
     }
 }

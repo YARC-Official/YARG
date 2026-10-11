@@ -47,8 +47,6 @@ namespace YARG.Menu.Settings
         private GameObject _sectionsPanel;
         [SerializeField]
         private GameObject _previewPanel;
-        [SerializeField]
-        private RectTransform _previewHeader;
 
         [Space]
         [SerializeField]
@@ -137,11 +135,6 @@ namespace YARG.Menu.Settings
 
         protected override void SingletonAwake()
         {
-            if (_previewHeader == null && _previewPanel != null)
-            {
-                _previewHeader = (RectTransform) _previewPanel.transform.Find("Header");
-            }
-
             // Settings menu defaults to active so that it will be initialized at startup
             gameObject.SetActive(false);
 
@@ -175,12 +168,8 @@ namespace YARG.Menu.Settings
                 // Load the tab sprite
                 var sprite = Addressables.LoadAssetAsync<Sprite>($"TabIcons[{tab.Icon}]").WaitForCompletion();
 
-                categories.Add(new CategorySidebar.CategoryInfo
-                {
-                    Icon = sprite,
-                    Id = tab.Name,
-                    DisplayName = Localize.Key("Settings.Tab", tab.Name)
-                });
+                categories.Add(new CategorySidebar.CategoryInfo(id: tab.Name,
+                    displayName: Localize.Key("Settings.Tab", tab.Name), icon: sprite));
             }
 
             _categorySidebar.SetCategories(categories);
@@ -294,9 +283,9 @@ namespace YARG.Menu.Settings
 
         private void UpdateSectionMarkers()
         {
-            for (var i = 0; i < _sectionViews.Count; i++)
+            foreach (var view in _sectionViews)
             {
-                _sectionViews[i].SetCurrent(_sectionViews[i].Section == CurrentSection);
+                view.SetCurrent(view.Section == CurrentSection);
             }
         }
 
@@ -617,6 +606,7 @@ namespace YARG.Menu.Settings
         private void UpdateLayout()
         {
             var hasPreview = !IsSearching && CurrentTab != null && CurrentTab.HasPreview;
+            var previewHeader = (RectTransform) _previewPanel.transform.Find("Header");
             _previewPanel.SetActive(true);
             _previewPanel.GetComponent<LayoutElement>().preferredWidth = CurrentTab is PresetsTab
                 ? 800f
@@ -625,22 +615,19 @@ namespace YARG.Menu.Settings
                     : 440f;
             _previewContainerUI.gameObject.SetActive(hasPreview);
 
-            if (_previewHeader != null)
+            if (hasPreview)
             {
-                if (hasPreview)
-                {
-                    _previewHeader.anchorMin = new Vector2(0f, 1f);
-                    _previewHeader.anchorMax = Vector2.one;
-                    _previewHeader.offsetMin = new Vector2(0f, -125f);
-                    _previewHeader.offsetMax = Vector2.zero;
-                }
-                else
-                {
-                    _previewHeader.anchorMin = Vector2.zero;
-                    _previewHeader.anchorMax = Vector2.one;
-                    _previewHeader.offsetMin = Vector2.zero;
-                    _previewHeader.offsetMax = Vector2.zero;
-                }
+                previewHeader.anchorMin = new Vector2(0f, 1f);
+                previewHeader.anchorMax = Vector2.one;
+                previewHeader.offsetMin = new Vector2(0f, -125f);
+                previewHeader.offsetMax = Vector2.zero;
+            }
+            else
+            {
+                previewHeader.anchorMin = Vector2.zero;
+                previewHeader.anchorMax = Vector2.one;
+                previewHeader.offsetMin = Vector2.zero;
+                previewHeader.offsetMax = Vector2.zero;
             }
 
             _sectionsPanel.SetActive(!IsSearching && CurrentTab?.Sections.Count > 0);
