@@ -228,6 +228,7 @@ namespace YARG.Settings.Preview
         // Renderers for the pro-keys highway overlay quads. Stored for live
         // recoloring on setting change.
         private readonly List<ProKeysOverlayRenderer> _proKeysOverlayRenderers = new();
+        private Material _proKeysOverlayMaterial;
 
         public bool ForceShowHitWindow { get; set; }
 
@@ -292,6 +293,8 @@ namespace YARG.Settings.Preview
 
         public Info CurrentGameModeInfo { get; private set; }
 
+        private bool _previewModeSupported;
+
         private sealed class UnityFakeNoteRandom : IFakeNoteRandom
         {
             public int Range(int minInclusive, int maxExclusive) => Random.Range(minInclusive, maxExclusive);
@@ -301,7 +304,14 @@ namespace YARG.Settings.Preview
 
         private void Start()
         {
-            CurrentGameModeInfo = _gameModeInfos[SelectedGameMode];
+            _previewModeSupported = _gameModeInfos.TryGetValue(SelectedGameMode, out var gameModeInfo);
+            if (!_previewModeSupported)
+            {
+                // Vocals has no fret-lane preview yet; leave the highway blank.
+                return;
+            }
+
+            CurrentGameModeInfo = gameModeInfo;
 
             // 5-lane keys shares the guitar color section and lane models in-game
             // (FiveLaneKeysPlayer / FiveLaneKeysNoteElement read ColorProfile.FiveFretGuitar),
@@ -409,6 +419,11 @@ namespace YARG.Settings.Preview
 
         private void OnSettingChanged()
         {
+            if (!_previewModeSupported)
+            {
+                return;
+            }
+
             var cameraPreset = PresetsTab.GetLastSelectedPreset(CustomContentManager.CameraSettings);
             var colorProfile = PresetsTab.GetLastSelectedPreset(CustomContentManager.ColorProfiles);
             var enginePreset = PresetsTab.GetLastSelectedPreset(CustomContentManager.EnginePresets);
@@ -575,6 +590,11 @@ namespace YARG.Settings.Preview
 
         private void Update()
         {
+            if (!_previewModeSupported)
+            {
+                return;
+            }
+
             // Update the preview notes
             PreviewTime += Time.deltaTime;
 
@@ -641,7 +661,15 @@ namespace YARG.Settings.Preview
 
         private void OnDestroy()
         {
-            SettingsMenu.Instance.SettingChanged -= OnSettingChanged;
+            if (_proKeysOverlayMaterial != null)
+            {
+                Destroy(_proKeysOverlayMaterial);
+            }
+
+            if (_previewModeSupported)
+            {
+                SettingsMenu.Instance.SettingChanged -= OnSettingChanged;
+            }
         }
 
         // --- Pro-keys highway overlay ---
@@ -666,6 +694,17 @@ namespace YARG.Settings.Preview
         private void CreateProKeysOverlay(ColorProfile.ProKeysColors colors)
         {
             _proKeysOverlayRenderers.Clear();
+            if (_proKeysOverlayMaterial == null)
+            {
+                var shader = Shader.Find("Sprites-Default-Overlay");
+                if (shader == null)
+                {
+                    throw new InvalidOperationException("The keys preview requires the Sprites-Default-Overlay shader.");
+                }
+
+                _proKeysOverlayMaterial = new Material(shader);
+            }
+
             var layerMask = LayerMask.NameToLayer("Settings Preview");
 
             // Use SpriteRenderers so the transparent overlays do not occlude the
@@ -693,6 +732,7 @@ namespace YARG.Settings.Preview
                     overlayLayer.Band.Center, 0.01f, PRO_KEYS_OVERLAY_Z_CENTER);
 
                 var sr = overlay.AddComponent<SpriteRenderer>();
+                sr.sharedMaterial = _proKeysOverlayMaterial;
                 sr.sprite = overlayLayer.IsEdge ? edgeSprite : whiteSprite;
                 sr.flipX = overlayLayer.FlipX;
                 sr.sortingOrder = overlayLayer.IsEdge ? 1 : 0;

@@ -9,6 +9,7 @@ using YARG.Core.Audio;
 using YARG.Core.Logging;
 using YARG.Core.Utility;
 using YARG.Helpers;
+using YARG.Menu.Filters;
 using YARG.Settings.Metadata;
 using YARG.Settings.Types;
 
@@ -103,13 +104,17 @@ namespace YARG.Settings
                 new HeaderMetadata("LibraryDisplay"),
                 nameof(Settings.ShowFavoriteButton),
                 nameof(Settings.DifficultyRings),
+                new FieldMetadata(nameof(Settings.NavigationJumpDistance), isAdvanced: true),
                 nameof(Settings.HighScoreInfo),
                 nameof(Settings.HighScoreHistory),
                 new FieldMetadata(nameof(Settings.ShowPercentDecimals), isAdvanced: true),
                 new HeaderMetadata("SortingAndFiltering"),
                 nameof(Settings.MaxSongRating),
                 nameof(Settings.CensorMatureContent),
+                nameof(Settings.RememberFilters),
                 nameof(Settings.SecondaryAlbumSort),
+                new FieldMetadata(nameof(Settings.SecondarySourceSort), isAdvanced: true),
+                new FieldMetadata(nameof(Settings.SecondaryIntensitySort), isAdvanced: true),
                 new FieldMetadata(nameof(Settings.SongLengthLabels), isAdvanced: true),
                 new HeaderMetadata("PlayAShow"),
                 nameof(Settings.EnablePlayAShow),
@@ -162,6 +167,7 @@ namespace YARG.Settings
                 nameof(Settings.UsePerformanceClaps),
 
                 new HeaderMetadata("Other"),
+                nameof(Settings.EffectsMode),
                 new FieldMetadata(nameof(Settings.UseChipmunkSpeed), isAdvanced: true),
                 new FieldMetadata(nameof(Settings.ApplyVolumesInMusicLibrary), isAdvanced: true),
                 new FieldMetadata(nameof(Settings.ApplyVolumesInMusicPlayer), isAdvanced: true),
@@ -288,7 +294,6 @@ namespace YARG.Settings
                 nameof(Settings.BandComboTypeSetting),
                 nameof(Settings.DataStreamEnable),
                 nameof(Settings.SaveScoresWithBots),
-                nameof(Settings.ReverbImplementation),
                 new HeaderMetadata("Accessibility"),
                 nameof(Settings.FontScaling),
                 new HeaderMetadata("OutputConfiguration"),
@@ -385,6 +390,7 @@ namespace YARG.Settings
             // (such as closing the game before they load)
             if (SettingContainer.IsInitialized && Settings is not null && _settingsCanBeSaved)
             {
+                FiltersMenu.PrepareForSettingsSave();
                 var json = JObject.Parse(JsonConvert.SerializeObject(Settings, JsonSettings));
                 SettingsMigration.SetCurrentSchemaVersion(json);
                 File.WriteAllText(SettingsFile, json.ToString(Formatting.Indented));

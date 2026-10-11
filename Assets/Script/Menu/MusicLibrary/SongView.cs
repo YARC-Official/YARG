@@ -12,6 +12,11 @@ namespace YARG.Menu.MusicLibrary
 {
     public class SongView : ViewObject<ViewType>
     {
+        private static readonly Type[] MarqueeScrollTypes = { typeof(SongViewType) };
+
+        protected override bool AllowMarqueeScroll => true;
+        protected override Type[] AllowedMarqueeScrollTypes => MarqueeScrollTypes;
+
         [SerializeField]
         private GameObject _songNameContainer;
         [SerializeField]
@@ -53,6 +58,8 @@ namespace YARG.Menu.MusicLibrary
         [SerializeField]
         private TextMeshProUGUI _starsObtainedText;
         [SerializeField]
+        private Image _starsObtainedIcon;
+        [SerializeField]
         private TextMeshProUGUI _scoreText;
         [SerializeField]
         private TextMeshProUGUI _buttonHelpText;
@@ -84,7 +91,7 @@ namespace YARG.Menu.MusicLibrary
         {
             base.Show(selected, viewType);
 
-            if (viewType is SecondaryHeaderViewType)
+            if (viewType is SecondaryHeaderViewType && viewType.GetIcon() == null)
             {
                 SetIcon(_secondaryHeaderIcon);
             }
@@ -133,6 +140,13 @@ namespace YARG.Menu.MusicLibrary
             if (viewType is SortHeaderViewType or SecondaryHeaderViewType)
             {
                 _starsObtainedText.text = viewType.GetSideText(selected);
+                bool hasGoldStars = viewType switch
+                {
+                    SortHeaderViewType sortHeader => sortHeader.HasGoldStars,
+                    SecondaryHeaderViewType secondaryHeader => secondaryHeader.HasGoldStars,
+                    _ => false,
+                };
+                _starsObtainedIcon.sprite = hasGoldStars ? _starGoldSprite : _starWhiteSprite;
             }
 
             // Set help text for button views
@@ -308,5 +322,4 @@ namespace YARG.Menu.MusicLibrary
             UpdateFavoriteSprite(ViewType.GetFavoriteInfo());
         }
     }
-
 }

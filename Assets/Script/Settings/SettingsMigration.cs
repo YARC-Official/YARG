@@ -72,6 +72,7 @@ namespace YARG.Settings
             }
 
             SetCurrentSchemaVersion(settings);
+            MigrateLegacyEffectsMode(settings);
             return settings;
         }
 
@@ -101,7 +102,6 @@ namespace YARG.Settings
         private static void MigrateSettingsV0ToV1(JObject settings)
         {
             MigrateLegacyCrowdSettings(settings);
-            MigrateLegacyReverbImplementation(settings);
         }
 
         private static void MigrateSettingsV1ToV2(JObject settings)
@@ -164,20 +164,32 @@ namespace YARG.Settings
                 mode is LegacyCrowdFxMode.Disabled or LegacyCrowdFxMode.StarpowerClapsOnly or LegacyCrowdFxMode.Enabled;
         }
 
-        private static void MigrateLegacyReverbImplementation(JObject settings)
+        private static void MigrateLegacyEffectsMode(JObject settings)
         {
-            if (!settings.TryGetValue(REVERB_IMPLEMENTATION_SETTING, out var token) ||
-                !TryGetInteger(token, out var raw))
+            const string EFFECTS_MODE_SETTING = nameof(SettingsManager.SettingContainer.EffectsMode);
+            const string LEGACY_REVERB_SETTING = "ReverbImplementation";
+
+            if (settings.TryGetValue(EFFECTS_MODE_SETTING, out var token))
             {
+                if (TryGetInteger(token, out var value) &&
+                    value is (int) EffectsMode.Performance or (int) EffectsMode.Quality)
+                {
+                    return;
+                }
+
+                settings[EFFECTS_MODE_SETTING] = (int) EffectsMode.Performance;
                 return;
             }
 
-            if (raw is (int) ReverbMode.Performance or (int) ReverbMode.Quality)
+            if (settings.TryGetValue(LEGACY_REVERB_SETTING, out var reverbToken) &&
+                TryGetInteger(reverbToken, out var reverbVal) &&
+                reverbVal == (int) ReverbMode.Quality)
             {
+                settings[EFFECTS_MODE_SETTING] = (int) EffectsMode.Quality;
                 return;
             }
 
-            settings[REVERB_IMPLEMENTATION_SETTING] = (int) ReverbMode.Performance;
+            settings[EFFECTS_MODE_SETTING] = (int) EffectsMode.Performance;
         }
 
         private static bool TryGetInteger(JToken token, out long value)

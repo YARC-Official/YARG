@@ -227,7 +227,7 @@ namespace YARG.Gameplay.HUD
             foreach (var player in GameManager.Players)
             {
                 var instrument = player.Player.Profile.CurrentInstrument;
-                if (instrument is Instrument.Vocals or Instrument.Harmony)
+                if (instrument is Instrument.Vocals or Instrument.Harmony or Instrument.PartyVocals)
                 {
                     return true;
                 }

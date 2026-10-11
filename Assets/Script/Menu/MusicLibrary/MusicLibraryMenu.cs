@@ -10,6 +10,8 @@ using YARG.Core.Audio;
 using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Core.Song;
+using YARG.Helpers;
+using YARG.Helpers.Extensions;
 using YARG.Localization;
 using YARG.Menu.Filters;
 using YARG.Menu.ListMenu;
@@ -20,7 +22,6 @@ using YARG.Playlists;
 using YARG.Scores;
 using YARG.Settings;
 using YARG.Song;
-using static YARG.Menu.Navigation.Navigator;
 using Random = UnityEngine.Random;
 
 namespace YARG.Menu.MusicLibrary
@@ -149,14 +150,28 @@ namespace YARG.Menu.MusicLibrary
 
         public IReadOnlyList<SongCategory> SortedSongs => _sortedSongs;
 
+        public int CurrentShortcutIndex
+        {
+            get
+            {
+                int shortcutIndex = 0;
+                for (int i = 1; i < Shortcuts.Count; i++)
+                {
+                    if (Shortcuts[i].Item2 > SelectedIndex) break;
+
+                    shortcutIndex = i;
+                }
+
+                return shortcutIndex;
+            }
+        }
+
         private CancellationTokenSource _previewCanceller;
         private PreviewContext _previewContext;
         private double _previewDelay;
 
         private SongEntry _currentSong;
         public List<(string, int)> Shortcuts { get; private set; } = new();
-
-        private List<HoldContext> _heldInputs = new();
 
         // Doesn't go through PlaylistContainer because it is ephemeral
 
@@ -201,8 +216,6 @@ namespace YARG.Menu.MusicLibrary
                     : previousSort;
             }
             SetSidebarDifficultiesVisible(true);
-
-            _heldInputs.Clear();
 
             // Hack to ensure that crowd samples are stopped no matter what
             GlobalAudioHandler.StopAllSfxChannels();
@@ -345,13 +358,16 @@ namespace YARG.Menu.MusicLibrary
             bool isSelectingPlaylist = MenuState == MenuState.PlaylistSelect;
             bool setListNotEmpty = ShowPlaylist.Count > 0;
             _sidebar.UpdatePlayButtonLabel(setListNotEmpty);
+            string jumpKey = SettingsManager.Settings.NavigationJumpDistance.Value == NavigationJumpDistance.Pages
+                ? "Menu.MusicLibrary.SkipPage"
+                : "Menu.MusicLibrary.SkipSection";
             NavigationScheme.Entry leftEntry = MenuState == MenuState.Playlist
                 ? new NavigationScheme.Entry(MenuAction.Left, "Menu.MusicLibrary.MoveInPlaylist", MovePlaylistEntryUp)
-                : new NavigationScheme.Entry(MenuAction.Left, "Menu.MusicLibrary.SkipSection", GoToPreviousSection);
+                : new NavigationScheme.Entry(MenuAction.Left, jumpKey, GoToPreviousSection);
 
             NavigationScheme.Entry rightEntry = MenuState == MenuState.Playlist
                 ? new NavigationScheme.Entry(MenuAction.Right, "Menu.MusicLibrary.MoveInPlaylist", MovePlaylistEntryDown)
-                : new NavigationScheme.Entry(MenuAction.Right, "Menu.MusicLibrary.SkipSection", GoToNextSection);
+                : new NavigationScheme.Entry(MenuAction.Right, jumpKey, GoToNextSection);
 
             // Give yellow the same behaviour as green: press to add to set, hold to start the set
             NavigationScheme.Entry yellowEntry;
@@ -377,13 +393,30 @@ namespace YARG.Menu.MusicLibrary
                     );
             }
 
+            NavigationScheme.Entry blueEntry = isSelectingPlaylist
+                ? new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.HoldFilters",
+                    () => { }, holdSeconds: MENU_HOLD_SECONDS,
+                    onHoldHandler: OpenFilters)
+                : new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.SortAndFilter",
+                    OpenSortSelect, holdSeconds: MENU_HOLD_SECONDS,
+                    onHoldHandler: OpenFilters);
+
+            NavigationScheme.Entry orangeEntry = MenuState == MenuState.Library
+                ? new NavigationScheme.Entry(MenuAction.Orange, "Menu.MusicLibrary.MoreOptionsAndGoToSection",
+                    () => _popupMenu.gameObject.SetActive(true), holdSeconds: MENU_HOLD_SECONDS,
+                    onHoldHandler: OpenGoToSection)
+                : new NavigationScheme.Entry(MenuAction.Orange, "Menu.MusicLibrary.MoreOptions",
+                    () => _popupMenu.gameObject.SetActive(true));
+
             var entries = new List<NavigationScheme.Entry>
             {
                 new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Up",
                     ctx =>
                     {
-                        if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
+                        if (MenuState == MenuState.Library &&
+                            IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
                         {
+                            Navigator.Instance.CancelHold(ctx.Player, MenuAction.Orange);
                             GoToPreviousSection();
                         }
                         else
@@ -395,8 +428,10 @@ namespace YARG.Menu.MusicLibrary
                 new NavigationScheme.Entry(MenuAction.Down, "Menu.Common.Down",
                     ctx =>
                     {
-                        if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
+                        if (MenuState == MenuState.Library &&
+                            IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
                         {
+                            Navigator.Instance.CancelHold(ctx.Player, MenuAction.Orange);
                             GoToNextSection();
                         }
                         else
@@ -426,16 +461,21 @@ namespace YARG.Menu.MusicLibrary
                     ),
                 new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back, hide: true),
                 yellowEntry,
-                new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.Filters", OpenFilters),
-                new NavigationScheme.Entry(MenuAction.Orange, "Menu.MusicLibrary.MoreOptions",
-                    OnOrangeHit, OnOrangeRelease),
+                blueEntry,
+                orangeEntry,
                 new NavigationScheme.Entry(MenuAction.Search, "Menu.MusicLibrary.Search",
                     _searchField.Focus, hide: true),
                 new NavigationScheme.Entry(MenuAction.SelectArtist, "Menu.MusicLibrary.SelectArtist",
                     () => CurrentSelection?.SecondaryTextClick(), hide: true),
             };
 
-            _ = Navigator.Instance.PushScheme(new NavigationScheme(entries, false));
+            var scheme = new NavigationScheme(entries, false);
+            if (MenuState == MenuState.Library)
+            {
+                scheme.VerticalDirectionsModifier = MenuAction.Orange;
+            }
+
+            _ = Navigator.Instance.PushScheme(scheme);
         }
 
         protected override void OnSelectedIndexChanged()
@@ -497,6 +537,7 @@ namespace YARG.Menu.MusicLibrary
             var list = new List<ViewType>();
             _totalSongCount = 0;
             _totalStarCount = 0;
+            _allVisibleSongsGold = false;
 
             // If `_sortedSongs` is null, then this function is being called during very first initialization,
             // which means the song list hasn't been constructed yet.
@@ -513,6 +554,7 @@ namespace YARG.Menu.MusicLibrary
 
             bool allowdupes = SettingsManager.Settings.AllowDuplicateSongs.Value;
             int songCount = 0;
+            bool hasNonGoldSong = false;
             foreach (var section in _sortedSongs)
             {
                 if (allowdupes)
@@ -541,8 +583,7 @@ namespace YARG.Menu.MusicLibrary
 
                 _primaryHeaderIndex += 1;
 
-                if (SettingsManager.Settings.LibrarySort < SortAttribute.Instrument &&
-                    SettingsManager.Settings.ShowRecommendedSongs.Value)
+                if (SettingsManager.Settings.ShowRecommendedSongs.Value)
                 {
                     if (_recommendedSongs != null)
                     {
@@ -643,6 +684,7 @@ namespace YARG.Menu.MusicLibrary
                 }
 
                 int sectionTotalStars = 0;
+                bool sectionHasNonGoldSong = false;
                 bool includeSongs = _sortedSongs.Length <= 1 || !_collapsedHeaders[SettingsManager.Settings.LibrarySort].Contains(section);
 
                 var displayedSongs = section.Songs
@@ -668,19 +710,113 @@ namespace YARG.Menu.MusicLibrary
                     {
                         sectionTotalStars += starAmount.Value.GetStarCount();
                     }
+
+                    bool isNotGold = starAmount != StarAmount.StarGold;
+                    sectionHasNonGoldSong |= isNotGold;
+                    hasNonGoldSong |= isNotGold;
                 }
 
                 var secondaryAlbumSort = SettingsManager.Settings.SecondaryAlbumSort.Value;
-                if (includeSongs && SettingsManager.Settings.LibrarySort == SortAttribute.Artist &&
+                if (includeSongs && SettingsManager.Settings.LibrarySort == SortAttribute.Source &&
+                    SettingsManager.Settings.SecondarySourceSort.Value == SecondarySourceSortMode.Intensity)
+                {
+                    var players = PlayerContainer.Players
+                        .Where(player => !player.Profile.IsBot)
+                        .ToArray();
+                    Instrument intensityInstrument = players.Length == 1
+                        ? players[0].Profile.CurrentInstrument
+                        : Instrument.Band;
+                    string iconName = intensityInstrument switch
+                    {
+                        Instrument.Band => "band",
+                        Instrument.ProGuitar_22Fret => "realGuitar",
+                        Instrument.ProBass_22Fret => "realBass",
+                        _ => intensityInstrument.ToResourceName(),
+                    };
+                    string iconPath = $"InstrumentIcons[{iconName}]";
+
+                    var intensityGroups = displayedSongs
+                        .GroupBy(song => song.HasInstrument(intensityInstrument) &&
+                            song[intensityInstrument].IsActive()
+                                ? (int?) song[intensityInstrument].Intensity
+                                : null)
+                        .OrderBy(group => group.Key.HasValue ? 0 : 1)
+                        .ThenBy(group => group.Key)
+                        .ToArray();
+
+                    foreach (var intensityGroup in intensityGroups)
+                    {
+                        var songs = intensityGroup.OrderBy(song => song.Name).ToArray();
+                        string intensityLabel = intensityGroup.Key.HasValue
+                            ? FiltersMenu.GetIntensityLabel(intensityGroup.Key.Value)
+                            : Localize.Key(IntensityLabels.NoPartKey);
+                        var intensityHeader = new SecondaryHeaderViewType(
+                            intensityLabel, songs.Length, iconPath);
+                        list.Add(intensityHeader);
+                        int starsBeforeIntensity = sectionTotalStars;
+                        bool intensityHasNonGoldSong = false;
+                        foreach (var song in songs)
+                        {
+                            AddSong(song);
+                            intensityHasNonGoldSong |=
+                                SongViewType.GetStarAmountForSong(song) != StarAmount.StarGold;
+                        }
+                        intensityHeader.TotalStarsCount = sectionTotalStars - starsBeforeIntensity;
+                        intensityHeader.HasGoldStars = !intensityHasNonGoldSong;
+                    }
+                }
+                else if (includeSongs && SettingsManager.Settings.LibrarySort >= SortAttribute.Instrument &&
+                    SettingsManager.Settings.SecondaryIntensitySort.Value == SecondaryIntensitySortMode.Source)
+                {
+                    var sourceGroups = displayedSongs
+                        .GroupBy(song => song.Source)
+                        .OrderBy(group => SongSources.SourceToGameName(group.Key),
+                            StringComparer.OrdinalIgnoreCase)
+                        .ThenBy(group => group.Key, StringComparer.OrdinalIgnoreCase);
+
+                    foreach (var sourceGroup in sourceGroups)
+                    {
+                        var songs = sourceGroup.OrderBy(song => song.Name).ToArray();
+                        string sourceLabel;
+                        if (SongSources.TryGetSource(sourceGroup.Key, out var parsedSource))
+                        {
+                            sourceLabel = parsedSource.GetDisplayName();
+                        }
+                        else if (sourceGroup.Key.Length > 0)
+                        {
+                            sourceLabel = sourceGroup.Key;
+                        }
+                        else
+                        {
+                            sourceLabel = SongSources.Default.GetDisplayName();
+                        }
+
+                        var sourceHeader = new SecondaryHeaderViewType(
+                            sourceLabel, songs.Length, SongSources.SourceToIcon(sourceGroup.Key));
+                        list.Add(sourceHeader);
+                        int starsBeforeSource = sectionTotalStars;
+                        bool sourceHasNonGoldSong = false;
+                        foreach (var song in songs)
+                        {
+                            AddSong(song);
+                            sourceHasNonGoldSong |=
+                                SongViewType.GetStarAmountForSong(song) != StarAmount.StarGold;
+                        }
+                        sourceHeader.TotalStarsCount = sectionTotalStars - starsBeforeSource;
+                        sourceHeader.HasGoldStars = !sourceHasNonGoldSong;
+                    }
+                }
+                else if (includeSongs && SettingsManager.Settings.LibrarySort == SortAttribute.Artist &&
                     secondaryAlbumSort != SecondaryAlbumSortMode.Off)
                 {
                     IEnumerable<IGrouping<SortString, SongEntry>> albumGroups = displayedSongs
                         .GroupBy(song => song.Album)
                         .Where(group => group.Key.Length > 0 && group.Count() >= MINIMUM_ALBUM_GROUP_SIZE);
 
-                    albumGroups = secondaryAlbumSort is
+                    bool sortAlbumsByYear = secondaryAlbumSort is
                         SecondaryAlbumSortMode.AlbumsByYearSongsByTitle or
-                        SecondaryAlbumSortMode.AlbumsByYearSongsByTrack
+                        SecondaryAlbumSortMode.AlbumsByYearSongsByTrack;
+                    albumGroups = sortAlbumsByYear
                         ? albumGroups.OrderBy(group => group.Min(song => song.YearAsNumber))
                             .ThenBy(group => group.Key)
                         : albumGroups.OrderBy(group => group.Key);
@@ -688,9 +824,15 @@ namespace YARG.Menu.MusicLibrary
                     var groupedAlbums = albumGroups.ToArray();
                     var groupedSongs = new HashSet<SongEntry>(groupedAlbums.SelectMany(group => group));
 
-                    // Songs without enough same-album companions retain their existing title order
-                    // immediately below the artist header.
-                    foreach (var song in displayedSongs.Where(song => !groupedSongs.Contains(song)))
+                    // Songs without enough same-album companions appear immediately below the artist
+                    // header. Year-based modes sort them by year, then retain their existing title order.
+                    var ungroupedSongs = displayedSongs.Where(song => !groupedSongs.Contains(song));
+                    if (sortAlbumsByYear)
+                    {
+                        ungroupedSongs = ungroupedSongs.OrderBy(song => song.YearAsNumber);
+                    }
+
+                    foreach (var song in ungroupedSongs)
                     {
                         AddSong(song);
                     }
@@ -705,11 +847,15 @@ namespace YARG.Menu.MusicLibrary
                         var albumHeader = new SecondaryHeaderViewType(album.Key, albumSongs.Length);
                         list.Add(albumHeader);
                         int starsBeforeAlbum = sectionTotalStars;
+                        bool albumHasNonGoldSong = false;
                         foreach (var song in albumSongs)
                         {
                             AddSong(song);
+                            albumHasNonGoldSong |=
+                                SongViewType.GetStarAmountForSong(song) != StarAmount.StarGold;
                         }
                         albumHeader.TotalStarsCount = sectionTotalStars - starsBeforeAlbum;
+                        albumHeader.HasGoldStars = !albumHasNonGoldSong;
                     }
                 }
                 else
@@ -724,10 +870,12 @@ namespace YARG.Menu.MusicLibrary
                 if (sortHeader != null)
                 {
                     sortHeader.TotalStarsCount = sectionTotalStars;
+                    sortHeader.HasGoldStars = !sectionHasNonGoldSong;
                 }
             }
 
             _totalSongCount = songCount;
+            _allVisibleSongsGold = songCount > 0 && !hasNonGoldSong;
             CalculateCategoryHeaderIndices(list);
             return list;
         }
@@ -754,11 +902,13 @@ namespace YARG.Menu.MusicLibrary
             return selected;
         }
 
-        public void Refresh()
+        public void Refresh(bool refreshNavigationScheme = true)
         {
             SetRecommendedSongs();
             _searchField.Reset();
             UpdateSearch(true);
+            if (!refreshNavigationScheme) return;
+
             if (IsNavigationSchemeBlocked())
             {
                 _needsNavigationSchemeRefresh = true;
@@ -854,9 +1004,6 @@ namespace YARG.Menu.MusicLibrary
 
         protected void Update()
         {
-            foreach (var heldInput in _heldInputs)
-                heldInput.Timer -= Time.unscaledDeltaTime;
-
             if (_needsNavigationSchemeRefresh && !IsNavigationSchemeBlocked())
             {
                 _needsNavigationSchemeRefresh = false;
@@ -908,7 +1055,6 @@ namespace YARG.Menu.MusicLibrary
         {
             base.OnDisable();
             SetSidebarDifficultiesVisible(false);
-            _heldInputs.Clear();
 
             if (Navigator.Instance == null) return;
 
@@ -980,10 +1126,11 @@ namespace YARG.Menu.MusicLibrary
 
         private bool IsButtonHeldByPlayer(YargPlayer player, MenuAction button)
         {
-            return _heldInputs.Any(i => i.Context.Player == player && i.Context.Action == button);
+            return Navigator.Instance.IsActionHeld(player, button);
         }
 
         private const float GREEN_HOLD_SECONDS = 1f;
+        private const float MENU_HOLD_SECONDS = 1f;
 
         private void OnGreenTap(NavigationContext _)
         {
@@ -1034,29 +1181,26 @@ namespace YARG.Menu.MusicLibrary
             }
         }
 
-        public string GetGreenHoldActionLabel()
+        private void OpenSortSelect()
         {
-            bool setListNotEmpty = ShowPlaylist.Count > 0;
-            return Localize.Key(setListNotEmpty ? "Menu.MusicLibrary.StartSet" : "Menu.MusicLibrary.AddToSet");
+            if (MenuState != MenuState.PlaylistSelect)
+                _popupMenu.OpenSortSelect();
         }
 
-        private void OnOrangeHit(NavigationContext ctx)
+        private void OpenGoToSection()
         {
-            _heldInputs.Add(new HoldContext(ctx));
-        }
-
-        private void OnOrangeRelease(NavigationContext ctx)
-        {
-            var holdContext = _heldInputs.FirstOrDefault(i => i.Context.IsSameAs(ctx));
-
-            if (ctx.Action == MenuAction.Orange && (holdContext?.Timer > 0 || ctx.Player is null))
-                _popupMenu.gameObject.SetActive(true);
-
-            _heldInputs.RemoveAll(i => i.Context.IsSameAs(ctx));
+            if (MenuState == MenuState.Library && HasSortHeaders)
+                _popupMenu.OpenGoToSection();
         }
 
         private void GoToNextSection()
         {
+            if (SettingsManager.Settings.NavigationJumpDistance.Value == NavigationJumpDistance.Pages)
+            {
+                SelectedIndex = GetPageJumpIndex(1);
+                return;
+            }
+
             var i = _sectionHeaderIndices.BinarySearch(SelectedIndex);
             i = i < 0 ? ~i : i + 1;
             if (i >= _sectionHeaderIndices.Count)
@@ -1067,6 +1211,12 @@ namespace YARG.Menu.MusicLibrary
 
         private void GoToPreviousSection()
         {
+            if (SettingsManager.Settings.NavigationJumpDistance.Value == NavigationJumpDistance.Pages)
+            {
+                SelectedIndex = GetPageJumpIndex(-1);
+                return;
+            }
+
             var i = _sectionHeaderIndices.BinarySearch(SelectedIndex);
             i = i < 0 ? ~i - 1 : i - 1;
             if (i < 0)
@@ -1129,11 +1279,12 @@ namespace YARG.Menu.MusicLibrary
             return (headerIndex, offset);
         }
 
-        public void RefreshAndReselect(bool selectTopOfList = false, bool preserveSelectedIndex = false)
+        public void RefreshAndReselect(bool selectTopOfList = false, bool preserveSelectedIndex = false,
+            bool refreshNavigationScheme = true)
         {
             int preservedIndex = SelectedIndex;
             var snapshot = CaptureSelectionSnapshot();
-            Refresh();
+            Refresh(refreshNavigationScheme);
 
             if (preserveSelectedIndex)
             {
@@ -1154,6 +1305,21 @@ namespace YARG.Menu.MusicLibrary
             RestoreSelectionSnapshot(snapshot);
         }
 
+        public void RestoreAfterFilters(bool refresh)
+        {
+            SetSidebarDifficultiesVisible(true);
+            if (refresh)
+            {
+                // The existing library scheme is exposed again when Filters pops its scheme.
+                // Refresh the list without pushing a duplicate scheme above it.
+                RefreshAndReselect(refreshNavigationScheme: false);
+            }
+
+            // Opening Filters stops the preview, but the library itself remains active, so
+            // OnEnable will not run to restart it when the overlay closes.
+            OnSelectedIndexChanged();
+        }
+
         public void RefreshAndSelectPlaylist(Playlist playlist)
         {
             Refresh();
@@ -1170,6 +1336,7 @@ namespace YARG.Menu.MusicLibrary
             public readonly string HeaderStableId;
             public readonly string HeaderFirstSongContentStableId;
             public readonly string HeaderPreviousSongContentStableId;
+            public readonly bool SelectionWasRecommended;
             public readonly bool PreserveIndexOnDynamicSort; // Sorted by Playcount or Stars
             public readonly ScoreContext ScoreContext;
 
@@ -1180,6 +1347,7 @@ namespace YARG.Menu.MusicLibrary
                 string headerStableId,
                 string headerFirstSongContentStableId,
                 string headerPreviousSongContentStableId,
+                bool selectionWasRecommended,
                 bool preserveIndexOnDynamicSort,
                 ScoreContext scoreContext)
             {
@@ -1189,6 +1357,7 @@ namespace YARG.Menu.MusicLibrary
                 HeaderStableId = headerStableId;
                 HeaderFirstSongContentStableId = headerFirstSongContentStableId;
                 HeaderPreviousSongContentStableId = headerPreviousSongContentStableId;
+                SelectionWasRecommended = selectionWasRecommended;
                 PreserveIndexOnDynamicSort = preserveIndexOnDynamicSort;
                 ScoreContext = scoreContext;
             }
@@ -1201,6 +1370,9 @@ namespace YARG.Menu.MusicLibrary
             string selectedSongContentStableId = (CurrentSelection as SongViewType)?.ContentStableId;
             bool selectedIsHeader = CurrentSelection is SortHeaderViewType or CategoryViewType;
             string selectedStableId = selectedIsHeader ? null : CurrentSelection?.StableId;
+            bool selectionWasRecommended = _recommendedHeaderIndex >= 0 &&
+                selectedIndex >= _recommendedHeaderIndex &&
+                selectedIndex <= _recommendedHeaderIndex + (_recommendedSongs?.Length ?? 0);
 
             // Header context
             string headerStableId = null;
@@ -1256,12 +1428,20 @@ namespace YARG.Menu.MusicLibrary
                 headerStableId,
                 headerFirstSongContentStableId,
                 headerPreviousSongContentStableId,
+                selectionWasRecommended,
                 preserveIndexOnDynamicSort,
                 ScoreContext.Capture());
         }
 
         private void RestoreSelectionSnapshot(SelectionSnapshot snapshot)
         {
+            if (snapshot.SelectionWasRecommended && _recommendedHeaderIndex >= 0)
+            {
+                int lastRecommendedIndex = _recommendedHeaderIndex + (_recommendedSongs?.Length ?? 0);
+                SelectedIndex = Mathf.Clamp(snapshot.SelectedIndex, _recommendedHeaderIndex, lastRecommendedIndex);
+                return;
+            }
+
             bool dynamicSortContextChanged =
                 IsDynamicScoreSort(SettingsManager.Settings.LibrarySort) &&
                 !snapshot.ScoreContext.Equals(ScoreContext.Capture());
@@ -1382,12 +1562,15 @@ namespace YARG.Menu.MusicLibrary
 
         public async void RefreshSongs()
         {
+            // Block all menu and pointer input before awaiting preview shutdown. Otherwise,
+            // repeated input can start another scan before the loading screen is active.
+            using var context = new LoadingContext();
+
             // Stop any library preview audio so the loading screen doesn't inherit it
             await StopPreviewAsync();
 
             SetSidebarDifficultiesVisible(false);
             _sidebar.gameObject.SetActive(false);
-            using var context = new LoadingContext();
             try
             {
                 await SongContainer.RunRefresh(false, context);

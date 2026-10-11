@@ -17,14 +17,14 @@ namespace YARG.Menu.ScoreScreen
         {
             base.SetCardContents();
 
-            // Similarly to the guitar card, we would want to differentiate when
-            // keys are used to play a guitar/bass part, but the pro keys icon
-            // looks exactly the same as 5L keys when zoomed in here anyway
-            _instrumentIcon.sprite = Addressables
-                .LoadAssetAsync<Sprite>($"InstrumentIcons[keys]")
-                .WaitForCompletion();
-
             _overhits.text = ColorizePrimary(Stats.Overhits);
         }
+
+        // Similarly to the guitar card, we would want to differentiate when
+        // keys are used to play a guitar/bass part, but the pro keys icon
+        // looks exactly the same as 5L keys when zoomed in here anyway
+        public override Sprite GetInstrumentSprite() => Addressables
+                .LoadAssetAsync<Sprite>("InstrumentIcons[keys]")
+                .WaitForCompletion();
     }
 }

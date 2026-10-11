@@ -30,6 +30,7 @@ namespace YARG.Audio.BASS
         public uint Channels;
         public uint MinimumBlockFrames;
         public uint BufferMilliseconds;
+        public uint OutputStream;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -76,7 +77,7 @@ namespace YARG.Audio.BASS
         public int StreamHandle { get; private set; }
 
         public static BassReadAheadStream? Create(int bassDeviceId, int sourceMixer, int sampleRate, int channels,
-            int minimumBlockFrames, int bufferMilliseconds, bool useIndependentClock = false)
+            int minimumBlockFrames, int bufferMilliseconds, bool useIndependentClock = false, int outputStream = 0)
         {
             if (sourceMixer == 0 || sampleRate <= 0 || channels <= 0 || minimumBlockFrames <= 0 ||
                 bufferMilliseconds < 0)
@@ -100,9 +101,10 @@ namespace YARG.Audio.BASS
                     Channels = checked((uint) channels),
                     MinimumBlockFrames = checked((uint) minimumBlockFrames),
                     BufferMilliseconds = checked((uint) bufferMilliseconds),
+                    OutputStream = unchecked((uint) outputStream),
                 };
 
-                int result = YargAudioBindings.ReadAheadStreamCreate(in config, out var stream, out uint streamHandle, out int bassError);
+                int result = YargAudioBindings.ReadAheadStreamCreate(in config, out var stream, out int streamHandle, out int bassError);
                 if (result != 0 || stream == null || stream.IsInvalid || streamHandle == 0)
                 {
                     stream?.Dispose();
@@ -117,7 +119,7 @@ namespace YARG.Audio.BASS
                     return null;
                 }
 
-                stream.StreamHandle = unchecked((int) streamHandle);
+                stream.StreamHandle = streamHandle;
                 return stream;
             }
             catch (Exception exception) when (exception is DllNotFoundException or EntryPointNotFoundException
@@ -131,7 +133,7 @@ namespace YARG.Audio.BASS
         public bool Prefill(int timeoutMilliseconds)
         {
             ThrowIfDisposed();
-            return YargAudioBindings.ReadAheadStreamPrefill(this, checked((uint) timeoutMilliseconds)) == 0;
+            return YargAudioBindings.ReadAheadStreamPrefill(this, timeoutMilliseconds) == 0;
         }
 
         public bool Flush()
@@ -143,7 +145,7 @@ namespace YARG.Audio.BASS
         public bool SetBufferLength(int bufferMilliseconds)
         {
             ThrowIfDisposed();
-            return YargAudioBindings.ReadAheadStreamSetBufferLength(this, checked((uint) bufferMilliseconds)) == 0;
+            return YargAudioBindings.ReadAheadStreamSetBufferLength(this, bufferMilliseconds) == 0;
         }
 
         public long GetSourcePosition(int sourceHandle, int endpointDelayFrames) =>
@@ -159,8 +161,8 @@ namespace YARG.Audio.BASS
             {
                 Size = (uint) Marshal.SizeOf<ReadAheadPositionSnapshot>(),
             };
-            return YargAudioBindings.ReadAheadStreamGetPositionSnapshot(this, unchecked((uint) sourceHandle),
-                checked((uint) Math.Max(0, endpointDelayFrames)), ref snapshot) == 0;
+            return YargAudioBindings.ReadAheadStreamGetPositionSnapshot(this, sourceHandle,
+                Math.Max(0, endpointDelayFrames), ref snapshot) == 0;
         }
 
         public ReadAheadStats GetStats()

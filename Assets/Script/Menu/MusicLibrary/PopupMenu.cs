@@ -1,4 +1,6 @@
 ﻿using System.Linq;
+using System;
+using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
@@ -22,6 +24,16 @@ namespace YARG.Menu.MusicLibrary
 {
     public class PopupMenu : MonoBehaviour
     {
+        // Keep this synchronized with Menu.MusicLibrary.Popup.Item in en-US.json.
+        private static readonly string[] POPUP_ITEM_ORDER =
+        {
+            "RandomSong", "BackToTop", "ScanSongs", "SortBy", "GoToSection", "StartTheSet", "Filters", "PlayShow",
+            "AddToFavorites", "AddToSetlist", "AddToPlaylist", "AddPlaylistToSetlist",
+            "SaveSetlistToPlaylist", "RemoveFromFavorites", "RemoveFromSetlist", "RemoveFromPlaylist",
+            "CreateNewPlaylist", "RenamePlaylist", "DeleteSetlist", "DeletePlaylist", "CollapseAll", "ExpandAll",
+            "ViewSongFolder", "CopySongChecksum"
+        };
+
         private enum State
         {
             Main,
@@ -49,14 +61,34 @@ namespace YARG.Menu.MusicLibrary
 
         private State _menuState;
         private Playlist _playlistToAdd;
-        private bool _openedAddToPlaylistDirectly;
+        private bool _openedDirectly;
+        private int _preferredSelectionIndex;
+        private List<(string Key, string Body, UnityAction Action)> _pendingMainMenuItems;
 
         public void OpenAddToPlaylist(Playlist playlist)
         {
             _playlistToAdd = playlist;
             gameObject.SetActive(true);
-            _openedAddToPlaylistDirectly = true;
+            _openedDirectly = true;
             _menuState = State.AddToPlaylist;
+            UpdateForState();
+        }
+
+        public void OpenSortSelect()
+        {
+            OpenDirectly(State.SortSelect);
+        }
+
+        public void OpenGoToSection()
+        {
+            OpenDirectly(State.GoToSection);
+        }
+
+        private void OpenDirectly(State state)
+        {
+            gameObject.SetActive(true);
+            _openedDirectly = true;
+            _menuState = state;
             UpdateForState();
         }
 
@@ -74,7 +106,7 @@ namespace YARG.Menu.MusicLibrary
                 NavigationScheme.Entry.NavigateSelect,
                 new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", () =>
                 {
-                    if (_menuState == State.Main || _openedAddToPlaylistDirectly)
+                    if (_menuState == State.Main || _openedDirectly)
                     {
                         gameObject.SetActive(false);
                     }
@@ -95,7 +127,7 @@ namespace YARG.Menu.MusicLibrary
             Navigator.Instance.PopScheme();
             _musicLibrary.RefreshNavigationSchemeAfterPopup();
             _playlistToAdd = null;
-            _openedAddToPlaylistDirectly = false;
+            _openedDirectly = false;
         }
 
         private void UpdateForState()
@@ -103,6 +135,7 @@ namespace YARG.Menu.MusicLibrary
             // Reset content
             _navGroup.ClearNavigatables();
             ClearItems();
+            _preferredSelectionIndex = -1;
 
             // Create the menu
             switch (_menuState)
@@ -122,7 +155,47 @@ namespace YARG.Menu.MusicLibrary
             }
 
             ResetScroll();
-            _navGroup.SelectFirst();
+            if (_menuState == State.GoToSection)
+            {
+                _navGroup.SelectAt(_musicLibrary.CurrentShortcutIndex, SelectionOrigin.Navigation);
+                CenterSelectedItem();
+            }
+            else if (_menuState == State.SortSelect && _preferredSelectionIndex >= 0)
+            {
+                _navGroup.SelectAt(_preferredSelectionIndex, SelectionOrigin.Navigation);
+                CenterSelectedItem();
+            }
+            else
+            {
+                _navGroup.SelectFirst();
+            }
+        }
+
+        private void CenterSelectedItem()
+        {
+            if (_scrollRect == null ||
+                _navGroup.SelectedBehaviour?.transform is not RectTransform selectedTransform ||
+                _container is not RectTransform containerTransform)
+            {
+                return;
+            }
+
+            Canvas.ForceUpdateCanvases();
+
+            var viewportTransform = _scrollRect.viewport != null
+                ? _scrollRect.viewport
+                : _scrollRect.transform as RectTransform;
+            if (viewportTransform == null) return;
+
+            var viewportBounds = new Bounds(viewportTransform.rect.center, viewportTransform.rect.size);
+            var selectedBounds = RectTransformUtility.CalculateRelativeRectTransformBounds(
+                viewportTransform, selectedTransform);
+
+            float centeredPosition = containerTransform.anchoredPosition.y +
+                viewportBounds.center.y - selectedBounds.center.y;
+            float scrollableHeight = _scrollRect.ScrollableHeight();
+            containerTransform.anchoredPosition = containerTransform.anchoredPosition.WithY(
+                Mathf.Clamp(centeredPosition, 0f, scrollableHeight));
         }
 
         private void ResetScroll()
@@ -153,6 +226,7 @@ namespace YARG.Menu.MusicLibrary
         private void CreateMainMenu()
         {
             SetHeader(null);
+            _pendingMainMenuItems = new();
 
             if (_musicLibrary.MenuState != MenuState.PlaylistSelect)
             {
@@ -196,6 +270,12 @@ namespace YARG.Menu.MusicLibrary
                 });
             }
 
+            if ((_musicLibrary.MenuState == MenuState.Library && !_musicLibrary.PlaylistMode) ||
+                _musicLibrary.MenuState is MenuState.Playlist or MenuState.Show)
+            {
+                CreateHoldActionItems();
+            }
+
             if (_musicLibrary.MenuState == MenuState.Library && !_musicLibrary.PlaylistMode)
             {
                 _musicLibrary.GetSortHeaderCollapseState(out bool hasCollapsed, out bool hasExpanded);
@@ -220,6 +300,7 @@ namespace YARG.Menu.MusicLibrary
             }
 
             var viewType = _musicLibrary.CurrentSelection;
+            bool createdPlaylistSelectHoldActions = false;
 
             // Add/remove to favorites
             var favoriteInfo = viewType.GetFavoriteInfo();
@@ -248,11 +329,16 @@ namespace YARG.Menu.MusicLibrary
 
                 if (viewType is SongViewType)
                 {
-                    CreateItemUnlocalized(_musicLibrary.GetGreenHoldActionLabel(), () =>
+                    void ExecuteGreenHoldAction()
                     {
                         _musicLibrary.ExecuteGreenHoldAction();
                         gameObject.SetActive(false);
-                    });
+                    }
+
+                    if (_musicLibrary.ShowPlaylist.Count == 0)
+                        CreateItem("AddToSetlist", ExecuteGreenHoldAction);
+                    else
+                        CreateItem("StartTheSet", ExecuteGreenHoldAction);
 
                     bool isInPlaylist = _musicLibrary.MenuState == MenuState.Playlist &&
                         _musicLibrary.SelectedPlaylist != null &&
@@ -302,6 +388,12 @@ namespace YARG.Menu.MusicLibrary
                     _musicLibrary.AddPlaylistToSetlist(addablePlaylistView.Playlist);
                     gameObject.SetActive(false);
                 });
+
+                if (_musicLibrary.MenuState == MenuState.PlaylistSelect)
+                {
+                    CreateHoldActionItems();
+                    createdPlaylistSelectHoldActions = true;
+                }
             }
 
             if (viewType is PlaylistViewType playlistView &&
@@ -322,10 +414,10 @@ namespace YARG.Menu.MusicLibrary
                     });
                 }
 
-                var deleteLabel = playlistView.Playlist.Ephemeral
-                    ? Localize.Key("Menu.MusicLibrary.Popup.Item.DeleteSetlist")
-                    : Localize.Key("Menu.MusicLibrary.Popup.Item.DeletePlaylist");
-                CreateItemUnlocalized(deleteLabel, () =>
+                var deleteKey = playlistView.Playlist.Ephemeral
+                    ? "DeleteSetlist"
+                    : "DeletePlaylist";
+                CreateItem(deleteKey, () =>
                 {
                     // Special handling for the ad hoc setlist
                     if (playlistView.Playlist.Ephemeral)
@@ -347,6 +439,12 @@ namespace YARG.Menu.MusicLibrary
                         _musicLibrary.SetNavigationScheme(true);
                     }
                 });
+            }
+
+            if (_musicLibrary.MenuState == MenuState.PlaylistSelect &&
+                !createdPlaylistSelectHoldActions)
+            {
+                CreateHoldActionItems();
             }
 
             // Only show these options if we are selecting a song
@@ -376,6 +474,29 @@ namespace YARG.Menu.MusicLibrary
                     GUIUtility.systemCopyBuffer = song.Hash.ToString();
 
                     gameObject.SetActive(false);
+                });
+            }
+
+            FlushMainMenuItems();
+        }
+
+        private void CreateHoldActionItems()
+        {
+            CreateItem("Filters", () =>
+            {
+                gameObject.SetActive(false);
+                _musicLibrary.OpenFilters();
+            });
+
+            if (SettingsManager.Settings.EnablePlayAShow.Value)
+            {
+                CreateItem("PlayShow", () =>
+                {
+                    gameObject.SetActive(false);
+                    if (_musicLibrary.MenuState == MenuState.Show)
+                        _musicLibrary.OpenShowPicker();
+                    else
+                        _musicLibrary.EnterShowMode();
                 });
             }
         }
@@ -430,6 +551,7 @@ namespace YARG.Menu.MusicLibrary
                 if (sort >= SortAttribute.Instrument)
                     break;
 
+                RecordCurrentSortIndex(sort);
                 CreateItemUnlocalized(sort.ToLocalizedName(), () =>
                 {
                     _musicLibrary.ApplySortFromPopup(sort);
@@ -442,6 +564,7 @@ namespace YARG.Menu.MusicLibrary
                 if (SongContainer.HasInstrument(instrument))
                 {
                     var attribute = instrument.ToSortAttribute();
+                    RecordCurrentSortIndex(attribute);
                     CreateItemUnlocalized(attribute.ToLocalizedName(), () =>
                     {
                         _musicLibrary.ChangeSort(attribute);
@@ -451,6 +574,7 @@ namespace YARG.Menu.MusicLibrary
 
                 if (instrument == Instrument.EliteDrums && MidiDrumkitHelper.Instruments.Any(SongContainer.HasInstrument))
                 {
+                    RecordCurrentSortIndex(SortAttribute.AggregateDrums);
                     CreateItemUnlocalized(SortAttribute.AggregateDrums.ToLocalizedName(), () =>
                     {
                         _musicLibrary.ChangeSort(SortAttribute.AggregateDrums);
@@ -458,6 +582,12 @@ namespace YARG.Menu.MusicLibrary
                     });
                 }
             }
+        }
+
+        private void RecordCurrentSortIndex(SortAttribute sort)
+        {
+            if (sort == SettingsManager.Settings.LibrarySort)
+                _preferredSelectionIndex = _navGroup.Count;
         }
 
         private void CreateGoToSection()
@@ -600,13 +730,13 @@ namespace YARG.Menu.MusicLibrary
         private void CreateItem(string localizeKey, UnityAction a)
         {
             var localized = Localize.Key("Menu.MusicLibrary.Popup.Item", localizeKey);
-            CreateItemUnlocalized(localized, a);
+            QueueOrCreateItem(localizeKey, localized, a);
         }
 
         private void CreateItem(string localizeKey, string formatArg, UnityAction a)
         {
             var localized = Localize.KeyFormat(("Menu.MusicLibrary.Popup.Item", localizeKey), formatArg);
-            CreateItemUnlocalized(localized, a);
+            QueueOrCreateItem(localizeKey, localized, a);
         }
 
         private async UniTaskVoid CloseAfterDialog()
@@ -618,6 +748,37 @@ namespace YARG.Menu.MusicLibrary
         }
 
         private void CreateItemUnlocalized(string body, UnityAction a)
+        {
+            QueueOrCreateItem(null, body, a);
+        }
+
+        private void QueueOrCreateItem(string key, string body, UnityAction action)
+        {
+            if (_pendingMainMenuItems != null)
+            {
+                _pendingMainMenuItems.Add((key, body, action));
+                return;
+            }
+
+            InstantiateItem(body, action);
+        }
+
+        private void FlushMainMenuItems()
+        {
+            var items = _pendingMainMenuItems;
+            _pendingMainMenuItems = null;
+
+            foreach (var item in items.OrderBy(item => GetPopupItemOrder(item.Key)))
+                InstantiateItem(item.Body, item.Action);
+        }
+
+        private static int GetPopupItemOrder(string key)
+        {
+            int index = Array.IndexOf(POPUP_ITEM_ORDER, key);
+            return index >= 0 ? index : int.MaxValue;
+        }
+
+        private void InstantiateItem(string body, UnityAction a)
         {
             var btn = Instantiate(_menuItemPrefab, _container);
             btn.Initialize(body, a);

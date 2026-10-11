@@ -1,6 +1,7 @@
 #pragma once
 
 #include "BassCoreBindings.h"
+#include "stretch/StretchTempoStream.h"
 #include "yarg_audio.h"
 
 #include <atomic>
@@ -14,6 +15,7 @@ struct yarg_sine_synth_dsp {
 
     const yarg::audio::BassCoreBindings& bass;
     std::uint32_t tempoStream;
+    std::shared_ptr<yarg::audio::StretchTempoStream> stretchStream;
     std::uint32_t channel = 0;
     std::uint32_t dsp = 0;
     float volume;

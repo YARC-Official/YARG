@@ -148,3 +148,8 @@ qodana.yaml
 /vlc/vlc-unity/
 /vlc/LibVLCSharp/
 /vlc/sdk/
+
+# Python bytecode and caches (benchmark/experiment helpers)
+__pycache__/
+*.py[cod]
+*$py.class

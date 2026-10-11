@@ -27,7 +27,7 @@ namespace YARG.Audio.BASS.Effects
 
             return YargAudioNative.Attach(EFFECT_NAME, channelHandle,
                 (out BassNoiseGateDsp handle, out int bassError) =>
-                    YargAudioBindings.NoiseGateDspAttach(unchecked((uint) channelHandle), threshold, floorGain,
+                    YargAudioBindings.NoiseGateDspAttach(channelHandle, threshold, floorGain,
                         attackMs, holdMs, releaseMs, priority, out handle, out bassError));
         }
 

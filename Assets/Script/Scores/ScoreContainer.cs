@@ -276,13 +276,13 @@ namespace YARG.Scores
             playerScoreRecord = null;
             bandScoreRecord = null;
 
-            if (UseBandHighScoresForCurrentPlayers)
+            var player = PlayerContainer.Players.FirstOrDefault(entry => !entry.Profile.IsBot);
+            if (player is null || UseBandHighScoresForCurrentPlayers)
             {
                 bandScoreRecord = GetBandHighScore(songChecksum);
                 return;
             }
 
-            var player = PlayerContainer.Players.First(entry => !entry.Profile.IsBot);
             var drumInstruments = MidiDrumkitHelper.GetInstruments(player.Profile.GameMode);
             playerScoreRecord = drumInstruments != null
                 ? GetPreferredHighScoreForInstruments(
@@ -458,6 +458,9 @@ namespace YARG.Scores
             if (candidatePercent != currentPercent)
                 return candidatePercent > currentPercent;
 
+            if (candidate.Score != current.Score)
+                return candidate.Score > current.Score;
+
             return candidate.IsFc && !current.IsFc;
         }
 
@@ -504,6 +507,45 @@ namespace YARG.Scores
                     if (SongContainer.SongsByHash.TryGetValue(hash, out var list))
                     {
                         results.Add(list.Pick());
+                    }
+                }
+
+                return results;
+            }
+            catch (Exception e)
+            {
+                YargLogger.LogException(e, "Failed to load most played songs from database.");
+                return new List<SongEntry>();
+            }
+        }
+
+        public static List<SongEntry> GetMostPlayedSongs(int maxCount, Func<SongEntry, bool> predicate)
+        {
+            try
+            {
+                var results = new List<SongEntry>();
+
+                // Filtering after a limited query could exclude eligible songs ranked below the limit.
+                // Query the full play-count ordering and stop once enough eligible songs are found.
+                var mostPlayed = _db.QueryMostPlayedSongs(int.MaxValue);
+                foreach (var record in mostPlayed)
+                {
+                    var hash = HashWrapper.Create(record.SongChecksum);
+                    if (!SongContainer.SongsByHash.TryGetValue(hash, out var songs))
+                    {
+                        continue;
+                    }
+
+                    var eligibleSongs = songs.Where(predicate).ToList();
+                    if (eligibleSongs.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    results.Add(eligibleSongs.Pick());
+                    if (results.Count >= maxCount)
+                    {
+                        break;
                     }
                 }
 

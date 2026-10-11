@@ -15,6 +15,15 @@ A basic todo list can be accessed [here](https://yarg.youtrack.cloud/agiles/147-
 2. If you add source code from other libraries, or just add other libraries, **please check if the liceneses are compatible**. If they are not, your PR will also be denied.
 4. Please try to follow code styling. Most IDEs should be able to detect it from the `.editorconfig` file.
 
+## AI Coding Assistants
+
+As with the output of any tooling, the result may be incorrect or inappropriate. You are expected to understand and to be able to defend everything you submit. If you are unable to do so, then do not submit the resulting changes.
+
+The human submitter is responsible for:
+* Reviewing all AI-generated code
+* Ensuring compliance with licensing requirements
+* Taking full responsibility for the contribution
+
 ## Feature Categorization
 New features and additions to YARG can be organized in one of six categories, please read below to see if what you plan to add is a fit for the game. If you're confused on what category a feature may fall into, feel free to ask in the Discord server!
 
