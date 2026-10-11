@@ -404,6 +404,15 @@ namespace LibVLCSharp
 
             args.AddRange(libVLCArguments?.Where(arg => !string.IsNullOrWhiteSpace(arg)) ?? Array.Empty<string>());
 
+#if UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX
+            // VLC only supports the nvdec GL interop on its own GLX output, not on the external
+            // context we render into, so the video would freeze on its first frame.
+            if (SystemInfo.graphicsDeviceVendor.IndexOf("NVIDIA", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                args.Add("--codec=avcodec");
+            }
+#endif
+
             LibVLC = new LibVLC(enableDebugLogs: false, args.ToArray()); // You can customize LibVLC with advanced CLI options here https://wiki.videolan.org/VLC_command-line_help/
                                                                         // Setup Error Logging
             Application.SetStackTraceLogType(LogType.Log, StackTraceLogType.None);
