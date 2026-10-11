@@ -9,6 +9,7 @@ namespace YARG.Menu.ScoreScreen
     {
         public bool  IsHighScore;
         public bool  IsReplay;
+        public float Percent;
 
         public YargPlayer Player;
         public BaseStats  Stats;
