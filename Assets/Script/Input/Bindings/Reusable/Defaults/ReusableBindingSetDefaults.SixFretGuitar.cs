@@ -75,8 +75,8 @@ namespace YARG.Input.Bindings
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.SIX_FRET_GUITAR[ActionStrings.GUITAR_STAR_POWER],
                     new List<ReusableSingleButtonBindingConfig>() {
-                        new(ControllerFamily.FiveFretGuitar, nameof(SixFretGuitar.tilt)) { PressPoint = 1f },
-                        new(ControllerFamily.FiveFretGuitar, nameof(SixFretGuitar.selectButton)),
+                        new(ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_TILT) { PressPoint = 1f },
+                        new(ControllerFamily.FiveFretGuitar, ControlStrings.PLASTICBAND_SELECT),
                     }
                 )
             },
