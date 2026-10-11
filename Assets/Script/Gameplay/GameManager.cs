@@ -354,7 +354,7 @@ namespace YARG.Gameplay
             ApplySongSpeed();
 
             BeatEventHandler.Reset();
-            BackgroundManager.SetTime(_songRunner.GetAudioPlaybackTime(_songRunner.SongTime));
+            BackgroundManager.SetTime(GetVideoPlaybackTime());
             VenueCameraManager?.ResetTime(time);
             VenueCharacterManager?.ResetTime(time);
             if (_lyricBar.gameObject.activeSelf)
@@ -457,12 +457,12 @@ namespace YARG.Gameplay
 
             // Pause the background/venue
             Time.timeScale = 0f;
-            BackgroundManager.SetPaused(true);
             GameStateFetcher.SetPaused(true);
 
             // This uses the raw input update time because it keeps running during the pause
             // allowing us to accurately calculate the length of the pause later
-            if (!Rewinding && !IsReplay && !overridePause)
+            bool recordsPause = !Rewinding && !IsReplay && !overridePause;
+            if (recordsPause)
             {
                 // Save state about the pause
                 _pauseTime = InputManager.InputUpdateTime;
@@ -477,6 +477,13 @@ namespace YARG.Gameplay
                 var rewindTime = Math.Max(SongTime - PAUSE_REWIND_LENGTH, _rewindLimit);
                 _rewindLimit = rewindTime;
             }
+
+            // Where the resume's rewind will put the video. Practice and replays resume without
+            // rewinding.
+            double? videoParkTime = recordsPause && !IsPractice
+                ? GetVideoPlaybackTime(_songRunner.GetVisualTime(_rewindLimit))
+                : null;
+            BackgroundManager.SetPaused(true, videoParkTime);
 
             _autoCalibrateVideoOnPause = SettingsManager.Settings.AutoCalibrateVideo.Value;
 
@@ -637,6 +644,21 @@ namespace YARG.Gameplay
         /// <inheritdoc cref="SongRunner.GetAudioPlaybackTime"/>
         public double GetAudioPlaybackTime(double songTime)
             => _songRunner.GetAudioPlaybackTime(songTime);
+
+        /// <summary>
+        /// Converts a gameplay visual time to a position in the background video file.
+        /// </summary>
+        /// <remarks>
+        /// VisualTime, not SongTime: the video is watched, so it shares the highway's clock.
+        /// SongTime carries AudioCalibration (and with it device output latency), which would
+        /// offset the video from the rest of the screen and leave VideoCalibration no effect.
+        /// </remarks>
+        public double GetVideoPlaybackTime(double visualTime)
+            => _songRunner.GetAudioPlaybackTime(visualTime);
+
+        /// <inheritdoc cref="GetVideoPlaybackTime(double)"/>
+        public double GetVideoPlaybackTime()
+            => _songRunner.GetAudioPlaybackTime(_songRunner.VisualTime);
 
         private bool EndSong()
         {
@@ -1097,6 +1119,12 @@ namespace YARG.Gameplay
             {
                 targetTime = PauseInfo[^1].PauseTime;
             }
+
+            // The awaited call below keeps the song paused through the visual tween, then resumes it
+            // at the rewound position and plays forward before returning. Re-align the video at the
+            // moment the song resumes, not when this returns: the parked frame is the rewound
+            // position, and by the time this returns the song is a second past it.
+            BackgroundManager.ResyncVideoWhenSongResumes();
 
             var canceled = await _songRunner.RewindAndResume(seconds, targetTime);
 

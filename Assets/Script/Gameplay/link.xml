@@ -1,0 +1,8 @@
+<linker>
+  <!-- VlcLibraryLoader reaches these by reflection: VLCMediaPlayer.LibVLC's private setter and
+       VLCUnityLogger's internal HookLibVLC/UnhookLibVLC. -->
+  <assembly fullname="VLCUnity">
+    <type fullname="LibVLCSharp.VLCMediaPlayer" preserve="all" />
+    <type fullname="LibVLCSharp.VLCUnityLogger" preserve="all" />
+  </assembly>
+</linker>

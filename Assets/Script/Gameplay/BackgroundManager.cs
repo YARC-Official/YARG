@@ -59,24 +59,15 @@ namespace YARG.Gameplay
         private BackgroundType _type;
         private VenueSource _source;
 
-        private bool _videoStarted = false;
-        private bool _videoSeeking = false;
-        private bool _videoSeekWaitForPause = false;
-        private bool _videoWasPausedBeforeSeek = false;
+        // Set once a video background is loaded.
+        private BackgroundVideoController _video;
 
-        private const float FADE_DURATION = 0.5f;
+        internal const float FADE_DURATION = 0.5f;
 
         private float YARGROUND_OFFSET = 50f;
 
         private readonly List<AsyncOperationHandle<GameObject>> _handles = new();
         private          bool                                   loadedAddressable;
-
-        // These values are relative to the video, not to song time!
-        // A negative start time will delay when the video starts, a positive one will set the video position
-        // to that value when starting playback at the start of a song.
-        private double _videoStartTime;
-        // End time cannot be negative; a negative value means it is not set.
-        private double _videoEndTime;
 
         private AssetBundle _characterBundle;
 
@@ -523,192 +514,58 @@ namespace YARG.Gameplay
             }
 
             _videoPlayer.playerEnabled = true;
+            _video = new BackgroundVideoController(GameManager, _videoPlayer,
+                followsSong: _source == VenueSource.Song,
+                curtain: _type == BackgroundType.Video ? _venueFadeOverlay : null);
             _videoPlayer.prepareCompleted += OnVideoPrepared;
-            _videoPlayer.seekCompleted += OnVideoSeeked;
             _videoPlayer.Prepare();
             enabled = true;
         }
 
         private void Update()
         {
-            if (_videoSeeking)
-                return;
-
-            double time = GameManager.GetAudioPlaybackTime(GameManager.SongTime);
-            // Start video
-            if (!_videoStarted)
-            {
-                // Don't start playing the video until the start of the song
-                if (time < 0.0)
-                    return;
-
-                // Delay until the start time is reached
-                if (_source == VenueSource.Song && time < -_videoStartTime)
-                    return;
-
-                if (_videoEndTime == 0)
-                    return;
-
-                _videoStarted = true;
-                _videoPlayer.Play();
-
-                // Disable after starting the video if it's not from the song folder
-                // or if video end time is not specified
-                if (_source != VenueSource.Song || double.IsNaN(_videoEndTime))
-                {
-                    enabled = false;
-                    return;
-                }
-            }
-
-            // End video when reaching the specified end time
-            if (time + _videoStartTime >= _videoEndTime)
-            {
-                _videoPlayer.Stop();
-                _videoPlayer.playerEnabled = false;
-                enabled = false;
-            }
+            _video?.Update();
         }
 
-        // Some video player properties don't work correctly until
-        // it's finished preparing, such as the length
+        // Binds the video once it is prepared; BackgroundVideoController's own handler, subscribed
+        // first, has already positioned and paused it.
         private void OnVideoPrepared(YargVideoPlayer player)
         {
-            // Start time is considered set if it is greater than 25 ms in either direction
-            // End time is only set if it is greater than 0
-            // Video will only loop if its length is less than 85% of the song's length
-            const double startTimeThreshold = 0.025;
-            const double endTimeThreshold = 0;
-            const double dontLoopThreshold = 0.85;
-
-            if (_source == VenueSource.Song && !GameManager.Song.VideoLoop)
-            {
-                _videoStartTime = GameManager.Song.VideoStartTimeSeconds;
-                _videoEndTime = GameManager.Song.VideoEndTimeSeconds;
-
-                player.time = _videoStartTime;
-                player.playbackSpeed = GameManager.SongSpeed;
-
-                // Only loop the video if it's not around the same length as the song
-                if (Math.Abs(_videoStartTime) < startTimeThreshold &&
-                    _videoEndTime <= endTimeThreshold &&
-                    player.length < GameManager.SongLength * dontLoopThreshold)
-                {
-                    player.isLooping = true;
-                    _videoEndTime = double.NaN;
-                }
-                else
-                {
-                    player.isLooping = false;
-                    if (_videoEndTime <= 0)
-                    {
-                        _videoEndTime = player.length;
-                    }
-                }
-            }
-            else
-            {
-                _videoStartTime = 0;
-                _videoEndTime = double.NaN;
-                player.isLooping = true;
-            }
-
             GetComponent<TextureManager>().SetVideoTexture(_videoPlayer.targetTexture);
             if (_type == BackgroundType.Video)
             {
+                // Bound and live, but behind the curtain until the controller reveals it.
                 _venueOutput.texture = _videoPlayer.targetTexture;
                 _venueOutput.gameObject.SetActive(true);
-                _venueFadeOverlay.CrossFadeAlpha(0f, FADE_DURATION, true);
             }
         }
 
         public void SetTime(double songTime, bool waitForSeek = true)
         {
-            switch (_type)
-            {
-                case BackgroundType.Video:
-                    // Don't seek videos that aren't from the song
-                    if (_source != VenueSource.Song)
-                        return;
-
-                    double videoTime = songTime + _videoStartTime;
-                    if (videoTime < 0f) // Seeking before video start
-                    {
-                        enabled = true;
-                        _videoPlayer.playerEnabled = true;
-                        _videoStarted = false;
-                        _videoPlayer.Stop();
-                    }
-                    else if (videoTime >= _videoPlayer.length) // Seeking after video end
-                    {
-                        enabled = false;
-                        _videoPlayer.playerEnabled = false;
-                        _videoPlayer.Stop();
-                    }
-                    else
-                    {
-                        enabled = false; // Temp disable
-                        _videoPlayer.playerEnabled = true;
-
-                        // Hack to ensure the video stays synced to the audio
-                        _videoSeeking = true; // Signaling flag; must come first
-                        _videoSeekWaitForPause = waitForSeek;
-                        _videoWasPausedBeforeSeek = _videoPlayer.isPaused;
-
-                        if (waitForSeek && SettingsManager.Settings.WaitForSongVideo.Value)
-                            GameManager.OverridePause();
-
-                        _videoPlayer.time = videoTime;
-                    }
-                    break;
-            }
-        }
-
-        private void OnVideoSeeked(YargVideoPlayer player)
-        {
-            if (!_videoSeeking)
-                return;
-
-            if (!_videoSeekWaitForPause ||
-                !SettingsManager.Settings.WaitForSongVideo.Value ||
-                GameManager.OverrideResume())
-            {
-                if (!_videoWasPausedBeforeSeek)
-                    player.Play();
-            }
-
-            enabled = !double.IsNaN(_videoEndTime);
-            _videoSeeking = false;
-            _videoSeekWaitForPause = false;
-            _videoWasPausedBeforeSeek = false;
+            if (_type == BackgroundType.Video)
+                _video?.SetTime(songTime, waitForSeek);
         }
 
         public void SetSpeed(float speed)
         {
-            switch (_type)
-            {
-                case BackgroundType.Video:
-                    _videoPlayer.playbackSpeed = speed;
-                    break;
-            }
+            if (_type == BackgroundType.Video)
+                _video?.SetSpeed(speed);
         }
 
-        public void SetPaused(bool paused)
+        /// <inheritdoc cref="BackgroundVideoController.SetPaused"/>
+        public void SetPaused(bool paused, double? parkAtPlaybackTime = null)
         {
-            // Pause/unpause video
-            if (_videoPlayer.playerEnabled && _videoStarted && !_videoSeeking)
-            {
-                if (paused)
-                {
-                    _videoPlayer.Pause();
-                }
-                else
-                {
-                    _videoPlayer.Play();
-                }
-            }
+            _video?.SetPaused(paused, parkAtPlaybackTime);
 
             // The venue is dealt with in the GameManager via Time.timeScale
+        }
+
+        /// <summary>
+        /// Re-aligns the video on the first frame the song runs after a rewinding resume.
+        /// </summary>
+        public void ResyncVideoWhenSongResumes()
+        {
+            _video?.ResyncWhenSongResumes();
         }
 
         private async UniTask<GameObject> GetAddressableCharacter(string hint)
