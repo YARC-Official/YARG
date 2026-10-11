@@ -865,6 +865,7 @@ namespace YARG.Settings
                 : TempoEngine.BassFx;
             public ToggleSetting SaveScoresWithBots { get; } = new(false);
             public SliderSetting FontScaling { get; } = new(0f, 0f, 100f, FontScalingCallback);
+            public SliderSetting VocalFontScaling { get; } = new(0f, 0f, 200f);
 
             public DropdownSetting<AudioOutputMode> OutputMode { get; } = new(AudioOutputMode.Shared,
                 OutputModeCallback)
