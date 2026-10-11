@@ -582,6 +582,8 @@ GameObject:
   - component: {fileID: 8970263558213961658}
   - component: {fileID: 7567726164417613377}
   - component: {fileID: 4097472151370784344}
+  - component: {fileID: 4781815002675380785}
+  - component: {fileID: 3894204165797777629}
   m_Layer: 5
   m_Name: Profile Name
   m_TagString: Untagged
@@ -603,11 +605,11 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1103512947960669714}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 44, y: 0}
-  m_SizeDelta: {x: -88, y: 0}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0.5}
+  m_AnchorMax: {x: 0, y: 0.5}
+  m_AnchoredPosition: {x: 88, y: 0}
+  m_SizeDelta: {x: 0, y: 98}
+  m_Pivot: {x: 0, y: 0.5}
 --- !u!222 &7567726164417613377
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -708,6 +710,33 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &4781815002675380785
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8889392306549831535}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.ContentSizeFitter
+  m_HorizontalFit: 2
+  m_VerticalFit: 0
+--- !u!114 &3894204165797777629
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8889392306549831535}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
+  _localizationKey: Profiles.Name
 --- !u!1001 &611778464940812157
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -855,13 +884,34 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4441713907549617493, guid: f6ac2a9c2f684f84792c7d7cd00ba18c, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 890302851176197655}
   m_SourcePrefab: {fileID: 100100000, guid: f6ac2a9c2f684f84792c7d7cd00ba18c, type: 3}
 --- !u!224 &2692258351400584729 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 3252069457828798820, guid: f6ac2a9c2f684f84792c7d7cd00ba18c, type: 3}
   m_PrefabInstance: {fileID: 611778464940812157}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &3880231517543193128 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4441713907549617493, guid: f6ac2a9c2f684f84792c7d7cd00ba18c, type: 3}
+  m_PrefabInstance: {fileID: 611778464940812157}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &890302851176197655
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3880231517543193128}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
+  _localizationKey: Profiles.List.Disconnect
 --- !u!1001 &4245650306266689600
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1029,8 +1079,29 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4441713907549617493, guid: 1559ee81882cd0045b6d33a64692e938, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3524875223171276061}
   m_SourcePrefab: {fileID: 100100000, guid: 1559ee81882cd0045b6d33a64692e938, type: 3}
+--- !u!1 &526841104870788373 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4441713907549617493, guid: 1559ee81882cd0045b6d33a64692e938, type: 3}
+  m_PrefabInstance: {fileID: 4245650306266689600}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &3524875223171276061
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 526841104870788373}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
+  _localizationKey: Profiles.List.MoveUp
 --- !u!224 &1714252446941155620 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 3252069457828798820, guid: 1559ee81882cd0045b6d33a64692e938, type: 3}
@@ -1190,8 +1261,29 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 8637973974686150122, guid: f6ac2a9c2f684f84792c7d7cd00ba18c, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6437025899922126212}
   m_SourcePrefab: {fileID: 100100000, guid: f6ac2a9c2f684f84792c7d7cd00ba18c, type: 3}
+--- !u!1 &4570742336582946323 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8637973974686150122, guid: f6ac2a9c2f684f84792c7d7cd00ba18c, type: 3}
+  m_PrefabInstance: {fileID: 5228316742331212793}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &6437025899922126212
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4570742336582946323}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
+  _localizationKey: Profiles.List.Connect
 --- !u!224 &7327107628522881693 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 3252069457828798820, guid: f6ac2a9c2f684f84792c7d7cd00ba18c, type: 3}
@@ -1360,7 +1452,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4441713907549617493, guid: 1559ee81882cd0045b6d33a64692e938, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3986436045442257843}
   m_SourcePrefab: {fileID: 100100000, guid: 1559ee81882cd0045b6d33a64692e938, type: 3}
 --- !u!114 &4923489477284919473 stripped
 MonoBehaviour:
@@ -1373,6 +1468,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &7547414192899757451 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4441713907549617493, guid: 1559ee81882cd0045b6d33a64692e938, type: 3}
+  m_PrefabInstance: {fileID: 6132194585895512286}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &3986436045442257843
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7547414192899757451}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
+  _localizationKey: Profiles.List.MoveDown
 --- !u!224 &8662750356803439034 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 3252069457828798820, guid: 1559ee81882cd0045b6d33a64692e938, type: 3}
@@ -1521,8 +1634,29 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 8637973974686150122, guid: 1559ee81882cd0045b6d33a64692e938, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6705912079188416415}
   m_SourcePrefab: {fileID: 100100000, guid: 1559ee81882cd0045b6d33a64692e938, type: 3}
+--- !u!1 &2371849766669040657 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8637973974686150122, guid: 1559ee81882cd0045b6d33a64692e938, type: 3}
+  m_PrefabInstance: {fileID: 6272035831697510907}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &6705912079188416415
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2371849766669040657}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
+  _localizationKey: Profiles.List.Delete
 --- !u!224 &8803152619755434143 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 3252069457828798820, guid: 1559ee81882cd0045b6d33a64692e938, type: 3}

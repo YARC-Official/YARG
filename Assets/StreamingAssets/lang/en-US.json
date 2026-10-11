@@ -25,8 +25,19 @@
             "FiveLaneDrums": "Drumkit (5-Lane)",
             "ProGuitar": "Pro Guitar (17-Fret, 22-Fret)",
             "ProKeys": "Keys (5-Lane, Pro)",
-            "Menu": "Menu",
-            "Vocals": "Vocals"
+            "Menu": "Menu Navigation",
+            "Vocals": "Vocals",
+            "Short": {
+                "FiveFretGuitar": "5F Guitar",
+                "SixFretGuitar": "6F Guitar",
+                "EliteDrums": "Drums",
+                "FourLaneDrums": "4L Drums",
+                "FiveLaneDrums": "5L Drums",
+                "ProGuitar": "Pro Guitar",
+                "ProKeys": "Keys",
+                "Vocals": "Vocals",
+				"Menu": "menu navigation",
+            }
         },
         "Instrument": {
             "FiveFretGuitar": "Guitar",
@@ -64,7 +75,7 @@
             "TapsToHopos": "Taps to HOPOs",
             "UnpitchedOnly": "Unpitched Only",
             "NoDynamics": "No Dynamics",
-            "NoVocalPercussion" : "No Percussion",
+            "NoVocalPercussion": "No Percussion",
             "RangeCompress": "No Range Shifts",
             "OpensToGreens": "Opens To Greens"
         },
@@ -78,7 +89,7 @@
             "Folder": "Folder",
             "SongLength": "Duration",
             "Source": "Source",
-			"Subgenre": "Subgenre",
+            "Subgenre": "Subgenre",
             "Stars": "Stars",
             "Percentage": "Percentage",
             "Score": "Score",
@@ -112,17 +123,71 @@
             "Playcount": "Play Count",
             "Random": "Random"
         },
-        "StarPowerActivationType" : {
+        "StarPowerActivationType": {
             "Freestyle": "Freestyle",
             "RightmostLane": "Rightmost Lane",
             "RightmostNote": "Rightmost Note",
             "AllNotes": "All Notes"
         },
-		"OpenLaneDisplayType" : {
-			"Never": "Never",
-			"Always": "Always",
-			"IfChartContainsOpens": "If chart contains open notes"
-		}
+        "OpenLaneDisplayType": {
+            "Never": "Never",
+            "Always": "Always",
+            "IfChartContainsOpens": "If chart contains open notes"
+        },
+        "ControllerFamily": {
+            "SingularTitle": {
+                "FiveFretGuitar": "5F Guitar",
+                "SixFretGuitar": "6F Guitar",
+                "FourLaneDrumkit": "4L Drumkit",
+                "FiveLaneDrumkit": "5L Drumkit",
+                "ProKeyboard": "Pro Keyboard",
+                "ProGuitar": "Pro Guitar",
+                "MidiDevice": "MIDI Device",
+                "ComputerKeyboard": "Computer Keyboard",
+                "Mouse": "Computer Mouse",
+                "Gamepad": "Gamepad",
+                "Other": "Misc. Input Device"
+            },
+            "SingularSentence": {
+                "FiveFretGuitar": "5F guitar",
+                "SixFretGuitar": "6F guitar",
+                "FourLaneDrumkit": "4L drumkit",
+                "FiveLaneDrumkit": "5L drumkit",
+                "ProKeyboard": "pro keyboard",
+                "ProGuitar": "pro guitar",
+                "MidiDevice": "MIDI device",
+                "ComputerKeyboard": "computer keyboard",
+                "Mouse": "computer mouse",
+                "Gamepad": "gamepad",
+                "Other": "misc. input device"
+            },
+            "PluralTitle": {
+                "FiveFretGuitar": "5-Fret Guitar Controllers",
+                "SixFretGuitar": "6-Fret Guitar Controllers",
+                "FourLaneDrumkit": "Stock 4-Lane Drumkit Controllers",
+                "FiveLaneDrumkit": "Stock 5-Lane Drumkit Controllers",
+                "ProKeyboard": "Pro Keyboard Controllers",
+                "ProGuitar": "Pro Guitar Controllers",
+                "MidiDevice": "MIDI Devices",
+                "ComputerKeyboard": "Computer Keyboards",
+                "Mouse": "Computer Mice",
+                "Gamepad": "Gamepads",
+                "Other": "Other Input Devices"
+            },
+            "PluralSentence": {
+                "FiveFretGuitar": "5-fret guitar controllers",
+                "SixFretGuitar": "6-fret guitar controllers",
+                "FourLaneDrumkit": "stock 4-Lane drumkit controllers",
+                "FiveLaneDrumkit": "stock 5-lane drumkit controllers",
+                "ProKeyboard": "pro keyboard controllers",
+                "ProGuitar": "pro guitar controllers",
+                "MidiDevice": "MIDI devices",
+                "ComputerKeyboard": "computer keyboards",
+                "Mouse": "computer mice",
+                "Gamepad": "gamepads",
+                "Other": "other input devices"
+            }
+        }
     },
     "Menu": {
         "Calibrator": {
@@ -141,31 +206,24 @@
             "On": "On",
             "Off": "Off",
             "Start": "Start",
-
             "Up": "Up",
             "Down": "Down",
             "Left": "Left",
             "Right": "Right",
-
             "Next": "Next",
             "Previous": "Previous",
             "NextTab": "Next Tab",
             "PreviousTab": "Previous Tab",
-
             "Increase": "Increase",
             "Decrease": "Decrease",
             "Max": "Max",
             "Min": "Min",
-
             "Save": "Save",
             "Saved": "Saved!",
             "Delete": "Delete",
-
             "Reset": "Reset",
             "ResetAll": "Reset All",
-
-			"Scroll" : "Scroll",
-
+            "Scroll": "Scroll",
             "Enabled": "Enabled",
             "Disabled": "Disabled"
         },
@@ -226,14 +284,12 @@
             "AutoCalibrationScore": "Score saving disabled: Automatic calibration active.",
             "NoFailScore": "Score saving disabled: No fail was toggled.",
             "ResumeAfterFailInvalidate": "Score saving disabled: Resuming after failure invalidated score.",
-            "ProfileCreated": "Profile created for new device: {0}\nTime to do some YARGin!",
             "TooManyPauses": "Score saving disabled: Too many pauses.",
             "ProfileLoadWarning": "{0} profile(s) could not be loaded by this version of YARG. They are kept and will be retried after an update, or can be removed from the profile list.",
             "UnsupportedDevice": "Automatic profile creation is not supported for {0}!"
         },
         "Dialog": {
             "DontShowAgain": "Don't Show Again",
-
             "AntiPiracy": {
                 "Title": "YARG Anti-Piracy Statement",
                 "Description": "<b>YARG stands firmly against all forms of piracy.</b> We neither support nor endorse piracy, as it is a violation of copyright law with serious legal consequences. Our platform's importable content—designed for creators to share their work and for educational purposes—does not justify or excuse piracy.\n\nYARG itself <b>does not</b> use any ripped/pirated assets or music and never will. By using YARG, users agree not to promote or endorse piracy in any way through our platform. Upholding these principles ensures a community that respects copyright, creativity, and legal standards.\n\nYARG stands for \"Yet Another Rhythm Game\" and NOT for pirates.",
@@ -293,10 +349,10 @@
             "OpenLaneWhenCharted": "Open Lane When Charted",
             "Ready": "Ready",
             "SitOut": "Sit Out",
-			"Disconnect" : "Disconnect",
+            "Disconnect": "Disconnect",
             "Done": "Done",
-            "WarningPlayerNoInputDevice" : "This player has no input device assigned! Assign one from the Profiles menu.",
-            "WarningVocalistNoMicrophone" : "This vocalist has no microphone assigned! Assign one from the Profiles menu."
+            "WarningPlayerNoInputDevice": "This player has no input device assigned! Assign one from the Profiles menu.",
+            "WarningVocalistNoMicrophone": "This vocalist has no microphone assigned! Assign one from the Profiles menu."
         },
         "History": {
             "Name": "History",
@@ -309,7 +365,6 @@
                 "ThisYear": "This Year",
                 "MoreThanYear": "More Than A Year"
             },
-
             "Analyze": "Analyze",
             "ViewScoreCard": "View Results",
             "PlayWithReplay": "Play With Replay"
@@ -525,7 +580,7 @@
                 "SynthpopElectropop": "Synthpop/Electropop",
                 "Techno": "Techno",
                 "ThrashSpeedMetal": "Thrash/Speed Metal",
-				"Traditional": "Traditional",
+                "Traditional": "Traditional",
                 "Trance": "Trance",
                 "Trap": "Trap",
                 "World": "World",
@@ -549,7 +604,7 @@
             }
         },
         "ProfileInfo": {
-            "Name": "Edit Profile",
+            "Name": "Profile Overview",
             "Stats": {
                 "SongPlays": "{0:N0} Song Plays",
                 "TotalScore": "Total Score",
@@ -558,25 +613,498 @@
             }
         },
         "ProfileList": {
-            "Name": "Profiles",
-            "ActiveProfiles" : "Active Profiles",
+            "Name": "Profiles\n& Devices",
+            "ActiveProfiles": "Active Profiles",
             "AddBot": "Add Bot",
             "AddProfile": "Add Profile",
-            "Bots" : "Bots",
-            "Players" : "Players",
+            "Overview": "Overview",
+            "ImportBindingSet": "Import Binding Set",
+            "ExportBindingSet": "Export",
+            "Bots": "Bots",
+            "Players": "Players",
             "CouldNotLoad": "Couldn't Load",
             "UnloadedEntry": "{0} <alpha=#66>— could not be loaded by this version of YARG",
             "UnloadedDeleteTitle": "Delete Profile?",
             "UnloadedDelete": "Deleting it is permanent.",
-            "BotDelete": "Deleting this bot is permanent."
+            "BotDelete": "Deleting this bot is permanent.",
+            "PressPoint": "Press Point",
+            "VelocityThreshold": "Velocity Threshold",
+            "StealController": "{0} <i>(steal from <color=#2DD9FE>{1}</color>)</i>",
+            "AddBindingSet": "ADD",
+            "AddOtherBindingSet": "ADD OTHER",
+            "AddOtherBindingSetNotRecommended": "ADD OTHER (<i>Not Recommended</i>)",
+            "QuickBind": "Quick Bind",
+			"DescriptiveBindingSetName": {
+				"Format": "{0}{1} {2} {3}",
+				"Gameplay": " gameplay",
+				"With": "with",
+				"On": "on"
+			},
+            "Record": {
+                "Waiting": "Waiting for Input\n<color=#2A5B87><size=24>Press any button on</color> <color=#5A8BB7>{0}</color></size>",
+                "Select": "Select Input"
+            },
+            "DeleteBindingSet": {
+                "Zero": "No profiles are currently using it.",
+                "OneActive": "It's currently being used by <color=#2DD9FE>{0}</color>! They will revert to default bindings.",
+                "OneInactive": "It's used by <color=#00A6D1>{0}</color>! They will revert to default bindings when they next connect.",
+                "Multiple": "It's used by <color=yellow>{0} profiles</color>! They will all revert to default bindings."
+            },
+            "BindingsIndicator": {
+                "Gameplay": "G",
+                "Menu": "M"
+            },
+            "BindingsTitle": {
+                "FiveFretGuitar": "5-Fret Guitar Gameplay Bindings",
+                "SixFretGuitar": "6-Fret Guitar Gameplay Bindings",
+                "FourLaneDrums": "4-Lane Drums Gameplay Bindings",
+                "FiveLaneDrums": "5-Lane Drums Gameplay Bindings",
+                "EliteDrums": "Drums Gameplay Bindings",
+                "ProKeys": "Keys Gameplay Bindings",
+                "ProGuitar": "Pro Guitar Gameplay Bindings",
+                "Vocals": "Vocals Gameplay Bindings",
+                "Menu": "Menu Navigation Bindings"
+            },
+            "UserCount": {
+                "Zero": "Used by no profiles",
+                "OneActive": "Used by <color=#2DD9FE>{0}</color>",
+                "OneInactive": "Used by <color=#00A6D1>{0}</color>",
+                "MultipleLocked": "<color=black>Used by {0} profiles</color>",
+                "MultipleUnlocked": "Used by <color=yellow>{0} profiles</color>" 
+            },
+            "Tooltip": {
+                "Header": {
+                    "Back": {
+                        "Title": "Back",
+                        "Text": "Return to the Main Menu."
+                    },
+                    "AddProfile": {
+                        "Title": "Add Profile",
+                        "Text": "Create a new profile for a real person."
+                    },
+                    "AddBot": {
+                        "Title": "Add Bot",
+                        "Text": "Create a new profile for a bot."
+                    },
+                    "ImportBindingSet": {
+                        "Title": "Import Binding Set",
+                        "Text": "Opens a file browser that you can use to select and import an exported binding set file."
+                    }
+                },
+                "Profiles": {
+					"Name": {
+						"Title": "Profile Name",
+						"Text": "The name of this profile."
+					},
+                    "Header": {
+                        "Rename": {
+                            "Title": "Rename",
+                            "Text": "Edit the name of this profile."
+                        },
+                        "Overview": {
+                            "Title": "Profile Overview",
+                            "Text": "Open an overview of this profile's lifetime statistics."
+                        },
+                        "ProfilePicture": {
+                            "Title": "Profile Picture",
+                            "Text": "A custom image associated with this profile. It appears in various locations associated with this profile, such as over the player's highway at the start of a song. If no picture is provided, the game uses an icon based on the player's choice of instrument instead."
+                        },
+                        "EditProfilePicture": {
+                            "Title": "Edit Profile Picture",
+                            "Text": "Choose an image to use as a profile picture."
+                        }
+                    },
+                    "List": {
+                        "Connect": {
+                            "Title": "Connect Profile",
+                            "Text": "Connect this profile as an active player."
+                        },
+                        "Disconnect": {
+                            "Title": "Connect Profile",
+                            "Text": "Set this profile as inactive."
+                        },
+                        "Delete": {
+                            "Title": "Delete Profile",
+                            "Text": "Permanently delete this profile. <b><color=red>This cannot be undone!</color></b>"
+                        },
+                        "MoveUp": {
+                            "Title": "Move Up",
+                            "Text": "Move this profile up in the list.\n\nFor non-Vocals profiles, this affects the arrangement of the highways on the screen.\n\nFor Vocals profiles, the highest profile in the list is the one who gets to choose between Vocals and Harmonies and whose visual settings are applied to the vocal highway."
+                        },
+                        "MoveDown": {
+                            "Title": "Move Down",
+                            "Text": "Move this profile down in the list.\n\nFor non-Vocals profiles, this affects the arrangement of the highways on the screen.\n\nFor Vocals profiles, the highest profile in the list is the one who gets to choose between Vocals and Harmonies and whose visual settings are applied to the vocal highway."
+                        },
+						"Header": {
+							"Title": "{0}",
+							"Text": "{0}",
+							"ActiveProfiles": "Profiles that are currently connected, including bots and real people.",
+							"Players": "Real-person profiles that are not currently connected.",
+							"Bots": "Bot profiles that are not currently connected.",
+							"CouldNotLoad": "Profiles that failed to load properly. A future update might fix a bug that makes them readable again, or they might just be corrupted."
+						}
+                    },
+                    "Settings": {
+                        "InputMode": {
+                            "Title": "Input Mode",
+                            "Text": "Represents what type of device you'll be using to play songs. Determines which playable parts will be available to you, what engine you'll use to play them, and what gameplay bindings you can configure.\n\nThis profile's input mode is set to {0}, {1}",
+                            "FiveFretGuitar": "which is meant for guitar game controllers with fret buttons in a 1x5 arrangement.",
+                            "SixFretGuitar": "which is meant for guitar game controllers with fret buttons in a 2x3 arrangement.",
+                            "FourLaneDrums": "which is meant for drumkit game controllers with 4 drum pads, 1 or 2 kick pedals, and optionally up to 3 cymbal pads.",
+                            "FiveLaneDrums": "which is meant for drumkit game controllers with 3 drum pads, 1 or 2 kick pedals, and 2 cymbal pads.",
+                            "EliteDrums": "which is meant for MIDI drumkits with 4 drum pads, 1 or 2 kick pedals, a hi-hat pedal, and 3 or 4 cymbal pads. It's recommended that you also attach a gamepad or other controller to use for menu navigation.",
+                            "ProKeys": "which is meant for keyboard game controllers and MIDI keyboards with at least 2 octaves of keys. If you're using a MIDI keyboard, it's recommended that you also attach a gamepad or other controller to use for menu navigation.",
+                            "Vocals": "which is meant for 1 or more microphones. It's recommended that you also attach a gamepad or other controller to use for menu navigation."
+                        },
+                        "Controllers": {
+                            "Title": "Controllers",
+                            "Text": "A controller is any device that provides button and/or axis inputs to <i>YARG</i>. Use controllers to play most game modes (excluding Vocals and Harmonies) and to navigate menus. If your primary controller does not provide every input you need for gameplay and menu navigation, you can set up multiple controllers with additional and/or redundant bindings."
+                        },
+                        "AttachController": {
+                            "Title": "Attach Controller",
+                            "Text": "Attach a new controller to this profile. If that controller is currently attached to another profile, it will be detached from there."
+                        },
+                        "DetachController": {
+                            "Title": "Detach Controller",
+                            "Text": "Detach {0} from this profile."
+                        },
+                        "ControllerName": {
+                            "Title": "{0}",
+                            "Text": "This is a {0} that is connected to your setup."
+                        },
+                        "JumpTo": {
+                            "Title": "Jump to Binding Set",
+                            "Text": "{0}",
+                            "Populated": "Open the <b>Bindings</b> tab and view this binding set. {0} will automatically become the dummy controller, so you can use it to test and edit bindings.",
+                            "Unpopulated": "If you select a binding set, you can use this button to open the <b>Bindings</b> tab and view it."
+                        },
+                        "Microphones": {
+                            "Title": "Microphones",
+                            "Text": "A microphone is any device that provides an audio signal to <i>YARG</i>. Use microphones to play Vocals and Harmonies. To navigate menus as a vocalist, set up a controller."
+                        },
+                        "AttachMicrophone": {
+                            "Title": "Attach Microphone",
+                            "Text": "Attach a new microphone to this profile. If that microphone is currently attached to another profile, it will be detached from there."
+                        },
+                        "DetachMicrophone": {
+                            "Title": "Detach Microphone",
+                            "Text": "Detach this microphone from this profile."
+                        },
+                        "GameplayBindingsIndicator": {
+                            "Title": "Gameplay Bindings",
+                            "Text": "{0}",
+                            "Lit": "This controller is configured with gameplay bindings for your current Input Mode. To change them, expand the controller listing and use the <b>Gameplay Bindings</b> dropdown.",
+                            "Unlit": "This controller is not configured with gameplay bindings. To assign a binding set, expand the controller listing and use the <b>Gameplay Bindings</b> dropdown.",
+                        },
+                        "MenuBindingsIndicator": {
+                            "Title": "Menu Bindings",
+                            "Text": "{0}",
+                            "Lit": "This controller is configured with menu navigation bindings. To change them, expand the controller listing and use the <b>Menu Bindings</b> dropdown.",
+                            "Unlit": "This controller is not configured with menu navigation bindings. To assign a binding set, expand the controller listing and use the <b>Menu Bindings</b> dropdown.",
+                        },
+                        "GameplayBindings": {
+                            "Title": "Gameplay Bindings",
+                            "Text": "Select from all binding sets for {0}."
+                        },
+                        "MenuBindings": {
+                            "Title": "Menu Bindings",
+                            "Text": "Select from all binding sets for menu navigation on {0}."
+                        },
+                        "NoteSpeed": {
+                            "Title": "Note Speed",
+                            "Text": "Adjust the scrolling speed of the highway. At faster speeds, the gems are visually further apart.\n\nDefault value is 5.0. Higher values produce higher speeds."
+                        },
+                        "HighwayLength": {
+                            "Title": "Track Length",
+                            "Text": "Adjust the length of the highway.\n\nDefault value is 1.0. Higher values produce longer highways."
+                        },
+                        "LeftyFlip": {
+                            "Title": "Lefty Flip",
+                            "Text": "Reorient guitar and drum charts for left-handed gameplay."
+                        },
+                        "EnginePreset": {
+                            "Title": "Engine Preset",
+                            "Text": "Select a set of parameters to control gameplay engine behavior. The available options depend on your Input Mode."
+                        },
+                        "NoteTheme": {
+                            "Title": "Note Theme",
+                            "Text": "Select a set of models to use for gems on the highway during gameplay. Don't eat any of them."
+                        },
+                        "ColorProfile": {
+                            "Title": "Color Profile",
+                            "Text": "Select a set of colors to apply to gems and other gameplay graphics."
+                        },
+                        "CameraPreset": {
+                            "Title": "Camera Preset",
+                            "Text": "Select a configuration for how your note highway is projected onto the screen."
+                        },
+                        "HighwayPreset": {
+                            "Title": "Highway Preset",
+                            "Text": "Select a visual texture for your note highway."
+                        },
+                        "RockMeterPreset": {
+                            "Title": "Rock Meter Preset",
+                            "Text": "Configure how harshly the crowd judges your musicianship."
+                        },
+                        "InputCalibration": {
+                            "Title": "Input Calibration",
+                            "Text": "Apply a global timing offset to all of your gameplay inputs. Higher values mean your inputs are treated as if they occurred earlier."
+                        },
+                        "ConfigureFourLaneDrumsHighway": {
+                            "Title": "4-Lane Drums Highway Configuration",
+                            "Text": "Configure how the note highway is arranged when you play 4-Lane Drums (not Pro Drums). You can rearrange the order of the highway lanes and enable dedicated kick lanes."
+                        },
+                        "ConfigureProDrumsHighway": {
+                            "Title": "Pro Drums Highway Configuration",
+                            "Text": "Configure how the note highway is arranged when you play Pro Drums. You can rearrange the order of the highway lanes, split tom and cymbal lanes, and enable dedicated kick lanes."
+                        },
+                        "ConfigureFiveLaneDrumsHighway": {
+                            "Title": "5-Lane Drums Highway Configuration",
+                            "Text": "Configure how the note highway is arranged when you play 5-Lane Drums. You can rearrange the order of the highway lanes and enable dedicated kick lanes."
+                        },
+                        "DedicatedOpenNoteLane": {
+                            "Title": "Dedicated Open Note Lane",
+                            "Text": "Configure whether the note highway has a dedicated lane for open notes or if open notes appear as full-width bar gems."
+                        },
+                        "RangeDisable": {
+                            "Title": "Range Shift Markers",
+                            "Text": "Some Easy and Medium 5-Fret Guitar charts include visual annotations that tell you when to move your hand to a new position. Use this setting to disable those visuals.\n\nNote that this setting does not change the content of the chart; to disable the position shifts themselves, select the <b>No Range Shifts</b> gameplay modifier when starting a song."
+                        },
+                        "UseCymbalModels": {
+                            "Title": "Use Cymbal Models",
+                            "Text": "Toggles whether 5-Lane Drums uses cymbal gem models for cymbal notes. If disabled, cymbals use the same models as toms."
+                        },
+                        "StarPowerActivationType": {
+                            "Title": "Star Power Activation Type",
+                            "Text": "Choose how you want to activate star power during drums gameplay.\n\n<b>Note:</b> the \"Rightmost Gem\" option applies to the rightmost gem in terms of the default highway ordering, not your custom ordering. If <b>Lefty Flip</b> is enabled, it applies to the leftmost gem instead."
+                        }
+                    }
+                },
+                "Bindings": {
+					"Name": {
+						"Title": "Binding Set Name",
+						"Text": "The name of this binding set."
+					},
+					"List": {
+						"Add": {
+							"Title": "Add New Binding Set",
+							"Text": "Add a new, blank binding set for {0}."
+						},
+                        "Delete": {
+                            "Title": "Delete Binding Set",
+                            "Text": "Permanently delete this binding set. <b><color=\"red\">If anyone is using this binding set, they'll revert to the default bindings!</color></b>"
+                        },
+                        "Duplicate": {
+                            "Title": "Duplicate Binding Set",
+                            "Text": "Create a copy of this binding set."
+                        },
+                        "Filter": {
+                            "Title": "Binding Sets Filter",
+                            "Text": "Pick a type of controller for which to show binding sets. Any controller can be used with any mode, but most controller types are intended for a particular mode."
+                        },
+                        "AddOtherBindingSet": {
+                            "Title": "Add Other Binding Set",
+                            "Text": "{0}",
+                            "Generic": "Create a binding set for use with miscellaneous input devices in a mode that isn't already listed here.\n\n<b><color=yellow>Note:</color></b> You won't be able to select bindings from dropdowns; you'll need to assign a dummy controller and use the <b>Quick Bind</b> and/or <b>Record</b> buttons to create your binding set.",
+                            "Flexible": "Create a binding set for use with {0} in a mode that isn't already listed here.",
+                            "NotRecommended": "Create a binding set for use with {0} in a mode that isn't already listed here. <b><color=\"yellow\">Only use this if you know what you're doing!</color></b> This controller type wasn't designed for other modes."
+                        }
+					},
+                    "Header": {
+                        "EditName": {
+                            "Title": "Rename",
+                            "Text": "Edit the name of this binding set."
+                        },
+                        "Export": {
+                            "Title": "Export Binding Set",
+                            "Text": "Export this binding set as a JSON file that you can transfer to other <i>YARG</i> setups.\n\nNot applicable to built-in binding sets."
+                        },
+                        "QuickBind": {
+                            "Title": "Quick Bind",
+                            "Text": "Use the dummy controller to quickly provide bindings for this binding set."
+                        },
+                        "DummyController": {
+                            "Title": "Dummy Controller",
+                            "Text": "Select from all currently-attached {0}. You can use the selected controller to record binding controls and to test your binding parameters against live input data. If this controller has menu bindings, they will be disabled until you leave this menu or unassign it from the dummy controller dropdown."
+                        },
+                        "UserCount": {
+                            "Title": "User Count",
+                            "Text": "{0}",
+                            "Zero": "No profiles currently use this binding set.",
+                            "OneActive": "One profile (<color=#2DD9FE>{0}</color>) is currently using this binding set. If you edit these bindings, your changes will affect that profile immediately.",
+                            "OneInactive": "One profile (<color=#00A6D1>{0}</color>) defaults to this binding set, but that profile is not currently connected. If you edit these bindings, your changes will affect that profile in the future.",
+                            "MultipleLocked": "Multiple profiles use this binding set. <color=yellow>To prevent unintentionally editing someone else's bindings, you must click the <b>Unlock</b> button to enable editing this binding set.</color>",
+                            "MultipleUnlocked": "Multiple profiles use this binding set. <color=yellow>Editing this binding set will affect all of them! If you're making these changes just for yourself, consider making and editing a duplicate.</color>",
+                        },
+                        "UnlockBindingSet": {
+                            "Title": "Unlock Binding Set",
+                            "Text": "Enables editing this binding set's bindings. <color=yellow>Any changes you make will apply to all profiles that use this binding set! If you're making these changes just for yourself, consider making and editing a duplicate."
+                        },
+                        "ShowLeftyFlipNames": {
+                            "Title": "Show Lefty Flip Names",
+                            "Text": "Display action names as they relate to lefty-flipped gameplay."
+                        }
+                    },
+                    "Group": {
+                        "AddNew": {
+                            "Title": "Add New Binding",
+                            "Text": "Add a new binding for this action. If you have a dummy controller, you will be prompted to provide an input to bind to. Otherwise, you can assign the binding manually."
+                        },
+                        "Expand": {
+                            "Title": "Toggle Bindings List",
+                            "Text": "Toggles the list of all individual bindings assigned to this action."
+                        },
+                        "Button": {
+                            "Header": {
+                                "Title": "{0}",
+                                "Text": "{0}",
+                                "Regular": "This is a button action; its state is either \"on\" or \"off\", representing the logical OR of all the controls bound to it. If at least one of them is on, then this action is considered on. Otherwise, it is off.",
+                                "Impulse": "This is an impulse action; it fires \"pressed\" events whenever you press any of its bound controls. It supports velocity information, but can also be bound with digital buttons; they will be treated as always sending maximum velocity.",
+                            },
+                            "Settings": {
+                                "Title": "Configure/Test Effective Value",
+                                "Text": "Toggles a configuration panel where you can view the effective value of this binding, aggregated from all of its bindings, based on live input from your dummy controller. You can also configure an aggregate debounce value for this action, which applies across all of its bindings."
+                            },
+                            "EffectiveValue": {
+                                "Title": "Effective Value",
+                                "Text": "View aggregated live input from your dummy controller. The effective state of a button action represents the logical OR of all of its bindings. That is, if any one of those bindings is pressed, then the button action is considered pressed. Otherwise, it is not pressed."
+                            },
+                            "DebounceThreshold": {
+                                "Title": "Debounce Threshold",
+                                "Text": "Length of the debounce window, measured in milliseconds, for this action. Once a press is registered from any of this control's bindings, further inputs within this timeframe from any of its bindings are ignored.\n\nIn most cases, this can be left at 0. Consider using a positive value for situations where multiple bindings for an action might crosstalk with each other, such as if you have bound multiple zones of a MIDI drum pad to a single action."
+                            }
+                        },
+                        "Axis": {
+                            "Header": {
+                                "Title": "{0}",
+                                "Text": "This is an axis action; its state ranges from -1.0 to 1.0 (inclusive). If you bind multiple controls, the effective value will reflect whichever control's value has the greatest magnitude. For example, if one control reports 0.2 and another reports -0.8, the effective value is -0.8 because its magnitude (0.8) is greater than the other control's magnitude (0.2)."
+                            },
+                            "Settings": {
+                                "Title": "Test Effective Value",
+                                "Text": "Toggles a configuration panel where you can view the effective value of this binding, aggregated from all of its bindings, based on live input from your dummy controller."
+                            },
+                            "EffectiveValue": {
+                                "Title": "Effective Value",
+                                "Text": "View aggregated live input from your dummy controller. The effective state of an axis action represents the highest-value magnitude of all of its bindings. For example, if one binding reports 0.2 and another reports -0.8, the effective value is -0.8 because its magnitude (0.8) is greater than the other control's magnitude (0.2)."
+                            }
+                        },
+                        "Integer": {
+                            "Header": {
+                                "Title": "{0}",
+                                "Text": "This is an integer action; its state can be any nonnegative integer. If you bind multiple controls, the effective value will reflect the highest value from among those controls."
+                            },
+                            "Settings": {
+                                "Title": "Test Effective Value",
+                                "Text": "Toggles a configuration panel where you can view the effective value of this binding, aggregated from all of its bindings, based on live input from your dummy controller."
+                            },
+                            "EffectiveValue": {
+                                "Title": "Effective Value",
+                                "Text": "View aggregated live input from your dummy controller. The effective state of an integer action represents the maximum of all of its bindings."
+                            }
+                        }
+                    },
+                    "Single": {
+                        "Record": {
+                            "Title": "Record Binding",
+                            "Text": "Opens a dialog where you can capture an input on your dummy controller and assign it to this binding. You must have a dummy controller selected in order to do so."
+                        },
+                        "Delete": {
+                            "Title": "Delete Binding",
+                            "Text": "Removes this control from this action binding."
+                        },
+                        "Expand": {
+                            "Title": "Expand Binding",
+                            "Text": "Toggles a configuration panel where you can calibrate this binding and view live input data from the dummy controller."
+                        },
+                        "Dropdown": {
+                            "Title": "Select Input",
+                            "Text": "Select from applicable inputs supported by {0}."
+                        },
+                        "Button": {
+                            "CurrentValue": {
+                                "Title": "Current Value",
+                                "Text": "View live input from your dummy controller. The axis represents the internal state, which must surpass the <b>Press Point</b> to register as a press. The <b>Pressed</b> light indicates the final \"pressed or not\" boolean state of the button."
+                            },
+                            "Invert": {
+                                "Title": "Invert",
+                                "Text": "Inverts the internal axis state. Note that this does not necessarily correspond to flipping the \"on\" and \"off\" external state. To invert the external state of a digital button control, also set <b>Press Point</b> to a negative value."
+                            },
+                            "PressPoint": {
+                                "Title": "Press Point",
+                                "Text": "The button's internal axis state is measured from -1 to 1 (inclusive); it is considered \"on\" if that value is at least the <b>Press Point</b> value. Actual button inputs typically send 0 or 1, so any positive value should work for them. If you're binding an axis input to a button action, use the <b>Press Point</b> to calibrate how sensitive that input is."
+                            },
+                            "Debounce": {
+                                "Title": "Debounce",
+                                "Text": "Discards repeated inputs from this control that occur in quick succession. Calibrate the debounce of a control if it frequently registers \"phantom\" extra hits.",
+                                "Mode": {
+                                    "Title": "Debounce Mode",
+                                    "Text": "Determines whether to start tracking the debounce timer when an input is pressed, released, or either."
+                                },
+                                "Threshold": {
+                                    "Title": "Debounce Threshold",
+                                    "Text": "Length of the debounce window, measured in milliseconds. Once an input is registered, further inputs within this timeframe are ignored (this does not restart the timer)."
+                                }
+                            }
+                        },
+                        "Axis": {
+                            "RawValue": {
+                                "Title": "Raw Value",
+                                "Text": "View live input from your dummy controller, before applying the parameters below. This display overlays your <b>Minimum</b>, <b>Maximum</b>, and <b>Upper/Lower Deadzone</b> parameters for reference.",
+                                "Deadzone": {
+                                    "Title": "Deadzone ({0}–{1})",
+                                    "Text": "If the raw value falls within this range, the calibrated value is treated as 0. Configure with the <b>Upper Deadzone</b> and <b>Lower Deadzone</b> parameters below."
+                                },
+                                "Minimum": {
+                                    "Title": "Minimum ({0})",
+                                    "Text": "If the raw value falls within this range, the calibrated value is treated as {0}."
+                                },
+                                "Maximum": {
+                                    "Title": "Maximum ({0})",
+                                    "Text": "If the raw value falls within this range, the calibrated value is treated as {0}."
+                                }
+                            },
+                            "CalibratedValue": {
+                                "Title": "Calibrated Value",
+                                "Text": "View live input from your dummy controller, as affected by the parameters below."
+                            },
+                            "Invert": {
+                                "Title": "Invert",
+                                "Text": "Inverts the raw input. For example, if the raw value is 0.1, the calibrated value is treated as -0.1."
+                            },
+                            "Maximum": {
+                                "Title": "Maximum",
+                                "Text": "If the raw value is higher than this value, the calibrated value is clamped to this value."
+                            },
+                            "Minimum": {
+                                "Title": "Minimum",
+                                "Text": "If the raw value is lower than this value, the calibrated value is clamped to this value."
+                            },
+                            "UpperDeadzone": {
+                                "Title": "Upper Deadzone",
+                                "Text": "If the raw value is greater than 0 and less than or equal to this value, the calibrated value is treated as 0."
+                            },
+                            "LowerDeadzone": {
+                                "Title": "Upper Deadzone",
+                                "Text": "If the raw value is less than 0 and greater than or equal to this value, the calibrated value is treated as 0."
+                            }
+                        },
+                        "Integer": {
+                            "CurrentValue": {
+                                "Title": "Current Value",
+                                "Text": "View live input from your dummy controller."
+                            }
+                        }
+                    }
+                }
+            }
         },
-        "ScoreScreen" : {
-            "BandScoreNotSaved" : "Score not saved",
+        "ScoreScreen": {
+            "BandScoreNotSaved": "Score not saved",
             "InconsistentReplay": "Inconsistent Replay",
-            "RestartSong" : "Restart Song",
+            "RestartSong": "Restart Song",
             "ShowAdvanced": "Show Advanced",
             "HideAdvanced": "Hide Advanced",
-            "EndSetlistEarly" : "End Setlist",
+            "EndSetlistEarly": "End Setlist",
             "AddSongOffset": "(Hold) Save song offset",
             "RemoveSongOffset": "(Hold) Undo offset save",
             "ViewReplay": "View Replay"
@@ -624,7 +1152,7 @@
             "All": "All",
             "SongCount": "{0} SONGS",
             "Genres": "Genres",
-			"Subgenres": "Subgenres",
+            "Subgenres": "Subgenres",
             "Decades": "Decades",
             "VocalParts": {
                 "Name": "Number of Vocal Parts",
@@ -657,32 +1185,32 @@
             },
             "Playlists": "Playlists"
         },
-		"HighwayOrdering": {
-			"Red": "Red",
-			"RedCymbal": "Red Cymbal",
-			"RedDrum": "Red Drum",
-			"Yellow": "Yellow",
-			"YellowCymbal": "Yellow Cymbal",
-			"YellowDrum": "Yellow Drum",
-			"Blue": "Blue",
-			"BlueCymbal": "Blue Cymbal",
-			"BlueDrum": "Blue Drum",
-			"Green": "Green",
-			"GreenCymbal": "Green Cymbal",
-			"GreenDrum": "Green Drum",
-			"Orange": "Orange",
-			"CreateDedicatedLane": "Create Dedicated Lane",
-			"RemoveDedicatedLane": "Remove Dedicated Lane",
-			"RemoveDedicatedLanes": "Remove Dedicated Lanes",
-			"Kick": "Kick",
-			"RightKick": "Right Kick*",
-			"LeftKick": "Left Kick*",
-			"SplitKicksWarning": "* Split kicks can still be hit with either pedal and may not correspond to the most comfortable footing for double-kick patterns.",
-			"ExpertPlusOnly": "Expert+ Only",
-			"4LaneHeader": "4-Lane Drums Highway Configuration",
-			"ProHeader": "Pro Drums Highway Configuration",
-			"5LaneHeader": "5-Lane Drums Highway Configuration"
-		},
+        "HighwayOrdering": {
+            "Red": "Red",
+            "RedCymbal": "Red Cymbal",
+            "RedDrum": "Red Drum",
+            "Yellow": "Yellow",
+            "YellowCymbal": "Yellow Cymbal",
+            "YellowDrum": "Yellow Drum",
+            "Blue": "Blue",
+            "BlueCymbal": "Blue Cymbal",
+            "BlueDrum": "Blue Drum",
+            "Green": "Green",
+            "GreenCymbal": "Green Cymbal",
+            "GreenDrum": "Green Drum",
+            "Orange": "Orange",
+            "CreateDedicatedLane": "Create Dedicated Lane",
+            "RemoveDedicatedLane": "Remove Dedicated Lane",
+            "RemoveDedicatedLanes": "Remove Dedicated Lanes",
+            "Kick": "Kick",
+            "RightKick": "Right Kick*",
+            "LeftKick": "Left Kick*",
+            "SplitKicksWarning": "* Split kicks can still be hit with either pedal and may not correspond to the most comfortable footing for double-kick patterns.",
+            "ExpertPlusOnly": "Expert+ Only",
+            "4LaneHeader": "4-Lane Drums Highway Configuration",
+            "ProHeader": "Pro Drums Highway Configuration",
+            "5LaneHeader": "5-Lane Drums Highway Configuration"
+        },
         "Pause": {
             "Generic": {
                 "Resume": "Resume",
@@ -736,7 +1264,7 @@
             "HotStart": "HOT START",
             "NewHighScore": "NEW HIGH SCORE",
             "NoteStreak": "{0:N0}-NOTE STREAK",
-			"PhraseStreak": "{0:N0}-PHRASE STREAK",
+            "PhraseStreak": "{0:N0}-PHRASE STREAK",
             "StarPowerReady": "STAR POWER READY",
             "StrongFinish": "STRONG FINISH"
         },
@@ -750,7 +1278,7 @@
                 "Nice": "<i>NICE</i>\nSOLO",
                 "Okay": "OKAY\nSOLO",
                 "Perfect": "PERFECT\nSOLO!",
-                "Solid":  "SOLID\nSOLO"
+                "Solid": "SOLID\nSOLO"
             },
             "PointsResult": "{0:N0}\nPOINTS"
         },
@@ -764,169 +1292,169 @@
                 "Strong": "STRONG"
             }
         },
-		"Practice": {
-			"Sections": {
-				"intro": "Intro",
-				"intro_slow": "Intro slow",
-				"intro_fast": "Intro fast",
-				"intro_heavy": "Intro heavy",
-				"quiet_intro": "Quiet intro",
-				"noise_intro": "Noise intro",
-				"drum_intro": "Drum intro",
-				"bass_intro": "Bass intro",
-				"vocal_intro": "Vocal intro",
-				"gtr_intro": "Gtr intro",
-				"aco_gtr_intro": "Aco gtr intro",
-				"violin_intro": "Violin intro",
-				"strings_intro": "Strings intro",
-				"orch_intro": "Orch intro",
-				"horn_intro": "Horn intro",
-				"harmonica_intro": "Harmonica intro",
-				"organ_intro": "Organ intro",
-				"piano_intro": "Piano intro",
-				"keyboard_intro": "Keyboard intro",
-				"dj_intro": "DJ intro",
-				"intro_hook": "Intro hook",
-				"intro_riff": "Intro riff",
-				"fade_in": "Fade in",
-				"drums_enter": "Drums enter",
-				"bass_enters": "Bass enters",
-				"gtr_enters": "Gtr enters",
-				"rhy_enters": "Gtr2 enters",
-				"band_enters": "Band enters",
-				"synth_enters": "Synth enters",
-				"keyboard_enters": "Keyboard enters",
-				"organ_enters": "Organ enters",
-				"piano_enters": "Piano enters",
-				"kick_it": "Kick It!",
-				"intro_verse": "Intro verse",
-				"intro_chorus": "Intro chorus",
-				"verse": "Verse",
-				"alt_verse": "Alt verse",
-				"quiet_verse": "Quiet verse",
-				"preverse": "Pre-verse",
-				"postverse": "Post-verse",
-				"chorus": "Chorus",
-				"chorus_break": "Chorus break",
-				"breakdown_chorus": "Breakdown chorus",
-				"alt_chorus": "Alt chorus",
-				"prechorus": "Pre-chorus",
-				"postchorus": "Post-chorus",
-				"bridge": "Bridge",
-				"gtr_solo": "Gtr solo",
-				"slide_solo": "Slide solo",
-				"violin_solo": "Violin solo",
-				"drum_solo": "Drum solo",
-				"percussion_solo": "Percussion solo",
-				"bass_solo": "Bass solo",
-				"organ_solo": "Organ solo",
-				"piano_solo": "Piano solo",
-				"keyboard_solo": "Keyboard solo",
-				"synth_solo": "Synth solo",
-				"harmonica_solo": "Harmonica solo",
-				"sax_solo": "Sax solo",
-				"horn_solo": "Horn solo",
-				"flute_solo": "Flute solo",
-				"noise_solo": "Noise solo",
-				"noise_build": "Noise build",
-				"dj_solo": "DJ solo",
-				"slow_part": "Slow part",
-				"very_slow": "Very slow",
-				"fast_part": "Fast part",
-				"very_fast": "Very fast",
-				"quiet_part": "Quiet part",
-				"very_quiet": "Very quiet",
-				"loud_part": "Loud part",
-				"very_loud": "Very loud",
-				"heavy_part": "Heavy part",
-				"very_heavy": "Very heavy",
-				"spacey_part": "Spacey part",
-				"very_spacey": "Very spacey",
-				"trippy_part": "Trippy part",
-				"very_trippy": "Very trippy",
-				"break": "Break",
-				"breakdown": "Breakdown",
-				"gtr_break": "Gtr break",
-				"bass_break": "Bass break",
-				"drum_break": "Drum break",
-				"organ_break": "Organ break",
-				"synth_break": "Synth break",
-				"piano_break": "Piano break",
-				"keyboard_break": "Keyboard break",
-				"horn_break": "Horn break",
-				"scratch_break": "Scratch break",
-				"percussion_break": "Percussion break",
-				"dj_break": "DJ break",
-				"drop": "Drop",
-				"interlude": "Interlude",
-				"soundscape": "Soundscape",
-				"jam": "Jam",
-				"space_jam": "Space jam",
-				"vamp": "Vamp",
-				"build_up": "Build up",
-				"speed_up": "Speed up",
-				"tension": "Tension",
-				"release": "Release",
-				"crescendo": "Crescendo",
-				"melody": "Melody",
-				"lo_melody": "Low melody",
-				"hi_melody": "High melody",
-				"main_riff": "Main riff",
-				"verse_riff": "Verse riff",
-				"chorus_riff": "Chorus riff",
-				"gtr_riff": "Gtr riff",
-				"bass_riff": "Bass riff",
-				"big_riff": "Big riff",
-				"bigger_riff": "Bigger riff",
-				"heavy_riff": "Heavy riff",
-				"fast_riff": "Fast riff",
-				"slow_riff": "Slow riff",
-				"swing_riff": "Swing riff",
-				"chunky_riff": "Chunky riff",
-				"odd_riff": "Odd riff",
-				"hook": "Hook",
-				"drum_roll": "Drum roll",
-				"gtr_lead": "Gtr lead",
-				"gtr_fill": "Gtr fill",
-				"gtr_hook": "Gtr hook",
-				"gtr_melody": "Gtr melody",
-				"gtr_line": "Gtr line",
-				"gtr_lick": "Gtr lick",
-				"gtr_ostinato": "Gtr ostinato",
-				"vocal_break": "Vocal break",
-				"ah": "Ah!",
-				"yeah": "Yeah!",
-				"oohs": "Oohs and Ahs",
-				"prayer": "Prayer",
-				"chant": "Chant",
-				"spoken_word": "Spoken word",
-				"outro": "Outro",
-				"outro_solo": "Outro solo",
-				"outro_chorus": "Outro chorus",
-				"ending": "Ending",
-				"bre": "Big Rock Ending!",
-				"fade_out": "Fade out",
-				"fast_picking": "Fast picking",
-				"foreplay_intro": "Foreplay intro",
-				"longtome_intro": "Long Time intro"
-			},
-			"SectionFormats": {
-				"LetterSection": "{0} section",
-				"WithNumber": "{0} {1}",
-				"PercentageBased": "{0}% - {1}%"
-			},
+        "Practice": {
+            "Sections": {
+                "intro": "Intro",
+                "intro_slow": "Intro slow",
+                "intro_fast": "Intro fast",
+                "intro_heavy": "Intro heavy",
+                "quiet_intro": "Quiet intro",
+                "noise_intro": "Noise intro",
+                "drum_intro": "Drum intro",
+                "bass_intro": "Bass intro",
+                "vocal_intro": "Vocal intro",
+                "gtr_intro": "Gtr intro",
+                "aco_gtr_intro": "Aco gtr intro",
+                "violin_intro": "Violin intro",
+                "strings_intro": "Strings intro",
+                "orch_intro": "Orch intro",
+                "horn_intro": "Horn intro",
+                "harmonica_intro": "Harmonica intro",
+                "organ_intro": "Organ intro",
+                "piano_intro": "Piano intro",
+                "keyboard_intro": "Keyboard intro",
+                "dj_intro": "DJ intro",
+                "intro_hook": "Intro hook",
+                "intro_riff": "Intro riff",
+                "fade_in": "Fade in",
+                "drums_enter": "Drums enter",
+                "bass_enters": "Bass enters",
+                "gtr_enters": "Gtr enters",
+                "rhy_enters": "Gtr2 enters",
+                "band_enters": "Band enters",
+                "synth_enters": "Synth enters",
+                "keyboard_enters": "Keyboard enters",
+                "organ_enters": "Organ enters",
+                "piano_enters": "Piano enters",
+                "kick_it": "Kick It!",
+                "intro_verse": "Intro verse",
+                "intro_chorus": "Intro chorus",
+                "verse": "Verse",
+                "alt_verse": "Alt verse",
+                "quiet_verse": "Quiet verse",
+                "preverse": "Pre-verse",
+                "postverse": "Post-verse",
+                "chorus": "Chorus",
+                "chorus_break": "Chorus break",
+                "breakdown_chorus": "Breakdown chorus",
+                "alt_chorus": "Alt chorus",
+                "prechorus": "Pre-chorus",
+                "postchorus": "Post-chorus",
+                "bridge": "Bridge",
+                "gtr_solo": "Gtr solo",
+                "slide_solo": "Slide solo",
+                "violin_solo": "Violin solo",
+                "drum_solo": "Drum solo",
+                "percussion_solo": "Percussion solo",
+                "bass_solo": "Bass solo",
+                "organ_solo": "Organ solo",
+                "piano_solo": "Piano solo",
+                "keyboard_solo": "Keyboard solo",
+                "synth_solo": "Synth solo",
+                "harmonica_solo": "Harmonica solo",
+                "sax_solo": "Sax solo",
+                "horn_solo": "Horn solo",
+                "flute_solo": "Flute solo",
+                "noise_solo": "Noise solo",
+                "noise_build": "Noise build",
+                "dj_solo": "DJ solo",
+                "slow_part": "Slow part",
+                "very_slow": "Very slow",
+                "fast_part": "Fast part",
+                "very_fast": "Very fast",
+                "quiet_part": "Quiet part",
+                "very_quiet": "Very quiet",
+                "loud_part": "Loud part",
+                "very_loud": "Very loud",
+                "heavy_part": "Heavy part",
+                "very_heavy": "Very heavy",
+                "spacey_part": "Spacey part",
+                "very_spacey": "Very spacey",
+                "trippy_part": "Trippy part",
+                "very_trippy": "Very trippy",
+                "break": "Break",
+                "breakdown": "Breakdown",
+                "gtr_break": "Gtr break",
+                "bass_break": "Bass break",
+                "drum_break": "Drum break",
+                "organ_break": "Organ break",
+                "synth_break": "Synth break",
+                "piano_break": "Piano break",
+                "keyboard_break": "Keyboard break",
+                "horn_break": "Horn break",
+                "scratch_break": "Scratch break",
+                "percussion_break": "Percussion break",
+                "dj_break": "DJ break",
+                "drop": "Drop",
+                "interlude": "Interlude",
+                "soundscape": "Soundscape",
+                "jam": "Jam",
+                "space_jam": "Space jam",
+                "vamp": "Vamp",
+                "build_up": "Build up",
+                "speed_up": "Speed up",
+                "tension": "Tension",
+                "release": "Release",
+                "crescendo": "Crescendo",
+                "melody": "Melody",
+                "lo_melody": "Low melody",
+                "hi_melody": "High melody",
+                "main_riff": "Main riff",
+                "verse_riff": "Verse riff",
+                "chorus_riff": "Chorus riff",
+                "gtr_riff": "Gtr riff",
+                "bass_riff": "Bass riff",
+                "big_riff": "Big riff",
+                "bigger_riff": "Bigger riff",
+                "heavy_riff": "Heavy riff",
+                "fast_riff": "Fast riff",
+                "slow_riff": "Slow riff",
+                "swing_riff": "Swing riff",
+                "chunky_riff": "Chunky riff",
+                "odd_riff": "Odd riff",
+                "hook": "Hook",
+                "drum_roll": "Drum roll",
+                "gtr_lead": "Gtr lead",
+                "gtr_fill": "Gtr fill",
+                "gtr_hook": "Gtr hook",
+                "gtr_melody": "Gtr melody",
+                "gtr_line": "Gtr line",
+                "gtr_lick": "Gtr lick",
+                "gtr_ostinato": "Gtr ostinato",
+                "vocal_break": "Vocal break",
+                "ah": "Ah!",
+                "yeah": "Yeah!",
+                "oohs": "Oohs and Ahs",
+                "prayer": "Prayer",
+                "chant": "Chant",
+                "spoken_word": "Spoken word",
+                "outro": "Outro",
+                "outro_solo": "Outro solo",
+                "outro_chorus": "Outro chorus",
+                "ending": "Ending",
+                "bre": "Big Rock Ending!",
+                "fade_out": "Fade out",
+                "fast_picking": "Fast picking",
+                "foreplay_intro": "Foreplay intro",
+                "longtome_intro": "Long Time intro"
+            },
+            "SectionFormats": {
+                "LetterSection": "{0} section",
+                "WithNumber": "{0} {1}",
+                "PercentageBased": "{0}% - {1}%"
+            },
             "GuidePitch": "Guide Pitch",
             "GuidePitchToggle": "Toggle"
-		},
+        },
         "UnisonDisplay": {
             "Header": "Unison Bonus"
         }
     },
-	"Preview": {
-		"Experimental": {
-			"Notice": "IMPORTANT\n\nThese settings represent a work in progress. They are subject to change, may contain bugs, and could even cause major problems if enabled."
-		}
-	},
+    "Preview": {
+        "Experimental": {
+            "Notice": "IMPORTANT\n\nThese settings represent a work in progress. They are subject to change, may contain bugs, and could even cause major problems if enabled."
+        }
+    },
     "Discord": {
         "Default": {
             "Details": "Hello there ladies and gentlemen!",
@@ -969,7 +1497,8 @@
             "SoloRed": "Solo Red Fret",
             "SoloYellow": "Solo Yellow Fret",
             "SoloBlue": "Solo Blue Fret",
-            "SoloOrange": "Solo Orange Fret"
+            "SoloOrange": "Solo Orange Fret",
+            "FxSwitch": "FX Switch"
         },
         "SixFret": {
             "Black1": "Black Fret 1 (First)",
@@ -998,32 +1527,32 @@
         "Drums": {
             "Kick": "Kick Pedal"
         },
-		"EliteDrums": {
-			"Stomp": "Hi-Hat Pedal Stomp",
-			"Splash": "Hi-Hat Pedal Splash",
-			"Snare": "Snare",
-			"ClosedHiHat": "Closed Hi-Hat",
-			"SizzleHiHat": "Sizzle Hi-Hat",
-			"OpenHiHat": "Open Hi-Hat",
-			"LeftCrash": "Left Crash",
-			"Tom1": "Tom 1",
-			"Tom2": "Tom 2",
-			"Tom3": "Tom 3",
-			"Ride": "Ride",
-			"RightCrash": "Right Crash",
-			"FourLaneRedDrum": "4-Lane Red Drum",
-			"FourLaneYellowDrum": "4-Lane Yellow Drum",
-			"FourLaneBlueDrum": "4-Lane Blue Drum",
-			"FourLaneGreenDrum": "4-Lane Green Drum",
-			"FourLaneYellowCymbal": "4-Lane Yellow Cymbal",
-			"FourLaneBlueCymbal": "4-Lane Blue Cymbal",
-			"FourLaneGreenCymbal": "4-Lane Green Cymbal",
-			"FiveLaneRedDrum": "5-Lane Red Drum",
-			"FiveLaneBlueDrum": "5-Lane Blue Drum",
-			"FiveLaneGreenDrum": "5-Lane Green Drum",
-			"FiveLaneYellowCymbal": "5-Lane Yellow Cymbal",
-			"FiveLaneOrangeCymbal": "5-Lane Orange Cymbal"
-		},
+        "EliteDrums": {
+            "Stomp": "Hi-Hat Pedal Stomp",
+            "Splash": "Hi-Hat Pedal Splash",
+            "Snare": "Snare",
+            "ClosedHiHat": "Closed Hi-Hat",
+            "SizzleHiHat": "Sizzle Hi-Hat",
+            "OpenHiHat": "Open Hi-Hat",
+            "LeftCrash": "Left Crash",
+            "Tom1": "Tom 1",
+            "Tom2": "Tom 2",
+            "Tom3": "Tom 3",
+            "Ride": "Ride",
+            "RightCrash": "Right Crash",
+            "FourLaneRedDrum": "4-Lane Red Drum",
+            "FourLaneYellowDrum": "4-Lane Yellow Drum",
+            "FourLaneBlueDrum": "4-Lane Blue Drum",
+            "FourLaneGreenDrum": "4-Lane Green Drum",
+            "FourLaneYellowCymbal": "4-Lane Yellow Cymbal",
+            "FourLaneBlueCymbal": "4-Lane Blue Cymbal",
+            "FourLaneGreenCymbal": "4-Lane Green Cymbal",
+            "FiveLaneRedDrum": "5-Lane Red Drum",
+            "FiveLaneBlueDrum": "5-Lane Blue Drum",
+            "FiveLaneGreenDrum": "5-Lane Green Drum",
+            "FiveLaneYellowCymbal": "5-Lane Yellow Cymbal",
+            "FiveLaneOrangeCymbal": "5-Lane Orange Cymbal"
+        },
         "Vocals": {
             "StarPower": "Star Power Activate",
             "Hit": "Percussion Hit"
@@ -1061,15 +1590,34 @@
             "Key23": "Key 23 (A#3)",
             "Key24": "Key 24 (B3)",
             "Key25": "Key 25 (C4)",
-			"OpenNote": "Five-Lane Open Note",
-			"GreenKey": "Five-Lane Green Key (First)",
-			"RedKey": "Five-Lane Red Key (Second)",
-			"YellowKey": "Five-Lane Yellow Key (Third)",
-			"BlueKey": "Five-Lane Blue Key (Fourth)",
-			"OrangeKey": "Five-Lane Orange Key (Fifth)",
+            "OpenNote": "Five-Lane Open Note",
+            "GreenKey": "Five-Lane Green Key (First)",
+            "RedKey": "Five-Lane Red Key (Second)",
+            "YellowKey": "Five-Lane Yellow Key (Third)",
+            "BlueKey": "Five-Lane Blue Key (Fourth)",
+            "OrangeKey": "Five-Lane Orange Key (Fifth)",
             "StarPower": "Star Power Activate",
             "TouchEffects": "Touch Effects"
-        }
+        },
+        "Headers": {
+            "Menu": "For Menu Navigation",
+            "FiveFretGuitar": "For 5-Fret Guitar Gameplay",
+            "SixFretGuitar": "For 6-Fret Guitar Gameplay",
+            "FourLaneDrums": "For 4-Lane Drums Gameplay",
+            "FiveLaneDrums": "For 5-Lane Drums Gameplay",
+            "EliteDrums": "For All Kinds of Drums Gameplay",
+            "ProKeys": "For Keys Gameplay",
+            "ProGuitar": "For Pro Guitar Gameplay",
+            "Vocals": "For Vocal Gameplay",
+            "NotRecommended": "Not Recommended"
+        },
+        "Hardcoded": "Built-In",
+        "Custom": "Custom {0}",
+        "ModeOnController": "{0} on {1}",
+        "VocalsWithController": "{0} with {1}",
+        "MidiKeyboard": "MIDI Keyboard",
+        "MidiDrumkit": "MIDI Drumkit",
+        "GeneralDrums": "Drums"
     },
     "Settings": {
         "Tab": {
@@ -1328,15 +1876,15 @@
                     "Windowed": "Windowed"
                 }
             },
-			"Genrelizer": {
-				"Name": "Standardize Genre Metadata",
-				"Description": "Categorizes genre metadata into standard sets of genres, using data from the Genrelizer GitHub repository. <color=white>Rescan required if changed!</color>",
-				"Dropdown": {
-				    "Genrelize": "Full",
-					"Overgenrelize": "Simplified",
-					"Off": "None"
-				}
-			},
+            "Genrelizer": {
+                "Name": "Standardize Genre Metadata",
+                "Description": "Categorizes genre metadata into standard sets of genres, using data from the Genrelizer GitHub repository. <color=white>Rescan required if changed!</color>",
+                "Dropdown": {
+                    "Genrelize": "Full",
+                    "Overgenrelize": "Simplified",
+                    "Off": "None"
+                }
+            },
             "GraphicalProgressOnScoreBox": {
                 "Name": "Graphical Progress On Score Box",
                 "Description": "Enables and disables the graphical blue outline on the score box that displays the song's progress."
@@ -1825,7 +2373,7 @@
                 "PauseName": "Reverb",
                 "Description": "Adjusts the amount of reverb applied to vocal monitoring. 0 is dry, 1.0 is maximum."
             },
-			"VocalStreakFrequency": {
+            "VocalStreakFrequency": {
                 "Name": "Vocal Streak Frequency",
                 "Description": "Sets the frequency of phrase streak notifications for vocalists.",
                 "Dropdown": {
@@ -2003,10 +2551,10 @@
                 "Name": "Show Player Name When Starting Song",
                 "Description": "If enabled, the player name and instrument icon will appear when the song starts."
             },
-			"StaticVocalsMode": {
-				"Name": "Static Vocals Mode",
-				"Description": "When enabled, lyrics stay stationary on the left side of the vocal highway. When disabled, lyrics scroll across the vocal highway."
-			},
+            "StaticVocalsMode": {
+                "Name": "Static Vocals Mode",
+                "Description": "When enabled, lyrics stay stationary on the left side of the vocal highway. When disabled, lyrics scroll across the vocal highway."
+            },
             "UseThreeLaneLyricsInHarmony": {
                 "Name": "Use Three Lyric Lanes In Harmony",
                 "Description": "If enabled, the game will display three lyric lanes in harmony mode (one for each harmony). When disabled, the game will combine the lyrics of harmonies 2 and 3 into one lane at the top."
@@ -2036,8 +2584,8 @@
             "CameraSettingsContainer": "Camera Presets",
             "ColorProfileContainer": "Color Profiles",
             "EnginePresetContainer": "Engine Presets",
-            "HighwayPresetContainer" : "Highway Presets",
-			"RockMeterPresetContainer" : "Rock Meter Presets"
+            "HighwayPresetContainer": "Highway Presets",
+            "RockMeterPresetContainer": "Rock Meter Presets"
         },
         "PresetSetting": {
             "PreviewVisuals": {
@@ -2142,15 +2690,15 @@
                 "BlueCymbal": {
                     "Name": "Blue Cymbal"
                 },
-				"BlueCymbalFret": {
-					"Name": "Blue Cymbal Fret\n(split view only)"
-				},
-				"BlueCymbalFretInner": {
-					"Name": "Blue Cymbal Fret Inner\n(split view only)"
-				},
-				"BlueCymbalParticles": {
-					"Name": "Blue Cymbal Particles\n(split view only)"
-				},
+                "BlueCymbalFret": {
+                    "Name": "Blue Cymbal Fret\n(split view only)"
+                },
+                "BlueCymbalFretInner": {
+                    "Name": "Blue Cymbal Fret Inner\n(split view only)"
+                },
+                "BlueCymbalParticles": {
+                    "Name": "Blue Cymbal Particles\n(split view only)"
+                },
                 "BlueCymbalStarpower": {
                     "Name": "Blue Cymbal Star Power"
                 },
@@ -2187,7 +2735,7 @@
                 "BlueStarpower": {
                     "Name": "Blue Star Power"
                 },
-				"DoubleKickFret": {
+                "DoubleKickFret": {
                     "Name": "Double Kick Fret\n(dedicated lane only)"
                 },
                 "DoubleKickFretInner": {
@@ -2208,15 +2756,15 @@
                 "GreenCymbal": {
                     "Name": "Green Cymbal"
                 },
-				"GreenCymbalFret": {
-					"Name": "Green Cymbal Fret\n(split view only)"
-				},
-				"GreenCymbalFretInner": {
-					"Name": "Green Cymbal Fret Inner\n(split view only)"
-				},
-				"GreenCymbalParticles": {
-					"Name": "Green Cymbal Particles\n(split view only)"
-				},
+                "GreenCymbalFret": {
+                    "Name": "Green Cymbal Fret\n(split view only)"
+                },
+                "GreenCymbalFretInner": {
+                    "Name": "Green Cymbal Fret Inner\n(split view only)"
+                },
+                "GreenCymbalParticles": {
+                    "Name": "Green Cymbal Particles\n(split view only)"
+                },
                 "GreenCymbalStarpower": {
                     "Name": "Green Cymbal Star Power"
                 },
@@ -2319,15 +2867,15 @@
                 "RedCymbal": {
                     "Name": "Red Cymbal"
                 },
-				"RedCymbalFret": {
-					"Name": "Red Cymbal Fret\n(split view only)"
-				},
-				"RedCymbalFretInner": {
-					"Name": "Red Cymbal Fret Inner\n(split view only)"
-				},
-				"RedCymbalParticles": {
-					"Name": "Red Cymbal Particles\n(split view only)"
-				},
+                "RedCymbalFret": {
+                    "Name": "Red Cymbal Fret\n(split view only)"
+                },
+                "RedCymbalFretInner": {
+                    "Name": "Red Cymbal Fret Inner\n(split view only)"
+                },
+                "RedCymbalParticles": {
+                    "Name": "Red Cymbal Particles\n(split view only)"
+                },
                 "RedCymbalStarpower": {
                     "Name": "Red Cymbal Star Power"
                 },
@@ -2367,15 +2915,15 @@
                 "YellowCymbal": {
                     "Name": "Yellow Cymbal"
                 },
-				"YellowCymbalFret": {
-					"Name": "Yellow Cymbal Fret\n(split view only)"
-				},
-				"YellowCymbalFretInner": {
-					"Name": "Yellow Cymbal Fret Inner\n(split view only)"
-				},
-				"YellowCymbalParticles": {
-					"Name": "Yellow Cymbal Particles\n(split view only)"
-				},
+                "YellowCymbalFret": {
+                    "Name": "Yellow Cymbal Fret\n(split view only)"
+                },
+                "YellowCymbalFretInner": {
+                    "Name": "Yellow Cymbal Fret Inner\n(split view only)"
+                },
+                "YellowCymbalParticles": {
+                    "Name": "Yellow Cymbal Particles\n(split view only)"
+                },
                 "YellowCymbalStarpower": {
                     "Name": "Yellow Cymbal Star Power"
                 },
@@ -2516,7 +3064,7 @@
                     "Name": "Lane Autohit Window",
                     "Description": "This determines the minimum input speed that guarantees autohitting behavior in a lane, regardless of the speed of the notes within the lane."
                 },
-				"LaneProximityProtectionWindow": {
+                "LaneProximityProtectionWindow": {
                     "Name": "Lane Proximity Protection\nWindow",
                     "Description": "This determines the window of time before and after a lane where overhitting is forgiven."
                 },
@@ -2621,7 +3169,7 @@
                     "Description": "If enabled, the game honors charted trill/tremolo lanes."
                 }
             },
-            "HighwayPreset" : {
+            "HighwayPreset": {
                 "BackgroundBaseColor1": {
                     "Name": "Background Base Color 1"
                 },
@@ -2665,36 +3213,36 @@
                     "Name": "Side Texture Waviness"
                 }
             },
-			"RockMeterPreset" : {
+            "RockMeterPreset": {
                 "StartingHappiness": {
                     "Name": "Starting Happiness",
-					"Description": "This controls how full the Rock Meter is at the beginning of the song."
+                    "Description": "This controls how full the Rock Meter is at the beginning of the song."
                 },
-				"MissDamageMultiplier": {
+                "MissDamageMultiplier": {
                     "Name": "Miss Damage Multiplier",
-					"Description": "This controls how much the Rock Meter decreases when missing a note. Higher values make the game more difficult."
+                    "Description": "This controls how much the Rock Meter decreases when missing a note. Higher values make the game more difficult."
                 },
-				"OverhitDamageMultiplier": {
+                "OverhitDamageMultiplier": {
                     "Name": "Overhit Damage Multiplier",
-					"Description": "This controls how much the Rock Meter decreases when over-strumming. Higher values make the game more difficult."
+                    "Description": "This controls how much the Rock Meter decreases when over-strumming. Higher values make the game more difficult."
                 },
-				"HitRecoveryMultiplier": {
+                "HitRecoveryMultiplier": {
                     "Name": "Hit Recovery Multiplier",
-					"Description": "This controls how much the Rock Meter recovers when hitting a note correctly. Higher values make the game easier."
+                    "Description": "This controls how much the Rock Meter recovers when hitting a note correctly. Higher values make the game easier."
                 },
-				"StarPowerEffectMultiplier": {
+                "StarPowerEffectMultiplier": {
                     "Name": "Star Power Multiplier",
-					"Description": "This controls how much the Rock Meter recovers when successfully hitting a note while Star Power is active. This has no effect on misses or overhits."
+                    "Description": "This controls how much the Rock Meter recovers when successfully hitting a note while Star Power is active. This has no effect on misses or overhits."
                 },
-				"VocalsMissDamageMultiplier": {
+                "VocalsMissDamageMultiplier": {
                     "Name": "Miss Damage Multiplier (Vocals)",
-					"Description": "This controls how much the Rock Meter decreases when a vocalist sings a phrase poorly. Higher values make the game more difficult."
+                    "Description": "This controls how much the Rock Meter decreases when a vocalist sings a phrase poorly. Higher values make the game more difficult."
                 },
-				"VocalsHitRecoveryMultiplier": {
+                "VocalsHitRecoveryMultiplier": {
                     "Name": "Hit Recovery Multiplier (Vocals)",
-					"Description": "This controls how much the Rock Meter recovers when a vocalist sings a phrase well. Higher values make the game easier."
+                    "Description": "This controls how much the Rock Meter recovers when a vocalist sings a phrase well. Higher values make the game easier."
                 }
-			}
+            }
         }
     }
 }

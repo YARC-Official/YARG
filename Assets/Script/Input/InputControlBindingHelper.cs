@@ -6,6 +6,9 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.LowLevel;
+using YARG.Core.Logging;
+using YARG.Helpers;
+using YARG.Input.Bindings;
 using YARG.Player;
 
 namespace YARG.Input
@@ -44,30 +47,29 @@ namespace YARG.Input
         private const float GROUP_TIME_THRESHOLD = 0.1f;
 
         private State             _state;
-        private YargPlayer        _player;
-        private ControlBinding    _binding;
+        private InputDevice       _dummyController;
         private AllowedControl    _allowedControls = AllowedControl.All;
-        private ActuationSettings _bindSettings    = new();
-        private InputControl      _grabbedControl;
 
         private          float?             _bindGroupingTimer;
         private readonly List<InputControl> _possibleControls = new();
 
-        private CancellationTokenSource _cancellationToken;
+        // Screens whether a control is A) of a valid type to be quick-bound to the current binding, and
+        // B) whether it is currently being actuated
+        private Func<InputControl, bool> _quickBindScreener;
 
-        /// <summary>
-        /// Eventually returns one or more controls that the user actuated. Caller must add the binding if desired.
-        /// </summary>
-        /// <param name="player"></param>
-        /// <param name="token"></param>
-        /// <param name="binding"></param>
-        /// <returns></returns>
-        public async UniTask<List<InputControl>> GetControl(YargPlayer player, CancellationToken token, ControlBinding binding)
+        private HashSet<string> _allowedControlPaths = new();
+
+        public async UniTask<List<InputControl>> GetControl(InputDevice controller, CancellationToken token, BindingType bindingType)
         {
+            _quickBindScreener = BindingSetHelper.GetQuickBindScreener(bindingType);
+            _dummyController = controller;
+            _allowedControlPaths = BindingSetHelper.GetAllowedControlPaths(
+                LayoutHelper.InputDeviceToControllerFamily(controller),
+                bindingType
+            );
+
             _state = State.Waiting;
             _possibleControls.Clear();
-            _binding = binding;
-            _player = player;
 
             try
             {
@@ -107,23 +109,43 @@ namespace YARG.Input
             }
         }
 
-        public void Listen(InputDevice device, InputEventPtr iep)
+        public void Listen(InputDevice controller, InputEventPtr iep)
         {
-            // Ignore controls for devices not added to the player's bindings
-            if (!_player.Bindings.ContainsDevice(device))
+            // Ignore controls for devices that aren't the dummy
+            if (controller != _dummyController)
+            {
                 return;
+            }
 
             // The eventPtr is not used here, as it is not guaranteed to be valid,
             // and even if it were, it would no longer be useful for determining which controls changed
             // since the state from that event has already been written to the device buffers by this time
-            foreach (var control in device.allControls)
+            foreach (var control in controller.allControls)
             {
-                // Ignore disallowed and inactive controls
-                if (!ControlAllowed(control) || !_binding.IsControlActuated(_bindSettings, control))
+                // Ignore globally-disallowed controls
+                if (!ControlAllowed(control))
+                {
                     continue;
+                }
+
+                var controlPath = BindingSetHelper.TrimControllerName(control, controller);
+
+                // Ignore controls that are disallowed for this binding type
+                if (!_allowedControlPaths.Contains(controlPath))
+                {
+                    continue;
+                }
+
+                // Ignore controls that aren't being actuated
+                if (!_quickBindScreener(control))
+                {
+                    continue;
+                }
 
                 if (!_possibleControls.Contains(control))
+                {
                     _possibleControls.Add(control);
+                }
 
                 // Reset timer
                 _bindGroupingTimer = GROUP_TIME_THRESHOLD;

@@ -1,0 +1,204 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEditor.Experimental.GraphView;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Controls;
+using UnityEngine.InputSystem.XR;
+using YARG.Core;
+using YARG.Core.Game;
+using YARG.Input.Bindings;
+using YARG.Localization;
+using YARG.Menu.ProfileList;
+using YARG.Player;
+
+namespace YARG.Helpers
+{
+    public static class BindingSetHelper
+    {
+        private static readonly Dictionary<(ControllerFamily, BindingType), HashSet<string>> _allowedControlPathCache = new();
+
+        public static (List<YargProfile> allUsers, List<YargProfile> activeUsers) GetUsersOfBindingSet(ReusableBindingSet bindingSet)
+        {
+            var allUsers = new List<YargProfile>();
+            var activeUsers = new List<YargProfile>();
+
+
+            foreach (var deviceInfo in BindingsContainer.AllPlayerDeviceInfo)
+            {
+                // Check preferred binding sets (one per (ControllerFamily,GameMode) tuple)
+                var profileBindings = deviceInfo.AllPreferredBindingSets;
+                if (profileBindings.Contains(bindingSet))
+                {
+                    allUsers.Add(deviceInfo.Profile);
+
+                    if (PlayerContainer.IsProfileTaken(deviceInfo.Profile))
+                    {
+                        activeUsers.Add(deviceInfo.Profile);
+                    }
+
+                    continue;
+                }
+
+                // If a connected player has multiple controllers of the same family at the same
+                // time, then some of them might be using other binding sets besides that player's
+                // general (ControllerFamily,GameMode)-wide preference
+                if (deviceInfo.BindingSetsInUse.Contains(bindingSet))
+                {
+                    allUsers.Add(deviceInfo.Profile);
+
+                    // Disconnected profiles will always have an empty BindingSetsInUse, so no need
+                    // to check IsProfileTaken
+                    activeUsers.Add(deviceInfo.Profile); ;
+                }
+            }
+
+            return (allUsers, activeUsers);
+        }
+
+        public static Func<InputControl, bool> GetQuickBindScreener(BindingType bindingType)
+        {
+            return bindingType switch
+            {
+                BindingType.Button or BindingType.Impulse => IsButtonBeingQuickBound,
+                BindingType.Axis => IsAxisBeingQuickBound,
+                BindingType.Integer => IsIntegerBeingQuickBound,
+                _ => throw new ArgumentOutOfRangeException("Unexpected binding type")
+            };
+        }
+
+        public static string TrimControllerName(InputControl control, InputDevice controller)
+        {
+            return control.path[(controller.path.Length)..].TrimStart('/');
+        }
+
+        // e.g., D-pad X- and Y-axes are not okay, because they're just aggregates of buttons,
+        // but Tilt is okay, because it's an axis in its own right
+        public static bool IsControlValidForButton(ControlItemInfo control)
+        {
+            return control.Layout is
+                LayoutStrings.BUTTON or
+                LayoutStrings.MIDI_NOTE or
+                LayoutStrings.KEY
+                || (control.Layout is LayoutStrings.AXIS && control.ParentPath is null);
+        }
+
+        public static HashSet<string> GetAllowedControlPaths(ControllerFamily family, BindingType bindingType)
+        {
+            var key = (family, bindingType);
+
+            if (_allowedControlPathCache.TryGetValue(key, out var paths))
+            {
+                return paths;
+            }
+
+            var controls = LayoutHelper.GetAllControlsForControllerFamily(family);
+
+            if (bindingType is BindingType.Button or BindingType.Impulse)
+            {
+                paths = controls
+                    .Where(control => IsControlValidForButton(control))
+                    .Select(control => control.ControlPath)
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            }
+            else
+            {
+                paths = controls
+                    .Select(control => control.ControlPath)
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            }
+
+            _allowedControlPathCache[key] = paths;
+            return paths;
+        }
+
+        public static float CalculateCalibratedAxisValue(float raw, float minimum, float maximum, float upperDeadzone, float lowerDeadzone, bool inverted)
+        {
+            float effectiveMax;
+            float effectiveMin;
+            float @base;
+
+            if (raw > upperDeadzone)
+            {
+                effectiveMax = maximum;
+                effectiveMin = upperDeadzone;
+                @base = 0;
+            }
+            else if (raw < lowerDeadzone)
+            {
+                effectiveMax = lowerDeadzone;
+                effectiveMin = minimum;
+                @base = -1;
+            }
+            else
+            {
+                return 0;
+            }
+
+            float percentage = (raw - effectiveMin) / (effectiveMax - effectiveMin);
+            float value = @base + percentage;
+            if (float.IsNaN(value))
+                value = 0;
+
+            value *= inverted ? -1 : 1;
+            return value;
+        }
+
+        private static bool IsButtonBeingQuickBound(InputControl control) {
+            if (control is not InputControl<float> floatControl)
+            {
+                return false;
+            }
+
+            float previousValue = floatControl.ReadValueFromPreviousFrame();
+            float value = floatControl.ReadValue();
+            bool actuated = Math.Abs(value - previousValue) >= RuntimeControlBinding.AXIS_DELTA_THRESHOLD;
+
+            if (floatControl is ButtonControl button)
+            {
+                return actuated && value >= button.pressPointOrDefault;
+            }
+            else
+            {
+                return actuated;
+            }
+        }
+
+        private static bool IsAxisBeingQuickBound(InputControl control)
+        {
+            if (control is not InputControl<float> floatControl)
+            {
+                return false;
+            }
+
+            float previousValue = floatControl.ReadValueFromPreviousFrame();
+            float value = floatControl.ReadValue();
+
+            return Math.Abs(value - previousValue) >= RuntimeControlBinding.AXIS_DELTA_THRESHOLD;
+        }
+
+        private static bool IsIntegerBeingQuickBound(InputControl control)
+        {
+            if (control is not InputControl<int> integerControl)
+            {
+                return false;
+            }
+
+            float previousValue = integerControl.ReadValueFromPreviousFrame();
+            float value = integerControl.ReadValue();
+
+            return Math.Abs(value - previousValue) >= RuntimeIntegerBinding.INTEGER_DELTA_THRESHOLD;
+        }
+
+        public static string GetDescriptiveName(GameMode mode, ControllerFamily family)
+        {
+            var modeString = mode.ToLocalizedNameShort();
+            var gameplayString = mode is GameMode.Menu ? "" : Localize.Key("Menu.ProfileList.DescriptiveBindingSetName.Gameplay");
+            var preposition = Localize.Key("Menu.ProfileList.DescriptiveBindingSetName", mode is GameMode.Vocals ? "With" : "On");
+            var controllerString = family.ToLocalizedNamePluralSentence();
+
+            return Localize.KeyFormat("Menu.ProfileList.DescriptiveBindingSetName.Format", modeString, gameplayString, preposition, controllerString);
+        }
+    }
+}
