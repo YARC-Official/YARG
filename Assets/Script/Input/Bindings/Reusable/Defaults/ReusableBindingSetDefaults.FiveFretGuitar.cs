@@ -19,35 +19,35 @@ namespace YARG.Input.Bindings
                 ActionStrings.FIVE_FRET_GREEN,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.FIVE_FRET_GREEN],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, nameof(FiveFretGuitar.greenFret))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_5F_GREEN_FRET)
                 )
             },
             {
                 ActionStrings.FIVE_FRET_RED,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.FIVE_FRET_RED],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, nameof(FiveFretGuitar.redFret))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_5F_RED_FRET)
                 )
             },
             {
                 ActionStrings.FIVE_FRET_YELLOW,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.FIVE_FRET_YELLOW],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, nameof(FiveFretGuitar.yellowFret))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_5F_YELLOW_FRET)
                 )
             },
             {
                 ActionStrings.FIVE_FRET_BLUE,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.FIVE_FRET_BLUE],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, nameof(FiveFretGuitar.blueFret))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_5F_BLUE_FRET)
                 )
             },
             {
                 ActionStrings.FIVE_FRET_ORANGE,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.FIVE_FRET_ORANGE],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, nameof(FiveFretGuitar.orangeFret))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_5F_ORANGE_FRET)
                 )
             },
 
@@ -55,14 +55,14 @@ namespace YARG.Input.Bindings
                 ActionStrings.GUITAR_STRUM_DOWN,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.GUITAR_STRUM_DOWN],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, nameof(FiveFretGuitar.strumDown))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_STRUM_DOWN)
                 )
             },
             {
                 ActionStrings.GUITAR_STRUM_UP,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.GUITAR_STRUM_UP],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, nameof(FiveFretGuitar.strumUp))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_STRUM_UP)
                 )
             },
 
@@ -71,9 +71,9 @@ namespace YARG.Input.Bindings
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.GUITAR_STAR_POWER],
                     new List<ReusableSingleButtonBindingConfig>() {
-                        new(ControllerFamily.FiveFretGuitar, nameof(FiveFretGuitar.tilt)) { PressPoint = DEFAULT_TILT_PRESS_POINT },
-                        new(ControllerFamily.FiveFretGuitar, nameof(FiveFretGuitar.selectButton)),
-                        new(ControllerFamily.FiveFretGuitar, nameof(GuitarHeroGuitar.spPedal)),
+                        new(ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_TILT) { PressPoint = DEFAULT_TILT_PRESS_POINT },
+                        new(ControllerFamily.FiveFretGuitar, ControlStrings.PLASTICBAND_SELECT),
+                        new(ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_SP_PEDAL),
                     }
                 )
             },
@@ -82,7 +82,7 @@ namespace YARG.Input.Bindings
                 ActionStrings.GUITAR_WHAMMY,
                 new ReusableAxisBinding(
                     ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.GUITAR_WHAMMY],
-                    new ReusableSingleAxisBindingConfig(ControllerFamily.FiveFretGuitar, nameof(FiveFretGuitar.whammy))
+                    new ReusableSingleAxisBindingConfig(ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_WHAMMY)
                 )
             },
 
@@ -90,77 +90,91 @@ namespace YARG.Input.Bindings
                 ActionStrings.FIVE_FRET_SOLO_GREEN,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.FIVE_FRET_SOLO_GREEN],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, nameof(RockBandGuitar.soloGreen))
+                    new List<ReusableSingleButtonBindingConfig>() {
+                        new (ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_5F_SOLO_GREEN_FRET),
+                        new (ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_5F_TOUCH_GREEN),
+                    }
                 )
             },
             {
                 ActionStrings.FIVE_FRET_SOLO_RED,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.FIVE_FRET_SOLO_RED],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, nameof(RockBandGuitar.soloRed))
+                    new List<ReusableSingleButtonBindingConfig> () {
+                        new (ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_5F_SOLO_RED_FRET),
+                        new (ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_5F_TOUCH_RED),
+                    }
                 )
             },
             {
                 ActionStrings.FIVE_FRET_SOLO_YELLOW,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.FIVE_FRET_SOLO_YELLOW],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, nameof(RockBandGuitar.soloYellow))
+                    new List<ReusableSingleButtonBindingConfig> () {
+                        new (ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_5F_SOLO_YELLOW_FRET),
+                        new (ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_5F_TOUCH_YELLOW),
+                    }
                 )
             },
             {
                 ActionStrings.FIVE_FRET_SOLO_BLUE,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.FIVE_FRET_SOLO_BLUE],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, nameof(RockBandGuitar.soloBlue))
+                    new List<ReusableSingleButtonBindingConfig>() {
+                        new (ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_5F_SOLO_BLUE_FRET),
+                        new (ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_5F_TOUCH_BLUE),
+                    }
                 )
             },
             {
                 ActionStrings.FIVE_FRET_SOLO_ORANGE,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.FIVE_FRET_SOLO_ORANGE],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, nameof(RockBandGuitar.soloOrange))
+                    new List<ReusableSingleButtonBindingConfig>() {
+                        new (ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_5F_SOLO_ORANGE_FRET),
+                        new (ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_5F_TOUCH_ORANGE),
+                    }
                 )
             },
-
         };
 
         // This differs from the regular default only in its tilt PressPoint calibration parameter
         // TODO: Single-source the shared configurations between these two so they aren't giant copy-pastes of each other
         private static Dictionary<string, ReusableControlBinding> _riffmasterGuitarDefaults = new()
-        {
+                {
             {
                 ActionStrings.FIVE_FRET_GREEN,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.FIVE_FRET_GREEN],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, nameof(FiveFretGuitar.greenFret))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_5F_GREEN_FRET)
                 )
             },
             {
                 ActionStrings.FIVE_FRET_RED,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.FIVE_FRET_RED],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, nameof(FiveFretGuitar.redFret))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_5F_RED_FRET)
                 )
             },
             {
                 ActionStrings.FIVE_FRET_YELLOW,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.FIVE_FRET_YELLOW],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, nameof(FiveFretGuitar.yellowFret))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_5F_YELLOW_FRET)
                 )
             },
             {
                 ActionStrings.FIVE_FRET_BLUE,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.FIVE_FRET_BLUE],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, nameof(FiveFretGuitar.blueFret))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_5F_BLUE_FRET)
                 )
             },
             {
                 ActionStrings.FIVE_FRET_ORANGE,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.FIVE_FRET_ORANGE],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, nameof(FiveFretGuitar.orangeFret))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_5F_ORANGE_FRET)
                 )
             },
 
@@ -168,14 +182,14 @@ namespace YARG.Input.Bindings
                 ActionStrings.GUITAR_STRUM_DOWN,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.GUITAR_STRUM_DOWN],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, nameof(FiveFretGuitar.strumDown))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_STRUM_DOWN)
                 )
             },
             {
                 ActionStrings.GUITAR_STRUM_UP,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.GUITAR_STRUM_UP],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, nameof(FiveFretGuitar.strumUp))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_STRUM_UP)
                 )
             },
 
@@ -184,9 +198,9 @@ namespace YARG.Input.Bindings
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.GUITAR_STAR_POWER],
                     new List<ReusableSingleButtonBindingConfig>() {
-                        new(ControllerFamily.FiveFretGuitar, nameof(FiveFretGuitar.tilt)) { PressPoint = DEFAULT_RIFFMASTER_TILT_PRESS_POINT },
-                        new(ControllerFamily.FiveFretGuitar, nameof(FiveFretGuitar.selectButton)),
-                        new(ControllerFamily.FiveFretGuitar, nameof(GuitarHeroGuitar.spPedal)),
+                        new(ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_TILT) { PressPoint = DEFAULT_RIFFMASTER_TILT_PRESS_POINT },
+                        new(ControllerFamily.FiveFretGuitar, ControlStrings.PLASTICBAND_SELECT),
+                        new(ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_SP_PEDAL),
                     }
                 )
             },
@@ -195,7 +209,7 @@ namespace YARG.Input.Bindings
                 ActionStrings.GUITAR_WHAMMY,
                 new ReusableAxisBinding(
                     ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.GUITAR_WHAMMY],
-                    new ReusableSingleAxisBindingConfig(ControllerFamily.FiveFretGuitar, nameof(FiveFretGuitar.whammy))
+                    new ReusableSingleAxisBindingConfig(ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_WHAMMY)
                 )
             },
 
@@ -203,35 +217,50 @@ namespace YARG.Input.Bindings
                 ActionStrings.FIVE_FRET_SOLO_GREEN,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.FIVE_FRET_SOLO_GREEN],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, nameof(RockBandGuitar.soloGreen))
+                    new List<ReusableSingleButtonBindingConfig>() {
+                        new (ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_5F_SOLO_GREEN_FRET),
+                        new (ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_5F_TOUCH_GREEN),
+                    }
                 )
             },
             {
                 ActionStrings.FIVE_FRET_SOLO_RED,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.FIVE_FRET_SOLO_RED],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, nameof(RockBandGuitar.soloRed))
+                    new List<ReusableSingleButtonBindingConfig> () {
+                        new (ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_5F_SOLO_RED_FRET),
+                        new (ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_5F_TOUCH_RED),
+                    }
                 )
             },
             {
                 ActionStrings.FIVE_FRET_SOLO_YELLOW,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.FIVE_FRET_SOLO_YELLOW],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, nameof(RockBandGuitar.soloYellow))
+                    new List<ReusableSingleButtonBindingConfig> () {
+                        new (ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_5F_SOLO_YELLOW_FRET),
+                        new (ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_5F_TOUCH_YELLOW),
+                    }
                 )
             },
             {
                 ActionStrings.FIVE_FRET_SOLO_BLUE,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.FIVE_FRET_SOLO_BLUE],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, nameof(RockBandGuitar.soloBlue))
+                    new List<ReusableSingleButtonBindingConfig>() {
+                        new (ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_5F_SOLO_BLUE_FRET),
+                        new (ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_5F_TOUCH_BLUE),
+                    }
                 )
             },
             {
                 ActionStrings.FIVE_FRET_SOLO_ORANGE,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ActionStrings.FIVE_FRET_SOLO_ORANGE],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, nameof(RockBandGuitar.soloOrange))
+                    new List<ReusableSingleButtonBindingConfig>() {
+                        new (ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_5F_SOLO_ORANGE_FRET),
+                        new (ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_5F_TOUCH_ORANGE),
+                    }
                 )
             },
         };
@@ -242,14 +271,14 @@ namespace YARG.Input.Bindings
                 ActionStrings.MENU_START,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.MENU[ActionStrings.MENU_START],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, nameof(FiveFretGuitar.startButton))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, ControlStrings.PLASTICBAND_START)
                 )
             },
             {
                 ActionStrings.MENU_SELECT,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.MENU[ActionStrings.MENU_SELECT],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, nameof(FiveFretGuitar.selectButton))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, ControlStrings.PLASTICBAND_SELECT)
                 )
             },
 
@@ -258,9 +287,9 @@ namespace YARG.Input.Bindings
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.MENU[ActionStrings.MENU_GREEN],
                     new List<ReusableSingleButtonBindingConfig> () {
-                        new(ControllerFamily.FiveFretGuitar, nameof(FiveFretGuitar.greenFret)),
-                        new(ControllerFamily.FiveFretGuitar, nameof(RockBandGuitar.soloGreen)),
-                        new(ControllerFamily.FiveFretGuitar, nameof(GuitarHeroGuitar.touchGreen)),
+                        new(ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_5F_GREEN_FRET),
+                        new(ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_5F_SOLO_GREEN_FRET),
+                        new(ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_5F_TOUCH_GREEN),
                     }
                 )
             },
@@ -269,9 +298,9 @@ namespace YARG.Input.Bindings
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.MENU[ActionStrings.MENU_RED],
                     new List<ReusableSingleButtonBindingConfig> () {
-                        new(ControllerFamily.FiveFretGuitar, nameof(FiveFretGuitar.redFret)),
-                        new(ControllerFamily.FiveFretGuitar, nameof(RockBandGuitar.soloRed)),
-                        new(ControllerFamily.FiveFretGuitar, nameof(GuitarHeroGuitar.touchRed)),
+                        new(ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_5F_RED_FRET),
+                        new(ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_5F_SOLO_RED_FRET),
+                        new(ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_5F_TOUCH_RED),
                     }
                 )
             },
@@ -280,9 +309,9 @@ namespace YARG.Input.Bindings
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.MENU[ActionStrings.MENU_YELLOW],
                     new List<ReusableSingleButtonBindingConfig> () {
-                        new(ControllerFamily.FiveFretGuitar, nameof(FiveFretGuitar.yellowFret)),
-                        new(ControllerFamily.FiveFretGuitar, nameof(RockBandGuitar.soloYellow)),
-                        new(ControllerFamily.FiveFretGuitar, nameof(GuitarHeroGuitar.touchYellow)),
+                        new(ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_5F_YELLOW_FRET),
+                        new(ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_5F_SOLO_YELLOW_FRET),
+                        new(ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_5F_TOUCH_YELLOW),
                     }
                 )
             },
@@ -291,9 +320,9 @@ namespace YARG.Input.Bindings
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.MENU[ActionStrings.MENU_BLUE],
                     new List<ReusableSingleButtonBindingConfig> () {
-                        new(ControllerFamily.FiveFretGuitar, nameof(FiveFretGuitar.blueFret)),
-                        new(ControllerFamily.FiveFretGuitar, nameof(RockBandGuitar.soloBlue)),
-                        new(ControllerFamily.FiveFretGuitar, nameof(GuitarHeroGuitar.touchBlue)),
+                        new(ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_5F_BLUE_FRET),
+                        new(ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_5F_SOLO_BLUE_FRET),
+                        new(ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_5F_TOUCH_BLUE),
                     }
                 )
             },
@@ -302,9 +331,9 @@ namespace YARG.Input.Bindings
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.MENU[ActionStrings.MENU_ORANGE],
                     new List<ReusableSingleButtonBindingConfig> () {
-                        new(ControllerFamily.FiveFretGuitar, nameof(FiveFretGuitar.orangeFret)),
-                        new(ControllerFamily.FiveFretGuitar, nameof(RockBandGuitar.soloOrange)),
-                        new(ControllerFamily.FiveFretGuitar, nameof(GuitarHeroGuitar.touchOrange)),
+                        new(ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_5F_ORANGE_FRET),
+                        new(ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_5F_SOLO_ORANGE_FRET),
+                        new(ControllerFamily.FiveFretGuitar, ControlStrings.GUITAR_5F_TOUCH_ORANGE),
                     }
                 )
             },
