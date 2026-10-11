@@ -359,6 +359,7 @@ namespace YARG.Settings.Preview
                 CurrentGameModeInfo = info;
             }
             var theme = ThemePreset.Default;
+            var colorProfile = PresetsTab.GetLastSelectedPreset(CustomContentManager.ColorProfiles);
 
             // If we aren't using Pro Keys, then the passed instrument doesn't really matter; arbitrarily pass Five-Fret Guitar
             var style = VisualStyleHelpers.GetVisualStyle(SelectedGameMode, CurrentGameModeInfo.UseProKeys ? Instrument.ProKeys : Instrument.FiveFretGuitar);
@@ -375,7 +376,7 @@ namespace YARG.Settings.Preview
                         new Dictionary<int, int>(),
                         1, null, null,
                         theme, style);
-                    CreateProKeysOverlay(ColorProfile.Default.ProKeys);
+                    CreateProKeysOverlay(colorProfile.ProKeys);
                 }
                 else
                 {
@@ -384,9 +385,10 @@ namespace YARG.Settings.Preview
                         CurrentGameModeInfo.HighwayOrdering,
                         CurrentGameModeInfo.LaneCount,
                         CurrentGameModeInfo.KickFretPrefab,
-                        CurrentGameModeInfo.FretColorProvider(ColorProfile.Default),
+                        CurrentGameModeInfo.FretColorProvider(colorProfile),
                         theme,
-                        style
+                        style,
+                        dualHalfFrets: SelectedGameMode == GameMode.SixFretGuitar
                     );
                 }
                 _fretArray.transform.SetLayerRecursive(LayerMask.NameToLayer("Settings Preview"));
@@ -447,21 +449,15 @@ namespace YARG.Settings.Preview
                 ((FakeNote)note).OnSettingChanged();
             }
 
-            // Reverse the fret color order for guitar lefty flip. Frets use the default
-            // color profile; reversing their assignment mirrors the layout in place
-            // without moving frets or touching asymmetric theme graphics.
-            if (SelectedGameMode == GameMode.FiveFretGuitar)
+            if (CurrentGameModeInfo.UseHighwayOverlay)
+            {
+                RecolorProKeysOverlay(colorProfile.ProKeys);
+            }
+            else if (CurrentGameModeInfo.FretColorProvider != null)
             {
                 _fretArray.RecolorFrets(
-                    CurrentGameModeInfo.FretColorProvider(ColorProfile.Default),
-                    FretColorIndexForLefty);
-            }
-            else if (SelectedGameMode == GameMode.ProKeys && !UseFiveLaneKeys)
-            {
-                // Pro-keys: live-recolor the highway overlay sections with the
-                // PRESET's overlay colors (not ColorProfile.Default), so editing
-                // an overlay color live-updates without a rebuild.
-                RecolorProKeysOverlay(colorProfile.ProKeys);
+                    CurrentGameModeInfo.FretColorProvider(colorProfile),
+                    SelectedGameMode == GameMode.FiveFretGuitar ? FretColorIndexForLefty : null);
             }
         }
 
