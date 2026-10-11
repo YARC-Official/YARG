@@ -26,8 +26,8 @@ namespace YARG.Gameplay.Player
 {
     public class DrumsPlayer : TrackPlayer<DrumsEngine, DrumNote>
     {
-        private const float DRUM_PAD_FLASH_HOLD_DURATION = 0.2f;
-        private static readonly Fret.AnimType[] AnimTypes = (Fret.AnimType[]) Enum.GetValues(typeof(Fret.AnimType));
+        private const float DRUM_PAD_FLASH_HOLD_DURATION = 0.1f;
+        private static readonly Fret.AnimType[] AnimTypes = (Fret.AnimType[])Enum.GetValues(typeof(Fret.AnimType));
 
         // Key is a FourLaneDrumPad or FiveLaneDrumPad
         private Dictionary<int, HighwayOrderingInfo> _highwayOrdering = new();
@@ -77,30 +77,30 @@ namespace YARG.Gameplay.Player
             {
                 return action switch
                 {
-                    DrumsAction.Kick => (int) FiveLaneDrumPad.Kick,
-                    DrumsAction.RedDrum => (int) FiveLaneDrumPad.Red,
-                    DrumsAction.YellowCymbal => (int) FiveLaneDrumPad.Yellow,
-                    DrumsAction.BlueDrum => (int) FiveLaneDrumPad.Blue,
-                    DrumsAction.OrangeCymbal => (int) FiveLaneDrumPad.Orange,
-                    DrumsAction.GreenDrum => (int) FiveLaneDrumPad.Green,
-                    DrumsAction.WildcardPad => (int) FiveLaneDrumPad.Kick,
+                    DrumsAction.Kick => (int)FiveLaneDrumPad.Kick,
+                    DrumsAction.RedDrum => (int)FiveLaneDrumPad.Red,
+                    DrumsAction.YellowCymbal => (int)FiveLaneDrumPad.Yellow,
+                    DrumsAction.BlueDrum => (int)FiveLaneDrumPad.Blue,
+                    DrumsAction.OrangeCymbal => (int)FiveLaneDrumPad.Orange,
+                    DrumsAction.GreenDrum => (int)FiveLaneDrumPad.Green,
+                    DrumsAction.WildcardPad => (int)FiveLaneDrumPad.Kick,
                     _ => throw new ArgumentOutOfRangeException(nameof(action))
                 };
             }
 
             return action switch
-                {
-                    DrumsAction.Kick =>         (int) FourLaneDrumPad.Kick,
-                    DrumsAction.RedDrum =>      (int) FourLaneDrumPad.RedDrum,
-                    DrumsAction.YellowDrum =>   (int) FourLaneDrumPad.YellowDrum,
-                    DrumsAction.BlueDrum =>     (int) FourLaneDrumPad.BlueDrum,
-                    DrumsAction.GreenDrum =>    (int) FourLaneDrumPad.GreenDrum,
-                    DrumsAction.YellowCymbal => (int) (_yellowCymbalHasLane ? FourLaneDrumPad.YellowCymbal : FourLaneDrumPad.YellowDrum),
-                    DrumsAction.BlueCymbal =>   (int) (_blueCymbalHasLane ? FourLaneDrumPad.BlueCymbal : FourLaneDrumPad.BlueDrum),
-                    DrumsAction.GreenCymbal =>  (int) (_greenCymbalHasLane ? FourLaneDrumPad.GreenCymbal : FourLaneDrumPad.GreenDrum),
-                    DrumsAction.WildcardPad =>  (int)FourLaneDrumPad.Kick,
-                    _ => throw new ArgumentOutOfRangeException(nameof(action))
-                };
+            {
+                DrumsAction.Kick => (int)FourLaneDrumPad.Kick,
+                DrumsAction.RedDrum => (int)FourLaneDrumPad.RedDrum,
+                DrumsAction.YellowDrum => (int)FourLaneDrumPad.YellowDrum,
+                DrumsAction.BlueDrum => (int)FourLaneDrumPad.BlueDrum,
+                DrumsAction.GreenDrum => (int)FourLaneDrumPad.GreenDrum,
+                DrumsAction.YellowCymbal => (int)(_yellowCymbalHasLane ? FourLaneDrumPad.YellowCymbal : FourLaneDrumPad.YellowDrum),
+                DrumsAction.BlueCymbal => (int)(_blueCymbalHasLane ? FourLaneDrumPad.BlueCymbal : FourLaneDrumPad.BlueDrum),
+                DrumsAction.GreenCymbal => (int)(_greenCymbalHasLane ? FourLaneDrumPad.GreenCymbal : FourLaneDrumPad.GreenDrum),
+                DrumsAction.WildcardPad => (int)FourLaneDrumPad.Kick,
+                _ => throw new ArgumentOutOfRangeException(nameof(action))
+            };
         }
 
         public HighwayOrderingInfo GetHighwayOrderingInfo(int pad)
@@ -153,7 +153,7 @@ namespace YARG.Gameplay.Player
         private int[] _drumSoundEffectRoundRobin = new int[8];
         private float _drumSoundEffectAccentThreshold;
 
-        private Dictionary<int, float>                            _padToLastPressedTimeDelta       = new();
+        private Dictionary<int, float> _padToLastPressedTimeDelta = new();
         private Dictionary<Fret.AnimType, Dictionary<int, float>> _animTypeToPadToLastPressedDelta = new();
 
 
@@ -162,8 +162,8 @@ namespace YARG.Gameplay.Player
         {
             // Before we do anything, see if we're in five lane mode or not
             _fiveLaneMode = player.Profile.CurrentInstrument == Instrument.FiveLaneDrums;
-            _kick = _fiveLaneMode ? (int) FiveLaneDrumPad.Kick : (int) FourLaneDrumPad.Kick;
-            _wildcard = _fiveLaneMode ? (int) FiveLaneDrumPad.Wildcard : (int) FourLaneDrumPad.Wildcard;
+            _kick = _fiveLaneMode ? (int)FiveLaneDrumPad.Kick : (int)FourLaneDrumPad.Kick;
+            _wildcard = _fiveLaneMode ? (int)FiveLaneDrumPad.Wildcard : (int)FourLaneDrumPad.Wildcard;
             base.Initialize(index, player, chart, trackView, mixer, currentHighScore);
             _lastStem = GetLastAvailableDrumStem(mixer);
         }
@@ -199,10 +199,10 @@ namespace YARG.Gameplay.Player
         {
             var mode = Player.Profile.CurrentInstrument switch
             {
-                Instrument.ProDrums      => DrumsEngineParameters.DrumMode.ProFourLane,
+                Instrument.ProDrums => DrumsEngineParameters.DrumMode.ProFourLane,
                 Instrument.FourLaneDrums => DrumsEngineParameters.DrumMode.NonProFourLane,
                 Instrument.FiveLaneDrums => DrumsEngineParameters.DrumMode.FiveLane,
-                _                        => throw new Exception("Unreachable.")
+                _ => throw new Exception("Unreachable.")
             };
 
             if (!Player.IsReplay)
@@ -213,7 +213,7 @@ namespace YARG.Gameplay.Player
             else
             {
                 // Otherwise, get from the replay
-                EngineParams = (DrumsEngineParameters) Player.EngineParameterOverride;
+                EngineParams = (DrumsEngineParameters)Player.EngineParameterOverride;
             }
 
             if (EngineContainer != null)
@@ -439,11 +439,11 @@ namespace YARG.Gameplay.Player
         {
             var songStem = drumStem switch
             {
-                DrumStem.Kick  => SongStem.Drums1,
+                DrumStem.Kick => SongStem.Drums1,
                 DrumStem.Snare => SongStem.Drums2,
-                DrumStem.Toms  => SongStem.Drums3,
-                DrumStem.Else  => SongStem.Drums4,
-                _              => throw new ArgumentOutOfRangeException()
+                DrumStem.Toms => SongStem.Drums3,
+                DrumStem.Else => SongStem.Drums4,
+                _ => throw new ArgumentOutOfRangeException()
             };
             return songStem > _lastStem ? _lastStem : songStem;
         }
@@ -474,7 +474,7 @@ namespace YARG.Gameplay.Player
 
         protected override void InitializeSpawnedNote(IPoolable poolable, DrumNote note)
         {
-            ((DrumsNoteElement) poolable).NoteRef = note;
+            ((DrumsNoteElement)poolable).NoteRef = note;
         }
 
         protected override void SpawnLanesFromNote(DrumNote parentNote)
@@ -541,7 +541,7 @@ namespace YARG.Gameplay.Player
 
                     if (NumberOfDedicatedKickLanes == 2)
                     {
-                        var newDoubleKickLane = (LaneElement) LanePool.TakeWithoutEnabling();
+                        var newDoubleKickLane = (LaneElement)LanePool.TakeWithoutEnabling();
                         newDoubleKickLane.SetTimeRange(kickLaneStart.Time, kickLaneEnd.Time);
 
                         var doubleKickHighwayOrderingInfo = _highwayOrdering[DOUBLE_KICK_FRET_INDEX];
@@ -756,7 +756,7 @@ namespace YARG.Gameplay.Player
 
         private void OnLaneHit(int fret)
         {
-            fret = DrumsActionToPad((DrumsAction) fret);
+            fret = DrumsActionToPad((DrumsAction)fret);
             _fretArray.PlayCodaHitAnimation(fret);
         }
 
@@ -784,7 +784,7 @@ namespace YARG.Gameplay.Player
             // This is done here for drums rather than in-engine because engine doesn't know about pad ordering
             if (Engine.IsCodaActive)
             {
-                CurrentCoda.HitLane(GameManager.VisualTime, (int) action);
+                CurrentCoda.HitLane(GameManager.VisualTime, (int)action);
 
                 if (_actionToBreLaneIndex.TryGetValue(action, out var breLaneIndex))
                 {
@@ -859,11 +859,15 @@ namespace YARG.Gameplay.Player
             }
             else
             {
-                _fretArray.PlayKickFretAnimation();
                 if (isDrumFreestyle)
                 {
+                    _fretArray.PlayKickFretAnimation();
                     _kickFretFlash.PlayHitAnimation();
                     CameraPositioner.Bounce();
+                }
+                else
+                {
+                    _fretArray.PlayKickFretMissAnimation();
                 }
             }
         }
@@ -875,9 +879,9 @@ namespace YARG.Gameplay.Player
 
         private void PlayDrumSoundEffect(DrumsAction action, float velocity)
         {
-            int actionIndex = (int) action;
+            int actionIndex = (int)action;
 
-            if (actionIndex == (int) DrumsAction.WildcardPad)
+            if (actionIndex == (int)DrumsAction.WildcardPad)
             {
                 return;
             }
@@ -885,15 +889,15 @@ namespace YARG.Gameplay.Player
             double sampleVolume = velocity;
 
             // Define sample
-            int sampleIndex = (int) DrumSfxSample.Vel0Pad0Smp0;
+            int sampleIndex = (int)DrumSfxSample.Vel0Pad0Smp0;
             if (velocity > _drumSoundEffectAccentThreshold)
             {
-                sampleIndex = (int) DrumSfxSample.Vel2Pad0Smp0;
+                sampleIndex = (int)DrumSfxSample.Vel2Pad0Smp0;
             }
             // VelocityThreshold refers to the maximum ghost input velocity
             else if (velocity > EngineParams.VelocityThreshold)
             {
-                sampleIndex = (int) DrumSfxSample.Vel1Pad0Smp0;
+                sampleIndex = (int)DrumSfxSample.Vel1Pad0Smp0;
                 // This division is normalizing the volume using _drumSoundEffectAccentThreshold as pseudo "1"
                 sampleVolume = velocity / _drumSoundEffectAccentThreshold;
             }
@@ -905,7 +909,7 @@ namespace YARG.Gameplay.Player
             sampleIndex += (actionIndex * DrumSampleChannel.ROUND_ROBIN_MAX_INDEX) + _drumSoundEffectRoundRobin[actionIndex];
 
             // Play Sample
-            GlobalAudioHandler.PlayDrumSoundEffect((DrumSfxSample) sampleIndex, sampleVolume);
+            GlobalAudioHandler.PlayDrumSoundEffect((DrumSfxSample)sampleIndex, sampleVolume);
 
             // Adjust round-robin
             _drumSoundEffectRoundRobin[actionIndex] += 1;
@@ -1107,7 +1111,7 @@ namespace YARG.Gameplay.Player
         private void AnimateFret(int pad, Fret.AnimType animType)
         {
             // Four and five lane drums have the same kick value
-            if ((pad == (int) FourLaneDrumPad.Kick && NumberOfDedicatedKickLanes == 0) || pad == (int)FourLaneDrumPad.Wildcard)
+            if ((pad == (int)FourLaneDrumPad.Kick && NumberOfDedicatedKickLanes == 0) || pad == (int)FourLaneDrumPad.Wildcard)
             {
                 _kickFretFlash.PlayHitAnimation();
                 _fretArray.PlayKickFretAnimation();
@@ -1118,7 +1122,7 @@ namespace YARG.Gameplay.Player
             if (_fiveLaneMode)
             {
                 // Only use cymbal animation if the cymbal gems are being used
-                if (Player.Profile.UseCymbalModels && (FiveLaneDrumPad) pad
+                if (Player.Profile.UseCymbalModels && (FiveLaneDrumPad)pad
                     is FiveLaneDrumPad.Yellow
                     or FiveLaneDrumPad.Orange)
                 {
@@ -1133,7 +1137,7 @@ namespace YARG.Gameplay.Player
             }
 
             // Can technically merge this condition with the above, but it's more readable like this
-            if ((FourLaneDrumPad) pad
+            if ((FourLaneDrumPad)pad
                 is FourLaneDrumPad.YellowCymbal
                 or FourLaneDrumPad.BlueCymbal
                 or FourLaneDrumPad.GreenCymbal)
@@ -1214,7 +1218,8 @@ namespace YARG.Gameplay.Player
                         DrumsColorHelpers.ApplyHandednessToColor(highwayOrderingElement.ColorIndex, Player.Profile.LeftyFlip, NumberOfDedicatedKickLanes == 2, instrument)
                     );
 
-                    if (!_actionToBreLaneIndex.ContainsKey(highwayOrderingElement.Action)) {
+                    if (!_actionToBreLaneIndex.ContainsKey(highwayOrderingElement.Action))
+                    {
                         _actionToBreLaneIndex.Add(highwayOrderingElement.Action, highwayOrderingInfo.BreLaneIndex);
                     }
                 }

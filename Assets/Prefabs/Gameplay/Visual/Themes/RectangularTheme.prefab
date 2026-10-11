@@ -11082,6 +11082,8 @@ MonoBehaviour:
   - Mesh: {fileID: 3287320442275248549}
     MaterialIndex: 0
   <Animator>k__BackingField: {fileID: 4615469812679715099}
+  <HitEffect>k__BackingField: {fileID: 8881922573788954401, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+  <MissEffect>k__BackingField: {fileID: 6871258862272266730, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
 --- !u!1 &2240317521420600101
 GameObject:
   m_ObjectHideFlags: 0
@@ -75448,7 +75450,23 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2546153628872567235, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
       propertyPath: _fadeOutRate
-      value: 100
+      value: 40
+      objectReference: {fileID: 0}
+    - target: {fileID: 56920157294604733, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: m_Intensity
+      value: 2.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 56920157294604733, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: m_Range
+      value: 0.25
+      objectReference: {fileID: 0}
+    - target: {fileID: 4722633847248264261, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4055408699043424867, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2876113326277684539, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
       propertyPath: m_Intensity
@@ -75464,15 +75482,23 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5638597123916329324, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
       propertyPath: m_Intensity
-      value: 6.25
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 5638597123916329324, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: m_Range
+      value: 0.42
+      objectReference: {fileID: 0}
+    - target: {fileID: 155803174232394697, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.095
       objectReference: {fileID: 0}
     - target: {fileID: 6000496383647664972, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
       propertyPath: _mode
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6000496383647664972, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
       propertyPath: _fadeOutRate
-      value: 200
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 6500175386639609726, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
       propertyPath: _mode
