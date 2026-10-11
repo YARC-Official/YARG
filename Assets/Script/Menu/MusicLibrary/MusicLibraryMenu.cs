@@ -1056,6 +1056,12 @@ namespace YARG.Menu.MusicLibrary
             base.OnDisable();
             SetSidebarDifficultiesVisible(false);
 
+            // Unsubscribe before the early-out below, or the static player events keep calling into a
+            // destroyed menu when the Navigator is already gone at shutdown.
+            _searchField.OnSearchQueryUpdated -= UpdateSearch;
+            PlayerContainer.PlayerAdded -= OnPlayerAdded;
+            PlayerContainer.PlayerRemoved -= OnPlayerRemoved;
+
             if (Navigator.Instance == null) return;
 
             // Save state
@@ -1075,10 +1081,6 @@ namespace YARG.Menu.MusicLibrary
             Navigator.Instance.PopScheme();
 
             StopPreview();
-            _searchField.OnSearchQueryUpdated -= UpdateSearch;
-
-            PlayerContainer.PlayerAdded -= OnPlayerAdded;
-            PlayerContainer.PlayerRemoved -= OnPlayerRemoved;
         }
 
         private void OnDestroy()

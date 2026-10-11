@@ -16,6 +16,9 @@ namespace YARG.Audio.BASS
     {
         private readonly HashSet<BassMonitor> _monitors = new();
         private readonly HashSet<BassSong>    _songs    = new();
+        // Songs are added and removed from song-scan worker threads (length probing loads audio)
+        // while the main thread enumerates them. Guards _songs and _finishedReadAheadStats.
+        private readonly object               _songsLock = new();
         private          bool                 _disposed;
         private          ReadAheadStats       _finishedReadAheadStats;
         private          ulong                _observedUnderrunEvents;
@@ -34,12 +37,11 @@ namespace YARG.Audio.BASS
 
             _disposed = true;
             Disconnect();
-            foreach (var song in _songs)
+            foreach (var song in SnapshotSongs(clear: true))
             {
                 song.Disposing -= RemoveSong;
             }
 
-            _songs.Clear();
             foreach (var monitor in _monitors)
             {
                 monitor.InvalidateOwner();
@@ -50,7 +52,11 @@ namespace YARG.Audio.BASS
 
         public bool Connect(BassOutput output, int deviceId)
         {
-            _finishedReadAheadStats = default;
+            lock (_songsLock)
+            {
+                _finishedReadAheadStats = default;
+            }
+
             _observedUnderrunEvents = 0;
             _output = output;
             _outputDeviceId = deviceId;
@@ -88,8 +94,12 @@ namespace YARG.Audio.BASS
                 return false;
             }
 
-            _songs.Add(song);
-            song.Disposing += RemoveSong;
+            lock (_songsLock)
+            {
+                _songs.Add(song);
+                song.Disposing += RemoveSong;
+            }
+
             song.ActivateOutput();
             return true;
         }
@@ -97,9 +107,12 @@ namespace YARG.Audio.BASS
         private void RemoveSong(BassSong song)
         {
             song.Disposing -= RemoveSong;
-            if (_songs.Remove(song))
+            lock (_songsLock)
             {
-                SaveReadAheadStats(song);
+                if (_songs.Remove(song))
+                {
+                    SaveReadAheadStats(song);
+                }
             }
         }
 
@@ -167,13 +180,18 @@ namespace YARG.Audio.BASS
 
         internal ReadAheadStats GetReadAheadStats()
         {
-            var total = _finishedReadAheadStats;
-            foreach (var song in _songs)
+            // Held across the song reads: a song leaves _songs (via Disposing) before its read-ahead
+            // stream is disposed, so no song in the set can be torn down mid-read.
+            lock (_songsLock)
             {
-                total = AddReadAheadStats(total, song.GetReadAheadStats());
-            }
+                var total = _finishedReadAheadStats;
+                foreach (var song in _songs)
+                {
+                    total = AddReadAheadStats(total, song.GetReadAheadStats());
+                }
 
-            return total;
+                return total;
+            }
         }
 
         internal ulong TakeReadAheadUnderruns()
@@ -186,7 +204,7 @@ namespace YARG.Audio.BASS
 
         private bool AttachSongs(BassOutput output)
         {
-            foreach (var song in _songs)
+            foreach (var song in SnapshotSongs())
             {
                 if (!song.TryAttachOutput(output))
                 {
@@ -199,7 +217,7 @@ namespace YARG.Audio.BASS
 
         private void ActivateSongs()
         {
-            foreach (var song in _songs)
+            foreach (var song in SnapshotSongs())
             {
                 song.ActivateOutput();
             }
@@ -207,10 +225,27 @@ namespace YARG.Audio.BASS
 
         private void DetachSongs()
         {
-            foreach (var song in _songs)
+            foreach (var song in SnapshotSongs())
             {
                 SaveReadAheadStats(song);
                 song.DetachOutput();
+            }
+        }
+
+        // Release the lock before calling into songs; their disposal calls RemoveSong while holding
+        // the mixer lock.
+        private BassSong[] SnapshotSongs(bool clear = false)
+        {
+            lock (_songsLock)
+            {
+                var songs = new BassSong[_songs.Count];
+                _songs.CopyTo(songs);
+                if (clear)
+                {
+                    _songs.Clear();
+                }
+
+                return songs;
             }
         }
 
@@ -351,7 +386,10 @@ namespace YARG.Audio.BASS
             var stats = song.GetReadAheadStats();
             if (stats.Size != 0)
             {
-                _finishedReadAheadStats = AddFinishedReadAheadStats(_finishedReadAheadStats, stats);
+                lock (_songsLock)
+                {
+                    _finishedReadAheadStats = AddFinishedReadAheadStats(_finishedReadAheadStats, stats);
+                }
             }
         }
 

@@ -510,7 +510,9 @@ namespace YARG.Song
                 {
                     lock (nodes)
                     {
-                        nodes.Insert(~nodes.BinarySearch(node), node);
+                        // BinarySearch returns >= 0 for an equal node (the same song listed in several categories)
+                        int index = nodes.BinarySearch(node);
+                        nodes.Insert(index < 0 ? ~index : index, node);
                     }
                 }
             });
