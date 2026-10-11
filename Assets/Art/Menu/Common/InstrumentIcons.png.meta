@@ -69,7 +69,7 @@ TextureImporter:
   platformSettings:
   - serializedVersion: 4
     buildTarget: DefaultTexturePlatform
-    maxTextureSize: 2048
+    maxTextureSize: 4096
     resizeAlgorithm: 1
     textureFormat: -1
     textureCompression: 0
@@ -470,15 +470,15 @@ TextureImporter:
         width: 512
         height: 512
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: d43e8546fcf779f01b15aac1122c92bd
-      internalID: -1
+      spriteID: 9b2f45d97859781fab5c16573a51ab64
+      internalID: 859472355
       vertices: []
       indices: 
       edges: []
@@ -492,37 +492,15 @@ TextureImporter:
         width: 512
         height: 512
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: a212c4d6e29341178fc60decf5454b00
-      internalID: -1
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: rhythm6
-      rect:
-        serializedVersion: 2
-        x: 2048
-        y: 0
-        width: 512
-        height: 512
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 5927fdbb2f9f06a34e60e5c6540c289e
-      internalID: -1
+      spriteID: 7f6e14c755f67a1be84249ac2b7251c5
+      internalID: 246568218
       vertices: []
       indices: 
       edges: []
@@ -536,15 +514,37 @@ TextureImporter:
         width: 512
         height: 512
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: d1122c5ae22434e0f4c02397accc8a23
-      internalID: -1
+      spriteID: 994001f29eb1745ab9dea9ecd8b674b3
+      internalID: 47051510
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rhythm6
+      rect:
+        serializedVersion: 2
+        x: 2048
+        y: 0
+        width: 512
+        height: 512
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0b49cd4919d49d9048980301c439b201
+      internalID: -1332199399
       vertices: []
       indices: 
       edges: []
@@ -570,13 +570,13 @@ TextureImporter:
       FontSprites_15: 224382224
       band: -2104244439
       bass: 1530186425
-      bass6: 1095511443
-      coop6: 1095511443
+      bass6: 246568218
+      coop6: 47051510
       drums: 678366802
       eliteDrums: 1405555635
       ghDrums: -768334538
       guitar: -480311375
-      guitar6: 1095511443
+      guitar6: 859472355
       guitarCoop: 1095511443
       harmVocals: -871424490
       keys: 1353769368
@@ -585,7 +585,7 @@ TextureImporter:
       realGuitar: 1095511443
       realKeys: 1095511443
       rhythm: -413506960
-      rhythm6: 1095511443
+      rhythm6: -1332199399
       twoVocals: -2070950562
       vocals: 1095511443
   mipmapLimitGroupName: 
