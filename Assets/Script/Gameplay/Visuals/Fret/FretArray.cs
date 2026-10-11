@@ -212,6 +212,23 @@ namespace YARG.Gameplay.Visuals
             }
         }
 
+        /// <summary>
+        /// Recolors a single fret (by note type) to a specific color index, leaving the
+        /// rest untouched. Used by RandomColors to update a lane's fret every time a new
+        /// note spawns on it, without disturbing the other lanes' current colors.
+        /// </summary>
+        public void RecolorFret(int noteType, IFretColorProvider fretColorProvider, int colorIndex)
+        {
+            if (_frets.TryGetValue(noteType, out var fret))
+            {
+                fret.Initialize(
+                    fretColorProvider.GetFretColor(colorIndex),
+                    fretColorProvider.GetFretInnerColor(colorIndex),
+                    fretColorProvider.GetParticleColor(colorIndex),
+                    fretColorProvider.GetParticleColor((int) FiveFretGuitarFret.Open));
+            }
+        }
+
         public void SetPressed(int index, bool pressed)
         {
             _frets[index].SetPressed(pressed);

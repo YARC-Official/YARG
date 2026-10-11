@@ -33,6 +33,11 @@ namespace YARG.Gameplay.Visuals
 
         private SustainLine _sustainLine;
 
+        // Set once per spawned note in FiveFretGuitarPlayer.InitializeSpawnedNote: NoteRef.Fret
+        // normally, or a random slot from ColorProfile.FiveFretGuitarColors.RandomColorSlots
+        // when the RandomColors modifier is active.
+        public int ColorSlot { get; set; }
+
         // Make sure the remove it later if it has a sustain
         protected override float RemovePointOffset => (float) NoteRef.TimeLength * Player.NoteSpeed;
 
@@ -218,9 +223,9 @@ namespace YARG.Gameplay.Visuals
             }
             else
             {
-                colorNoStarPower = colors.GetNoteColor(NoteRef.Fret);
+                colorNoStarPower = colors.GetNoteColor(ColorSlot);
                 color = IsStarPowerVisible
-                    ? colors.GetNoteStarPowerColor(NoteRef.Fret)
+                    ? colors.GetNoteStarPowerColor(ColorSlot)
                     : colorNoStarPower;
             }
 
