@@ -119,8 +119,11 @@ namespace YARG.Menu.Navigation
         public void RemoveNavigatable(NavigatableBehaviour navigatable)
         {
             if (SelectedBehaviour == navigatable && SelectedBehaviour != null)
+            {
                 SelectedBehaviour.SetSelected(false, SelectionOrigin.Programmatically);
+            }
 
+            navigatable.SelectionStateChanged -= OnSelectionStateChanged;
             _navigatables.Remove(navigatable);
             navigatable.NavigationGroup = null;
         }
@@ -128,6 +131,11 @@ namespace YARG.Menu.Navigation
         public void ClearNavigatables()
         {
             ClearSelection();
+            foreach (var navigatable in _navigatables)
+            {
+                navigatable.SelectionStateChanged -= OnSelectionStateChanged;
+                navigatable.NavigationGroup = null;
+            }
             _navigatables.Clear();
         }
 

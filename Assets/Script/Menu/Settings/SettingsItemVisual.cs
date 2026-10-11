@@ -30,10 +30,13 @@ namespace YARG.Menu.Settings
         private bool _current;
 
         private bool IsSidebar => _navigatable is CategoryItemView or SettingsSectionView;
-        private bool IsCurrent => (IsSidebar ? _current : _navigatable.Selected) &&
+        private bool IsCurrent => _navigatable != null &&
+            (IsSidebar ? _current : _navigatable.Selected) &&
+            SettingsMenu.Instance != null &&
             SettingsMenu.Instance.IsNavigationLevelActive(_navigatable.NavigationGroup);
 
-        public bool HasFocus => _navigatable.Selected &&
+        public bool HasFocus => _navigatable != null &&
+            _navigatable.Selected &&
             NavigationGroup.CurrentNavigationGroup == _navigatable.NavigationGroup;
 
         private void Awake()
@@ -119,7 +122,10 @@ namespace YARG.Menu.Settings
 
         public void FocusControl(Transform control)
         {
-            SettingsMenu.Instance.OnSettingClicked(_navigatable);
+            if (_navigatable != null)
+            {
+                SettingsMenu.Instance.OnSettingClicked(_navigatable);
+            }
             var editing = control.GetComponent<Selectable>() is not Toggle;
             SetFocusTarget(editing ? control : transform, editing);
             Refresh();
@@ -168,7 +174,7 @@ namespace YARG.Menu.Settings
 
         public void OnPointerDown(PointerEventData eventData)
         {
-            if (!IsSidebar && _navigatable is not SettingSearchResult)
+            if (!IsSidebar && _navigatable is not SettingSearchResult and not null)
             {
                 SettingsMenu.Instance.OnSettingClicked(_navigatable);
             }

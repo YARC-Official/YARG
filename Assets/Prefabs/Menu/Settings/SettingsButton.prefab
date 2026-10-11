@@ -244,7 +244,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5753369685943773599}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9926d6a57f89ec54880f343a083fb70a, type: 3}
   m_Name: 
@@ -258,10 +258,6 @@ MonoBehaviour:
   - {fileID: 2042430629218475342}
   - {fileID: 9085880284457215088}
   - {fileID: 3353824013340357841}
-  _hiddenImages: []
-  _evenBackgrounds: []
-  _dividers:
-  - {fileID: 5753369685971461726}
   _controls: {fileID: 80695180182657894}
 --- !u!1 &5753369685971461696
 GameObject:
