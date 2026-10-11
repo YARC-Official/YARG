@@ -1,4 +1,5 @@
 using System;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -39,12 +40,18 @@ namespace YARG.Menu.Settings
             _navigatable.Selected &&
             NavigationGroup.CurrentNavigationGroup == _navigatable.NavigationGroup;
 
-        private void Awake()
+        public void BindNavigatable(NavigatableBehaviour navigatable)
         {
-            _navigatable = GetComponent<NavigatableBehaviour>();
+            UnsubscribeFromNavigatable();
+            _navigatable = navigatable;
             if (_navigatable != null)
             {
                 _navigatable.SelectOnHover = false;
+                if (isActiveAndEnabled)
+                {
+                    SubscribeToNavigatable();
+                }
+
                 if (_navigatable is RuntimeNavigatable runtime)
                 {
                     runtime.SelectionVisual?.Invoke(false);
@@ -52,44 +59,78 @@ namespace YARG.Menu.Settings
                 }
             }
 
-            if (TryGetComponent<BaseSettingVisual>(out _))
+            AttachControlFocus();
+            Refresh();
+        }
+
+        private void SubscribeToNavigatable()
+        {
+            if (_navigatable == null)
             {
-                foreach (var control in GetComponentsInChildren<Selectable>(true))
+                return;
+            }
+
+            _navigatable.SelectionStateChanged -= OnSelectionChanged;
+            _navigatable.SelectionStateChanged += OnSelectionChanged;
+
+            if (_navigatable is BaseSettingNavigatable setting)
+            {
+                setting.EditingChanged -= SetEditing;
+                setting.EditingChanged += SetEditing;
+            }
+        }
+
+        private void UnsubscribeFromNavigatable()
+        {
+            if (_navigatable == null)
+            {
+                return;
+            }
+
+            _navigatable.SelectionStateChanged -= OnSelectionChanged;
+            if (_navigatable is BaseSettingNavigatable setting)
+            {
+                setting.EditingChanged -= SetEditing;
+            }
+        }
+
+        private void AttachControlFocus()
+        {
+            if (IsSidebar)
+            {
+                return;
+            }
+
+            foreach (var control in GetComponentsInChildren<Selectable>())
+            {
+                if (!control.TryGetComponent<SettingsControlFocus>(out var focus))
                 {
-                    if (!control.TryGetComponent<SettingsControlFocus>(out var focus))
-                    {
-                        focus = control.gameObject.AddComponent<SettingsControlFocus>();
-                    }
-                    focus.Item = this;
+                    focus = control.gameObject.AddComponent<SettingsControlFocus>();
                 }
+                focus.Item = this;
+            }
+        }
+
+        private void Awake()
+        {
+            var nav = GetComponent<NavigatableBehaviour>();
+            if (nav != null)
+            {
+                BindNavigatable(nav);
+            }
+            else
+            {
+                AttachControlFocus();
             }
         }
 
         private void OnEnable()
         {
-            if (_navigatable != null)
-            {
-                _navigatable.SelectionStateChanged += OnSelectionChanged;
-                if (_navigatable is BaseSettingNavigatable setting)
-                {
-                    setting.EditingChanged += SetEditing;
-                }
-            }
+            SubscribeToNavigatable();
             NavigationGroup.CurrentChanged += Refresh;
         }
 
-        private void Start()
-        {
-            if (_navigatable != null)
-            {
-                OnSelectionChanged(navigatable: _navigatable, selected: _navigatable.Selected,
-                    origin: SelectionOrigin.Programmatically);
-            }
-            else
-            {
-                Refresh();
-            }
-        }
+        private void Start() => Refresh();
 
         private static void Stretch(RectTransform rect)
         {
@@ -126,7 +167,8 @@ namespace YARG.Menu.Settings
             {
                 SettingsMenu.Instance.OnSettingClicked(_navigatable);
             }
-            var editing = control.GetComponent<Selectable>() is not Toggle;
+            var editing = control.GetComponent<Selectable>() is not Toggle &&
+                control.GetComponent<TMP_Dropdown>() == null;
             SetFocusTarget(editing ? control : transform, editing);
             Refresh();
         }
@@ -174,7 +216,7 @@ namespace YARG.Menu.Settings
 
         public void OnPointerDown(PointerEventData eventData)
         {
-            if (!IsSidebar && _navigatable is not SettingSearchResult and not null)
+            if (!IsSidebar && _navigatable is not null and not SettingSearchResult)
             {
                 SettingsMenu.Instance.OnSettingClicked(_navigatable);
             }
@@ -215,14 +257,7 @@ namespace YARG.Menu.Settings
 
         private void OnDisable()
         {
-            if (_navigatable != null)
-            {
-                _navigatable.SelectionStateChanged -= OnSelectionChanged;
-                if (_navigatable is BaseSettingNavigatable setting)
-                {
-                    setting.EditingChanged -= SetEditing;
-                }
-            }
+            UnsubscribeFromNavigatable();
             NavigationGroup.CurrentChanged -= Refresh;
             _hovered = false;
             if (_background != null)

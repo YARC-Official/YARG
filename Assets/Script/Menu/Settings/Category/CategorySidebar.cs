@@ -43,7 +43,11 @@ namespace YARG.Menu.Settings
         {
             get
             {
-                EnsureInitialized();
+                if (_navigationGroup == null)
+                {
+                    _navigationGroup = GetComponent<NavigationGroup>();
+                    _navigationGroup.SelectionChanged += OnSelectionChanged;
+                }
                 return _navigationGroup;
             }
         }
@@ -52,31 +56,27 @@ namespace YARG.Menu.Settings
 
         private void Awake()
         {
-            EnsureInitialized();
+            _ = NavigationGroup;
         }
 
-        private void EnsureInitialized()
+        private void OnDestroy()
         {
             if (_navigationGroup != null)
             {
-                return;
+                _navigationGroup.SelectionChanged -= OnSelectionChanged;
             }
-
-            _navigationGroup = GetComponent<NavigationGroup>();
-            _navigationGroup.SelectionChanged += OnSelectionChanged;
         }
 
         public void SetCategories(IReadOnlyList<CategoryInfo> categories)
         {
-            EnsureInitialized();
             _views.Clear();
-            _navigationGroup.ClearNavigatables();
+            NavigationGroup.ClearNavigatables();
 
             for (var i = 0; i < categories.Count; i++)
             {
                 var info = categories[i];
                 var view = Instantiate(_itemPrefab, _container);
-                _navigationGroup.AddNavigatable(view);
+                NavigationGroup.AddNavigatable(view);
                 view.Initialize(info.Id, info.DisplayName, info.Icon);
                 view.SetLabelAlpha(IsCollapsed ? 0f : 1f, 0f);
                 _views.Add(view);
@@ -90,10 +90,10 @@ namespace YARG.Menu.Settings
                 if (_views[i].CategoryId == categoryId)
                 {
                     SelectedCategoryId = categoryId;
-                    _navigationGroup.PushNavGroupToStack();
-                    if (_navigationGroup.SelectedIndex != i)
+                    NavigationGroup.PushNavGroupToStack();
+                    if (NavigationGroup.SelectedIndex != i)
                     {
-                        _navigationGroup.SelectAt(i, SelectionOrigin.Navigation);
+                        NavigationGroup.SelectAt(i, SelectionOrigin.Navigation);
                     }
                     else
                     {
@@ -108,13 +108,13 @@ namespace YARG.Menu.Settings
 
         public void SetCollapsed(bool collapsed, bool animate = true)
         {
-            if (IsCollapsed == collapsed && Mathf.Approximately(_layoutElement.preferredWidth, collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH))
+            var targetWidth = collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH;
+            if (IsCollapsed == collapsed && Mathf.Approximately(_layoutElement.preferredWidth, targetWidth))
             {
                 return;
             }
 
             IsCollapsed = collapsed;
-            var targetWidth = collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH;
             var targetAlpha = collapsed ? 0f : 1f;
 
             _widthTween?.Kill();
@@ -156,7 +156,7 @@ namespace YARG.Menu.Settings
         {
             for (var i = 0; i < _views.Count; i++)
             {
-                _views[i].GetComponent<SettingsItemVisual>().ShowCurrent(_views[i].CategoryId == currentId);
+                _views[i].SetCurrent(_views[i].CategoryId == currentId);
             }
         }
 

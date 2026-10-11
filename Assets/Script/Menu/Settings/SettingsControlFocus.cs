@@ -9,17 +9,17 @@ namespace YARG.Menu.Settings
 
         public void OnSelect(BaseEventData eventData)
         {
-            Item.FocusControl(transform);
+            Item?.FocusControl(transform);
         }
 
         public void OnDeselect(BaseEventData eventData)
         {
-            Item.ReleaseControl();
+            Item?.ReleaseControl();
         }
 
         public void OnPointerDown(PointerEventData eventData)
         {
-            Item.FocusControl(transform);
+            Item?.FocusControl(transform);
         }
     }
 }

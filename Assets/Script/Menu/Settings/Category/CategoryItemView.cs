@@ -21,17 +21,31 @@ namespace YARG.Menu.Settings
         [SerializeField]
         private CanvasGroup _labelCanvasGroup;
 
+        private static readonly Color ACTIVE_COLOR = Color.white;
+        private static readonly Color INACTIVE_COLOR = new(0.5f, 0.62f, 0.7f);
+
         private Tween _fadeTween;
+        private SettingsItemVisual _visual;
 
         public string CategoryId { get; private set; }
 
-        public CanvasGroup LabelCanvasGroup => _labelCanvasGroup;
+        protected override void Awake()
+        {
+            base.Awake();
+            _visual = GetComponent<SettingsItemVisual>();
+            _label.fontStyle = FontStyles.UpperCase;
+        }
 
         public void Initialize(string categoryId, string displayName, Sprite icon)
         {
             CategoryId = categoryId;
             _label.text = displayName;
             _icon.sprite = icon;
+        }
+
+        public void SetCurrent(bool current)
+        {
+            _visual.ShowCurrent(current);
         }
 
         public void SetLabelAlpha(float alpha, float duration)
@@ -51,9 +65,8 @@ namespace YARG.Menu.Settings
         public void ShowActive(bool current)
         {
             _currentMarker.SetActive(current);
-            _label.fontStyle = FontStyles.UpperCase;
-            _label.color = current ? Color.white : new Color(0.5f, 0.62f, 0.7f);
-            _icon.color = current ? Color.white : new Color(0.5f, 0.62f, 0.7f);
+            _label.color = current ? ACTIVE_COLOR : INACTIVE_COLOR;
+            _icon.color = current ? ACTIVE_COLOR : INACTIVE_COLOR;
         }
 
         public override void OnPointerDown(PointerEventData eventData)

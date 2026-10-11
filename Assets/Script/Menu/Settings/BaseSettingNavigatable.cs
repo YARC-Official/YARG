@@ -1,4 +1,5 @@
 using System;
+using TMPro;
 using UnityEngine;
 using YARG.Menu.Navigation;
 using YARG.Menu.Settings.Visuals;
@@ -34,6 +35,12 @@ namespace YARG.Menu.Settings
             if (BaseSettingVisual is ToggleSettingVisual toggle)
             {
                 toggle.ToggleValue();
+                return;
+            }
+
+            if (BaseSettingVisual is DropdownSettingVisual)
+            {
+                RuntimeNavigatable.OpenDropdownList(GetComponentInChildren<TMP_Dropdown>(true));
                 return;
             }
 

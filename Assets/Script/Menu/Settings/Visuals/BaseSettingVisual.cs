@@ -114,8 +114,9 @@ namespace YARG.Menu.Settings.Visuals
             // exceeds the whole row width and the control collapses.
             if (transform.Find("Container") is RectTransform container)
             {
-                container.offsetMin = new Vector2(10f, container.offsetMin.y);
-                container.offsetMax = new Vector2(-10f, container.offsetMax.y);
+                container.anchorMin = new Vector2(0f, container.anchorMin.y);
+                container.offsetMin = new Vector2(0f, container.offsetMin.y);
+                container.offsetMax = new Vector2(0f, container.offsetMax.y);
             }
         }
 

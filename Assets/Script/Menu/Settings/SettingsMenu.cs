@@ -22,6 +22,11 @@ namespace YARG.Menu.Settings
     [DefaultExecutionOrder(-10000)]
     public class SettingsMenu : MonoSingleton<SettingsMenu>
     {
+        private const string PRESET_TYPE_NAME = "Preset Type";
+        private const string PRESET_TYPE_DESC = "Select which category of presets to configure.";
+        private const string PRESET_NAME = "Preset";
+        private const string PRESET_DESC = "Select a preset to load, or choose a custom preset to edit.";
+
         [SerializeField]
         private CategorySidebar _categorySidebar;
         [SerializeField]
@@ -42,6 +47,8 @@ namespace YARG.Menu.Settings
         private GameObject _sectionsPanel;
         [SerializeField]
         private GameObject _previewPanel;
+        [SerializeField]
+        private RectTransform _previewHeader;
 
         [Space]
         [SerializeField]
@@ -130,6 +137,11 @@ namespace YARG.Menu.Settings
 
         protected override void SingletonAwake()
         {
+            if (_previewHeader == null && _previewPanel != null)
+            {
+                _previewHeader = (RectTransform) _previewPanel.transform.Find("Header");
+            }
+
             // Settings menu defaults to active so that it will be initialized at startup
             gameObject.SetActive(false);
 
@@ -220,22 +232,31 @@ namespace YARG.Menu.Settings
             SelectTab(SettingsManager.GetTabByName(tab));
         }
 
-        private void SelectTab(Tab tab)
+        private void SelectTab(Tab tab, string initialSection = null)
         {
-            if (tab == null || CurrentTab == tab)
+            if (tab == null)
             {
+                return;
+            }
+
+            if (CurrentTab == tab)
+            {
+                if (!string.IsNullOrEmpty(initialSection) && CurrentSection != initialSection)
+                {
+                    OnSectionClicked(initialSection);
+                }
                 return;
             }
 
             CurrentTab?.OnTabExit();
             _searchBar.SetTextWithoutNotify(string.Empty);
             CurrentTab = tab;
-            BuildSections();
+            BuildSections(initialSection);
             Refresh();
             CurrentTab.OnTabEnter();
         }
 
-        private void BuildSections()
+        private void BuildSections(string initialSection = null)
         {
             _sectionViews.Clear();
             _sectionsNavGroup.ClearNavigatables();
@@ -262,8 +283,12 @@ namespace YARG.Menu.Settings
 
             if (sections.Count > 0)
             {
-                CurrentSection = sections[0].HeaderName;
-                _sectionsNavGroup.SelectFirst();
+                var targetSection = !string.IsNullOrEmpty(initialSection) && sections.Any(s => s.HeaderName == initialSection)
+                    ? initialSection
+                    : sections[0].HeaderName;
+                CurrentSection = targetSection;
+                var targetIndex = _sectionViews.FindIndex(view => view.Section == targetSection);
+                _sectionsNavGroup.SelectAt(Math.Max(0, targetIndex));
             }
         }
 
@@ -271,8 +296,7 @@ namespace YARG.Menu.Settings
         {
             for (var i = 0; i < _sectionViews.Count; i++)
             {
-                var isCurrent = _sectionViews[i].Section == CurrentSection;
-                _sectionViews[i].GetComponent<SettingsItemVisual>().ShowCurrent(isCurrent);
+                _sectionViews[i].SetCurrent(_sectionViews[i].Section == CurrentSection);
             }
         }
 
@@ -423,22 +447,13 @@ namespace YARG.Menu.Settings
 
         public void SelectSetting(string tabName, string searchName)
         {
-            SelectTabByName(tabName);
-            if (IsSearching)
-            {
-                _searchBar.SetTextWithoutNotify(string.Empty);
-                Refresh();
-            }
-            var tab = (MetadataTab) CurrentTab;
-            // Since the header can't be selected, we gotta skip that
-            // for the navigation index.
+            var tab = (MetadataTab) SettingsManager.GetTabByName(tabName);
             var position = tab.GetSettingPosition(searchName);
-            if (position.Section.Length > 0)
-            {
-                OnSectionClicked(position.Section);
-            }
+
+            _categorySidebar.SelectCategory(tabName);
+            SelectTab(tab, position.Section);
+
             EnterSettings();
-            // Force it to be the navigation selection type so the scroll view properly updates
             _settingsNavGroup.SelectAt(index: position.Index, selectionOrigin: SelectionOrigin.Navigation);
         }
 
@@ -452,6 +467,20 @@ namespace YARG.Menu.Settings
             if (selectionOrigin == SelectionOrigin.Mouse)
             {
                 OnSettingClicked(selected);
+            }
+
+            if (selected.TryGetComponent<PresetTypeDropdown>(out _))
+            {
+                _settingName.text = PRESET_TYPE_NAME;
+                _settingDescription.text = PRESET_TYPE_DESC;
+                return;
+            }
+
+            if (selected.TryGetComponent<PresetDropdown>(out _))
+            {
+                _settingName.text = PRESET_NAME;
+                _settingDescription.text = PRESET_DESC;
+                return;
             }
 
             var settingVisual = selected.GetComponent<BaseSettingVisual>();
@@ -521,9 +550,9 @@ namespace YARG.Menu.Settings
             RefreshPreview();
 
             // Restore selection
-            if (_settingsNavGroup.Count > 0)
+            if (beforeIndex.HasValue && _settingsNavGroup.Count > 0)
             {
-                _settingsNavGroup.SelectAt(Math.Min(beforeIndex ?? 0, _settingsNavGroup.Count - 1));
+                _settingsNavGroup.SelectAt(Math.Min(beforeIndex.Value, _settingsNavGroup.Count - 1));
             }
         }
 
@@ -543,9 +572,9 @@ namespace YARG.Menu.Settings
 
             UpdateSettings(false);
 
-            if (_settingsNavGroup.Count > 0)
+            if (beforeIndex.HasValue && _settingsNavGroup.Count > 0)
             {
-                _settingsNavGroup.SelectAt(Math.Min(beforeIndex ?? 0, _settingsNavGroup.Count - 1));
+                _settingsNavGroup.SelectAt(Math.Min(beforeIndex.Value, _settingsNavGroup.Count - 1));
             }
         }
 
@@ -553,9 +582,7 @@ namespace YARG.Menu.Settings
         {
             _settingName.text = IsSearching
                 ? Localize.Key("Menu.Settings.SearchHeader.Results")
-                : CurrentSection.Length > 0
-                    ? Localize.Key("Settings.Header", CurrentSection)
-                    : Localize.Key("Settings.Tab", CurrentTab.Name);
+                : string.Empty;
             _settingDescription.text = string.Empty;
 
             UpdateSectionMarkers();
@@ -580,7 +607,10 @@ namespace YARG.Menu.Settings
             {
                 _scrollRect.StopMovement();
                 _scrollRect.verticalNormalizedPosition = 1f;
-                _settingsNavGroup.SelectFirst();
+                if (IsSearching || NavigationGroup.CurrentNavigationGroup == _settingsNavGroup)
+                {
+                    _settingsNavGroup.SelectFirst();
+                }
             }
         }
 
@@ -595,22 +625,21 @@ namespace YARG.Menu.Settings
                     : 440f;
             _previewContainerUI.gameObject.SetActive(hasPreview);
 
-            var header = (RectTransform) _previewPanel.transform.Find("Header");
-            if (header != null)
+            if (_previewHeader != null)
             {
                 if (hasPreview)
                 {
-                    header.anchorMin = new Vector2(0f, 1f);
-                    header.anchorMax = Vector2.one;
-                    header.offsetMin = new Vector2(0f, -125f);
-                    header.offsetMax = Vector2.zero;
+                    _previewHeader.anchorMin = new Vector2(0f, 1f);
+                    _previewHeader.anchorMax = Vector2.one;
+                    _previewHeader.offsetMin = new Vector2(0f, -125f);
+                    _previewHeader.offsetMax = Vector2.zero;
                 }
                 else
                 {
-                    header.anchorMin = Vector2.zero;
-                    header.anchorMax = Vector2.one;
-                    header.offsetMin = Vector2.zero;
-                    header.offsetMax = Vector2.zero;
+                    _previewHeader.anchorMin = Vector2.zero;
+                    _previewHeader.anchorMax = Vector2.one;
+                    _previewHeader.offsetMin = Vector2.zero;
+                    _previewHeader.offsetMax = Vector2.zero;
                 }
             }
 

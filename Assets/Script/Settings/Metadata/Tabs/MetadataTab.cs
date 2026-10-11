@@ -21,40 +21,12 @@ namespace YARG.Settings.Metadata
         private readonly List<AbstractMetadata> _settings = new();
 
         public IReadOnlyList<AbstractMetadata> Settings => _settings;
+        private HeaderMetadata[] _sectionsCache;
         public override IReadOnlyList<HeaderMetadata> Sections =>
-            _settings.OfType<HeaderMetadata>().Where(header => header.IsVisible).ToArray();
+            _sectionsCache ??= _settings.OfType<HeaderMetadata>().Where(header => header.IsVisible).ToArray();
 
-        public override bool HasPreview
-        {
-            get
-            {
-                if (!base.HasPreview)
-                {
-                    return false;
-                }
-
-                var currentSection = SettingsMenu.Instance.CurrentSection;
-                foreach (var metadata in _settings)
-                {
-                    if (metadata is not HeaderMetadata section)
-                    {
-                        continue;
-                    }
-
-                    if (!section.IsVisible || !section.ShowPreview)
-                    {
-                        continue;
-                    }
-
-                    if (section.HeaderName == currentSection)
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
-            }
-        }
+        public override bool HasPreview => base.HasPreview && Sections.Any(section =>
+            section.ShowPreview && section.HeaderName == SettingsMenu.Instance.CurrentSection);
 
         public MetadataTab(string name, string icon = "Generic", IPreviewBuilder previewBuilder = null)
             : base(name, icon, previewBuilder)
