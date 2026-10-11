@@ -111,6 +111,12 @@ namespace YARG.Menu.Navigation
 
         public bool SuppressHelpBar;
 
+        /// <summary>
+        /// When set, the help bar displays its combined directional icon vertically while this
+        /// action is held. This is useful for modifier chords that remap up/down navigation.
+        /// </summary>
+        public MenuAction? VerticalDirectionsModifier;
+
         public NavigationScheme(List<Entry> entries, bool? allowsMusicPlayer, Action popCallback = null)
         {
             _entries = entries;

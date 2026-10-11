@@ -12,6 +12,11 @@ namespace YARG.Menu.MusicLibrary
 {
     public class SongView : ViewObject<ViewType>
     {
+        private static readonly Type[] MarqueeScrollTypes = { typeof(SongViewType) };
+
+        protected override bool AllowMarqueeScroll => true;
+        protected override Type[] AllowedMarqueeScrollTypes => MarqueeScrollTypes;
+
         [SerializeField]
         private GameObject _songNameContainer;
         [SerializeField]
@@ -86,7 +91,7 @@ namespace YARG.Menu.MusicLibrary
         {
             base.Show(selected, viewType);
 
-            if (viewType is SecondaryHeaderViewType)
+            if (viewType is SecondaryHeaderViewType && viewType.GetIcon() == null)
             {
                 SetIcon(_secondaryHeaderIcon);
             }
