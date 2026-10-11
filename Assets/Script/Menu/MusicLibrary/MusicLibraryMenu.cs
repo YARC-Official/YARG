@@ -31,6 +31,7 @@ namespace YARG.Menu.MusicLibrary
         public readonly Guid ProfileId;
         public readonly Instrument Instrument;
         public readonly Difficulty Difficulty;
+        public readonly Guid EnginePresetId;
         public readonly int HumanPlayerCount;
         public readonly HighScoreHistoryMode HighScoreHistoryMode;
 
@@ -38,12 +39,14 @@ namespace YARG.Menu.MusicLibrary
             Guid profileId,
             Instrument instrument,
             Difficulty difficulty,
+            Guid enginePresetId,
             int humanPlayerCount,
             HighScoreHistoryMode highScoreHistoryMode)
         {
             ProfileId = profileId;
             Instrument = instrument;
             Difficulty = difficulty;
+            EnginePresetId = enginePresetId;
             HumanPlayerCount = humanPlayerCount;
             HighScoreHistoryMode = highScoreHistoryMode;
         }
@@ -58,6 +61,7 @@ namespace YARG.Menu.MusicLibrary
                 profile?.Id ?? Guid.Empty,
                 profile?.CurrentInstrument ?? Instrument.FiveFretGuitar,
                 profile?.CurrentDifficulty ?? Difficulty.Expert,
+                profile?.EnginePreset ?? Guid.Empty,
                 PlayerContainer.Players.Count(player => !player.Profile.IsBot),
                 SettingsManager.Settings.HighScoreHistory.Value);
         }
@@ -67,6 +71,7 @@ namespace YARG.Menu.MusicLibrary
             return ProfileId == other.ProfileId &&
                 Instrument == other.Instrument &&
                 Difficulty == other.Difficulty &&
+                EnginePresetId == other.EnginePresetId &&
                 HumanPlayerCount == other.HumanPlayerCount &&
                 HighScoreHistoryMode == other.HighScoreHistoryMode;
         }

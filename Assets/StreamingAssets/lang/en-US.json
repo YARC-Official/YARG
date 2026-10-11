@@ -1363,6 +1363,10 @@
                 "Name": "Show Percent Decimals",
                 "Description": "Shows one decimal place for accuracy percentages in the Music Library and Score Screen."
             },
+            "PerEngineHighScores": {
+                "Name": "Prefer Current Engine Scores",
+                "Description": "Shows high scores for your current engine when available, otherwise using scores from other engines."
+            },
             "HighScoreHistory": {
                 "Name": "High Score History",
                 "Description": "Changes which score or percentage record is used for high score information displayed in the Music Library.",
