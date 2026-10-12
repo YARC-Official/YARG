@@ -83,6 +83,36 @@ namespace YARG.Helpers
         public const string DRUMKIT_GREEN_CYMBAL = "greenCymbal";
         public const string DRUMKIT_ORANGE_CYMBAL = "orangeCymbal";
 
+        public const string PRO_KEYBOARD_KEY_1 = "key1";
+        public const string PRO_KEYBOARD_KEY_2 = "key2";
+        public const string PRO_KEYBOARD_KEY_3 = "key3";
+        public const string PRO_KEYBOARD_KEY_4 = "key4";
+        public const string PRO_KEYBOARD_KEY_5 = "key5";
+        public const string PRO_KEYBOARD_KEY_6 = "key6";
+        public const string PRO_KEYBOARD_KEY_7 = "key7";
+        public const string PRO_KEYBOARD_KEY_8 = "key8";
+        public const string PRO_KEYBOARD_KEY_9 = "key9";
+        public const string PRO_KEYBOARD_KEY_10 = "key10";
+        public const string PRO_KEYBOARD_KEY_11 = "key11";
+        public const string PRO_KEYBOARD_KEY_12 = "key12";
+        public const string PRO_KEYBOARD_KEY_13 = "key13";
+        public const string PRO_KEYBOARD_KEY_14 = "key14";
+        public const string PRO_KEYBOARD_KEY_15 = "key15";
+        public const string PRO_KEYBOARD_KEY_16 = "key16";
+        public const string PRO_KEYBOARD_KEY_17 = "key17";
+        public const string PRO_KEYBOARD_KEY_18 = "key18";
+        public const string PRO_KEYBOARD_KEY_19 = "key19";
+        public const string PRO_KEYBOARD_KEY_20 = "key20";
+        public const string PRO_KEYBOARD_KEY_21 = "key21";
+        public const string PRO_KEYBOARD_KEY_22 = "key22";
+        public const string PRO_KEYBOARD_KEY_23 = "key23";
+        public const string PRO_KEYBOARD_KEY_24 = "key24";
+        public const string PRO_KEYBOARD_KEY_25 = "key25";
+        public const string PRO_KEYBOARD_OVERDRIVE = "overdrive";
+        public const string PRO_KEYBOARD_TOUCH_STRIP = "touchStrip";
+        public const string PRO_KEYBOARD_DIGITAL_PEDAL = "digitalPedal";
+        public const string PRO_KEYBOARD_ANALOG_PEDAL = "analogPedal";
+
         public const string JOYSTICK_UP = "joystick/up";
         public const string JOYSTICK_DOWN = "joystick/down";
         public const string JOYSTICK_LEFT = "joystick/left";

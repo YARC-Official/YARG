@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine.InputSystem;
 
-namespace YARG.Input.Bindings
+namespace YARG.Helpers
 {
     public static class LayoutStrings
     {

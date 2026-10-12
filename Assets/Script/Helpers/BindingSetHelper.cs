@@ -5,6 +5,7 @@ using UnityEditor.Experimental.GraphView;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.XR;
+using YARG.Assets.Script.Helpers;
 using YARG.Core;
 using YARG.Core.Game;
 using YARG.Input.Bindings;
@@ -200,76 +201,6 @@ namespace YARG.Helpers
             var controllerString = family.ToLocalizedNamePluralSentence();
 
             return Localize.KeyFormat("Menu.ProfileList.DescriptiveBindingSetName.Format", modeString, gameplayString, preposition, controllerString);
-        }
-
-        public static bool SerializedBindingSetIsUnique(SerializedReusableBindingSet candidate, List<SerializedReusableBindingSet> list)
-        {
-            foreach (var bindingSet in list)
-            {
-                if (!SerializedBindingSetsAreEquivalent(bindingSet, candidate)) {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        private static bool SerializedBindingSetsAreEquivalent(SerializedReusableBindingSet a, SerializedReusableBindingSet b) {
-            if (a.Mode != b.Mode || a.Family != b.Family || a.Bindings.Count != b.Bindings.Count)
-            {
-                return false;
-            }
-
-            foreach (var (key, bindingA) in a.Bindings)
-            {
-                if (!b.Bindings.TryGetValue(key, out var bindingB))
-                {
-                    return false;
-                }
-
-                foreach (var (parameterKey, parameterA) in bindingA.Parameters)
-                {
-                    if (!bindingB.Parameters.TryGetValue(key, out var parameterB))
-                    {
-                        return false;
-                    }
-
-                    if (parameterA != parameterB )
-                    {
-                        return false;
-                    }
-                }
-
-                foreach (var singleA in bindingA.Controls)
-                {
-                    var singleB = bindingB.Controls.FirstOrDefault(b => singleA.ControlName == b.ControlName);
-
-                    if (singleB is null)
-                    {
-                        return false;
-                    }
-
-                    if (singleA.Parameters.Count != bindingB.Parameters.Count)
-                    {
-                        return false;
-                    }
-
-                    foreach (var (singleParameterKey, singleParameterA) in singleA.Parameters)
-                    {
-                        if (!singleB.Parameters.TryGetValue(singleParameterKey, out var singleParameterB))
-                        {
-                            return false;
-                        }
-
-                        if (singleParameterA != singleParameterB)
-                        {
-                            return false;
-                        }
-                    }
-                }
-            }
-
-            return true;
         }
     }
 }
