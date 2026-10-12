@@ -168,7 +168,7 @@ namespace YARG.Input.Serialization
                 }
 
                 // We don't want to flood a first-time upgrader with a bazillion redundant copies of the same default binding set, or really any duplicates at all
-                if (reusableBindingSet is not null && BindingSetHelper.SerializedBindingSetIsUnique(reusableBindingSet, reusableBindingSets.Values.ToList()))
+                if (reusableBindingSet is not null && !LegacyBindingSetDeserializationHelper.SerializedBindingSetIsOldDefault(reusableBindingSet))
                 {
                     converted.MappingsByControllerFamily[reusableBindingSet.Family] = reusableBindingSet.Guid!.Value;
                     reusableBindingSets[reusableBindingSet.Guid!.Value] = reusableBindingSet;
