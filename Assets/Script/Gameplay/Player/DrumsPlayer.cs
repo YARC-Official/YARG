@@ -863,7 +863,7 @@ namespace YARG.Gameplay.Player
                 {
                     _fretArray.PlayKickFretAnimation();
                     _kickFretFlash.PlayHitAnimation();
-                    CameraPositioner.Bounce();
+                    _fretArray.Bounce();
                 }
                 else
                 {
@@ -1115,7 +1115,7 @@ namespace YARG.Gameplay.Player
             {
                 _kickFretFlash.PlayHitAnimation();
                 _fretArray.PlayKickFretAnimation();
-                CameraPositioner.Bounce();
+                _fretArray.Bounce();
                 return;
             }
 

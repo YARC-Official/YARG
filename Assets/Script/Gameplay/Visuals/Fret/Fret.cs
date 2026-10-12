@@ -29,16 +29,22 @@ namespace YARG.Gameplay.Visuals
         // with these exact names are affected, so other themes' differently-named particles are
         // left untouched.
         //
-        // Ring/Smoke/Flash/White Smoke are the particles that drive the hit's perceived "glow":
+        // Smoke/Flash/White Smoke are the particles that drive the hit's perceived "glow":
         // their peak color/light intensity is already equal to or brighter than guitar's (see
         // the Point Light intensity and Flash's brightness factor below), yet a very brief flash
         // still reads as dimmer than a longer one of the same peak brightness (the eye integrates
         // light over time). Their lifetime factor is kept well under guitar's full (1x) duration
         // to preserve a snappier feel for drums' faster pace, but raised from the original 0.48
         // so the glow has enough on-screen time to actually register as bright/punchy.
+        //
+        // Ring is kept at the original (shorter) 0.48 factor instead of following the other
+        // three up to 0.7: it's a donut-shaped burst that grows from nothing to full size over
+        // its lifetime, so the longer hold time read as an expanding glare/halo that guitar
+        // never has (guitar never runs this tuning at all, so its Ring stays at its untouched,
+        // much snappier default).
         private static readonly Dictionary<string, (float Lifetime, float? Velocity, float? Brightness)> _drumHitParticleFactors = new()
         {
-            ["Ring"]        = (0.7f, null, null),
+            ["Ring"]        = (0.48f, null, null),
             ["Smoke"]       = (0.7f, null, null),
             // Flash's RGB is boosted into HDR range so the (already fret-colored) flash reads
             // as more vivid/punchy, matching guitar's brighter look.

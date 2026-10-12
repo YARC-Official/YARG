@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using DG.Tweening;
 using UnityEngine;
 using YARG.Core.Chart;
+using YARG.Settings;
 using YARG.Themes;
 using static YARG.Core.Game.ColorProfile;
 
@@ -24,6 +26,13 @@ namespace YARG.Gameplay.Visuals
         private const float WIDTH_NUMERATOR   = 2f;
         private const float WIDTH_DENOMINATOR = 5f;
 
+        // Matches CameraPositioner's kick bounce tuning (BOUNCE_UNITS/duration/vibrato/elasticity),
+        // reused here now that the kick bounce shakes this fret row instead of the camera/highway.
+        private const float BOUNCE_UNITS = 0.03f;
+        private const float BOUNCE_DURATION = 0.125f;
+        private const int BOUNCE_VIBRATO = 10;
+        private const float BOUNCE_ELASTICITY = 1f;
+
         public bool DontFlipColorsLeftyFlip;
         public bool UseKickFrets;
 
@@ -44,6 +53,32 @@ namespace YARG.Gameplay.Visuals
         private          float     _pulseDuration;
 
         private readonly HashSet<int> _usedFretIndexes = new();
+
+        private Sequence _bounce;
+
+        private void Awake()
+        {
+            var bounceAmount = BOUNCE_UNITS * SettingsManager.Settings.KickBounceMultiplier.Value;
+            var strength = new Vector3(0f, bounceAmount, 0f);
+
+            _bounce = DOTween.Sequence()
+                .Append(transform.DOPunchPosition(strength, BOUNCE_DURATION, BOUNCE_VIBRATO, BOUNCE_ELASTICITY, false))
+                .SetAutoKill(false)
+                .Pause()
+                .SetLink(gameObject);
+        }
+
+        /// <summary>
+        /// Punches this fret row (buttons and kick ears together) to give kick hits some physical
+        /// feedback, without shaking the whole highway/camera.
+        /// </summary>
+        public void Bounce()
+        {
+            if (SettingsManager.Settings.EnableHighwayAnimation.Value)
+            {
+                _bounce.Restart();
+            }
+        }
 
         /*
          * Overload for instruments where lefty flip does not affect color (e.g. a lefty-flipped Green Fret on 5F Guitar is still green, just laterally shifted).
