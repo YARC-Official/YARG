@@ -31,7 +31,7 @@ namespace YARG.Menu.Settings.Visuals
             });
         }
 
-        public void Reset()
+        public void ResetToDefault()
         {
             Setting.Value = string.Empty;
             RefreshVisual();
