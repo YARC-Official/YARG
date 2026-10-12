@@ -281,7 +281,7 @@ public class YargVideoPlayer : MonoBehaviour
         {
             _vlcPreparedFired = false;
             _vlcStopRequested = false;
-            PrepareVlc(VLC_MEDIA_OPTIONS);
+            PrepareVlc();
             return;
         }
 #endif
@@ -291,11 +291,11 @@ public class YargVideoPlayer : MonoBehaviour
 #if VLC_SUPPORTED
     // OpenAsync throws inside its task when libvlc lacks a function LibVLCSharp needs (a libvlc
     // from another API era), so observe it and fall back to Unity's player instead of never starting.
-    private async void PrepareVlc(string[] mediaOptions)
+    private async void PrepareVlc()
     {
         try
         {
-            await _vlcPlayer.OpenAsync(_url, mediaOptions);
+            await _vlcPlayer.OpenAsync(_url, VLC_MEDIA_OPTIONS);
         }
         catch (Exception ex)
         {
@@ -308,8 +308,7 @@ public class YargVideoPlayer : MonoBehaviour
     private void PrepareUnity()
     {
         // Unity VideoPlayer path. Works identically on Windows (VLC compiled out) and
-        // on the VLC fallback path, so it must fully configure the player itself:
-        // FallBackToUnity (which also sets renderMode) is VLC-only.
+        // on the VLC fallback path, so it must fully configure the player itself.
         _unityVideoPlayer.url = _url;
         _unityVideoPlayer.renderMode = VideoRenderMode.RenderTexture;
         // Letterbox rather than stretch into targetTexture, matching the VLC path's blit. The
@@ -524,8 +523,6 @@ public class YargVideoPlayer : MonoBehaviour
     private void OnDestroy()
     {
 #if VLC_SUPPORTED
-        // Before the Destroy below: the watcher must be gone when VLCMediaPlayer disposes the player.
-        _timeWatch?.Stop();
         if (_vlcPlayer != null)
         {
             try
@@ -578,12 +575,6 @@ public class YargVideoPlayer : MonoBehaviour
                 throw new InvalidOperationException("VLC player failed initialization");
             }
 
-            if (LibVLCSharp.VLCMediaPlayer.LibVLC == null)
-            {
-                FallBackToUnity("VLC not available");
-                return;
-            }
-
             _usingVLC = true;
             _timeWatch = new VlcTimeWatch(_vlcPlayer);
             _timeWatch.Start();
@@ -634,11 +625,8 @@ public class YargVideoPlayer : MonoBehaviour
         YargLogger.LogInfo($"[YargVideoPlayer] {reason}; using Unity VideoPlayer");
         _usingVLC = false;
         _unityVideoPlayer.enabled = true;
-        _unityVideoPlayer.url = _url;
-        _unityVideoPlayer.renderMode = VideoRenderMode.RenderTexture;
-        _unityVideoPlayer.aspectRatio = VideoAspectRatio.FitInside;
-        // prepareCompleted/seekCompleted are wired in Prepare() instead, so the Unity
-        // path stays identical whether we got here via fallback or via a VLC-less build.
+        // PrepareUnity configures the player, so the Unity path stays identical whether we got
+        // here via fallback or via a VLC-less build.
     }
 #endif
 
