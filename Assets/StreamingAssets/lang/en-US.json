@@ -613,7 +613,7 @@
             "ShowAdvanced": "Show Advanced",
             "HideAdvanced": "Hide Advanced",
             "NoFolder": "<i>No Folder</i>",
-            "UsingDefaultVlcPath": "<i>Auto (default)</i>",
+            "UsingDefaultVlcPath": "<i>Auto (search standard locations)</i>",
             "SearchHeader": {
                 "AllCategories": "All Categories",
                 "Results": "Results"
@@ -2046,7 +2046,7 @@
             },
             "VlcLibraryPath": {
                 "Name": "VLC / libVLC Path",
-                "Description": "Path to a VLC/libVLC (v4 only) install for your OS, for using VLC as the video decoder. Leave empty to use the default (bundled/system) location. If none is found, will gracefully fallback to the Unity video player. Changes require a YARG restart to take effect."
+                "Description": "Folder of a VLC 4 install (a nightly from 2026-10-02 or newer; VLC 3 is not supported), used to decode video backgrounds. Leave empty to search standard install locations. If no VLC 4 is found, Unity's video player is used. Changes require a YARG restart to take effect."
             },
             "WrapAroundNavigation": {
                 "Name": "Wrap-Around Navigation",
