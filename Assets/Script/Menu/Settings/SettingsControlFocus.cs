@@ -9,7 +9,7 @@ namespace YARG.Menu.Settings
 
         public void OnSelect(BaseEventData eventData)
         {
-            Item?.FocusControl(transform);
+            Item?.FocusControl(transform, pointerInteraction: false);
         }
 
         public void OnDeselect(BaseEventData eventData)
@@ -19,7 +19,7 @@ namespace YARG.Menu.Settings
 
         public void OnPointerDown(PointerEventData eventData)
         {
-            Item?.FocusControl(transform);
+            Item?.FocusControl(transform, pointerInteraction: true);
         }
     }
 }

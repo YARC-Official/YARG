@@ -1093,6 +1093,7 @@
             "Volume": "Volume",
             "Graphics": "Graphics",
             "Camera": "Camera",
+            "Visuals": "Visuals",
             "SongFolders": "Song Folders",
             "SongUpgrades": "Song Upgrades",
             "Cache": "Cache",

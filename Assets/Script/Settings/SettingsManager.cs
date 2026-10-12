@@ -186,7 +186,7 @@ namespace YARG.Settings
                 nameof(Settings.Resolution),
                 nameof(Settings.FpsStats),
 
-                new HeaderMetadata("Graphics", showPreview: true),
+                new HeaderMetadata("Visuals", showPreview: true),
                 nameof(Settings.LowQuality),
                 nameof(Settings.DisableBloom),
                 nameof(Settings.DisableFilmGrain),

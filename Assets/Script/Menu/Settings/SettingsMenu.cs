@@ -329,7 +329,12 @@ namespace YARG.Menu.Settings
         public void EnterSettings()
         {
             FocusNavigation(_settingsNavGroup);
+            var selected = _settingsNavGroup.SelectedBehaviour;
             _settingsNavGroup.SelectFirst(SelectionOrigin.Navigation);
+            if (selected == _settingsNavGroup.SelectedBehaviour)
+            {
+                OnSelectionChanged(_settingsNavGroup.SelectedBehaviour, SelectionOrigin.Programmatically);
+            }
         }
 
         public void FocusSections()
@@ -340,6 +345,7 @@ namespace YARG.Menu.Settings
                 return;
             }
 
+            ClearSettingDetails();
             FocusNavigation(_sectionsNavGroup);
             var index = _sectionViews.FindIndex(view => view.Section == CurrentSection);
             _sectionsNavGroup.SelectAt(index: index, selectionOrigin: SelectionOrigin.Navigation);
@@ -347,8 +353,15 @@ namespace YARG.Menu.Settings
 
         public void FocusCategories(bool animate = true)
         {
+            ClearSettingDetails();
             FocusNavigation(target: _categorySidebar.NavigationGroup, animate: animate);
             _categorySidebar.SelectCategory(CurrentTab.Name);
+        }
+
+        private void ClearSettingDetails()
+        {
+            _settingName.text = string.Empty;
+            _settingDescription.text = string.Empty;
         }
 
         private void Back()
@@ -450,6 +463,10 @@ namespace YARG.Menu.Settings
         {
             if (selected == null)
             {
+                if (!IsSearching)
+                {
+                    ClearSettingDetails();
+                }
                 return;
             }
 
@@ -477,8 +494,7 @@ namespace YARG.Menu.Settings
             // If we're not selecting a setting (for example, buttons or headers) skip
             if (settingVisual == null)
             {
-                _settingName.text = string.Empty;
-                _settingDescription.text = string.Empty;
+                ClearSettingDetails();
                 return;
             }
 

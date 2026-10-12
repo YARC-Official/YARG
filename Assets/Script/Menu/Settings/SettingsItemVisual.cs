@@ -157,11 +157,11 @@ namespace YARG.Menu.Settings
                     target = controls[0].transform;
                 }
             }
-            SetFocusTarget(target, editing);
+            SetFocusTarget(target, editing, showFocusEdges: editing);
             Refresh();
         }
 
-        public void FocusControl(Transform control)
+        public void FocusControl(Transform control, bool pointerInteraction)
         {
             if (_navigatable != null)
             {
@@ -169,11 +169,12 @@ namespace YARG.Menu.Settings
             }
             var editing = control.GetComponent<Selectable>() is not Toggle &&
                 control.GetComponent<TMP_Dropdown>() == null;
-            SetFocusTarget(editing ? control : transform, editing);
+            var showFocusEdges = editing && (!pointerInteraction || control.GetComponent<Slider>() == null);
+            SetFocusTarget(editing ? control : transform, editing, showFocusEdges);
             Refresh();
         }
 
-        private void SetFocusTarget(Transform target, bool editing)
+        private void SetFocusTarget(Transform target, bool editing, bool showFocusEdges)
         {
             if (_focus == null)
             {
@@ -192,7 +193,7 @@ namespace YARG.Menu.Settings
             }
             foreach (var edge in _focusEdges)
             {
-                edge.gameObject.SetActive(editing);
+                edge.gameObject.SetActive(showFocusEdges);
             }
             _focusFill?.SetActive(!editing);
         }
