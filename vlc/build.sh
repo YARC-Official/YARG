@@ -14,8 +14,9 @@
 #   is available (from Linux or macOS). Never pass -Dwatermark=true; that is
 #   the Videolabs trial build (60s limit + overlay).
 #
-# The upstream commits used are persisted in vlc/BUILT_WITH and the result is
-# committed with a changelog against the previously built commits.
+# LibVLCSharp, vlc-unity and the libVLC SDK nightlies are pinned below; the
+# commits used are persisted in vlc/BUILT_WITH and the result is committed
+# with a changelog against the previously built commits.
 #
 # Usage: ./vlc/build.sh [--no-commit]
 
@@ -40,13 +41,24 @@ CHANGELOG_DEPTH=500
 # Never enable the Videolabs trial watermark / 60s limiter.
 MESON_OPTS=(-Dfatal_warnings=false -Dwatermark=false)
 
+# Pinned upstream versions. libVLC 4 is unreleased and its API changes between
+# nightlies, so LibVLCSharp, vlc-unity and the libVLC SDK must come from the
+# same era and move together: a libvlc that lacks a function LibVLCSharp.dll
+# imports only fails when that function is first called. Check a new SDK with
+#   strings Assets/Plugins/vlc/LibVLCSharp.dll | grep -E '^libvlc_[a-z0-9_]+$'
+# against `nm` of its libvlc. The user's own VLC (VlcLibraryPath) must be a
+# nightly from this SDK's date or later.
+# TODO: when VLC 4.0 is released, move all three pins to the 4.0 release and
+# make 4.0 the user-facing minimum.
+LIBVLCSHARP_COMMIT="71e10c001d53b147ac12ab5af954e22e3c6b3e80"
+VLC_UNITY_COMMIT="5f3bb75e51ab79f4020c6d5ef0c9749ce4f2bb3b"
+
 # VLC 4.x SDK nightlies (same upstream commit across OS/arch).
 # Downloaded as needed; not committed (see .gitignore vlc/sdk/).
-VLC_SDK_COMMIT="2b3db140"
-MACOS_SDK_ARM64_URL="https://artifacts.videolan.org/vlc/nightly-macos-arm64/20260901-0413/vlc-macos-sdk-4.0.0-dev-arm64-2b3db140.tar.gz"
-MACOS_SDK_X64_URL="https://artifacts.videolan.org/vlc/nightly-macos-x86_64/20260901-0411/vlc-macos-sdk-4.0.0-dev-intel64-2b3db140.tar.gz"
-WIN64_SDK_7Z_URL="https://artifacts.videolan.org/vlc/nightly-win64/20260901-0424/vlc-4.0.0-dev-win64-2b3db140.7z"
-WIN64_SDK_ZIP_URL="https://artifacts.videolan.org/vlc/nightly-win64/20260901-0424/vlc-4.0.0-dev-win64-2b3db140.zip"
+VLC_SDK_COMMIT="e4f2d3a3"
+MACOS_SDK_ARM64_URL="https://artifacts.videolan.org/vlc/nightly-macos-arm64/20261002-0414/vlc-macos-sdk-4.0.0-dev-arm64-e4f2d3a3.tar.gz"
+MACOS_SDK_X64_URL="https://artifacts.videolan.org/vlc/nightly-macos-x86_64/20261002-0411/vlc-macos-sdk-4.0.0-dev-intel64-e4f2d3a3.tar.gz"
+WIN64_SDK_7Z_URL="https://artifacts.videolan.org/vlc/nightly-win64/20261002-0434/vlc-4.0.0-dev-win64-e4f2d3a3.7z"
 
 die() { echo "error: $*" >&2; exit 1; }
 log() { echo "==> $*"; }
@@ -94,14 +106,13 @@ esac
 # Shallow checkouts
 # ---------------------------------------------------------------------------
 clone_shallow() {
-    local url="$1" dir="$2" branch="${3:-}"
-    log "Cloning $url (depth 1${branch:+, branch $branch})"
+    local url="$1" dir="$2" commit="$3"
+    log "Cloning $url @ ${commit:0:9} (depth 1)"
     rm -rf "$dir"
-    if [[ -n "$branch" ]]; then
-        git clone --quiet --depth 1 --branch "$branch" "$url" "$dir"
-    else
-        git clone --quiet --depth 1 "$url" "$dir"
-    fi
+    git init --quiet "$dir"
+    git -C "$dir" remote add origin "$url"
+    git -C "$dir" fetch --quiet --depth 1 origin "$commit"
+    git -C "$dir" checkout --quiet --detach FETCH_HEAD
 }
 
 # Widen the shallow history just enough to diff against the previously built
@@ -117,12 +128,12 @@ changes_since() {
     ) 2>/dev/null || echo "(changes since $prev not available: outside fetched history)"
 }
 
-# LibVLCSharp: use the master branch (like vlc-unity's CI does) — it keeps the
-# flat `LibVLCSharp.*` namespace the Assets/VLCUnity/ sources are written
-# against. The default branch (3.x) restructured the sources into
+# LibVLCSharp: pin a commit from the master branch (like vlc-unity's CI uses)
+# — it keeps the flat `LibVLCSharp.*` namespace the Assets/VLCUnity/ sources
+# are written against. The default branch (3.x) restructured the sources into
 # `LibVLCSharp.Shared.*`, which does not compile against vlc-unity.
-clone_shallow "$LIBVLCSHARP_URL" "$LIBVLCSHARP_DIR" master
-clone_shallow "$VLC_UNITY_URL" "$VLC_UNITY_DIR"
+clone_shallow "$LIBVLCSHARP_URL" "$LIBVLCSHARP_DIR" "$LIBVLCSHARP_COMMIT"
+clone_shallow "$VLC_UNITY_URL" "$VLC_UNITY_DIR" "$VLC_UNITY_COMMIT"
 
 libvlcsharp_hash="$(git -C "$LIBVLCSHARP_DIR" rev-parse HEAD)"
 vlc_unity_hash="$(git -C "$VLC_UNITY_DIR" rev-parse HEAD)"
@@ -137,8 +148,11 @@ vlc_unity_changes="$(changes_since "$VLC_UNITY_DIR" "$prev_vlc_unity")"
 log "Building LibVLCSharp.dll"
 OUT="$VLC_DIR/out"
 rm -rf "$OUT"
+# TargetFrameworks is overridden too: off Linux the csproj adds mobile targets,
+# whose restore needs dotnet workloads even when only netstandard2.1 is built.
 dotnet build "$LIBVLCSHARP_DIR/src/LibVLCSharp/LibVLCSharp.csproj" -c Release \
-    -p:DefineConstants="UNITY DESKTOP" -f netstandard2.1 -o "$OUT" --nologo -v q
+    -p:DefineConstants="UNITY DESKTOP" -p:TargetFrameworks=netstandard2.1 \
+    -f netstandard2.1 -o "$OUT" --nologo -v q
 
 # ---------------------------------------------------------------------------
 # Native plugins
@@ -287,18 +301,19 @@ fetch_win64_sdk() {
     mkdir -p "$dest"
     local tmp
     tmp="$(mktemp -d)"
+    # Only the .7z carries sdk/ (the .zip is the player alone). libarchive's
+    # bsdtar (macOS's tar) reads 7z too, so 7-Zip itself is optional.
+    archive="$VLC_DIR/sdk/vlc-4.0.0-dev-win64-${VLC_SDK_COMMIT}.7z"
+    download "$WIN64_SDK_7Z_URL" "$archive"
+    log "Extracting $(basename "$archive")"
     if command -v 7zz >/dev/null || command -v 7z >/dev/null; then
         local sevenz
         sevenz="$(command -v 7zz || command -v 7z)"
-        archive="$VLC_DIR/sdk/vlc-4.0.0-dev-win64-${VLC_SDK_COMMIT}.7z"
-        download "$WIN64_SDK_7Z_URL" "$archive"
-        log "Extracting $(basename "$archive")"
         "$sevenz" x -y -o"$tmp" "$archive" "vlc-4.0.0-dev/sdk/*" >/dev/null
+    elif command -v bsdtar >/dev/null || tar --version 2>/dev/null | grep -q bsdtar; then
+        "$(command -v bsdtar || command -v tar)" -xf "$archive" -C "$tmp" "vlc-4.0.0-dev/sdk/*"
     else
-        archive="$VLC_DIR/sdk/vlc-4.0.0-dev-win64-${VLC_SDK_COMMIT}.zip"
-        download "$WIN64_SDK_ZIP_URL" "$archive"
-        log "Extracting $(basename "$archive")"
-        unzip -q "$archive" "vlc-4.0.0-dev/sdk/*" -d "$tmp"
+        die "extracting the win64 SDK needs 7z/7zz or bsdtar"
     fi
     # Nightly layout: vlc-4.0.0-dev/sdk/{include,lib}
     local sdk_src
