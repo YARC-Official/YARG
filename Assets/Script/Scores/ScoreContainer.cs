@@ -41,6 +41,7 @@ namespace YARG.Scores
         private static string     _currentInstrumentSetKey = string.Empty;
         private static Difficulty _currentDifficulty = Difficulty.Easy;
         private static HighScoreHistoryMode _currentHighScoreHistoryMode;
+        private static Guid?      _currentPreferredEnginePresetId;
         private static bool       _scoresWereFetched;
 
         private static bool HighestDifficultyOnly
@@ -169,19 +170,21 @@ namespace YARG.Scores
         private static void UpdatePlayerHighScores(HashWrapper songChecksum, PlayerScoreRecord newScore)
         {
             var bestScore = _db.QueryPlayerSongHighScore(
-                songChecksum, newScore.PlayerId, newScore.Instrument, HighestDifficultyOnly, CurrentDifficultyOnly, newScore.Difficulty);
+                songChecksum, newScore.PlayerId, newScore.Instrument, HighestDifficultyOnly, CurrentDifficultyOnly,
+                newScore.Difficulty, _currentPreferredEnginePresetId);
             var bestPercent = _db.QueryPlayerSongHighestPercentage(
-                songChecksum, newScore.PlayerId, newScore.Instrument, HighestDifficultyOnly, CurrentDifficultyOnly, newScore.Difficulty);
+                songChecksum, newScore.PlayerId, newScore.Instrument, HighestDifficultyOnly, CurrentDifficultyOnly,
+                newScore.Difficulty, _currentPreferredEnginePresetId);
 
             if (_scoresWereFetched &&
                 _currentPlayerId == newScore.PlayerId &&
                 InstrumentSetContains(_currentInstrumentSetKey, newScore.Instrument))
             {
                 if (bestScore is not null)
-                    UpdateBestScoreCache(songChecksum, bestScore);
+                    UpdateBestScoreCache(songChecksum, bestScore, _currentPreferredEnginePresetId);
 
                 if (bestPercent is not null)
-                    UpdateBestPercentCache(songChecksum, bestPercent);
+                    UpdateBestPercentCache(songChecksum, bestPercent, _currentPreferredEnginePresetId);
             }
         }
 
@@ -241,16 +244,24 @@ namespace YARG.Scores
         /// <param name="instrument">The instrument to retrieve a high score for.</param>
         /// <param name="allowCacheUpdate">Sets whether all high scores for this player and instrument should be cached. Set this to true when fetching a large number of high scores for the same player and instrument
         /// (such as when displaying high scores on the Music Library). Set this to false when fetching multiple high scores for different players in a row.</param>
+        /// <param name="preferredEnginePresetId">If set, scores using this engine are preferred before applying the high score sort.</param>
         /// <returns>The highest score for the provided song, player and instrument, or null if no high score exists.</returns>
-        public static PlayerScoreRecord GetHighScore(HashWrapper songChecksum, Guid playerId, Instrument instrument, bool allowCacheUpdate = true)
+        public static PlayerScoreRecord GetHighScore(
+            HashWrapper songChecksum,
+            Guid playerId,
+            Instrument instrument,
+            bool allowCacheUpdate = true,
+            Guid? preferredEnginePresetId = null)
         {
             if (allowCacheUpdate)
-                FetchHighScores(playerId, new[] { instrument });
+                FetchHighScores(playerId, new[] { instrument }, preferredEnginePresetId);
 
-            if (_currentPlayerId == playerId && _currentInstrumentSetKey == BuildInstrumentSetKey(instrument))
+            if (_currentPlayerId == playerId &&
+                _currentInstrumentSetKey == BuildInstrumentSetKey(instrument) &&
+                _currentPreferredEnginePresetId == preferredEnginePresetId)
                 return PlayerHighScores.GetValueOrDefault(songChecksum);
 
-            return GetHighScoreFromDatabase(songChecksum, playerId, instrument);
+            return GetHighScoreFromDatabase(songChecksum, playerId, instrument, preferredEnginePresetId);
         }
 
         public static GameRecord GetBandHighScore(HashWrapper songChecksum)
@@ -258,12 +269,22 @@ namespace YARG.Scores
             return BandHighScores.GetValueOrDefault(songChecksum);
         }
 
-        public static PlayerScoreRecord GetPreferredHighScore(HashWrapper songChecksum, Guid playerId, Instrument instrument, bool allowCacheUpdate = true)
+        public static PlayerScoreRecord GetPreferredHighScore(
+            HashWrapper songChecksum,
+            Guid playerId,
+            Instrument instrument,
+            bool allowCacheUpdate = true,
+            Guid? preferredEnginePresetId = null)
         {
             return UseHighestScore
-                ? GetHighScore(songChecksum, playerId, instrument, allowCacheUpdate)
-                : GetBestPercentageScore(songChecksum, playerId, instrument, allowCacheUpdate);
+                ? GetHighScore(
+                    songChecksum, playerId, instrument, allowCacheUpdate, preferredEnginePresetId)
+                : GetBestPercentageScore(
+                    songChecksum, playerId, instrument, allowCacheUpdate, preferredEnginePresetId);
         }
+
+        public static Guid? GetPreferredEnginePresetId(YargProfile profile)
+            => SettingsManager.Settings.PerEngineHighScores.Value ? profile.EnginePreset : null;
 
         public static bool UseBandHighScoresForCurrentPlayers
             => PlayerContainer.Players.Count(player => !player.Profile.IsBot) != 1;
@@ -286,18 +307,24 @@ namespace YARG.Scores
             var drumInstruments = MidiDrumkitHelper.GetInstruments(player.Profile.GameMode);
             playerScoreRecord = drumInstruments != null
                 ? GetPreferredHighScoreForInstruments(
-                    songChecksum, player.Profile.Id, drumInstruments)
+                    songChecksum, player.Profile.Id, drumInstruments,
+                    preferredEnginePresetId: GetPreferredEnginePresetId(player.Profile))
                 : GetPreferredHighScore(
-                    songChecksum, player.Profile.Id, player.Profile.CurrentInstrument);
+                    songChecksum, player.Profile.Id, player.Profile.CurrentInstrument,
+                    preferredEnginePresetId: GetPreferredEnginePresetId(player.Profile));
         }
 
-        private static PlayerScoreRecord GetHighScoreFromDatabase(HashWrapper songChecksum, Guid playerId, Instrument instrument)
+        private static PlayerScoreRecord GetHighScoreFromDatabase(
+            HashWrapper songChecksum,
+            Guid playerId,
+            Instrument instrument,
+            Guid? preferredEnginePresetId)
         {
             try
             {
                 return _db.QueryPlayerSongHighScore(
                     songChecksum, playerId, instrument, HighestDifficultyOnly, CurrentDifficultyOnly,
-                    PlayerContainer.GetProfileById(playerId).CurrentDifficulty);
+                    PlayerContainer.GetProfileById(playerId).CurrentDifficulty, preferredEnginePresetId);
             }
             catch (Exception e)
             {
@@ -316,25 +343,38 @@ namespace YARG.Scores
         /// <param name="instrument">The instrument to retrieve a high score for.</param>
         /// <param name="allowCacheUpdate">Sets whether all high scores for this player and instrument should be cached. Set this to true when fetching a large number of high scores for the same player and instrument
         /// (such as when displaying high scores on the Music Library). Set this to false when fetching multiple high scores for different players in a row.</param>
+        /// <param name="preferredEnginePresetId">If set, scores using this engine are preferred before applying the high score sort.</param>
         /// <returns>The highest score percentage for the provided song, player and instrument, or null if no high score exists.</returns>
-        public static PlayerScoreRecord GetBestPercentageScore(HashWrapper songChecksum, Guid playerId, Instrument instrument, bool allowCacheUpdate = true)
+        public static PlayerScoreRecord GetBestPercentageScore(
+            HashWrapper songChecksum,
+            Guid playerId,
+            Instrument instrument,
+            bool allowCacheUpdate = true,
+            Guid? preferredEnginePresetId = null)
         {
             if (allowCacheUpdate)
-                FetchHighScores(playerId, new[] { instrument });
+                FetchHighScores(playerId, new[] { instrument }, preferredEnginePresetId);
 
-            if (_currentPlayerId == playerId && _currentInstrumentSetKey == BuildInstrumentSetKey(instrument))
+            if (_currentPlayerId == playerId &&
+                _currentInstrumentSetKey == BuildInstrumentSetKey(instrument) &&
+                _currentPreferredEnginePresetId == preferredEnginePresetId)
                 return PlayerHighPercentages.GetValueOrDefault(songChecksum);
 
-            return GetHighestPercentageFromDatabase(songChecksum, playerId, instrument);
+            return GetHighestPercentageFromDatabase(
+                songChecksum, playerId, instrument, preferredEnginePresetId);
         }
 
-        private static PlayerScoreRecord GetHighestPercentageFromDatabase(HashWrapper songChecksum, Guid playerId, Instrument instrument)
+        private static PlayerScoreRecord GetHighestPercentageFromDatabase(
+            HashWrapper songChecksum,
+            Guid playerId,
+            Instrument instrument,
+            Guid? preferredEnginePresetId)
         {
             try
             {
                 return _db.QueryPlayerSongHighestPercentage(
                     songChecksum, playerId, instrument, HighestDifficultyOnly, CurrentDifficultyOnly,
-                    PlayerContainer.GetProfileById(playerId).CurrentDifficulty);
+                    PlayerContainer.GetProfileById(playerId).CurrentDifficulty, preferredEnginePresetId);
             }
             catch (Exception e)
             {
@@ -343,7 +383,10 @@ namespace YARG.Scores
             }
         }
 
-        private static void FetchHighScores(Guid playerId, IReadOnlyList<Instrument> instruments)
+        private static void FetchHighScores(
+            Guid playerId,
+            IReadOnlyList<Instrument> instruments,
+            Guid? preferredEnginePresetId)
         {
             if (instruments == null || instruments.Count == 0) return;
 
@@ -356,6 +399,7 @@ namespace YARG.Scores
                 _currentInstrumentSetKey == instrumentKey &&
                 _currentDifficulty == currentDifficulty &&
                 _currentHighScoreHistoryMode == currentHighScoreHistoryMode &&
+                _currentPreferredEnginePresetId == preferredEnginePresetId &&
                 _scoresWereFetched)
             {
                 // Already cached. No need to fetch again from the database.
@@ -378,14 +422,14 @@ namespace YARG.Scores
                 {
                      var highScores = _db.QueryPlayerHighScores(
                           playerId, instrument, HighestDifficultyOnly, CurrentDifficultyOnly, currentDifficulty,
-                          SongContainer.SongsByHash.Keys, SongContainer.LibraryRevision);
+                          SongContainer.SongsByHash.Keys, SongContainer.LibraryRevision, preferredEnginePresetId);
                     foreach (var score in highScores)
                     {
                         if (!checksumByRecordId.TryGetValue(score.GameRecordId, out var checksum))
                             continue;
 
                         var hash = HashWrapper.Create(checksum);
-                        UpdateBestScoreCache(hash, score);
+                        UpdateBestScoreCache(hash, score, preferredEnginePresetId);
                     }
                 }
 
@@ -393,14 +437,14 @@ namespace YARG.Scores
                 {
                      var highPercentages = _db.QueryPlayerHighestPercentages(
                           playerId, instrument, HighestDifficultyOnly, CurrentDifficultyOnly, currentDifficulty,
-                          SongContainer.SongsByHash.Keys, SongContainer.LibraryRevision);
+                          SongContainer.SongsByHash.Keys, SongContainer.LibraryRevision, preferredEnginePresetId);
                     foreach (var score in highPercentages)
                     {
                         if (!checksumByRecordId.TryGetValue(score.GameRecordId, out var checksum))
                             continue;
 
                         var hash = HashWrapper.Create(checksum);
-                        UpdateBestPercentCache(hash, score);
+                        UpdateBestPercentCache(hash, score, preferredEnginePresetId);
                     }
                 }
 
@@ -408,6 +452,7 @@ namespace YARG.Scores
                 _currentDifficulty = currentDifficulty;
                 _currentHighScoreHistoryMode = currentHighScoreHistoryMode;
                 _currentInstrumentSetKey = instrumentKey;
+                _currentPreferredEnginePresetId = preferredEnginePresetId;
                 _scoresWereFetched = true;
             }
             catch (Exception e)
@@ -416,28 +461,44 @@ namespace YARG.Scores
             }
         }
 
-        private static void UpdateBestScoreCache(HashWrapper songChecksum, PlayerScoreRecord candidate)
+        private static void UpdateBestScoreCache(
+            HashWrapper songChecksum,
+            PlayerScoreRecord candidate,
+            Guid? preferredEnginePresetId)
         {
             if (!PlayerHighScores.TryGetValue(songChecksum, out var current) ||
-                IsBetterScore(candidate, current))
+                IsBetterScore(candidate, current, preferredEnginePresetId))
             {
                 PlayerHighScores[songChecksum] = candidate;
             }
         }
 
-        private static void UpdateBestPercentCache(HashWrapper songChecksum, PlayerScoreRecord candidate)
+        private static void UpdateBestPercentCache(
+            HashWrapper songChecksum,
+            PlayerScoreRecord candidate,
+            Guid? preferredEnginePresetId)
         {
             if (!PlayerHighPercentages.TryGetValue(songChecksum, out var current) ||
-                IsBetterPercentage(candidate, current))
+                IsBetterPercentage(candidate, current, preferredEnginePresetId))
             {
                 PlayerHighPercentages[songChecksum] = candidate;
             }
         }
 
-        private static bool IsBetterScore(PlayerScoreRecord candidate, PlayerScoreRecord current)
+        private static bool IsBetterScore(
+            PlayerScoreRecord candidate,
+            PlayerScoreRecord current,
+            Guid? preferredEnginePresetId)
         {
             if (current == null)
                 return true;
+
+            bool candidateUsesPreferredEngine = UsesPreferredEngine(
+                candidate.EnginePresetId, preferredEnginePresetId);
+            bool currentUsesPreferredEngine = UsesPreferredEngine(
+                current.EnginePresetId, preferredEnginePresetId);
+            if (candidateUsesPreferredEngine != currentUsesPreferredEngine)
+                return candidateUsesPreferredEngine;
 
             if (HighestDifficultyOnly && candidate.Difficulty != current.Difficulty)
                 return candidate.Difficulty > current.Difficulty;
@@ -445,10 +506,20 @@ namespace YARG.Scores
             return candidate.Score > current.Score;
         }
 
-        private static bool IsBetterPercentage(PlayerScoreRecord candidate, PlayerScoreRecord current)
+        private static bool IsBetterPercentage(
+            PlayerScoreRecord candidate,
+            PlayerScoreRecord current,
+            Guid? preferredEnginePresetId)
         {
             if (current == null)
                 return true;
+
+            bool candidateUsesPreferredEngine = UsesPreferredEngine(
+                candidate.EnginePresetId, preferredEnginePresetId);
+            bool currentUsesPreferredEngine = UsesPreferredEngine(
+                current.EnginePresetId, preferredEnginePresetId);
+            if (candidateUsesPreferredEngine != currentUsesPreferredEngine)
+                return candidateUsesPreferredEngine;
 
             if (HighestDifficultyOnly && candidate.Difficulty != current.Difficulty)
                 return candidate.Difficulty > current.Difficulty;
@@ -462,6 +533,20 @@ namespace YARG.Scores
                 return candidate.Score > current.Score;
 
             return candidate.IsFc && !current.IsFc;
+        }
+
+        private static bool UsesPreferredEngine(Guid enginePresetId, Guid? preferredEnginePresetId)
+        {
+            if (!preferredEnginePresetId.HasValue)
+                return false;
+
+            if (preferredEnginePresetId.Value == Guid.Empty ||
+                preferredEnginePresetId.Value == EnginePreset.Default.Id)
+            {
+                return enginePresetId == Guid.Empty || enginePresetId == EnginePreset.Default.Id;
+            }
+
+            return enginePresetId == preferredEnginePresetId.Value;
         }
 
         private static string BuildInstrumentSetKey(IReadOnlyList<Instrument> instruments)
@@ -488,6 +573,7 @@ namespace YARG.Scores
             _currentPlayerId = Guid.Empty;
             _currentDifficulty = Difficulty.Easy;
             _currentHighScoreHistoryMode = default;
+            _currentPreferredEnginePresetId = null;
             _scoresWereFetched = false;
             _currentInstrumentSetKey = string.Empty;
             PlayerHighScores.Clear();
@@ -596,10 +682,10 @@ namespace YARG.Scores
                 List<PlayerScoreWithChecksum> records = drumInstruments != null
                     ? _db.QueryPlayerBestStarsForInstruments(
                         profile, drumInstruments, SettingsManager.Settings.HighScoreHistory.Value,
-                        SongContainer.SongsByHash.Keys, SongContainer.LibraryRevision)
+                        SongContainer.SongsByHash.Keys, SongContainer.LibraryRevision, GetPreferredEnginePresetId(profile))
                     : _db.QueryPlayerBestStars(
                         profile, SettingsManager.Settings.HighScoreHistory.Value, SongContainer.SongsByHash.Keys,
-                        SongContainer.LibraryRevision);
+                        SongContainer.LibraryRevision, GetPreferredEnginePresetId(profile));
                 Dictionary<HashWrapper, StarAmount> result = new Dictionary<HashWrapper, StarAmount>();
 
                 foreach (PlayerScoreWithChecksum record in records)
@@ -633,18 +719,22 @@ namespace YARG.Scores
             HashWrapper songChecksum,
             Guid playerId,
             IReadOnlyList<Instrument> instruments,
-            bool allowCacheUpdate = true)
+            bool allowCacheUpdate = true,
+            Guid? preferredEnginePresetId = null)
         {
             return UseHighestScore
-                ? GetHighScoreForInstruments(songChecksum, playerId, instruments, allowCacheUpdate)
-                : GetBestPercentageScoreForInstruments(songChecksum, playerId, instruments, allowCacheUpdate);
+                ? GetHighScoreForInstruments(
+                    songChecksum, playerId, instruments, allowCacheUpdate, preferredEnginePresetId)
+                : GetBestPercentageScoreForInstruments(
+                    songChecksum, playerId, instruments, allowCacheUpdate, preferredEnginePresetId);
         }
 
         public static PlayerScoreRecord GetHighScoreForInstruments(
             HashWrapper songChecksum,
             Guid playerId,
             IReadOnlyList<Instrument> instruments,
-            bool allowCacheUpdate = true)
+            bool allowCacheUpdate = true,
+            Guid? preferredEnginePresetId = null)
         {
             if (instruments == null || instruments.Count == 0)
             {
@@ -653,15 +743,17 @@ namespace YARG.Scores
 
             if (instruments.Count == 1)
             {
-                return GetHighScore(songChecksum, playerId, instruments[0]);
+                return GetHighScore(
+                    songChecksum, playerId, instruments[0], allowCacheUpdate, preferredEnginePresetId);
             }
 
             if (allowCacheUpdate)
-                FetchHighScores(playerId, instruments);
+                FetchHighScores(playerId, instruments, preferredEnginePresetId);
 
             string instrumentKey = BuildInstrumentSetKey(instruments);
             if (_currentPlayerId == playerId &&
                 _currentInstrumentSetKey == instrumentKey &&
+                _currentPreferredEnginePresetId == preferredEnginePresetId &&
                 _scoresWereFetched)
             {
                 return PlayerHighScores.GetValueOrDefault(songChecksum);
@@ -669,7 +761,8 @@ namespace YARG.Scores
 
             try
             {
-                return _db.QueryPlayerSongHighScoreForInstruments(songChecksum, playerId, instruments, HighestDifficultyOnly);
+                return _db.QueryPlayerSongHighScoreForInstruments(
+                    songChecksum, playerId, instruments, HighestDifficultyOnly, preferredEnginePresetId);
             }
             catch (Exception e)
             {
@@ -682,7 +775,8 @@ namespace YARG.Scores
             HashWrapper songChecksum,
             Guid playerId,
             IReadOnlyList<Instrument> instruments,
-            bool allowCacheUpdate = true)
+            bool allowCacheUpdate = true,
+            Guid? preferredEnginePresetId = null)
         {
             if (instruments == null || instruments.Count == 0)
             {
@@ -691,15 +785,17 @@ namespace YARG.Scores
 
             if (instruments.Count == 1)
             {
-                return GetBestPercentageScore(songChecksum, playerId, instruments[0]);
+                return GetBestPercentageScore(
+                    songChecksum, playerId, instruments[0], allowCacheUpdate, preferredEnginePresetId);
             }
 
             if (allowCacheUpdate)
-                FetchHighScores(playerId, instruments);
+                FetchHighScores(playerId, instruments, preferredEnginePresetId);
 
             string instrumentKey = BuildInstrumentSetKey(instruments);
             if (_currentPlayerId == playerId &&
                 _currentInstrumentSetKey == instrumentKey &&
+                _currentPreferredEnginePresetId == preferredEnginePresetId &&
                 _scoresWereFetched)
             {
                 return PlayerHighPercentages.GetValueOrDefault(songChecksum);
@@ -707,7 +803,8 @@ namespace YARG.Scores
 
             try
             {
-                return _db.QueryPlayerSongHighestPercentageForInstruments(songChecksum, playerId, instruments, HighestDifficultyOnly);
+                return _db.QueryPlayerSongHighestPercentageForInstruments(
+                    songChecksum, playerId, instruments, HighestDifficultyOnly, preferredEnginePresetId);
             }
             catch (Exception e)
             {

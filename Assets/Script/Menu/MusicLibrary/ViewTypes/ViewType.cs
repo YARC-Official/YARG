@@ -1,4 +1,5 @@
 ﻿using Cysharp.Text;
+using System;
 using YARG.Core;
 using YARG.Core.Game;
 using YARG.Helpers;
@@ -25,6 +26,7 @@ namespace YARG.Menu.MusicLibrary
             public int        Score;
             public Difficulty Difficulty;
             public Instrument Instrument;
+            public Guid       EnginePresetId;
             public bool       IsFc;
         }
 

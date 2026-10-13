@@ -267,6 +267,29 @@ namespace YARG.Scores
             _currentLibraryHashRevision = libraryRevision;
         }
 
+        private static (string OrderBy, object[] Arguments) GetEnginePreferenceOrderBy(
+            string tableAlias,
+            Guid? preferredEnginePresetId)
+        {
+            if (!preferredEnginePresetId.HasValue)
+            {
+                return (string.Empty, Array.Empty<object>());
+            }
+
+            if (preferredEnginePresetId.Value == Guid.Empty ||
+                preferredEnginePresetId.Value == EnginePreset.Default.Id)
+            {
+                return (
+                    $"CASE WHEN {tableAlias}.EnginePresetId = ? OR {tableAlias}.EnginePresetId = ? " +
+                        $"OR {tableAlias}.EnginePresetId IS NULL THEN 0 ELSE 1 END, ",
+                    new object[] { EnginePreset.Default.Id, Guid.Empty });
+            }
+
+            return (
+                $"CASE WHEN {tableAlias}.EnginePresetId = ? THEN 0 ELSE 1 END, ",
+                new object[] { preferredEnginePresetId.Value });
+        }
+
         public List<GameRecord> QueryAllScores()
         {
             return Query<GameRecord>("SELECT * FROM GameRecords");
@@ -341,14 +364,18 @@ namespace YARG.Scores
             bool currentDifficultyOnly,
             Difficulty currentDifficulty,
             IEnumerable<HashWrapper> currentLibrarySongHashes,
-            int libraryRevision
+            int libraryRevision,
+            Guid? preferredEnginePresetId = null
         )
         {
             SetCurrentLibrarySongHashes(currentLibrarySongHashes, libraryRevision);
+            var enginePreference = GetEnginePreferenceOrderBy("ps", preferredEnginePresetId);
             string orderBy = highestDifficultyOnly
                 ? "ps.Difficulty DESC, ps.Score DESC"
                 : "ps.Score DESC";
             string difficultyFilter = currentDifficultyOnly ? " AND ps.Difficulty = ?" : "";
+
+            orderBy = enginePreference.OrderBy + orderBy;
 
             string query = $@"WITH RankedScores AS (
                     SELECT ps.*,
@@ -367,17 +394,17 @@ namespace YARG.Scores
                 )
                 SELECT * FROM RankedScores WHERE ScoreRank = 1";
 
-            var result = currentDifficultyOnly
-                ? Query<PlayerScoreRecord>(
-                    query,
-                    playerId,
-                    (int) instrument,
-                    (int) currentDifficulty)
-                : Query<PlayerScoreRecord>(
-                    query,
-                    playerId,
-                    (int) instrument);
-            return result;
+            var parameters = new List<object>(enginePreference.Arguments)
+            {
+                playerId,
+                (int) instrument
+            };
+            if (currentDifficultyOnly)
+            {
+                parameters.Add((int) currentDifficulty);
+            }
+
+            return Query<PlayerScoreRecord>(query, parameters.ToArray());
         }
 
         public List<PlayerScoreRecord> QueryPlayerHighestPercentages(
@@ -387,14 +414,18 @@ namespace YARG.Scores
             bool currentDifficultyOnly,
             Difficulty currentDifficulty,
             IEnumerable<HashWrapper> currentLibrarySongHashes,
-            int libraryRevision
+            int libraryRevision,
+            Guid? preferredEnginePresetId = null
         )
         {
             SetCurrentLibrarySongHashes(currentLibrarySongHashes, libraryRevision);
+            var enginePreference = GetEnginePreferenceOrderBy("ps", preferredEnginePresetId);
             string orderBy = highestDifficultyOnly
                 ? "ps.Difficulty DESC, ps.Percent DESC, ps.Score DESC, ps.IsFc DESC"
                 : "ps.Percent DESC, ps.Score DESC, ps.IsFc DESC";
             string difficultyFilter = currentDifficultyOnly ? " AND ps.Difficulty = ?" : "";
+
+            orderBy = enginePreference.OrderBy + orderBy;
 
             string query = $@"WITH RankedScores AS (
                     SELECT ps.*,
@@ -413,18 +444,17 @@ namespace YARG.Scores
                 )
                 SELECT * FROM RankedScores WHERE ScoreRank = 1";
 
-            var result = currentDifficultyOnly
-                ? Query<PlayerScoreRecord>(
-                    query,
-                    playerId,
-                    (int) instrument,
-                    (int) currentDifficulty)
-                : Query<PlayerScoreRecord>(
-                    query,
-                    playerId,
-                    (int) instrument);
+            var parameters = new List<object>(enginePreference.Arguments)
+            {
+                playerId,
+                (int) instrument
+            };
+            if (currentDifficultyOnly)
+            {
+                parameters.Add((int) currentDifficulty);
+            }
 
-            return result;
+            return Query<PlayerScoreRecord>(query, parameters.ToArray());
         }
 
         public PlayerScoreRecord QueryPlayerSongHighScore(
@@ -433,7 +463,8 @@ namespace YARG.Scores
             Instrument instrument,
             bool highestDifficultyOnly,
             bool currentDifficultyOnly,
-            Difficulty currentDifficulty
+            Difficulty currentDifficulty,
+            Guid? preferredEnginePresetId = null
         )
         {
             string query =
@@ -450,29 +481,31 @@ namespace YARG.Scores
                 query += " AND PlayerScores.Difficulty = ?";
             }
 
+            var enginePreference = GetEnginePreferenceOrderBy("PlayerScores", preferredEnginePresetId);
             if (highestDifficultyOnly)
             {
-                query += " ORDER BY PlayerScores.Difficulty DESC, PlayerScores.Score DESC";
+                query += $" ORDER BY {enginePreference.OrderBy}PlayerScores.Difficulty DESC, PlayerScores.Score DESC";
             }
             else
             {
-                query += " ORDER BY PlayerScores.Score DESC";
+                query += $" ORDER BY {enginePreference.OrderBy}PlayerScores.Score DESC";
             }
 
             query += " LIMIT 1";
 
-            return currentDifficultyOnly
-                ? FindWithQuery<PlayerScoreRecord>(
-                    query,
-                    songChecksum.HashBytes,
-                    playerId,
-                    (int) instrument,
-                    (int) currentDifficulty)
-                : FindWithQuery<PlayerScoreRecord>(
-                    query,
-                    songChecksum.HashBytes,
-                    playerId,
-                    (int) instrument);
+            var parameters = new List<object>
+            {
+                songChecksum.HashBytes,
+                playerId,
+                (int) instrument
+            };
+            if (currentDifficultyOnly)
+            {
+                parameters.Add((int) currentDifficulty);
+            }
+            parameters.AddRange(enginePreference.Arguments);
+
+            return FindWithQuery<PlayerScoreRecord>(query, parameters.ToArray());
         }
 
         public PlayerScoreRecord QueryPlayerSongHighestPercentage(
@@ -481,7 +514,8 @@ namespace YARG.Scores
             Instrument instrument,
             bool highestDifficultyOnly,
             bool currentDifficultyOnly,
-            Difficulty currentDifficulty
+            Difficulty currentDifficulty,
+            Guid? preferredEnginePresetId = null
         )
         {
             string query =
@@ -498,29 +532,31 @@ namespace YARG.Scores
                 query += " AND PlayerScores.Difficulty = ?";
             }
 
+            var enginePreference = GetEnginePreferenceOrderBy("PlayerScores", preferredEnginePresetId);
             if (highestDifficultyOnly)
             {
-                query += " ORDER BY PlayerScores.Difficulty DESC, PlayerScores.Percent DESC, PlayerScores.Score DESC, IsFc DESC";
+                query += $" ORDER BY {enginePreference.OrderBy}PlayerScores.Difficulty DESC, PlayerScores.Percent DESC, PlayerScores.Score DESC, IsFc DESC";
             }
             else
             {
-                query += " ORDER BY PlayerScores.Percent DESC, PlayerScores.Score DESC, IsFc DESC";
+                query += $" ORDER BY {enginePreference.OrderBy}PlayerScores.Percent DESC, PlayerScores.Score DESC, IsFc DESC";
             }
 
             query += " LIMIT 1";
 
-            return currentDifficultyOnly
-                ? FindWithQuery<PlayerScoreRecord>(
-                    query,
-                    songChecksum.HashBytes,
-                    playerId,
-                    (int) instrument,
-                    (int) currentDifficulty)
-                : FindWithQuery<PlayerScoreRecord>(
-                    query,
-                    songChecksum.HashBytes,
-                    playerId,
-                    (int) instrument);
+            var parameters = new List<object>
+            {
+                songChecksum.HashBytes,
+                playerId,
+                (int) instrument
+            };
+            if (currentDifficultyOnly)
+            {
+                parameters.Add((int) currentDifficulty);
+            }
+            parameters.AddRange(enginePreference.Arguments);
+
+            return FindWithQuery<PlayerScoreRecord>(query, parameters.ToArray());
         }
 
         public List<SongRecord> QueryMostPlayedSongs(int maxCount)
@@ -588,7 +624,8 @@ namespace YARG.Scores
             YargProfile profile,
             HighScoreHistoryMode mode,
             IEnumerable<HashWrapper> currentLibrarySongHashes,
-            int libraryRevision)
+            int libraryRevision,
+            Guid? preferredEnginePresetId = null)
         {
             SetCurrentLibrarySongHashes(currentLibrarySongHashes, libraryRevision);
 
@@ -597,6 +634,7 @@ namespace YARG.Scores
                 HighScoreHistoryMode.HighestScoreCurrentDifficulty;
 
             string difficultyFilter = currentDifficultyOnly ? " AND ps.Difficulty = ?" : "";
+            var enginePreference = GetEnginePreferenceOrderBy("ps", preferredEnginePresetId);
             string orderBy = mode switch
             {
                 HighScoreHistoryMode.HighestPercentageOverall =>
@@ -613,6 +651,8 @@ namespace YARG.Scores
                     "ps.Score DESC",
                 _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, null)
             };
+
+            orderBy = enginePreference.OrderBy + orderBy;
 
             string query = $@"WITH RankedScores AS (
                     SELECT ps.*, gr.SongChecksum,
@@ -631,17 +671,17 @@ namespace YARG.Scores
                 )
                 SELECT * FROM RankedScores WHERE ScoreRank = 1";
 
-            var result = currentDifficultyOnly
-                ? Query<PlayerScoreWithChecksum>(
-                    query,
-                    profile.Id,
-                    (int) profile.CurrentInstrument,
-                    (int) profile.CurrentDifficulty)
-                : Query<PlayerScoreWithChecksum>(
-                    query,
-                    profile.Id,
-                    (int) profile.CurrentInstrument);
-            return result;
+            var parameters = new List<object>(enginePreference.Arguments)
+            {
+                profile.Id,
+                (int) profile.CurrentInstrument
+            };
+            if (currentDifficultyOnly)
+            {
+                parameters.Add((int) profile.CurrentDifficulty);
+            }
+
+            return Query<PlayerScoreWithChecksum>(query, parameters.ToArray());
         }
 
         public List<PlayerScoreWithChecksum> QueryPlayerBestStarsForInstruments(
@@ -649,7 +689,8 @@ namespace YARG.Scores
             IReadOnlyList<Instrument> instruments,
             HighScoreHistoryMode mode,
             IEnumerable<HashWrapper> currentLibrarySongHashes,
-            int libraryRevision)
+            int libraryRevision,
+            Guid? preferredEnginePresetId = null)
         {
             SetCurrentLibrarySongHashes(currentLibrarySongHashes, libraryRevision);
 
@@ -659,6 +700,7 @@ namespace YARG.Scores
 
             string inClause = BuildInstrumentInClause(instruments);
             string difficultyFilter = currentDifficultyOnly ? " AND ps.Difficulty = ?" : "";
+            var enginePreference = GetEnginePreferenceOrderBy("ps", preferredEnginePresetId);
             string orderBy = mode switch
             {
                 HighScoreHistoryMode.HighestPercentageOverall =>
@@ -675,6 +717,8 @@ namespace YARG.Scores
                     "ps.Score DESC",
                 _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, null)
             };
+
+            orderBy = enginePreference.OrderBy + orderBy;
 
             string query = $@"WITH RankedScores AS (
                     SELECT ps.*, gr.SongChecksum,
@@ -693,7 +737,7 @@ namespace YARG.Scores
                 )
                 SELECT * FROM RankedScores WHERE ScoreRank = 1";
 
-            var parameters = new List<object> { profile.Id };
+            var parameters = new List<object>(enginePreference.Arguments) { profile.Id };
             parameters.AddRange(BuildInstrumentParams(instruments));
             if (currentDifficultyOnly)
             {
@@ -706,7 +750,8 @@ namespace YARG.Scores
             HashWrapper songChecksum,
             Guid playerId,
             IReadOnlyList<Instrument> instruments,
-            bool highestDifficultyOnly)
+            bool highestDifficultyOnly,
+            Guid? preferredEnginePresetId = null)
         {
             string inClause = BuildInstrumentInClause(instruments);
             string query =
@@ -718,19 +763,21 @@ namespace YARG.Scores
                     AND PlayerScores.Instrument {inClause}
                     AND PlayerScores.IsReplay = 0";
 
+            var enginePreference = GetEnginePreferenceOrderBy("PlayerScores", preferredEnginePresetId);
             if (highestDifficultyOnly)
             {
-                query += " ORDER BY PlayerScores.Difficulty DESC, PlayerScores.Score DESC";
+                query += $" ORDER BY {enginePreference.OrderBy}PlayerScores.Difficulty DESC, PlayerScores.Score DESC";
             }
             else
             {
-                query += " ORDER BY PlayerScores.Score DESC";
+                query += $" ORDER BY {enginePreference.OrderBy}PlayerScores.Score DESC";
             }
 
             query += " LIMIT 1";
 
             var parameters = new List<object> { songChecksum.HashBytes, playerId };
             parameters.AddRange(BuildInstrumentParams(instruments));
+            parameters.AddRange(enginePreference.Arguments);
 
             return FindWithQuery<PlayerScoreRecord>(query, parameters.ToArray());
         }
@@ -739,7 +786,8 @@ namespace YARG.Scores
             HashWrapper songChecksum,
             Guid playerId,
             IReadOnlyList<Instrument> instruments,
-            bool highestDifficultyOnly)
+            bool highestDifficultyOnly,
+            Guid? preferredEnginePresetId = null)
         {
             string inClause = BuildInstrumentInClause(instruments);
             string query =
@@ -751,19 +799,21 @@ namespace YARG.Scores
                     AND PlayerScores.Instrument {inClause}
                     AND PlayerScores.IsReplay = 0";
 
+            var enginePreference = GetEnginePreferenceOrderBy("PlayerScores", preferredEnginePresetId);
             if (highestDifficultyOnly)
             {
-                query += " ORDER BY PlayerScores.Difficulty DESC, PlayerScores.Percent DESC, IsFc DESC";
+                query += $" ORDER BY {enginePreference.OrderBy}PlayerScores.Difficulty DESC, PlayerScores.Percent DESC, IsFc DESC";
             }
             else
             {
-                query += " ORDER BY PlayerScores.Percent DESC, IsFc DESC";
+                query += $" ORDER BY {enginePreference.OrderBy}PlayerScores.Percent DESC, IsFc DESC";
             }
 
             query += " LIMIT 1";
 
             var parameters = new List<object> { songChecksum.HashBytes, playerId };
             parameters.AddRange(BuildInstrumentParams(instruments));
+            parameters.AddRange(enginePreference.Arguments);
 
             return FindWithQuery<PlayerScoreRecord>(query, parameters.ToArray());
         }
