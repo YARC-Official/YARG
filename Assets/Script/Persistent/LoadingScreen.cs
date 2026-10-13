@@ -14,6 +14,7 @@ using YARG.Menu.Persistent;
 using YARG.Player;
 using YARG.Settings;
 using YARG.Song;
+using YARG.Venue;
 
 namespace YARG
 {
@@ -56,6 +57,8 @@ namespace YARG
                 await DialogManager.Instance.WaitUntilCurrentClosed();
                 Quit();
             }
+
+            SecondDisplayManager.TryInitialize();
 
             // Load Discord right after (this requires localization)
             try

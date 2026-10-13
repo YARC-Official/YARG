@@ -59,10 +59,11 @@ namespace YARG.Settings
                 nameof(Settings.UseSongOffsetCalibration),
 
                 new HeaderMetadata("Venues"),
-                new ButtonRowMetadata(nameof(Settings.OpenVenueFolder)),
+                new ButtonRowMetadata(nameof(Settings.OpenVenueFolder), nameof(Settings.OpenWaitingFolder)),
                 new FieldMetadata(nameof(Settings.DisableDefaultBackground), isAdvanced: true),
                 new FieldMetadata(nameof(Settings.DisableGlobalBackgrounds), isAdvanced: true),
                 nameof(Settings.DisablePerSongBackgrounds),
+                nameof(Settings.SendVideoBackgroundToSecondDisplay),
                 new FieldMetadata(nameof(Settings.WaitForSongVideo), isAdvanced: true),
                 nameof(Settings.AllowRemoteContent),
 
