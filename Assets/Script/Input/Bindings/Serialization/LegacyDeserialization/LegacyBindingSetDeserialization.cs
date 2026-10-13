@@ -101,7 +101,8 @@ namespace YARG.Input.Serialization
             LEGACY_6F_GUITAR,
             LEGACY_6F_GUITAR_MENU,
 
-
+            LEGACY_4L_DRUMKIT,
+            LEGACY_4L_DRUMKIT_MENU,
         };
     }
 }
