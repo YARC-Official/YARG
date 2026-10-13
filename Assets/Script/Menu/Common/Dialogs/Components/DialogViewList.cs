@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using YARG.Core.Song;
 using YARG.Menu.ListMenu;
 using YARG.Song;
 
@@ -6,9 +8,16 @@ namespace YARG.Menu.Dialogs.Components
 {
     public class DialogViewList : ListMenu<SongViewType,SongView>
     {
-        protected override int ExtraListViewPadding => 2;
+        protected override int ExtraListViewPadding => 4;
 
         private SongCategory[] _songCategories;
+
+        public event Action<SongEntry> SongSelected;
+
+        private void OnSongClicked(SongEntry song)
+        {
+            SongSelected?.Invoke(song);
+        }
 
         protected override List<SongViewType> CreateViewList()
         {
@@ -20,7 +29,7 @@ namespace YARG.Menu.Dialogs.Components
             {
                 foreach (var song in songCategory.Songs)
                 {
-                    viewList.Add(new SongViewType(song));
+                    viewList.Add(new SongViewType(song, OnSongClicked));
                 }
             }
 

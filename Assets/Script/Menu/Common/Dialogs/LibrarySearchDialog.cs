@@ -22,6 +22,7 @@ namespace YARG.Menu.Dialogs
         protected override void OnOpen()
         {
             _searchField.OnSearchQueryUpdated += OnSearchChanged;
+            _viewList.SongSelected += OnSongSelected;
         }
 
         public override void Submit()
@@ -39,10 +40,10 @@ namespace YARG.Menu.Dialogs
         protected override void OnBeforeClose()
         {
             _searchField.OnSearchQueryUpdated -= OnSearchChanged;
+            _viewList.SongSelected -= OnSongSelected;
             _searchField.ClearFilterQueries();
         }
 
-        // Currently unused click handler
         private void OnSongSelected(SongEntry song)
         {
             SelectAction?.Invoke(song);
