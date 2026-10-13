@@ -5,6 +5,7 @@ using UnityEditor.Experimental.GraphView;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.XR;
+using YARG.Assets.Script.Helpers;
 using YARG.Core;
 using YARG.Core.Game;
 using YARG.Input.Bindings;

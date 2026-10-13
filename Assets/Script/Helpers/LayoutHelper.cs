@@ -4,9 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.InputSystem;
+using YARG.Assets.Script.Helpers;
 using YARG.Core.Logging;
 using YARG.Input;
-using YARG.Input.Bindings;
 using YARG.Menu.ProfileList;
 using static UnityEngine.InputSystem.Layouts.InputControlLayout;
 

@@ -3,12 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using UnityEngine;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
 using YARG.Helpers;
-using YARG.Localization;
 using YARG.Player;
 
 #nullable enable
@@ -122,7 +120,7 @@ namespace YARG.Input.Serialization
                 }
 
                 // We don't want to flood a first-time upgrader with a bazillion redundant copies of the same default binding set, or really any duplicates at all
-                if (reusableBindingSet is not null && !LegacyBindingSetDeserializationHelper.SerializedBindingSetIsOldDefault(reusableBindingSet))
+                if (reusableBindingSet is not null && !LegacyBindingSetDeserialization.SerializedBindingSetIsOldDefault(reusableBindingSet))
                 {
                     converted.MappingsByControllerFamily[reusableBindingSet.Family] = reusableBindingSet.Guid!.Value;
                     reusableBindingSets[reusableBindingSet.Guid!.Value] = reusableBindingSet;

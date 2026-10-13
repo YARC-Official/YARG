@@ -1,0 +1,107 @@
+﻿using System.Collections.Generic;
+using System.Linq;
+using YARG.Core;
+using YARG.Helpers;
+using YARG.Input.Bindings;
+using YARG.Menu.ProfileList;
+
+namespace YARG.Input.Serialization
+{
+    /* Legacy Binding Set Deserialization
+     * When upgrading pre-BindingSerializationV4 binding sets to V4+, we don't want to create explicit binding sets for users who just
+     * stuck with the defaults, even if those defaults are no longer equivalent to the current defaults. This class contains hardcoded
+     * SerializedReusableBindingSets that represent the V0-3 default binding sets; when upgrading binding sets, we compare against all of
+     * these to make sure we discard any legacy sets that don't reflect any explicit user choice. The new defaults are supersets of the old
+     * ones, so users should never lose functionality from this discarding
+     */
+    public static partial class LegacyBindingSetDeserialization
+    {
+        public static bool SerializedBindingSetIsOldDefault(SerializedReusableBindingSet candidate)
+        {
+            foreach (var bindingSet in _legacyDefaults)
+            {
+                if (SerializedBindingSetsAreEquivalent(bindingSet, candidate))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool SerializedBindingSetsAreEquivalent(SerializedReusableBindingSet a, SerializedReusableBindingSet b)
+        {
+            if (a.Mode != b.Mode || a.Family != b.Family || a.Bindings.Count != b.Bindings.Count)
+            {
+                return false;
+            }
+
+            foreach (var (key, bindingA) in a.Bindings)
+            {
+                if (!b.Bindings.TryGetValue(key, out var bindingB))
+                {
+                    return false;
+                }
+
+                foreach (var (parameterKey, parameterA) in bindingA.Parameters)
+                {
+                    if (!bindingB.Parameters.TryGetValue(key, out var parameterB))
+                    {
+                        return false;
+                    }
+
+                    if (parameterA != parameterB)
+                    {
+                        return false;
+                    }
+                }
+
+                foreach (var singleA in bindingA.Controls)
+                {
+                    var singleB = bindingB.Controls.FirstOrDefault(b => singleA.ControlName == b.ControlName);
+
+                    if (singleB is null)
+                    {
+                        return false;
+                    }
+
+                    if (singleA.Parameters.Count != bindingB.Parameters.Count)
+                    {
+                        return false;
+                    }
+
+                    foreach (var (singleParameterKey, singleParameterA) in singleA.Parameters)
+                    {
+                        if (!singleB.Parameters.TryGetValue(singleParameterKey, out var singleParameterB))
+                        {
+                            return false;
+                        }
+
+                        if (singleParameterA != singleParameterB)
+                        {
+                            return false;
+                        }
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        private static List<SerializedReusableBindingSet> _legacyDefaults = new()
+        {
+            LEGACY_5F_GUITAR,
+            LEGACY_RB_GUITAR,
+            LEGACY_GH_GUITAR,
+            LEGACY_RIFFMASTER,
+            LEGACY_5F_GUITAR_MENU,
+            LEGACY_RB_GUITAR_MENU,
+            LEGACY_RIFFMASTER_MENU,
+
+            LEGACY_6F_GUITAR,
+            LEGACY_6F_GUITAR_MENU,
+
+
+        };
+    }
+}
