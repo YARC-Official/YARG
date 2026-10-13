@@ -52,7 +52,7 @@ namespace YARG.Menu.Settings
 
                 if (_navigatable is RuntimeNavigatable runtime)
                 {
-                    runtime.SelectionVisual?.Invoke(selected: false);
+                    runtime.SelectionVisual?.Invoke(false);
                     runtime.SelectionVisual = _ => { };
                 }
             }
