@@ -15,7 +15,7 @@ namespace YARG.Gameplay.Visuals
         // quad's half-height. The ends of the arc stay anchored at the quad's original edges
         // (so it still lines up with the kick frets at the sides), while the middle lifts up
         // and clears the button row instead of lying flat across it.
-        private const float ARC_HEIGHT_FACTOR = 0.35f;
+        private const float ARC_HEIGHT_FACTOR = 0.28f;
 
         // Shrinks the arc inward from the original flat quad's edges so its resting width
         // doesn't additively overlap (and visually "bleed into") the striker pads' own glow.
