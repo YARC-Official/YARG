@@ -39,6 +39,12 @@ namespace YARG.Settings
         LegacyLabels,
     }
 
+    public enum NavigationJumpDistance
+    {
+        Sections,
+        Pages,
+    }
+
     public enum SecondaryAlbumSortMode
     {
         AlbumsByTitleSongsByTitle,
@@ -46,6 +52,18 @@ namespace YARG.Settings
         AlbumsByYearSongsByTitle,
         AlbumsByYearSongsByTrack,
         Off,
+    }
+
+    public enum SecondarySourceSortMode
+    {
+        Off,
+        Intensity,
+    }
+
+    public enum SecondaryIntensitySortMode
+    {
+        Off,
+        Source,
     }
 
     public enum ShowMeanSongOffsetCalibrationMode
@@ -85,6 +103,18 @@ namespace YARG.Settings
     }
 
     public enum ReverbMode
+    {
+        Performance = 0,
+        Quality = 1
+    }
+
+    public enum TempoEngine
+    {
+        BassFx = 0,
+        YargStretch = 1
+    }
+
+    public enum EffectsMode
     {
         Performance = 0,
         Quality = 1
@@ -299,6 +329,13 @@ namespace YARG.Settings
 
             public ToggleSetting ShowFavoriteButton { get; } = new(true);
 
+            public DropdownSetting<NavigationJumpDistance> NavigationJumpDistance { get; }
+                = new(YARG.Settings.NavigationJumpDistance.Sections)
+                {
+                    YARG.Settings.NavigationJumpDistance.Sections,
+                    YARG.Settings.NavigationJumpDistance.Pages,
+                };
+
             public DropdownSetting<SecondaryAlbumSortMode> SecondaryAlbumSort { get; }
                 = new(SecondaryAlbumSortMode.AlbumsByTitleSongsByTitle,
                     _ => MusicLibraryMenu.SetReload(MusicLibraryReloadState.Partial))
@@ -308,6 +345,22 @@ namespace YARG.Settings
                     SecondaryAlbumSortMode.AlbumsByYearSongsByTitle,
                     SecondaryAlbumSortMode.AlbumsByYearSongsByTrack,
                     SecondaryAlbumSortMode.Off,
+                };
+
+            public DropdownSetting<SecondarySourceSortMode> SecondarySourceSort { get; }
+                = new(SecondarySourceSortMode.Off,
+                    _ => MusicLibraryMenu.SetReload(MusicLibraryReloadState.Partial))
+                {
+                    SecondarySourceSortMode.Off,
+                    SecondarySourceSortMode.Intensity,
+                };
+
+            public DropdownSetting<SecondaryIntensitySortMode> SecondaryIntensitySort { get; }
+                = new(SecondaryIntensitySortMode.Off,
+                    _ => MusicLibraryMenu.SetReload(MusicLibraryReloadState.Partial))
+                {
+                    SecondaryIntensitySortMode.Off,
+                    SecondaryIntensitySortMode.Source,
                 };
 
             public ToggleSetting ShowRecommendedSongs { get; } = new(true, ShowRecommendedSongsCallback);
@@ -796,12 +849,20 @@ namespace YARG.Settings
                 BandComboType.Lenient,
                 BandComboType.Strict
             };
-            public DropdownSetting<ReverbMode> ReverbImplementation { get; } = new(ReverbMode.Performance,
-                ReverbImplementationCallback)
+            public DropdownSetting<EffectsMode> EffectsMode { get; } = new(YARG.Settings.EffectsMode.Performance,
+                EffectsModeCallback)
             {
-                ReverbMode.Performance,
-                ReverbMode.Quality
+                YARG.Settings.EffectsMode.Performance,
+                YARG.Settings.EffectsMode.Quality
             };
+
+            public ReverbMode CurrentReverbMode => EffectsMode.Value == YARG.Settings.EffectsMode.Quality
+                ? ReverbMode.Quality
+                : ReverbMode.Performance;
+
+            public TempoEngine CurrentTempoEngine => EffectsMode.Value == YARG.Settings.EffectsMode.Quality
+                ? TempoEngine.YargStretch
+                : TempoEngine.BassFx;
             public ToggleSetting SaveScoresWithBots { get; } = new(false);
             public SliderSetting FontScaling { get; } = new(0f, 0f, 100f, FontScalingCallback);
 
@@ -1111,7 +1172,7 @@ namespace YARG.Settings
                 }
             }
 
-            private static void ReverbImplementationCallback(ReverbMode mode)
+            private static void EffectsModeCallback(EffectsMode mode)
             {
                 if (!IsInitialized)
                 {
@@ -1123,8 +1184,8 @@ namespace YARG.Settings
                 {
                     if (!GlobalAudioHandler.ReinitializeOutput())
                     {
-                        YargLogger.LogError("Failed to reinitialize audio output after reverb implementation change");
-                        ToastManager.ToastError("Failed to reinitialize audio output after reverb change.");
+                        YargLogger.LogError("Failed to reinitialize audio output after effects mode change");
+                        ToastManager.ToastError("Failed to reinitialize audio output after effects mode change.");
                     }
                 }
                 finally

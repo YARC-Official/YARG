@@ -104,7 +104,7 @@ namespace YARG.Audio.BASS.Effects
                     Detach_NoLock();
                 }
 
-                int result = YargAudioBindings.SineSynthDspAttach(this, unchecked((uint) channelHandle), priority,
+                int result = YargAudioBindings.SineSynthDspAttach(this, channelHandle, priority,
                     out int bassError);
                 if (result != 0)
                 {

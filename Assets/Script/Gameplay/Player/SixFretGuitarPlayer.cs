@@ -348,7 +348,25 @@ namespace YARG.Gameplay.Player
             {
                 if (parent.IsDisjoint && parent != note) continue;
 
-                if (note.Fret != (int)SixFretGuitarFret.Open && note.Fret != (int)SixFretGuitarFret.Wildcard)
+                if (note.Fret is (int) FiveFretGuitarFret.Open)
+                {
+                    _openSustaining = true;
+                }
+
+                if (NoteIsFullWidth(note))
+                {
+                    if (note.Fret is (int) FiveFretGuitarFret.Open)
+                    {
+                        StrikelineAnimator.SetParticleColor(Player.ColorProfile.SixFretGuitar.GetNoteColor(note.Fret).ToUnityColor());
+                    }
+                    else
+                    {
+                        StrikelineAnimator.SetParticleRainbow();
+                    }
+
+                    StrikelineAnimator.SetSustaining(true);
+                }
+                else
                 {
                     _fretArray.SetSustained(note.Fret, true);
                 }
@@ -365,7 +383,16 @@ namespace YARG.Gameplay.Player
 
                 (NotePool.GetByKey(note) as SixFretGuitarNoteElement)?.SustainEnd(finished);
 
-                if (note.Fret != (int)SixFretGuitarFret.Open && note.Fret != (int)SixFretGuitarFret.Wildcard)
+                if (note.Fret is (int) FiveFretGuitarFret.Open)
+                {
+                    _openSustaining = false;
+                }
+
+                if (NoteIsFullWidth(note))
+                {
+                    StrikelineAnimator.SetSustaining(false);
+                }
+                else
                 {
                     _fretArray.SetSustained(note.Fret, false);
                 }

@@ -22,6 +22,8 @@ namespace YARG.Gameplay.HUD
         private Image _instrumentIcon;
         [SerializeField]
         private RawImage _needleIcon;
+        [SerializeField]
+        private RawImage _playerAvatar;
 
         private CanvasGroup _canvasGroup;
 
@@ -44,10 +46,22 @@ namespace YARG.Gameplay.HUD
             var profile = player.Profile;
             _playerName.text = profile.Name;
 
-            var spriteName = player.GetInstrumentSprite(GameManager.Song);
-            _instrumentIcon.sprite = Addressables
-                .LoadAssetAsync<Sprite>(spriteName)
-                .WaitForCompletion();
+            if (profile.Avatar != null)
+            {
+                _instrumentIcon.sprite = Addressables
+                    .LoadAssetAsync<Sprite>("BlankInstrumentIcon")
+                    .WaitForCompletion();
+                _playerAvatar.texture = profile.Avatar.LoadTexture(false);
+                _playerAvatar.gameObject.SetActive(true);
+            }
+            else
+            {
+                _playerAvatar.gameObject.SetActive(false);
+                var spriteName = player.GetInstrumentSprite(GameManager.Song);
+                _instrumentIcon.sprite = Addressables
+                    .LoadAssetAsync<Sprite>(spriteName)
+                    .WaitForCompletion();
+            }
 
             StartCoroutine(FadeoutCoroutine());
         }
@@ -82,6 +96,12 @@ namespace YARG.Gameplay.HUD
         private void OnDisable()
         {
             _canvasGroup.DOKill();
+
+            if (_playerAvatar.texture != null)
+            {
+                Destroy(_playerAvatar.texture);
+                _playerAvatar.texture = null;
+            }
         }
     }
 }

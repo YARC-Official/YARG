@@ -449,6 +449,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _buttonImage: {fileID: 5439468768656205435}
+  _verticalDirectionalIcon: {fileID: 21300000, guid: 3f599432bca84bf4ab5d0843162cb5fb, type: 3}
   _buttonBackground: {fileID: 7617404234607777830}
   _buttonHoldFill: {fileID: 1893471123506636075}
   _buttonOutline: {fileID: 721981088149125613}

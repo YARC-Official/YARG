@@ -33,6 +33,11 @@ namespace YARG.Helpers.Extensions
 
         public static Texture2D LoadTexture(this YARGImage image, bool mips)
         {
+            if (image == null || !image.IsValid)
+            {
+                throw new ArgumentNullException(nameof(image), "Image is null or disposed");
+            }
+
             var gfxFormat = image.Format switch
             {
                 ImageFormat.RGB or ImageFormat.Grayscale => TextureFormat.RGB24,
