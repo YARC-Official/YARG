@@ -27,9 +27,14 @@ namespace YARG.Menu.Settings
             _visual = GetComponent<SettingsItemVisual>();
         }
 
-        public void Initialize(string section)
+        private Action<string> _onClicked;
+        private Action _onConfirmed;
+
+        public void Initialize(string section, Action<string> onClicked = null, Action onConfirmed = null)
         {
             Section = section;
+            _onClicked = onClicked;
+            _onConfirmed = onConfirmed;
             _label.text = Localize.Key("Settings.Header", section);
         }
 
@@ -47,9 +52,9 @@ namespace YARG.Menu.Settings
         public override void OnPointerDown(PointerEventData eventData)
         {
             base.OnPointerDown(eventData);
-            SettingsMenu.Instance.OnSectionClicked(Section);
+            _onClicked?.Invoke(Section);
         }
 
-        public override void Confirm() => SettingsMenu.Instance.EnterSettings();
+        public override void Confirm() => _onConfirmed?.Invoke();
     }
 }

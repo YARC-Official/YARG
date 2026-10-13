@@ -33,11 +33,9 @@ namespace YARG.Menu.Settings
         private bool IsSidebar => _navigatable is CategoryItemView or SettingsSectionView;
         private bool IsCurrent => _navigatable != null &&
             (IsSidebar ? _current : _navigatable.Selected) &&
-            SettingsMenu.Instance != null &&
-            SettingsMenu.Instance.IsNavigationLevelActive(_navigatable.NavigationGroup);
+            SettingsMenu.Instance?.IsNavigationLevelActive(_navigatable.NavigationGroup) == true;
 
-        public bool HasFocus => _navigatable != null &&
-            _navigatable.Selected &&
+        public bool HasFocus => _navigatable is { Selected: true } &&
             NavigationGroup.CurrentNavigationGroup == _navigatable.NavigationGroup;
 
         public void BindNavigatable(NavigatableBehaviour navigatable)
@@ -54,7 +52,7 @@ namespace YARG.Menu.Settings
 
                 if (_navigatable is RuntimeNavigatable runtime)
                 {
-                    runtime.SelectionVisual?.Invoke(false);
+                    runtime.SelectionVisual?.Invoke(selected: false);
                     runtime.SelectionVisual = _ => { };
                 }
             }
@@ -70,12 +68,10 @@ namespace YARG.Menu.Settings
                 return;
             }
 
-            _navigatable.SelectionStateChanged -= OnSelectionChanged;
             _navigatable.SelectionStateChanged += OnSelectionChanged;
 
             if (_navigatable is BaseSettingNavigatable setting)
             {
-                setting.EditingChanged -= SetEditing;
                 setting.EditingChanged += SetEditing;
             }
         }
@@ -113,15 +109,13 @@ namespace YARG.Menu.Settings
 
         private void Awake()
         {
-            var nav = GetComponent<NavigatableBehaviour>();
-            if (nav != null)
+            _navigatable = GetComponent<NavigatableBehaviour>();
+            if (_navigatable != null)
             {
-                BindNavigatable(nav);
+                _navigatable.SelectOnHover = false;
             }
-            else
-            {
-                AttachControlFocus();
-            }
+
+            AttachControlFocus();
         }
 
         private void OnEnable()
@@ -157,7 +151,8 @@ namespace YARG.Menu.Settings
                     target = controls[0].transform;
                 }
             }
-            SetFocusTarget(target, editing, showFocusEdges: editing);
+
+            SetFocusTarget(target, editing: editing, showFocusEdges: editing);
             Refresh();
         }
 
@@ -167,10 +162,16 @@ namespace YARG.Menu.Settings
             {
                 SettingsMenu.Instance.OnSettingClicked(_navigatable);
             }
-            var editing = control.GetComponent<Selectable>() is not Toggle &&
-                control.GetComponent<TMP_Dropdown>() == null;
-            var showFocusEdges = editing && (!pointerInteraction || control.GetComponent<Slider>() == null);
-            SetFocusTarget(editing ? control : transform, editing, showFocusEdges);
+
+            var isToggle = control.GetComponent<Selectable>() is Toggle;
+            var hasDropdown = control.TryGetComponent<TMP_Dropdown>(out _);
+            var editing = !isToggle && !hasDropdown;
+
+            var isSlider = control.TryGetComponent<Slider>(out _);
+            var showFocusEdges = editing && (!pointerInteraction || !isSlider);
+
+            var target = editing ? control : transform;
+            SetFocusTarget(target, editing: editing, showFocusEdges: showFocusEdges);
             Refresh();
         }
 
@@ -198,10 +199,8 @@ namespace YARG.Menu.Settings
             _focusFill?.SetActive(!editing);
         }
 
-        public void ReleaseControl()
-        {
+        public void ReleaseControl() =>
             SetEditing(_navigatable is BaseSettingNavigatable { IsFocused: true });
-        }
 
         public void OnPointerEnter(PointerEventData eventData)
         {
@@ -223,10 +222,8 @@ namespace YARG.Menu.Settings
             }
         }
 
-        private void OnSelectionChanged(NavigatableBehaviour navigatable, bool selected, SelectionOrigin origin)
-        {
+        private void OnSelectionChanged(NavigatableBehaviour navigatable, bool selected, SelectionOrigin origin) =>
             Refresh();
-        }
 
         private void Refresh()
         {

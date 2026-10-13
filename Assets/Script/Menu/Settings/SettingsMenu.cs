@@ -187,6 +187,9 @@ namespace YARG.Menu.Settings
             EnsureTabsInitialized();
 
             _categorySidebar.CategoryChanged += OnTabChanged;
+            _categorySidebar.CategoryClicked += OnCategoryClicked;
+            _categorySidebar.CategoryConfirmed += OnCategoryConfirmed;
+            _categorySidebar.SidebarClicked += OnSidebarClicked;
             _categorySidebar.SetCollapsed(collapsed: false, animate: false);
 
             _settingsNavGroup.SelectionChanged += OnSelectionChanged;
@@ -260,7 +263,9 @@ namespace YARG.Menu.Settings
             foreach (var section in sections)
             {
                 var view = Instantiate(_sectionPrefab, _sectionsContainer);
-                view.Initialize(section.HeaderName);
+                view.Initialize(section.HeaderName,
+                    onClicked: OnSectionClicked,
+                    onConfirmed: EnterSettings);
                 _sectionsNavGroup.AddNavigatable(view);
                 _sectionViews.Add(view);
             }
@@ -393,7 +398,9 @@ namespace YARG.Menu.Settings
             }
         }
 
-        public void OnCategoryClicked(string categoryId)
+        private void OnSidebarClicked() => FocusCategories();
+
+        private void OnCategoryClicked(string categoryId)
         {
             if (CurrentTab?.Name != categoryId)
             {
@@ -409,7 +416,7 @@ namespace YARG.Menu.Settings
             selected.SetSelected(true, SelectionOrigin.Mouse);
         }
 
-        public void OnSectionClicked(string section)
+        private void OnSectionClicked(string section)
         {
             if (CurrentSection != section)
             {
@@ -421,7 +428,7 @@ namespace YARG.Menu.Settings
             FocusSections();
         }
 
-        public void OnCategoryConfirmed(string categoryId)
+        private void OnCategoryConfirmed(string categoryId)
         {
             if (CurrentTab?.Name != categoryId)
             {
@@ -745,6 +752,9 @@ namespace YARG.Menu.Settings
             DestroyPreview();
 
             _categorySidebar.CategoryChanged -= OnTabChanged;
+            _categorySidebar.CategoryClicked -= OnCategoryClicked;
+            _categorySidebar.CategoryConfirmed -= OnCategoryConfirmed;
+            _categorySidebar.SidebarClicked -= OnSidebarClicked;
 
             _settingsNavGroup.SelectionChanged -= OnSelectionChanged;
             _sectionsNavGroup.SelectionChanged -= OnSectionChanged;

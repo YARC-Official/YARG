@@ -36,11 +36,17 @@ namespace YARG.Menu.Settings
             _label.fontStyle = FontStyles.UpperCase;
         }
 
-        public void Initialize(string categoryId, string displayName, Sprite icon)
+        private Action<string> _onClicked;
+        private Action<string> _onConfirmed;
+
+        public void Initialize(string categoryId, string displayName, Sprite icon,
+            Action<string> onClicked = null, Action<string> onConfirmed = null)
         {
             CategoryId = categoryId;
             _label.text = displayName;
             _icon.sprite = icon;
+            _onClicked = onClicked;
+            _onConfirmed = onConfirmed;
         }
 
         public void SetCurrent(bool current)
@@ -72,12 +78,9 @@ namespace YARG.Menu.Settings
         public override void OnPointerDown(PointerEventData eventData)
         {
             base.OnPointerDown(eventData);
-            SettingsMenu.Instance.OnCategoryClicked(CategoryId);
+            _onClicked?.Invoke(CategoryId);
         }
 
-        public override void Confirm()
-        {
-            SettingsMenu.Instance.OnCategoryConfirmed(CategoryId);
-        }
+        public override void Confirm() => _onConfirmed?.Invoke(CategoryId);
     }
 }

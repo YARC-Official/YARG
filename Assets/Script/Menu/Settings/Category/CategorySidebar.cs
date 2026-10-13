@@ -18,16 +18,16 @@ namespace YARG.Menu.Settings
 
         public readonly struct CategoryInfo
         {
+            public string Id { get; }
+            public string DisplayName { get; }
+            public Sprite Icon { get; }
+
             public CategoryInfo(string id, string displayName, Sprite icon)
             {
                 Id = id;
                 DisplayName = displayName;
                 Icon = icon;
             }
-
-            public readonly string Id;
-            public readonly string DisplayName;
-            public readonly Sprite Icon;
         }
 
         [SerializeField]
@@ -39,38 +39,27 @@ namespace YARG.Menu.Settings
         [SerializeField]
         private CategoryItemView _itemPrefab;
 
-        private NavigationGroup _navigationGroup;
         private Tween _widthTween;
         private readonly List<CategoryItemView> _views = new();
 
         public bool IsCollapsed { get; private set; }
         public string SelectedCategoryId { get; private set; }
-        public NavigationGroup NavigationGroup
-        {
-            get
-            {
-                if (_navigationGroup == null)
-                {
-                    _navigationGroup = GetComponent<NavigationGroup>();
-                    _navigationGroup.SelectionChanged += OnSelectionChanged;
-                }
-                return _navigationGroup;
-            }
-        }
+        public NavigationGroup NavigationGroup { get; private set; }
 
         public event Action<string> CategoryChanged;
+        public event Action<string> CategoryClicked;
+        public event Action<string> CategoryConfirmed;
+        public event Action SidebarClicked;
 
         private void Awake()
         {
-            _ = NavigationGroup;
+            NavigationGroup = GetComponent<NavigationGroup>();
+            NavigationGroup.SelectionChanged += OnSelectionChanged;
         }
 
         private void OnDestroy()
         {
-            if (_navigationGroup != null)
-            {
-                _navigationGroup.SelectionChanged -= OnSelectionChanged;
-            }
+            NavigationGroup.SelectionChanged -= OnSelectionChanged;
         }
 
         public void SetCategories(IReadOnlyList<CategoryInfo> categories)
@@ -78,12 +67,15 @@ namespace YARG.Menu.Settings
             _views.Clear();
             NavigationGroup.ClearNavigatables();
 
+            var labelAlpha = IsCollapsed ? 0f : 1f;
             foreach (var info in categories)
             {
                 var view = Instantiate(_itemPrefab, _container);
                 NavigationGroup.AddNavigatable(view);
-                view.Initialize(info.Id, info.DisplayName, info.Icon);
-                view.SetLabelAlpha(IsCollapsed ? 0f : 1f, 0f);
+                view.Initialize(info.Id, info.DisplayName, info.Icon,
+                    onClicked: id => CategoryClicked?.Invoke(id),
+                    onConfirmed: id => CategoryConfirmed?.Invoke(id));
+                view.SetLabelAlpha(alpha: labelAlpha, duration: 0f);
                 _views.Add(view);
             }
         }
@@ -92,22 +84,25 @@ namespace YARG.Menu.Settings
         {
             for (var i = 0; i < _views.Count; i++)
             {
-                if (_views[i].CategoryId == categoryId)
+                var view = _views[i];
+                if (view.CategoryId != categoryId)
                 {
-                    SelectedCategoryId = categoryId;
-                    NavigationGroup.PushNavGroupToStack();
-                    if (NavigationGroup.SelectedIndex != i)
-                    {
-                        NavigationGroup.SelectAt(i, SelectionOrigin.Navigation);
-                    }
-                    else
-                    {
-                        _views[i].SetSelected(true, SelectionOrigin.Navigation);
-                    }
-
-                    UpdateMarkers(categoryId);
-                    return;
+                    continue;
                 }
+
+                SelectedCategoryId = categoryId;
+                NavigationGroup.PushNavGroupToStack();
+                if (NavigationGroup.SelectedIndex != i)
+                {
+                    NavigationGroup.SelectAt(i, SelectionOrigin.Navigation);
+                }
+                else
+                {
+                    view.SetSelected(selected: true, SelectionOrigin.Navigation);
+                }
+
+                UpdateMarkers(categoryId);
+                return;
             }
         }
 
@@ -120,28 +115,25 @@ namespace YARG.Menu.Settings
             }
 
             IsCollapsed = collapsed;
-            var targetAlpha = collapsed ? 0f : 1f;
-
             _widthTween?.Kill();
 
             if (!animate)
             {
                 _layoutElement.preferredWidth = targetWidth;
-                foreach (var view in _views)
-                {
-                    view.SetLabelAlpha(targetAlpha, 0f);
-                }
-                return;
+            }
+            else
+            {
+                _widthTween = DOTween.To(() => _layoutElement.preferredWidth, x => _layoutElement.preferredWidth = x, targetWidth, ANIM_DURATION)
+                    .SetEase(Ease.OutCubic)
+                    .SetUpdate(isIndependentUpdate: true)
+                    .SetLink(gameObject);
             }
 
-            _widthTween = DOTween.To(() => _layoutElement.preferredWidth, x => _layoutElement.preferredWidth = x, targetWidth, ANIM_DURATION)
-                .SetEase(Ease.OutCubic)
-                .SetUpdate(true)
-                .SetLink(gameObject);
-
+            var targetAlpha = collapsed ? 0f : 1f;
+            var duration = animate ? FADE_DURATION : 0f;
             foreach (var view in _views)
             {
-                view.SetLabelAlpha(targetAlpha, FADE_DURATION);
+                view.SetLabelAlpha(alpha: targetAlpha, duration: duration);
             }
         }
 
@@ -165,9 +157,6 @@ namespace YARG.Menu.Settings
             }
         }
 
-        public void OnPointerDown(PointerEventData eventData)
-        {
-            SettingsMenu.Instance.FocusCategories();
-        }
+        public void OnPointerDown(PointerEventData eventData) => SidebarClicked?.Invoke();
     }
 }
