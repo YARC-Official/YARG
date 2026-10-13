@@ -28,7 +28,7 @@ namespace YARG.Gameplay.Visuals
         // into view, then eases back down narrow again as the flash fades out. Staying narrow
         // most of the time keeps it clear of the highway's rails and the striker pads' own
         // glow, while the brief wide peak is what lets it visually reach out to the pads.
-        private const float WIDTH_START_SCALE = 0.55f;
+        private const float WIDTH_START_SCALE = 0.7f;
         private const float WIDTH_PEAK_SCALE = 1.2f;
         private const float WIDTH_END_SCALE = 0.55f;
         // How far into the flash's lifetime (as a 0-1 fraction) the width hits its peak.
