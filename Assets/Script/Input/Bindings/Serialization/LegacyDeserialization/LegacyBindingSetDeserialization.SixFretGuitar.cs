@@ -7,7 +7,7 @@ namespace YARG.Input.Serialization
 {
     public static partial class LegacyBindingSetDeserialization
     {
-        private static SerializedReusableBindingSet LEGACY_6F_GUITAR = new("Legacy 6F Guitar", ControllerFamily.FiveFretGuitar, GameMode.FiveFretGuitar)
+        private static SerializedReusableBindingSet LEGACY_6F_GUITAR = new("Legacy 6F Guitar", ControllerFamily.SixFretGuitar, GameMode.SixFretGuitar)
         {
             Bindings = new()
             {
@@ -30,7 +30,7 @@ namespace YARG.Input.Serialization
             }
         };
 
-        private static SerializedReusableBindingSet LEGACY_6F_GUITAR_MENU = new("Legacy 6F Guitar Menu", ControllerFamily.FiveFretGuitar, GameMode.Menu)
+        private static SerializedReusableBindingSet LEGACY_6F_GUITAR_MENU = new("Legacy 6F Guitar Menu", ControllerFamily.SixFretGuitar, GameMode.Menu)
         {
             Bindings = new()
             {
