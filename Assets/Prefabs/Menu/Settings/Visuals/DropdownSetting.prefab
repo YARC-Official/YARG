@@ -153,6 +153,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: DropdownSetting
       objectReference: {fileID: 0}
+    - target: {fileID: 4519988491260517421, guid: 6f46741e648c07044852bd3391146600, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8331225728328382101, guid: 6f46741e648c07044852bd3391146600, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0.5
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
