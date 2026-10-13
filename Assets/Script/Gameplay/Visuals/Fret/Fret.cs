@@ -47,10 +47,20 @@ namespace YARG.Gameplay.Visuals
             ["Ring"]        = (0.48f, null, null),
             ["Smoke"]       = (0.7f, null, null),
             // Flash's RGB is boosted into HDR range so the (already fret-colored) flash reads
-            // as more vivid/punchy, matching guitar's brighter look.
-            ["Flash"]       = (0.7f, null, 1.5f),
-            ["White Smoke"] = (0.7f, null, null),
-            ["Sparkles"]    = (0.72f, 1.5f, null),
+            // as more vivid/punchy, matching guitar's brighter look. Pushed further still
+            // (was 1.5x, then 1.9x) since, next to the kick's now-tightened hit light, the drum
+            // flare was reading as comparatively dim/lost - this keeps the flash the same size
+            // while making its peak brightness clearly pop more.
+            ["Flash"]       = (0.7f, null, 2.3f),
+            // White Smoke gets the same HDR brightness treatment as Flash for the same reason -
+            // it's part of the same glow cluster, so boosting Flash alone while leaving this
+            // at its plain (capped) brightness made it stick out as the dim one of the group.
+            ["White Smoke"] = (0.7f, null, 1.9f),
+            // Sparkles are the thin streaks that shoot straight up out of the fret - boosted
+            // the same way as Flash/White Smoke above (RGB into HDR range only, no change to
+            // their lifetime/velocity) so they read as more visible/eye-catching without
+            // altering how long they last or how far/fast they travel.
+            ["Sparkles"]    = (0.72f, 1.5f, 1.8f),
             ["Shards"]      = (0.72f, 1.5f, null),
         };
 

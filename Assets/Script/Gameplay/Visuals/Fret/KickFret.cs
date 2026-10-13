@@ -17,6 +17,11 @@ namespace YARG.Gameplay.Visuals
         // set on the Drums fret's EffectLight/Light override in RectangularTheme.prefab.
         private const float KICK_HIT_LIGHT_FADE_OUT_RATE = 90f;
         private const float KICK_HIT_LIGHT_INTENSITY = 6f;
+        // Kick sits tighter between its neighboring pads than tom/cymbal frets do, so the
+        // shared prefab's base range (inherited otherwise) spills its glow onto the strike
+        // pads on both sides when hit - pull it in to keep the glow contained to the kick's
+        // own strikers.
+        private const float KICK_HIT_LIGHT_RANGE = 0.2f;
 
         // Same idea as above, but for the miss light: keep in sync with the tom/cymbal Miss
         // Effects light's hold time/range in RectangularTheme.prefab, then push intensity up
@@ -54,6 +59,7 @@ namespace YARG.Gameplay.Visuals
                 {
                     light.SetFadeOutRate(KICK_HIT_LIGHT_FADE_OUT_RATE);
                     light.SetIntensity(KICK_HIT_LIGHT_INTENSITY);
+                    light.SetRange(KICK_HIT_LIGHT_RANGE);
                 }
 
                 // Must run before ApplyDrumHitEffectTuning (below), which boosts the particle

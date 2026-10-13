@@ -75482,11 +75482,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5638597123916329324, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
       propertyPath: m_Intensity
-      value: 7.5
+      value: 9
       objectReference: {fileID: 0}
     - target: {fileID: 5638597123916329324, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
       propertyPath: m_Range
-      value: 0.42
+      value: 0.3
       objectReference: {fileID: 0}
     - target: {fileID: 155803174232394697, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
       propertyPath: m_LocalPosition.y
@@ -75498,7 +75498,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6000496383647664972, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
       propertyPath: _fadeOutRate
-      value: 30
+      value: 50
       objectReference: {fileID: 0}
     - target: {fileID: 6500175386639609726, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
       propertyPath: _mode
