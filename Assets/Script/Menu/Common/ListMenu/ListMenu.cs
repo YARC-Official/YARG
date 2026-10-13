@@ -384,13 +384,16 @@ namespace YARG.Menu.ListMenu
             if (SelectedIndex < ExtraListViewPadding)
             {
                 int firstVisibleObject = ExtraListViewPadding - SelectedIndex;
-                var firstRect = _viewObjects[firstVisibleObject].GetComponent<RectTransform>();
-                var bounds = RectTransformUtility.CalculateRelativeRectTransformBounds(viewportRect, firstRect);
-                float offset = viewportRect.rect.yMax - bounds.max.y;
-                if (offset > 0f)
+                if (firstVisibleObject >= 0 && firstVisibleObject < _viewObjects.Count)
                 {
-                    parentRect.anchoredPosition += Vector2.up * offset;
-                    clampedToTop = true;
+                    var firstRect = _viewObjects[firstVisibleObject].GetComponent<RectTransform>();
+                    var bounds = RectTransformUtility.CalculateRelativeRectTransformBounds(viewportRect, firstRect);
+                    float offset = viewportRect.rect.yMax - bounds.max.y;
+                    if (offset > 0f)
+                    {
+                        parentRect.anchoredPosition += Vector2.up * offset;
+                        clampedToTop = true;
+                    }
                 }
             }
 
@@ -400,12 +403,15 @@ namespace YARG.Menu.ListMenu
             if (!clampedToTop && _viewList.Count - 1 - SelectedIndex < ExtraListViewPadding)
             {
                 int lastVisibleObject = ExtraListViewPadding + (_viewList.Count - 1 - SelectedIndex);
-                var lastRect = _viewObjects[lastVisibleObject].GetComponent<RectTransform>();
-                var bounds = RectTransformUtility.CalculateRelativeRectTransformBounds(viewportRect, lastRect);
-                float offset = viewportRect.rect.yMin - bounds.min.y;
-                if (offset < 0f)
+                if (lastVisibleObject >= 0 && lastVisibleObject < _viewObjects.Count)
                 {
-                    parentRect.anchoredPosition += Vector2.up * offset;
+                    var lastRect = _viewObjects[lastVisibleObject].GetComponent<RectTransform>();
+                    var bounds = RectTransformUtility.CalculateRelativeRectTransformBounds(viewportRect, lastRect);
+                    float offset = viewportRect.rect.yMin - bounds.min.y;
+                    if (offset < 0f)
+                    {
+                        parentRect.anchoredPosition += Vector2.up * offset;
+                    }
                 }
             }
         }
