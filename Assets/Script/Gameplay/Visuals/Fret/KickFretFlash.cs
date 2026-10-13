@@ -15,7 +15,7 @@ namespace YARG.Gameplay.Visuals
         // quad's half-height. The ends of the arc stay anchored at the quad's original edges
         // (so it still lines up with the kick frets at the sides), while the middle lifts up
         // and clears the button row instead of lying flat across it.
-        private const float ARC_HEIGHT_FACTOR = 0.28f;
+        private const float ARC_HEIGHT_FACTOR = 0.35f;
 
         // Shrinks the arc inward from the original flat quad's edges so its resting width
         // doesn't additively overlap (and visually "bleed into") the striker pads' own glow.
@@ -28,7 +28,7 @@ namespace YARG.Gameplay.Visuals
         // into view, then eases back down narrow again as the flash fades out. Staying narrow
         // most of the time keeps it clear of the highway's rails and the striker pads' own
         // glow, while the brief wide peak is what lets it visually reach out to the pads.
-        private const float WIDTH_START_SCALE = 0.7f;
+        private const float WIDTH_START_SCALE = 0.55f;
         private const float WIDTH_PEAK_SCALE = 1.2f;
         private const float WIDTH_END_SCALE = 0.55f;
         // How far into the flash's lifetime (as a 0-1 fraction) the width hits its peak.
