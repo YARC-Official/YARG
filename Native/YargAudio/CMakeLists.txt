@@ -70,6 +70,22 @@ endif()
 
 if(YARG_AUDIO_BUILD_TESTS)
     enable_testing()
+    add_executable(yarg_audio_position_tests
+        tests/ReadAheadPositionTests.cpp
+        src/AudioRingBuffer.cpp
+        src/BassCoreBindings.cpp
+        src/BassMixBindings.cpp
+        src/PlatformDynamicLibrary.cpp
+        src/ReadAheadStream.cpp
+        src/RenderAheadMixer.cpp
+    )
+    target_compile_features(yarg_audio_position_tests PRIVATE cxx_std_20)
+    target_include_directories(yarg_audio_position_tests PRIVATE include src)
+    target_link_libraries(yarg_audio_position_tests PRIVATE Threads::Threads ${CMAKE_DL_LIBS})
+    if(MSVC)
+        target_compile_definitions(yarg_audio_position_tests PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
+    endif()
+    add_test(NAME yarg_audio_position_tests COMMAND yarg_audio_position_tests)
     add_executable(yarg_audio_tests
         tests/main.cpp
         tests/AudioRingBufferTests.cpp

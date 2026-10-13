@@ -39,6 +39,12 @@ namespace YARG.Settings
         LegacyLabels,
     }
 
+    public enum NavigationJumpDistance
+    {
+        Sections,
+        Pages,
+    }
+
     public enum SecondaryAlbumSortMode
     {
         AlbumsByTitleSongsByTitle,
@@ -46,6 +52,18 @@ namespace YARG.Settings
         AlbumsByYearSongsByTitle,
         AlbumsByYearSongsByTrack,
         Off,
+    }
+
+    public enum SecondarySourceSortMode
+    {
+        Off,
+        Intensity,
+    }
+
+    public enum SecondaryIntensitySortMode
+    {
+        Off,
+        Source,
     }
 
     public enum ShowMeanSongOffsetCalibrationMode
@@ -311,6 +329,13 @@ namespace YARG.Settings
 
             public ToggleSetting ShowFavoriteButton { get; } = new(true);
 
+            public DropdownSetting<NavigationJumpDistance> NavigationJumpDistance { get; }
+                = new(YARG.Settings.NavigationJumpDistance.Sections)
+                {
+                    YARG.Settings.NavigationJumpDistance.Sections,
+                    YARG.Settings.NavigationJumpDistance.Pages,
+                };
+
             public DropdownSetting<SecondaryAlbumSortMode> SecondaryAlbumSort { get; }
                 = new(SecondaryAlbumSortMode.AlbumsByTitleSongsByTitle,
                     _ => MusicLibraryMenu.SetReload(MusicLibraryReloadState.Partial))
@@ -320,6 +345,22 @@ namespace YARG.Settings
                     SecondaryAlbumSortMode.AlbumsByYearSongsByTitle,
                     SecondaryAlbumSortMode.AlbumsByYearSongsByTrack,
                     SecondaryAlbumSortMode.Off,
+                };
+
+            public DropdownSetting<SecondarySourceSortMode> SecondarySourceSort { get; }
+                = new(SecondarySourceSortMode.Off,
+                    _ => MusicLibraryMenu.SetReload(MusicLibraryReloadState.Partial))
+                {
+                    SecondarySourceSortMode.Off,
+                    SecondarySourceSortMode.Intensity,
+                };
+
+            public DropdownSetting<SecondaryIntensitySortMode> SecondaryIntensitySort { get; }
+                = new(SecondaryIntensitySortMode.Off,
+                    _ => MusicLibraryMenu.SetReload(MusicLibraryReloadState.Partial))
+                {
+                    SecondaryIntensitySortMode.Off,
+                    SecondaryIntensitySortMode.Source,
                 };
 
             public ToggleSetting ShowRecommendedSongs { get; } = new(true, ShowRecommendedSongsCallback);

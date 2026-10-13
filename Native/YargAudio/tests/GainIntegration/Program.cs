@@ -11,7 +11,7 @@ internal static class Program
     private static int Main()
     {
         Check(Environment.Is64BitProcess, "Integration probe requires a 64-bit process.");
-        Check(GainDsp.GetAbiVersion() == 26, "Unexpected YargAudio ABI version.");
+        Check(GainDsp.GetAbiVersion() == 27, "Unexpected YargAudio ABI version.");
         Check(Bass.Init(0, 48_000, 0, IntPtr.Zero, IntPtr.Zero), "BASS_Init");
 
         try
@@ -24,6 +24,8 @@ internal static class Program
             TestDattorroImpulseAndReset();
             TestOneShotRealBassLifecycle();
             TestReadAheadRealBassGraph();
+            TestManagedReadAheadHandles();
+            TestSharedOutputPosition();
         }
         finally
         {
@@ -339,6 +341,111 @@ internal static class Program
         }
     }
 
+    private static void TestManagedReadAheadHandles()
+    {
+        var mixer = CreateMixer(sampleRate: 48_000, channels: 2);
+        try
+        {
+            foreach (var bits in new[] { 0u, 0x7fffffffu, 0x80000000u, 0xffffffffu })
+            {
+                using var stream = YARG.Audio.BASS.BassReadAheadStream.Create(
+                    bassDeviceId: 0,
+                    sourceMixer: unchecked((int) mixer),
+                    sampleRate: 48_000,
+                    channels: 2,
+                    minimumBlockFrames: 64,
+                    bufferMilliseconds: 2,
+                    useIndependentClock: false,
+                    outputStream: unchecked((int) bits))
+                    ?? throw new InvalidOperationException("Managed read-ahead creation failed.");
+                var config = YARG.Audio.BASS.Native.YargAudioBindings.LastConfig;
+                Check(config.SourceMixer == mixer, "source mixer handle bits changed");
+                Check(config.OutputStream == bits, "output handle bits changed");
+            }
+        }
+        finally
+        {
+            Check(Bass.StreamFree(mixer), "free managed handle test mixer");
+        }
+        Console.WriteLine("Managed read-ahead handle transport passed, including high-bit handles.");
+    }
+
+    private static void TestSharedOutputPosition()
+    {
+        const int SAMPLE_RATE = 48_000;
+        const int CHANNELS = 2;
+        const uint MIXER_POSITION_EX = 0x2000;
+        const uint MIXER_NONSTOP = 0x20000;
+        var source = CreatePushStream();
+        var mixer = Bass.MixerStreamCreate(frequency: SAMPLE_RATE, channels: CHANNELS,
+            flags: BassSampleFloat | BassStreamDecode | MIXER_POSITION_EX);
+        var output = Bass.MixerStreamCreate(frequency: SAMPLE_RATE, channels: CHANNELS,
+            flags: BassSampleFloat | MIXER_NONSTOP);
+        Check(mixer != 0 && output != 0, "create shared position mixers");
+        try
+        {
+            Check(Bass.MixerStreamAddChannel(mixer: mixer, channel: source, flags: 0x800000), "attach shared position source");
+            var input = new float[SAMPLE_RATE * CHANNELS * 2];
+            Array.Fill(input, 0.25f);
+            Check(Bass.StreamPutData(stream: source, buffer: input, length: input.Length * sizeof(float)) == input.Length * sizeof(float),
+                "fill shared position source");
+            Check(Bass.ChannelSetAttribute(channel: output, attribute: 13, value: 0), "disable shared output buffering");
+            Check(Bass.ChannelSetAttribute(channel: mixer, attribute: 0x15000, value: 0.25f), "set modeled song mixer latency");
+            using var stream = YARG.Audio.BASS.BassReadAheadStream.Create(
+                bassDeviceId: 0,
+                sourceMixer: unchecked((int) mixer),
+                sampleRate: SAMPLE_RATE,
+                channels: CHANNELS,
+                minimumBlockFrames: 64,
+                bufferMilliseconds: 250,
+                useIndependentClock: false,
+                outputStream: unchecked((int) output))
+                ?? throw new InvalidOperationException("Managed shared-output creation failed.");
+            Check(Bass.MixerStreamAddChannel(mixer: output, channel: unchecked((uint) stream.StreamHandle), flags: 0x800000), "attach shared position output");
+            Check(stream.Prefill(2000), "prefill shared position source");
+            Check(Bass.ChannelPlay(channel: output, restart: false), "play shared position output");
+            long lastPosition = 0;
+            for (int sample = 0; sample < 20; ++sample)
+            {
+                System.Threading.Thread.Sleep(5);
+                Check(Bass.ChannelLock(channel: output, locked: true), "lock shared position observation");
+                try
+                {
+                    var submitted = Bass.ChannelGetPosition(unchecked((uint) stream.StreamHandle), 0x10000000);
+                    var queued = Bass.ChannelGetAvailable(output, IntPtr.Zero, 0);
+                    Check(submitted != ulong.MaxValue && queued >= 0, "observe shared output progress");
+                    var expected = Math.Max(0, (long) submitted - queued);
+                    System.Threading.Thread.Sleep(2);
+                    Check(stream.TryGetPositionSnapshot(sourceHandle: unchecked((int) source),
+                        endpointDelayFrames: 12345, out var snapshot),
+                        $"shared position query failed: BASS={Bass.ErrorGetCode()}");
+                    var actual = snapshot.HeardPosition;
+                    var submittedAfter = Bass.ChannelGetPosition(unchecked((uint) stream.StreamHandle), 0x10000000);
+                    var queuedAfter = Bass.ChannelGetAvailable(output, IntPtr.Zero, 0);
+                    Check(submittedAfter == submitted && queuedAfter >= 0, "locked output observation changed submitted data");
+                    var expectedAfter = Math.Max(0, (long) submittedAfter - queuedAfter);
+                    const int TOLERANCE_BYTES = CHANNELS * sizeof(float) * 4;
+                    Check(actual >= expected - TOLERANCE_BYTES && actual <= expectedAfter + TOLERANCE_BYTES,
+                        $"shared position mismatch: before={expected}, actual={actual}, after={expectedAfter}");
+                    lastPosition = actual;
+                }
+                finally
+                {
+                    Check(Bass.ChannelLock(channel: output, locked: false), "unlock shared position observation");
+                }
+            }
+            Check(lastPosition > 0, "shared output position must advance");
+            Console.WriteLine($"Shared output position passed: 20 samples, last_position_bytes={lastPosition}.");
+            Check(Bass.ChannelStop(output), "stop shared position output");
+        }
+        finally
+        {
+            Check(Bass.StreamFree(output), "free shared position output");
+            Check(Bass.StreamFree(mixer), "free shared position mixer");
+            Check(Bass.StreamFree(source), "free shared position source");
+        }
+    }
+
     private static OneShotStream CreateOneShot(int sampleRate, int channels,
         float[] pcm, double[] schedule)
     {
@@ -596,6 +703,28 @@ internal static class Program
         [DllImport("bass", EntryPoint = "BASS_ChannelGetData")]
         internal static extern int ChannelGetData(uint channel, float[] buffer, int length);
 
+        [DllImport("bass", EntryPoint = "BASS_ChannelGetData")]
+        internal static extern int ChannelGetAvailable(uint channel, IntPtr buffer, int length);
+
+        [DllImport("bass", EntryPoint = "BASS_ChannelGetPosition")]
+        internal static extern ulong ChannelGetPosition(uint channel, uint mode);
+
+        [DllImport("bass", EntryPoint = "BASS_ChannelSetAttribute")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static extern bool ChannelSetAttribute(uint channel, uint attribute, float value);
+
+        [DllImport("bass", EntryPoint = "BASS_ChannelLock")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static extern bool ChannelLock(uint channel, bool locked);
+
+        [DllImport("bass", EntryPoint = "BASS_ChannelPlay")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static extern bool ChannelPlay(uint channel, bool restart);
+
+        [DllImport("bass", EntryPoint = "BASS_ChannelStop")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static extern bool ChannelStop(uint channel);
+
         [DllImport("bassmix", EntryPoint = "BASS_Mixer_StreamCreate")]
         internal static extern uint MixerStreamCreate(uint frequency, uint channels,
             uint flags);
@@ -638,6 +767,7 @@ internal static class Program
         internal uint Channels;
         internal uint MinimumBlockFrames;
         internal uint BufferMilliseconds;
+        internal uint OutputStream;
     }
 
     private sealed class ReadAheadStream : SafeHandleZeroOrMinusOneIsInvalid

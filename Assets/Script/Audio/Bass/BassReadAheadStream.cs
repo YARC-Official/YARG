@@ -30,6 +30,7 @@ namespace YARG.Audio.BASS
         public uint Channels;
         public uint MinimumBlockFrames;
         public uint BufferMilliseconds;
+        public uint OutputStream;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -76,7 +77,7 @@ namespace YARG.Audio.BASS
         public int StreamHandle { get; private set; }
 
         public static BassReadAheadStream? Create(int bassDeviceId, int sourceMixer, int sampleRate, int channels,
-            int minimumBlockFrames, int bufferMilliseconds, bool useIndependentClock = false)
+            int minimumBlockFrames, int bufferMilliseconds, bool useIndependentClock = false, int outputStream = 0)
         {
             if (sourceMixer == 0 || sampleRate <= 0 || channels <= 0 || minimumBlockFrames <= 0 ||
                 bufferMilliseconds < 0)
@@ -100,6 +101,7 @@ namespace YARG.Audio.BASS
                     Channels = checked((uint) channels),
                     MinimumBlockFrames = checked((uint) minimumBlockFrames),
                     BufferMilliseconds = checked((uint) bufferMilliseconds),
+                    OutputStream = unchecked((uint) outputStream),
                 };
 
                 int result = YargAudioBindings.ReadAheadStreamCreate(in config, out var stream, out int streamHandle, out int bassError);
