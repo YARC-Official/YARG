@@ -2,7 +2,6 @@
 using System.IO;
 using YARG.Core.Game;
 using YARG.Core.Logging;
-using YARG.Settings.Customization;
 
 namespace YARG.Settings.Types
 {
@@ -12,7 +11,8 @@ namespace YARG.Settings.Types
         private readonly BasePreset _preset;
         private readonly string     _settingName;
 
-        public FileInfoSetting(FileInfo fileInfo, BasePreset preset, string settingName, Action<FileInfo> onChange = null) : base(onChange)
+        public FileInfoSetting(FileInfo fileInfo, BasePreset preset, string settingName,
+            Action<FileInfo> onChange = null) : base(onChange)
         {
             _preset = preset;
             _settingName = settingName;
@@ -27,41 +27,41 @@ namespace YARG.Settings.Types
                 return;
             }
 
-            var imageName = _settingName switch
+            var fileName = _settingName switch
             {
                 "BackgroundImage" => "background.png",
                 "SideImage"       => "side.png",
-                _                 => throw new ArgumentOutOfRangeException()
+                _                 => value.Name
             };
 
-            // Copy the file into the settings folder and use that copy instead of the original.
+            // Copy the file into the preset's extra content folder and use that copy instead of the original.
             if (!value.Exists)
             {
                 YargLogger.LogFormatError("File {0} does not exist!", value.FullName);
                 return;
             }
 
-            if (_preset.Path == null)
+            var presetFolder = _preset.GetExtraContentFolder();
+            if (presetFolder == null)
             {
-                // Do something?
                 return;
             }
 
-            var baseName = Path.GetFileNameWithoutExtension(_preset.Path);
-            var presetFolder = Path.Combine(CustomContentManager.HighwayPresets.FullContentDirectory, baseName!);
-
-            // If the preset folder doesn't exist, create it
             Directory.CreateDirectory(presetFolder);
 
-            var newPath = Path.Combine(presetFolder, imageName);
-            YargLogger.LogDebug($"Copying file {value.FullName} to {newPath}");
-            File.Copy(value.FullName, newPath, true);
-            _value = new FileInfo(newPath);
+            var destination = Path.Combine(presetFolder, fileName);
+            if (!string.Equals(value.FullName, destination, StringComparison.OrdinalIgnoreCase))
+            {
+                YargLogger.LogDebug($"Copying file {value.FullName} to {destination}");
+                File.Copy(value.FullName, destination, true);
+            }
+
+            _value = new FileInfo(fileName);
         }
 
         public override bool ValueEquals(FileInfo value)
         {
-            return value.FullName == Value.FullName;
+            return string.Equals(value?.Name, Value?.Name, StringComparison.OrdinalIgnoreCase);
         }
     }
 }

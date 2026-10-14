@@ -69,8 +69,8 @@ namespace YARG.Menu.MusicLibrary
             }
         }
 
-        private SongCategory[] _sortedSongs;
-        private static readonly Dictionary<SortAttribute, HashSet<SongCategory>> _collapsedHeaders = new();
+        protected SongCategory[] _sortedSongs;
+        protected static readonly Dictionary<SortAttribute, HashSet<SongCategory>> _collapsedHeaders = new();
 
         private List<int> _sectionHeaderIndices = new();
         private int _primaryHeaderIndex;

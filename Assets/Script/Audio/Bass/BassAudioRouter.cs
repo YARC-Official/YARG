@@ -14,9 +14,10 @@ namespace YARG.Audio.BASS
     /// </summary>
     internal sealed class BassAudioRouter : IDisposable
     {
-        private readonly HashSet<BassMonitor> _monitors = new();
-        private readonly HashSet<BassSong>    _songs    = new();
-        private          bool                 _disposed;
+        private readonly HashSet<BassMonitor>  _monitors = new();
+        private readonly HashSet<BassSong>     _songs    = new();
+        private readonly List<BassPushStream>  _pushStreams = new();
+        private          bool                  _disposed;
         private          ReadAheadStats       _finishedReadAheadStats;
         private          ulong                _observedUnderrunEvents;
         private          BassOutput?          _output;
@@ -46,6 +47,12 @@ namespace YARG.Audio.BASS
             }
 
             _monitors.Clear();
+            foreach (var stream in _pushStreams)
+            {
+                stream.Disposed -= OnPushStreamDisposed;
+            }
+
+            _pushStreams.Clear();
         }
 
         public bool Connect(BassOutput output, int deviceId)
@@ -56,8 +63,9 @@ namespace YARG.Audio.BASS
             _outputDeviceId = deviceId;
             output.SetVolume(_volume);
 
-            if (!AttachSongs(output) || !AttachMonitors(deviceId))
+            if (!AttachSongs(output) || !AttachPushStreams(output) || !AttachMonitors(deviceId))
             {
+                DetachPushStreams();
                 DetachSongs();
                 _output = null;
                 _outputDeviceId = -1;
@@ -76,9 +84,92 @@ namespace YARG.Audio.BASS
             }
 
             DetachMonitors();
+            DetachPushStreams();
             DetachSongs();
             _output = null;
             _outputDeviceId = -1;
+        }
+
+        internal void AddPushStream(BassPushStream stream, OutputChannel? outputChannel)
+        {
+            if (_pushStreams.Contains(stream))
+            {
+                YargLogger.LogFormatError("Push stream {0} is already registered", stream.Handle);
+                return;
+            }
+
+            if (_output != null && !AttachPushStream(stream, outputChannel))
+            {
+                stream.Dispose();
+                return;
+            }
+
+            _pushStreams.Add(stream);
+            stream.Disposed += OnPushStreamDisposed;
+        }
+
+        internal void RemovePushStream(BassPushStream stream)
+        {
+            if (!_pushStreams.Remove(stream))
+            {
+                return;
+            }
+
+            stream.Disposed -= OnPushStreamDisposed;
+            if (_output != null)
+            {
+                _output.DetachPushStream(stream);
+            }
+        }
+
+        private void OnPushStreamDisposed(BassPushStream stream)
+        {
+            if (!_pushStreams.Remove(stream))
+            {
+                return;
+            }
+
+            stream.Disposed -= OnPushStreamDisposed;
+            if (_output != null)
+            {
+                _output.DetachPushStream(stream);
+            }
+        }
+
+        private bool AttachPushStream(BassPushStream stream, OutputChannel? outputChannel)
+        {
+            return _output!.AttachPushStream(stream, outputChannel);
+        }
+
+        private bool AttachPushStreams(BassOutput output)
+        {
+            if (_pushStreams.Count == 0)
+            {
+                return true;
+            }
+
+            foreach (var stream in _pushStreams)
+            {
+                if (!AttachPushStream(stream, null))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private void DetachPushStreams()
+        {
+            if (_output == null)
+            {
+                return;
+            }
+
+            foreach (var stream in _pushStreams)
+            {
+                _output.DetachPushStream(stream);
+            }
         }
 
         internal bool AddSong(BassSong song)

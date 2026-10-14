@@ -52,6 +52,7 @@ namespace YARG.Menu.ListMenu
 
             // Set background
             _canvasGroup.alpha = 1f;
+            _canvasGroup.blocksRaycasts = true;
             SetBackground(selected, viewType.Background);
 
             // Set text
@@ -76,6 +77,7 @@ namespace YARG.Menu.ListMenu
 
             Showing = false;
             _canvasGroup.alpha = 0f;
+            _canvasGroup.blocksRaycasts = false;
         }
 
         private void LateUpdate()

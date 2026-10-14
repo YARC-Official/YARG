@@ -1,4 +1,5 @@
-﻿using Cysharp.Threading.Tasks;
+﻿using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.UI;
@@ -13,7 +14,8 @@ namespace YARG.Settings.Metadata
         public string Name { get; }
         public string Icon { get; }
 
-        public virtual bool ShowSearchBar => false;
+        public virtual IReadOnlyList<HeaderMetadata> Sections => System.Array.Empty<HeaderMetadata>();
+        public virtual bool HasPreview => PreviewBuilder != null;
 
         protected readonly IPreviewBuilder PreviewBuilder;
 

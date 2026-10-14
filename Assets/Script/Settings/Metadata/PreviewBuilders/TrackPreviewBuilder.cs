@@ -6,6 +6,7 @@ using YARG.Core;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Menu.Settings;
+using YARG.Menu.Settings.Visuals;
 using YARG.Settings.Preview;
 using YARG.Themes;
 
@@ -18,6 +19,8 @@ namespace YARG.Settings.Metadata
         // Prefabs needed for this tab type
         private static GameObject _trackPreview;
         private static GameObject _trackPreviewUI;
+
+        public TrackPreviewUI UI { get; private set; }
 
         public GameMode? StartingGameMode { get; set; }
 
@@ -187,7 +190,12 @@ namespace YARG.Settings.Metadata
                     .LoadAssetAsync<GameObject>("SettingPreviews/TrackPreviewUI")
                     .WaitForCompletion();
             }
+            if (UI != null)
+            {
+                UI.Unbind();
+            }
             var go = Object.Instantiate(_trackPreviewUI, uiContainer);
+            UI = go.GetComponent<TrackPreviewUI>();
 
             // Enable and wait for layouts to rebuild
             await UniTask.WaitForEndOfFrame(SettingsMenu.Instance);

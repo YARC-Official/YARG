@@ -73,13 +73,9 @@ namespace YARG.Menu.Main
             menu.gameObject.SetActive(true);
         }
 
-        public void Practice()
+        public void GameModes()
         {
-            var menu = MenuManager.Instance.PushMenu(MenuManager.Menu.MusicLibrary, false);
-
-            MusicLibraryMenu.LibraryMode = MusicLibraryMode.Practice;
-
-            menu.gameObject.SetActive(true);
+            MenuManager.Instance.PushMenu(MenuManager.Menu.GameModes);
         }
 
         public void Profiles()
@@ -90,11 +86,6 @@ namespace YARG.Menu.Main
         public void Content()
         {
             MenuManager.Instance.PushMenu(MenuManager.Menu.Content);
-        }
-
-        public void Replays()
-        {
-            MenuManager.Instance.PushMenu(MenuManager.Menu.History);
         }
 
         public void Credits()

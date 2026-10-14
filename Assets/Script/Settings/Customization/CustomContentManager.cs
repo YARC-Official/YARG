@@ -19,6 +19,7 @@ namespace YARG.Settings.Customization
         public static readonly EnginePresetContainer   EnginePresets;
         public static readonly HighwayPresetContainer  HighwayPresets;
         public static readonly RockMeterPresetContainer RockMeterPresets;
+        public static readonly CareerContainer         Careers;
 
         private static readonly List<CustomContent> _customContentContainers;
         public static IReadOnlyList<CustomContent> CustomContentContainers => _customContentContainers;
@@ -31,6 +32,7 @@ namespace YARG.Settings.Customization
             EnginePresets = new EnginePresetContainer();
             HighwayPresets = new HighwayPresetContainer();
             RockMeterPresets = new RockMeterPresetContainer();
+            Careers = new CareerContainer();
 
             _customContentContainers = new()
             {
@@ -39,7 +41,8 @@ namespace YARG.Settings.Customization
                 ThemePresets,
                 EnginePresets,
                 HighwayPresets,
-                RockMeterPresets
+                RockMeterPresets,
+                Careers,
             };
         }
 
