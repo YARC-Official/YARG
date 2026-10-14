@@ -23,6 +23,7 @@ namespace YARG.Settings.Metadata
         private GameObject _careerInfoPrefab;
         private GameObject _careerTierPrefab;
         private GameObject _careerSongPrefab;
+        private GameObject _careerSubHeaderPrefab;
 
         public CareerPresetSubTab(CustomContent<CareerPreset> customContent, IPreviewBuilder previewBuilder = null,
             bool hasDescriptions = true) : base(customContent, previewBuilder, hasDescriptions)
@@ -95,7 +96,7 @@ namespace YARG.Settings.Metadata
             var tiers = _presetRef.Tiers;
             if (tiers == null || tiers.Count == 0)
             {
-                var emptyTierGo = SpawnSubHeader(container, Localize.Key("Settings.Header.NoTiers"));
+                SpawnCareerSubHeader(container, Localize.Key("Settings.Header.NoTiers"));
                 _fieldIndex++;
                 return;
             }
@@ -147,7 +148,7 @@ namespace YARG.Settings.Metadata
                 var songs = tier.Songs;
                 if (songs == null || songs.Length == 0)
                 {
-                    var emptySongGo = SpawnSubHeader(container, "      (No songs in this tier)");
+                    var emptySongGo = SpawnCareerSubHeader(container, "      (No songs in this tier)");
                     DimHeaderBackground(emptySongGo, 0.2f);
                     _fieldIndex++;
                 }
@@ -203,6 +204,20 @@ namespace YARG.Settings.Metadata
                     }
                 }
             }
+        }
+
+        private GameObject SpawnCareerSubHeader(Transform container, string text)
+        {
+            if (_careerSubHeaderPrefab == null)
+            {
+                _careerSubHeaderPrefab = Addressables
+                    .LoadAssetAsync<GameObject>("SettingTab/CareerSubHeader")
+                    .WaitForCompletion();
+            }
+
+            var go = Object.Instantiate(_careerSubHeaderPrefab, container);
+            go.GetComponent<CareerHeader>().Initialize(text, null, null, null, null, null);
+            return go;
         }
 
         private void Save()

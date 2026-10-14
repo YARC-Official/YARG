@@ -245,6 +245,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c8f19a70983bc9445985fa76895c43d1
+    m_Address: SettingTab/CareerSubHeader
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: cc322dac15924ae43bdfed7678b47001
     m_Address: SettingTab/PresetActions
     m_ReadOnly: 0
