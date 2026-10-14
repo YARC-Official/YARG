@@ -97,6 +97,16 @@ namespace YARG.Helpers.Authoring
             InitialColor = color;
         }
 
+        // Re-derives InitialColor from itself, scaled by the same factor as
+        // ScaleStartColorBrightness below. Needed because InitialColor is what
+        // RestoreColor()/BrightenColor() reset startColor to whenever the fret's accent-whiten
+        // flash (see Fret.WhitenFretColor/RestoreFretColor) plays - without this, that flash
+        // would silently discard a brightness boost the first time it fires.
+        public void RebaseInitialColorBrightness(float factor)
+        {
+            InitialColor = ScaleColorBrightness(InitialColor, factor);
+        }
+
         public void BrightenColor()
         {
             SetColor(BrightColor);
@@ -169,13 +179,17 @@ namespace YARG.Helpers.Authoring
             velocity.z = ScaleCurve(velocity.z, factor);
         }
 
-        // Switches this particle's material from the default alpha blend to additive. Creates a
-        // per-instance material copy (via the ParticleSystemRenderer.material getter, which
-        // Unity auto-instances on first access), so this only affects this specific particle
-        // system - never the shared asset or any other instance using it (e.g. guitar/keys
-        // frets, which share the same prefab, are left on their original alpha blend). Needed
-        // because alpha blending clamps at opaque: boosting a particle's start color into HDR
-        // range (see ScaleStartColorBrightness) has no visible effect unless it's additive.
+        // Scales this particle's Y-axis start size only (not X/Z) - used to stretch a thin
+        // particle taller without also making it wider.
+        public void ScaleStartSizeY(float factor)
+        {
+            var main = _particleSystem.main;
+            main.startSizeY = ScaleCurve(main.startSizeY, factor);
+        }
+
+        // Switches this particle's material from the default alpha blend to additive. Uses a
+        // per-instance material copy (Unity auto-instances on first access to .material), so
+        // this never affects the shared asset or other instances using the same prefab.
         public void MakeAdditive()
         {
             if (_particleSystemRenderer == null) return;
@@ -188,12 +202,9 @@ namespace YARG.Helpers.Authoring
             material.SetFloat(_dstBlendAlpha, (float) UnityEngine.Rendering.BlendMode.One);
         }
 
-        // Scales this particle's start color RGB (not alpha) by the given factor, regardless of
-        // which mode (single color, single gradient, random between two colors/gradients) the
-        // field is actually using. This is applied after any InitializeColor/SetColor tinting,
-        // so it boosts the particle's actual (already fret-colored) RGB into HDR range - which,
-        // combined with this particle's additive blend mode and the scene's bloom, reads as a
-        // genuinely brighter/more vivid flash rather than one simply capped at non-HDR white.
+        // Scales this particle's start color RGB (not alpha) by the given factor, so it reads
+        // as a brighter/more vivid flash (combined with additive blending + scene bloom) rather
+        // than one capped at non-HDR white.
         public void ScaleStartColorBrightness(float factor)
         {
             var main = _particleSystem.main;
@@ -231,6 +242,51 @@ namespace YARG.Helpers.Authoring
                 colorKeys[i].color = ScaleColorBrightness(colorKeys[i].color, factor);
             }
             gradient.colorKeys = colorKeys;
+            return gradient;
+        }
+
+        // Raises this particle's Color Over Lifetime alpha (not its start color's alpha) toward
+        // fully opaque by the given amount (0 = no change, 1 = fully opaque throughout). No-op
+        // if the module isn't enabled.
+        public void BoostColorOverLifetimeAlpha(float boostAmount)
+        {
+            var colorOverLifetime = _particleSystem.colorOverLifetime;
+            if (!colorOverLifetime.enabled) return;
+
+            colorOverLifetime.color = BoostGradientAlpha(colorOverLifetime.color, boostAmount);
+        }
+
+        private static ParticleSystem.MinMaxGradient BoostGradientAlpha(ParticleSystem.MinMaxGradient gradient, float boostAmount)
+        {
+            gradient.color = BoostColorAlpha(gradient.color, boostAmount);
+            gradient.colorMin = BoostColorAlpha(gradient.colorMin, boostAmount);
+            gradient.colorMax = BoostColorAlpha(gradient.colorMax, boostAmount);
+
+            // The gradient fields are reference types and may be unset for modes that don't use
+            // them (e.g. single/two-color mode), so only boost the ones actually present.
+            if (gradient.gradient != null) gradient.gradient = BoostGradientAlphaKeys(gradient.gradient, boostAmount);
+            if (gradient.gradientMin != null) gradient.gradientMin = BoostGradientAlphaKeys(gradient.gradientMin, boostAmount);
+            if (gradient.gradientMax != null) gradient.gradientMax = BoostGradientAlphaKeys(gradient.gradientMax, boostAmount);
+
+            return gradient;
+        }
+
+        private static Color BoostColorAlpha(Color color, float boostAmount)
+        {
+            color.a = Mathf.Lerp(color.a, 1f, boostAmount);
+            return color;
+        }
+
+        private static Gradient BoostGradientAlphaKeys(Gradient gradient, float boostAmount)
+        {
+            // Alpha over a Gradient's lifetime lives in its alpha keys, not the color keys'
+            // alpha component (which Unity ignores when evaluating a Gradient).
+            var alphaKeys = gradient.alphaKeys;
+            for (int i = 0; i < alphaKeys.Length; i++)
+            {
+                alphaKeys[i].alpha = Mathf.Lerp(alphaKeys[i].alpha, 1f, boostAmount);
+            }
+            gradient.alphaKeys = alphaKeys;
             return gradient;
         }
 

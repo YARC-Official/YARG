@@ -24,49 +24,28 @@ namespace YARG.Gameplay.Visuals
         private static readonly int _secondaryPressed = Animator.StringToHash("SecondaryPressed");
 
         // The "Hit Effects" particle group is shared with guitar/keys via the same theme prefab,
-        // so drum-specific duration/range tuning is applied here at runtime (see
-        // ApplyDrumHitEffectTuning) instead of changing the shared asset's values. Only particles
-        // with these exact names are affected, so other themes' differently-named particles are
-        // left untouched.
+        // so drum-specific tuning is applied here at runtime (see ApplyDrumHitEffectTuning)
+        // instead of changing the shared asset's values. Only particles with these exact names
+        // are affected, so other themes' differently-named particles are left untouched.
         //
-        // Smoke/Flash/White Smoke are the particles that drive the hit's perceived "glow":
-        // their peak color/light intensity is already equal to or brighter than guitar's (see
-        // the Point Light intensity and Flash's brightness factor below), yet a very brief flash
-        // still reads as dimmer than a longer one of the same peak brightness (the eye integrates
-        // light over time). Their lifetime factor is kept well under guitar's full (1x) duration
-        // to preserve a snappier feel for drums' faster pace, but raised from the original 0.48
-        // so the glow has enough on-screen time to actually register as bright/punchy.
-        //
-        // Ring is kept at the original (shorter) 0.48 lifetime factor instead of following
-        // the other three up to 0.7 (a longer hold would read as an expanding halo that
-        // grows too wide). Its brightness is nudged up slightly for a bit more glare/glow
-        // right at the button without changing its size/duration, so it doesn't reach out
-        // any further toward the neighboring pads than before.
-        private static readonly Dictionary<string, (float Lifetime, float? Velocity, float? Brightness, bool Additive)> _drumHitParticleFactors = new()
+        // Lifetime is kept well under guitar's full (1x) duration for a snappier feel, except
+        // Ring, which stays at the shorter original 0.48 (a longer hold reads as an expanding
+        // halo that grows too wide). Brightness pushes each particle's RGB into HDR range so
+        // the hit reads as more vivid/punchy. Sparkles additionally needs Additive (its plain
+        // alpha-blended material otherwise clamps at opaque white regardless of HDR push),
+        // SizeY to stretch its thin streaks taller without widening them (widening makes them
+        // read as blobby dots instead of lines), and AlphaBoost to counter its authored Color
+        // Over Lifetime curve, which fades to near-zero alpha for most of the streak's life.
+        private static readonly Dictionary<string, (float Lifetime, float? Velocity, float? Brightness, bool Additive, float? SizeY, float? AlphaBoost)> _drumHitParticleFactors = new()
         {
-            ["Ring"]        = (0.48f, null, 1.3f, false),
-            ["Smoke"]       = (0.7f, null, null, false),
-            // Flash's RGB is boosted into HDR range so the (already fret-colored) flash reads
-            // as more vivid/punchy, matching guitar's brighter look. Pushed further still
-            // (was 1.5x, then 1.9x) since, next to the kick's now-tightened hit light, the drum
-            // flare was reading as comparatively dim/lost - this keeps the flash the same size
-            // while making its peak brightness clearly pop more.
-            ["Flash"]       = (0.7f, null, 2.3f, false),
-            // White Smoke gets the same HDR brightness treatment as Flash for the same reason -
-            // it's part of the same glow cluster, so boosting Flash alone while leaving this
-            // at its plain (capped) brightness made it stick out as the dim one of the group.
-            ["White Smoke"] = (0.7f, null, 1.9f, false),
-            // Sparkles are the thin streaks that shoot straight up out of the fret - boosted
-            // the same way as Flash/White Smoke above (RGB into HDR range only, no change to
-            // their lifetime/velocity) so they read as more visible/eye-catching without
-            // altering how long they last or how far/fast they travel. The brightness boost
-            // alone did nothing visible though: unlike Flash/White Smoke, Sparkles use a plain
-            // alpha-blended material, which clamps at opaque white regardless of how far its
-            // RGB is pushed into HDR - so this is also switched to additive (see
-            // EffectParticle.MakeAdditive) to actually make the brightness boost show up.
-            ["Sparkles"]    = (0.72f, 1.5f, 3.2f, true),
-            ["Shards"]      = (0.72f, 1.5f, null, false),
+            ["Ring"]        = (0.48f, null, 1.3f, false, null, null),
+            ["Smoke"]       = (0.7f, null, null, false, null, null),
+            ["Flash"]       = (0.7f, null, 2.3f, false, null, null),
+            ["White Smoke"] = (0.7f, null, 1.9f, false, null, null),
+            ["Sparkles"]    = (0.72f, 1.5f, 6.2f, true, 1.6f, 0.7f),
+            ["Shards"]      = (0.72f, 1.5f, null, false, null, null),
         };
+
 
         // The Hit/Miss Effects groups are parented to the outer fret prefab root, which is a
         // sibling (not an ancestor) of the Animator's GameObject - so neither FretHitDrums.anim's
@@ -459,6 +438,20 @@ namespace YARG.Gameplay.Visuals
                 if (factors.Brightness is { } brightnessFactor)
                 {
                     particle.ScaleStartColorBrightness(brightnessFactor);
+                    // Also rebase InitialColor by the same factor so the boost survives the
+                    // fret's accent-whiten flash (see Fret.WhitenFretColor/RestoreFretColor) -
+                    // otherwise RestoreColor() resets this particle's startColor straight back
+                    // to the plain, un-boosted color the next time that flash plays, silently
+                    // discarding the brightness boost for the rest of the session.
+                    particle.RebaseInitialColorBrightness(brightnessFactor);
+                }
+                if (factors.SizeY is { } sizeYFactor)
+                {
+                    particle.ScaleStartSizeY(sizeYFactor);
+                }
+                if (factors.AlphaBoost is { } alphaBoost)
+                {
+                    particle.BoostColorOverLifetimeAlpha(alphaBoost);
                 }
             }
         }
