@@ -41,10 +41,25 @@ namespace YARG.Menu.Dialogs
             }
 
             _yargImage = YARGImage.Load(path);
-            var sprite = _yargImage.ToSprite();
+            if (_yargImage == null)
+            {
+                Debug.LogWarning("Failed to load image: " + path + ". Image will not be displayed.");
+                ImageContainer.SetActive(false);
+                return;
+            }
 
-            Image.sprite = sprite;
-            ImageContainer.SetActive(true);
+            try
+            {
+                var sprite = _yargImage.ToSprite();
+                Image.sprite = sprite;
+                Image.transform.localScale = new Vector2(1, -1);
+                ImageContainer.SetActive(true);
+            }
+            finally
+            {
+                _yargImage.Dispose();
+                _yargImage = null;
+            }
         }
 
         protected override void OnBeforeClose()
