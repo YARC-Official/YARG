@@ -949,6 +949,7 @@
         }
     },
 	"Preview": {
+        "Title": "Preview",
 		"Experimental": {
 			"Notice": "IMPORTANT\n\nThese settings represent a work in progress. They are subject to change, may contain bugs, and could even cause major problems if enabled."
 		}
@@ -1118,6 +1119,7 @@
             "Volume": "Volume",
             "Graphics": "Graphics",
             "Camera": "Camera",
+            "Visuals": "Visuals",
             "SongFolders": "Song Folders",
             "SongUpgrades": "Song Upgrades",
             "Cache": "Cache",
@@ -1625,8 +1627,8 @@
                 "Default": "<i>Default ({0})</i>"
             },
             "EffectsMode": {
-                "Name": "Effects Mode",
-                "Description": "Selects the audio fx quality for reverb and time stretching.",
+                "Name": "High quality audio effects",
+                "Description": "Uses improved reverb and time stretching effects, with increased CPU usage.",
                 "Dropdown": {
                     "Performance": "Performance",
                     "Quality": "Quality"

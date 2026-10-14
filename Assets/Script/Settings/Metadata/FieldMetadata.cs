@@ -9,9 +9,9 @@ namespace YARG.Settings.Metadata
         public string FieldName { get; }
         public bool HasDescription { get; } = true;
 
-        public FieldMetadata(string fieldName, bool hasDescription = true, bool isAdvanced = false,
+        public FieldMetadata(string fieldName, bool hasDescription = true,
             Func<bool> visibleWhen = null)
-            : base(isAdvanced, visibleWhen)
+            : base(visibleWhen)
         {
             UnlocalizedSearchNames = new[] { $"Setting.{fieldName}.Name" };
             FieldName = fieldName;

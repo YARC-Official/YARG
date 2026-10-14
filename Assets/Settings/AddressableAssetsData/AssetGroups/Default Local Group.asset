@@ -100,6 +100,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4f6caff9cd34fe3da86a8ae080f94ec2
+    m_Address: SettingTab/ColorGroupHeader
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 55e41705c37b9714290555abec1a7c20
     m_Address: VocalNeedle/7
     m_ReadOnly: 0
@@ -267,6 +272,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: ea75ee401f6919541ada372e1094bf19
     m_Address: SettingTab/SongManagerHeader
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: eaf4f56c17a139e29a894b8824c34e8a
+    m_Address: SettingTab/ColorSubHeader
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
