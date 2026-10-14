@@ -39,25 +39,26 @@ namespace YARG.Menu.Settings
         [SerializeField]
         private CategoryItemView _itemPrefab;
 
+        private NavigationGroup _navigationGroup;
         private Tween _widthTween;
         private readonly List<CategoryItemView> _views = new();
 
         public bool IsCollapsed { get; private set; }
         public string SelectedCategoryId { get; private set; }
-        public NavigationGroup NavigationGroup { get; private set; }
+        public NavigationGroup NavigationGroup =>
+            _navigationGroup != null ? _navigationGroup : _navigationGroup = GetComponent<NavigationGroup>();
 
         public event Action<string> CategoryChanged;
         public event Action<string> CategoryClicked;
         public event Action<string> CategoryConfirmed;
         public event Action SidebarClicked;
 
-        private void Awake()
+        private void OnEnable()
         {
-            NavigationGroup = GetComponent<NavigationGroup>();
             NavigationGroup.SelectionChanged += OnSelectionChanged;
         }
 
-        private void OnDestroy()
+        private void OnDisable()
         {
             NavigationGroup.SelectionChanged -= OnSelectionChanged;
         }
