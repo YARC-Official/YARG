@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using UnityEngine;
 using YARG.Localization;
@@ -51,6 +52,11 @@ namespace YARG.Menu.Career
         private float _songRowHeight = 105f;
 
         private RectTransform _rect;
+
+        private static readonly Type[] MarqueeScrollTypes = { typeof(SongViewType) };
+
+        protected override bool AllowMarqueeScroll => true;
+        protected override Type[] AllowedMarqueeScrollTypes => MarqueeScrollTypes;
 
         private void Awake()
         {
