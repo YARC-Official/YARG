@@ -53,6 +53,18 @@ namespace YARG.Gameplay.Visuals
 
             public static Preset FromHighwayPreset(HighwayPreset preset, bool groove)
             {
+                var baseTexture = preset.BackgroundImage;
+                var sidePattern = preset.SideImage;
+                if (!preset.DefaultPreset && preset.GetExtraContentFolder() is { } extraContentFolder)
+                {
+                    baseTexture = baseTexture == null
+                        ? null
+                        : new FileInfo(Path.Combine(extraContentFolder, baseTexture.Name));
+                    sidePattern = sidePattern == null
+                        ? null
+                        : new FileInfo(Path.Combine(extraContentFolder, sidePattern.Name));
+                }
+
                 if (groove)
                 {
                     return new Preset
@@ -61,8 +73,8 @@ namespace YARG.Gameplay.Visuals
                         Layer2 = preset.BackgroundGrooveBaseColor2.ToUnityColor(),
                         Layer3 = preset.BackgroundGrooveBaseColor3.ToUnityColor(),
                         Layer4 = preset.BackgroundGroovePatternColor.ToUnityColor(),
-                        BaseTexture = preset.BackgroundImage,
-                        SidePattern = preset.SideImage,
+                        BaseTexture = baseTexture,
+                        SidePattern = sidePattern,
                         BaseWaviness = preset.BaseWaviness,
                         SideWaviness = preset.SideWaviness
                     };
@@ -74,8 +86,8 @@ namespace YARG.Gameplay.Visuals
                     Layer2 = preset.BackgroundBaseColor2.ToUnityColor(),
                     Layer3 = preset.BackgroundBaseColor3.ToUnityColor(),
                     Layer4 = preset.BackgroundPatternColor.ToUnityColor(),
-                    BaseTexture = preset.BackgroundImage,
-                    SidePattern = preset.SideImage,
+                    BaseTexture = baseTexture,
+                    SidePattern = sidePattern,
                     BaseWaviness = preset.BaseWaviness,
                     SideWaviness = preset.SideWaviness
                 };

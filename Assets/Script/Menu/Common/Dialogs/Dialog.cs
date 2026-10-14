@@ -33,6 +33,7 @@ namespace YARG.Menu.Dialogs
             // The dialog owns this scheme and must register it before input can
             // reach the underlying menu.
             Navigator.Instance.PushSchemeImmediate(GetNavigationScheme());
+            OnOpen();
         }
 
         protected virtual NavigationScheme GetNavigationScheme()
@@ -109,6 +110,10 @@ namespace YARG.Menu.Dialogs
         }
 
         protected virtual void OnBeforeClose()
+        {
+        }
+
+        protected virtual void OnOpen()
         {
         }
 

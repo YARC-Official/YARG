@@ -17,6 +17,7 @@ using YARG.Player;
 using YARG.Playlists;
 using YARG.Scores;
 using YARG.Settings;
+using YARG.Settings.Customization;
 
 namespace YARG.Song
 {
@@ -96,6 +97,11 @@ namespace YARG.Song
         private static SortedSongs _sortedSongs = new();
         private static SongEntry[] _songs = Array.Empty<SongEntry>();
         private static Dictionary<HashWrapper, List<SongEntry>> _songsByHash = new();
+        // Normally there should never be a collision, but charters and devs often have
+        // multiple versions of the same chart, which will have the same guid, so we
+        // must accommodate that
+        private static Dictionary<Guid, List<SongEntry>> _songsByGuid = new();
+        private static Dictionary<string, List<SongEntry>> _songsByShortName = new();
 
         private static SongCategory[] _sortTitles = Array.Empty<SongCategory>();
         private static SongCategory[] _sortArtists = Array.Empty<SongCategory>();
@@ -142,6 +148,8 @@ namespace YARG.Song
         public static int LibraryRevision { get; private set; }
         // public static IReadOnlyDictionary<HashWrapper, List<SongEntry>> SongsByHash => _songCache.Entries;
         public static IReadOnlyDictionary<HashWrapper, List<SongEntry>> SongsByHash => _songsByHash;
+        public static IReadOnlyDictionary<Guid, List<SongEntry>> SongsByGuid => _songsByGuid;
+        public static IReadOnlyDictionary<string, List<SongEntry>> SongsByShortName => _songsByShortName;
         public static SongEntry[]                                       Songs       => _songs;
 
         public static SongEntry[] UnfilteredSongs => _songCache.Entries.Values.SelectMany(e => e).ToArray();
@@ -201,8 +209,11 @@ namespace YARG.Song
             stopwatch.Stop();
 
             YargLogger.LogFormatInfo("Scan time: {0}s", stopwatch.Elapsed.TotalSeconds);
+
+            // TODO: These should really be event-driven, not called directly from here
             MusicLibraryMenu.SetReload(MusicLibraryReloadState.Full);
             SongSources.LoadSprites(context);
+            CustomContentManager.Careers.RefreshSongEntries();
         }
 
         private static Dictionary<HashWrapper, HashWrapper> FindUpdatedSongHashes(
@@ -1096,6 +1107,8 @@ namespace YARG.Song
             static SongEntry[] SetAllSongs(Dictionary<HashWrapper, List<SongEntry>> entries)
             {
                 _songsByHash.Clear();
+                _songsByGuid.Clear();
+                _songsByShortName.Clear();
 
                 int songCount = 0;
                 foreach (var node in entries)
@@ -1117,18 +1130,40 @@ namespace YARG.Song
                 {
                     for (int i = 0; i < node.Value.Count; i++)
                     {
+                        var song = node.Value[i];
                         if (AllowedByRating(node.Value[i].GetSongRating(SettingsManager.Settings.CensorMatureContent.Value)))
                         {
-                            if (_songsByHash.ContainsKey(node.Key))
+                            if (!_songsByHash.TryGetValue(node.Key, out var hashSongs))
                             {
-                                _songsByHash[node.Key].Add(node.Value[i]);
-                            }
-                            else
-                            {
-                                _songsByHash.Add(node.Key, new List<SongEntry> { node.Value[i] });
+                                hashSongs = new List<SongEntry>();
+                                _songsByHash.Add(node.Key, hashSongs);
                             }
 
-                            songs[index++] = node.Value[i];
+                            hashSongs.Add(song);
+
+                            if (!string.IsNullOrEmpty(song.YargGuid) && Guid.TryParse(song.YargGuid, out var guid))
+                            {
+                                if (!_songsByGuid.TryGetValue(guid, out var guidSongs))
+                                {
+                                    guidSongs = new List<SongEntry>();
+                                    _songsByGuid.Add(guid, guidSongs);
+                                }
+
+                                guidSongs.Add(song);
+                            }
+
+                            if (song is RBCONEntry rbconEntry && !string.IsNullOrEmpty(rbconEntry.RBSongId))
+                            {
+                                if (!_songsByShortName.TryGetValue(rbconEntry.RBSongId, out var shortNameSongs))
+                                {
+                                    shortNameSongs = new List<SongEntry>();
+                                    _songsByShortName.Add(rbconEntry.RBSongId, shortNameSongs);
+                                }
+
+                                shortNameSongs.Add(song);
+                            }
+
+                            songs[index++] = song;
                         }
                     }
                 }

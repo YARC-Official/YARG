@@ -48,6 +48,18 @@ namespace YARG.Settings.Metadata
 
         // Prefabs needed for this tab type
         private static GameObject _headerPrefab;
+        private static GameObject _smallRoundButtonPrefab;
+
+        public static GameObject GetSmallRoundButtonPrefab()
+        {
+            if (_smallRoundButtonPrefab == null)
+            {
+                _smallRoundButtonPrefab = Addressables
+                    .LoadAssetAsync<GameObject>("Buttons/SmallRoundButton")
+                    .WaitForCompletion();
+            }
+            return _smallRoundButtonPrefab;
+        }
 
         protected static ColorPresetHeader SpawnColorHeader(Transform container, bool subHeader)
         {
@@ -62,7 +74,7 @@ namespace YARG.Settings.Metadata
             return Object.Instantiate(prefab, container);
         }
 
-        protected static GameObject GetHeaderPrefab()
+        public static GameObject GetHeaderPrefab()
         {
             if (_headerPrefab == null)
             {
@@ -82,17 +94,18 @@ namespace YARG.Settings.Metadata
 
         public abstract void SetPresetReference(object preset);
 
-        protected static void SpawnHeader(Transform container, string unlocalizedText)
+        protected static GameObject SpawnHeader(Transform container, string unlocalizedText)
         {
-            SpawnRawHeader(container, Localize.Key("Settings.Header", unlocalizedText));
+            return SpawnRawHeader(container, Localize.Key("Settings.Header", unlocalizedText));
         }
 
         // Like SpawnHeader but sets the text directly without localization key lookup.
         // Used for group/sub-group labels in the color profile editor.
-        protected static void SpawnRawHeader(Transform container, string text)
+        public static GameObject SpawnRawHeader(Transform container, string text)
         {
             var go = Object.Instantiate(GetHeaderPrefab(), container);
             go.GetComponentInChildren<TextMeshProUGUI>().text = text;
+            return go;
         }
 
         /// <summary>
