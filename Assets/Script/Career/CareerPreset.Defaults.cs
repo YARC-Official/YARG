@@ -156,45 +156,12 @@ namespace YARG.Career
                 new CareerSong(Guid.Parse("43ea77fb-adcf-470e-873d-0b88ce386a0e")), // Krilloan - Emperor Rising
             };
 
-            // Career Finale [58a12af9-dd41-5d32-9a35-f4a124cc40f8] - 1 charted song(s)
-            CareerSong[] tierCareerFinale = new[]
-            {
-                new CareerSong(Guid.Parse("7a66dafc-a150-499d-898d-9ad0f069a411")), // Höwler - The New World Disorder
-            };
-
-            // Boss Songs [a9ac9674-48b2-55c2-b3ed-aec99d7ebfce] - 9 charted song(s), 1 unmatched
-            CareerSong[] tierBossSongs = new[]
-            {
-                new CareerSong(Guid.Parse("f985a4a9-7aad-4465-86ca-9d8b76145f07")), // insaneintherainmusic - Luminaire
-                new CareerSong(Guid.Parse("831dcf73-77d0-41a0-bedd-57bf7227bc7a")), // Bumblefoot - Jenny B
-                new CareerSong(Guid.Parse("4a8c91f5-e7da-4933-ac3c-58a2556dc1c9")), // Max Boras - Frank Scored a Video Game
-                new CareerSong(Guid.Parse("ea858f8c-69f5-43c4-88ae-f0ebfa1ca074")), // 8-Bit Big Band - Moonlight Sonata 3rd (Big Band Version) [aliased title]
-                new CareerSong(Guid.Parse("82d64037-ecf8-430b-9b5c-dfb800196edb")), // FamilyJules - Flight of the Bumblebee
-                new CareerSong(Guid.Parse("41955597-c1ed-4805-9931-c74ca5c7c945")), // Camellia - 1nput This 2 Y0ur Spine
-                new CareerSong(Guid.Parse("2c8b4065-b608-4f29-81b2-551fc3d720cd")), // obkatiekat - Tick Tock
-                new CareerSong(Guid.Parse("72884d6c-5af5-4247-adcf-5140ea2545b1")), // A Pretext to Human Suffering - Formless Collective
-                new CareerSong(Guid.Parse("8e2cf75f-5272-400d-af33-d1fdb3213af4")), // Mindiode - Mass Gap
-            };
-
-            // Sidequest Songs (bonus) [35910a9f-c468-55d9-a92e-6fd64e85ed6b] - 8 charted song(s), 6 unmatched
-            CareerSong[] tierSidequestSongs = new[]
-            {
-                new CareerSong(Guid.Parse("f2f32625-8362-4824-a457-31e365d032c6")), // Pinegrove - Need 2
-                new CareerSong(Guid.Parse("9b35574b-5557-493c-b9e9-bfbf9f264b07")), // The Polarity - Love Me Pls
-                new CareerSong(Guid.Parse("b529d933-90cb-4f3b-86ea-50134948344e")), // State Champs - Secrets
-                new CareerSong(Guid.Parse("7fadd9a9-347b-4134-b635-86ceac65af35")), // CircusP - Better Off Worse (feat. Flower)
-                new CareerSong(Guid.Parse("eb0354b7-7687-4ea1-a9ab-f04fcaa3530f")), // Lemon Demon - Fine
-                new CareerSong(Guid.Parse("4f2ccdfb-4916-4333-a3cc-a948e639c7fb")), // JubyPhonic - Oopsie Daisy
-                new CareerSong(Guid.Parse("7ad055cd-84df-496a-9c01-49a1f494b879")), // InVerSe - Blue (feat. Miori Celesta)
-                new CareerSong(Guid.Parse("44fc0692-9d15-4cab-9156-05432ad7dc7d")), // Electric Swing Circus - Empires
-            };
-
             CareerTier[] tiers =
             {
                 new()
                 {
                     Id = new Guid("92aa777c-c33d-5eba-a180-a90d591065f4"),
-                    Name = "Set 1",
+                    Name = "Playing in the Backyard",
                     UnlockType = UnlockType.StarCount,
                     UnlockCriteria = 0,
                     Songs = tierSet1,
@@ -202,125 +169,117 @@ namespace YARG.Career
                 new()
                 {
                     Id = new Guid("dcf2e5b2-8708-58b2-9c22-ce036d043787"),
-                    Name = "Bonus Songs 1",
+                    Name = "Tunnel Tripping",
                     UnlockType = UnlockType.StarCount,
                     UnlockCriteria = 25,
                     Songs = tierBonusSongs1,
                     IsBonus = true,
+                    CustomUnlockText = "Uh... where are we? What did we say about eating the YARG gems? Now you'll need to play yourself out of this stupor. Go on, try whatever you want, it's all a dream.",
+                    VenueHint = "Venue/TunnelTrip",
                 },
                 new()
                 {
                     Id = new Guid("239b6ac6-ed4b-597a-95fc-14666ba263ea"),
-                    Name = "Set 2",
+                    Name = "Getting in the Groove",
                     UnlockType = UnlockType.StarCount,
                     UnlockCriteria = 25,
                     Songs = tierSet2,
+                    CustomUnlockText = "Getting the hang of it? Now you can start cranking up the energy. You're sure to impress your acquaintances with faster and more intricate songs.",
                 },
                 new()
                 {
                     Id = new Guid("512bf8db-e5d3-58f3-b961-a27114a633b4"),
-                    Name = "Set 3",
+                    Name = "Garage Band",
                     UnlockType = UnlockType.StarCount,
                     UnlockCriteria = 50,
                     Songs = tierSet3,
+                    CustomUnlockText = "Think you can make it as a band? The club in your area has a large garage where up-and-coming acts play shows on the regular. Sign up for a gig and see what you've got!",
                 },
                 new()
                 {
                     Id = new Guid("560ef7da-a2ad-5485-9c15-fdb9c5057de8"),
-                    Name = "Bonus Songs 2",
+                    Name = "Locked Up",
                     UnlockType = UnlockType.StarCount,
                     UnlockCriteria = 75,
                     Songs = tierBonusSongs2,
                     IsBonus = true,
+                    CustomUnlockText = "So you're telling me that you played some illegal songs, and the police got you trapped in this cell? That's just great. Perhaps you could play them some songs and they'll let you go.",
                 },
                 new()
                 {
                     Id = new Guid("76c85f05-30f7-57a0-8e2b-48ec97613929"),
-                    Name = "Set 4",
+                    Name = "Rocking Harder",
                     UnlockType = UnlockType.StarCount,
                     UnlockCriteria = 75,
                     Songs = tierSet4,
+                    CustomUnlockText = "Seems like the local patronage has taken a interest to you. Now that you've got the experience, it's time to captivate the crowd with your harder-hitting songs! Get the word out there.",
                 },
                 new()
                 {
                     Id = new Guid("c0ef3129-c420-544b-ae68-d4b4edc4a9cc"),
-                    Name = "Set 5",
+                    Name = "Cathedral Concert",
                     UnlockType = UnlockType.StarCount,
                     UnlockCriteria = 100,
                     Songs = tierSet5,
+                    CustomUnlockText = "You've booked a church for your next gig? That's wild. But with a larger space for a crowd, your range of influence ever grows. Bless these lands with your music!",
+                    VenueHint = "Venue/Church",
                 },
                 new()
                 {
                     Id = new Guid("095ae288-b533-50ac-81ae-daee9c29e9fe"),
-                    Name = "Bonus Songs 3",
+                    Name = "Devil's Work",
                     UnlockType = UnlockType.StarCount,
                     UnlockCriteria = 125,
                     Songs = tierBonusSongs3,
                     IsBonus = true,
+                    CustomUnlockText = "Don't tell me you tried playing \"The Devil Went Down to Georgia\" of all songs... Now it seems you've got an audience with the underworld. Entertain them, or be damned for eternity...",
+                    VenueHint = "Venue/MagiaAlliance",
                 },
                 new()
                 {
                     Id = new Guid("54b25571-bcbd-54c5-8950-ddf5784c538e"),
-                    Name = "Set 6",
+                    Name = "Soaring Higher",
                     UnlockType = UnlockType.StarCount,
                     UnlockCriteria = 125,
                     Songs = tierSet6,
+                    CustomUnlockText = "In a place where acts can give you wings, your band can take the jump and ascend ever higher! Serenade the crowd with soaring melodies and complex progressions, and take the next step towards stardom.",
                 },
                 new()
                 {
                     Id = new Guid("02f5d98e-82f2-536f-9ea0-8e9202b2e03a"),
-                    Name = "Set 7",
+                    Name = "Festival Frenzy",
                     UnlockType = UnlockType.StarCount,
                     UnlockCriteria = 150,
                     Songs = tierSet7,
+                    CustomUnlockText = "You're finally here: the grand music festival, localized entirely within your city! So many bands take turns fighting for attention over a wave of visitors from all over the area. Make a name for yourself!",
+                    VenueHint = "Venue/OutdoorConcert",
                 },
                 new()
                 {
                     Id = new Guid("a38b05e2-641f-56c1-8363-bd43309ba918"),
-                    Name = "Bonus Songs 4",
+                    Name = "Own the Studio",
                     UnlockType = UnlockType.StarCount,
                     UnlockCriteria = 175,
                     Songs = tierBonusSongs4,
                     IsBonus = true,
+                    CustomUnlockText = "This is your first opportunity to record your own music? With professional equipment and a white room? Choose whichever songs you please, I'm sure it'll turn out great!",
                 },
                 new()
                 {
                     Id = new Guid("89904050-9cd4-54f4-adb2-fb038dd006a8"),
-                    Name = "Set 8",
+                    Name = "Pinnacle of Performance",
                     UnlockType = UnlockType.StarCount,
                     UnlockCriteria = 175,
                     Songs = tierSet8,
-                },
-                new()
-                {
-                    Id = new Guid("58a12af9-dd41-5d32-9a35-f4a124cc40f8"),
-                    Name = "Career Finale",
-                    UnlockType = UnlockType.StarCount,
-                    UnlockCriteria = 200,
-                    Songs = tierCareerFinale,
-                },
-                new()
-                {
-                    Id = new Guid("a9ac9674-48b2-55c2-b3ed-aec99d7ebfce"),
-                    Name = "Boss Songs",
-                    UnlockType = UnlockType.StarCount,
-                    UnlockCriteria = 205,
-                    Songs = tierBossSongs,
-                },
-                new()
-                {
-                    Id = new Guid("35910a9f-c468-55d9-a92e-6fd64e85ed6b"),
-                    Name = "Sidequest Songs",
-                    UnlockType = UnlockType.StarCount,
-                    UnlockCriteria = 250,
-                    Songs = tierSidequestSongs,
+                    CustomUnlockText = "Out of all acts in the festival, your band stands out on top. You have the final set: send the crowd home with an experience they'll never forget!",
+                    VenueHint = "Venue/Festival",
                 },
             };
 
             return new CareerPreset(
                 new Guid("1cb75c48-ef17-52aa-bb40-f48fe0fcf2d4"),
                 "YARG Setlist Rock",
-                "Maybe you can be a rock star?",
+                "Starting a band has never been easier! Bring your friends to the YARG and begin playing the songs you've rehearsed. Even if you flub a few notes, everyone's here for a good time!",
                 null,
                 "yarg",
                 true,
@@ -469,46 +428,6 @@ namespace YARG.Career
                 new CareerSong(Guid.Parse("0155ec33-35c8-4a4f-b415-e4b26870e474")), // Bitbreaker - God Only Knows (feat. Kasane Teto)
             };
 
-            // Career Finale [58a12af9-dd41-5d32-9a35-f4a124cc40f8] - 0 charted song(s), 1 unmatched
-            CareerSong[] tierCareerFinale = new CareerSong[]
-            {
-                // TODO no chart in master source: [REDACTED]
-            };
-
-            // Boss Songs [a9ac9674-48b2-55c2-b3ed-aec99d7ebfce] - 10 charted song(s)
-            CareerSong[] tierBossSongs = new[]
-            {
-                new CareerSong(Guid.Parse("f985a4a9-7aad-4465-86ca-9d8b76145f07")), // insaneintherainmusic - Luminaire
-                new CareerSong(Guid.Parse("831dcf73-77d0-41a0-bedd-57bf7227bc7a")), // Bumblefoot - Jenny B
-                new CareerSong(Guid.Parse("4a8c91f5-e7da-4933-ac3c-58a2556dc1c9")), // Max Boras - Frank Scored a Video Game
-                new CareerSong(Guid.Parse("ea858f8c-69f5-43c4-88ae-f0ebfa1ca074")), // 8-Bit Big Band - Moonlight Sonata 3rd (Big Band Version) [aliased title]
-                new CareerSong(Guid.Parse("82d64037-ecf8-430b-9b5c-dfb800196edb")), // FamilyJules - Flight of the Bumblebee
-                new CareerSong(Guid.Parse("7a66dafc-a150-499d-898d-9ad0f069a411")), // Höwler - The New World Disorder
-                new CareerSong(Guid.Parse("41955597-c1ed-4805-9931-c74ca5c7c945")), // Camellia - 1nput This 2 Y0ur Spine
-                new CareerSong(Guid.Parse("2c8b4065-b608-4f29-81b2-551fc3d720cd")), // obkatiekat - Tick Tock
-                new CareerSong(Guid.Parse("72884d6c-5af5-4247-adcf-5140ea2545b1")), // A Pretext to Human Suffering - Formless Collective
-                new CareerSong(Guid.Parse("8e2cf75f-5272-400d-af33-d1fdb3213af4")), // Mindiode - Mass Gap
-            };
-
-            // Sidequest Songs (bonus) [35910a9f-c468-55d9-a92e-6fd64e85ed6b] - 8 charted song(s), 6 unmatched
-            CareerSong[] tierSidequestSongs = new[]
-            {
-                new CareerSong(Guid.Parse("42d0e0f8-7767-4148-8cfc-1b5eb2c529d6")), // Saturdays at Your Place - Eat Me Alive
-                new CareerSong(Guid.Parse("b529d933-90cb-4f3b-86ea-50134948344e")), // State Champs - Secrets
-                new CareerSong(Guid.Parse("99d7b85c-306c-4376-a363-7ec682ed5aa3")), // Surefire - Salt the Wound
-                new CareerSong(Guid.Parse("1f36bed1-8e79-40fc-aabb-bce036b03903")), // Auris - They Call
-                new CareerSong(Guid.Parse("5c13bf2c-7830-43df-a64e-d8529d418722")), // Four Year Strong - We All Float Down Here
-                new CareerSong(Guid.Parse("e1cdf591-ab4f-4f7f-944f-4874e50d774d")), // Adamic - All of a Sudden
-                new CareerSong(Guid.Parse("9647a6b9-7cd4-48f2-b5f7-42da96d156c6")), // Blight Town - Al Gore Rhythm
-                new CareerSong(Guid.Parse("abe11359-0565-4b39-85de-221d06c0cba4")), // Good Kid - Nomu
-                // TODO no chart in master source: [REDACTED]
-                // TODO no chart in master source: [REDACTED]
-                // TODO no chart in master source: [REDACTED]
-                // TODO no chart in master source: [REDACTED]
-                // TODO no chart in master source: [REDACTED]
-                // TODO no chart in master source: [REDACTED]
-            };
-
             CareerTier[] tiers =
             {
                 new()
@@ -610,31 +529,6 @@ namespace YARG.Career
                     UnlockType = UnlockType.StarCount,
                     UnlockCriteria = 175,
                     Songs = tierSet8,
-                },
-                new()
-                {
-                    Id = new Guid("58a12af9-dd41-5d32-9a35-f4a124cc40f8"),
-                    Name = "Career Finale",
-                    UnlockType = UnlockType.StarCount,
-                    UnlockCriteria = 200,
-                    Songs = tierCareerFinale,
-                },
-                new()
-                {
-                    Id = new Guid("a9ac9674-48b2-55c2-b3ed-aec99d7ebfce"),
-                    Name = "Boss Songs",
-                    UnlockType = UnlockType.StarCount,
-                    UnlockCriteria = 200,
-                    Songs = tierBossSongs,
-                },
-                new()
-                {
-                    Id = new Guid("35910a9f-c468-55d9-a92e-6fd64e85ed6b"),
-                    Name = "Sidequest Songs",
-                    UnlockType = UnlockType.StarCount,
-                    UnlockCriteria = 250,
-                    Songs = tierSidequestSongs,
-                    IsBonus = true,
                 },
             };
 
