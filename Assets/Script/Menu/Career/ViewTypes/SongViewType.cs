@@ -18,6 +18,7 @@ namespace YARG.Menu.Career
         private readonly Guid  _tierId;
         private readonly int   _tierIndex;
         private readonly int   _songIndex;
+        private readonly string _tierVenueHint;
         private readonly CareerEvaluation.SongResult _result;
         private readonly Action _onPlay;
 
@@ -30,7 +31,7 @@ namespace YARG.Menu.Career
         /// and only reloads it when something could have changed.
         /// </param>
         public SongViewType(CareerSong song, Guid careerId, Guid tierId, int tierIndex, int songIndex,
-            CareerEvaluation.SongResult result = null, Action onPlay = null)
+            string tierVenueHint, CareerEvaluation.SongResult result = null, Action onPlay = null)
         {
             _song = song;
             _songEntry = song.SongEntry;
@@ -38,6 +39,7 @@ namespace YARG.Menu.Career
             _tierId = tierId;
             _tierIndex = tierIndex;
             _songIndex = songIndex;
+            _tierVenueHint = tierVenueHint;
             _result = result;
             _onPlay = onPlay;
         }
@@ -117,6 +119,7 @@ namespace YARG.Menu.Career
                 CareerId = _careerId,
                 TierId = _tierId,
                 TierIndex = _tierIndex,
+                VenueHint = _tierVenueHint,
                 CareerSongId = _song.Id,
                 SongIndex = _songIndex,
             };

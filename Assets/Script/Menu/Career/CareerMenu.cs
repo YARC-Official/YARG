@@ -174,7 +174,7 @@ namespace YARG.Menu.Career
                 for (var songIndex = 0; songIndex < tier.Songs.Length; songIndex++)
                 {
                     viewList.Add(new SongViewType(
-                        tier.Songs[songIndex], _career.Id, tier.Id, tierIndex, songIndex,
+                        tier.Songs[songIndex], _career.Id, tier.Id, tierIndex, songIndex, tier.VenueHint,
                         songIndex < result.Songs.Count ? result.Songs[songIndex] : null,
                         OnSongPlayed));
                 }

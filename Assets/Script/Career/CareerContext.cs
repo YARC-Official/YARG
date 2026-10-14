@@ -11,6 +11,7 @@ namespace YARG.Career
         public Guid CareerId;
         public Guid TierId;
         public int TierIndex;
+        public string VenueHint;
         public Guid CareerSongId;
         public int SongIndex;
     }
