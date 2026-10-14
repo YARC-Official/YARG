@@ -37,31 +37,35 @@ namespace YARG.Gameplay.Visuals
         // to preserve a snappier feel for drums' faster pace, but raised from the original 0.48
         // so the glow has enough on-screen time to actually register as bright/punchy.
         //
-        // Ring is kept at the original (shorter) 0.48 factor instead of following the other
-        // three up to 0.7: it's a donut-shaped burst that grows from nothing to full size over
-        // its lifetime, so the longer hold time read as an expanding glare/halo that guitar
-        // never has (guitar never runs this tuning at all, so its Ring stays at its untouched,
-        // much snappier default).
-        private static readonly Dictionary<string, (float Lifetime, float? Velocity, float? Brightness)> _drumHitParticleFactors = new()
+        // Ring is kept at the original (shorter) 0.48 lifetime factor instead of following
+        // the other three up to 0.7 (a longer hold would read as an expanding halo that
+        // grows too wide). Its brightness is nudged up slightly for a bit more glare/glow
+        // right at the button without changing its size/duration, so it doesn't reach out
+        // any further toward the neighboring pads than before.
+        private static readonly Dictionary<string, (float Lifetime, float? Velocity, float? Brightness, bool Additive)> _drumHitParticleFactors = new()
         {
-            ["Ring"]        = (0.48f, null, null),
-            ["Smoke"]       = (0.7f, null, null),
+            ["Ring"]        = (0.48f, null, 1.3f, false),
+            ["Smoke"]       = (0.7f, null, null, false),
             // Flash's RGB is boosted into HDR range so the (already fret-colored) flash reads
             // as more vivid/punchy, matching guitar's brighter look. Pushed further still
             // (was 1.5x, then 1.9x) since, next to the kick's now-tightened hit light, the drum
             // flare was reading as comparatively dim/lost - this keeps the flash the same size
             // while making its peak brightness clearly pop more.
-            ["Flash"]       = (0.7f, null, 2.3f),
+            ["Flash"]       = (0.7f, null, 2.3f, false),
             // White Smoke gets the same HDR brightness treatment as Flash for the same reason -
             // it's part of the same glow cluster, so boosting Flash alone while leaving this
             // at its plain (capped) brightness made it stick out as the dim one of the group.
-            ["White Smoke"] = (0.7f, null, 1.9f),
+            ["White Smoke"] = (0.7f, null, 1.9f, false),
             // Sparkles are the thin streaks that shoot straight up out of the fret - boosted
             // the same way as Flash/White Smoke above (RGB into HDR range only, no change to
             // their lifetime/velocity) so they read as more visible/eye-catching without
-            // altering how long they last or how far/fast they travel.
-            ["Sparkles"]    = (0.72f, 1.5f, 1.8f),
-            ["Shards"]      = (0.72f, 1.5f, null),
+            // altering how long they last or how far/fast they travel. The brightness boost
+            // alone did nothing visible though: unlike Flash/White Smoke, Sparkles use a plain
+            // alpha-blended material, which clamps at opaque white regardless of how far its
+            // RGB is pushed into HDR - so this is also switched to additive (see
+            // EffectParticle.MakeAdditive) to actually make the brightness boost show up.
+            ["Sparkles"]    = (0.72f, 1.5f, 3.2f, true),
+            ["Shards"]      = (0.72f, 1.5f, null, false),
         };
 
         // The Hit/Miss Effects groups are parented to the outer fret prefab root, which is a
@@ -84,8 +88,8 @@ namespace YARG.Gameplay.Visuals
         // pronounced than the mesh's actual (fairly subtle) jump.
         private const float DRUM_HIT_JUMP_TRACKING_STRENGTH = 1.8f;
 
-        // Safety cutoff for miss jump tracking, comfortably longer than FretMiss.anim's current
-        // stop time (0.26666668s) so the full return-to-rest is always captured even if that
+        // Safety cutoff for miss jump tracking, comfortably longer than FretMissDrums.anim's
+        // current stop time (0.15s) so the full return-to-rest is always captured even if that
         // clip is retuned.
         private const float DRUM_MISS_JUMP_TRACKING_DURATION = 0.35f;
 
@@ -447,6 +451,10 @@ namespace YARG.Gameplay.Visuals
                 if (factors.Velocity is { } velocityFactor)
                 {
                     particle.ScaleVelocityOverLifetime(velocityFactor);
+                }
+                if (factors.Additive)
+                {
+                    particle.MakeAdditive();
                 }
                 if (factors.Brightness is { } brightnessFactor)
                 {

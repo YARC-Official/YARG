@@ -13,6 +13,11 @@ namespace YARG.Helpers.Authoring
     public class EffectParticle : MonoBehaviour
     {
         private static readonly int _emissionColor = Shader.PropertyToID("_EmissionColor");
+        private static readonly int _blendProp = Shader.PropertyToID("_Blend");
+        private static readonly int _srcBlend = Shader.PropertyToID("_SrcBlend");
+        private static readonly int _dstBlend = Shader.PropertyToID("_DstBlend");
+        private static readonly int _srcBlendAlpha = Shader.PropertyToID("_SrcBlendAlpha");
+        private static readonly int _dstBlendAlpha = Shader.PropertyToID("_DstBlendAlpha");
 
         [Space]
         [SerializeField]
@@ -162,6 +167,25 @@ namespace YARG.Helpers.Authoring
             velocity.x = ScaleCurve(velocity.x, factor);
             velocity.y = ScaleCurve(velocity.y, factor);
             velocity.z = ScaleCurve(velocity.z, factor);
+        }
+
+        // Switches this particle's material from the default alpha blend to additive. Creates a
+        // per-instance material copy (via the ParticleSystemRenderer.material getter, which
+        // Unity auto-instances on first access), so this only affects this specific particle
+        // system - never the shared asset or any other instance using it (e.g. guitar/keys
+        // frets, which share the same prefab, are left on their original alpha blend). Needed
+        // because alpha blending clamps at opaque: boosting a particle's start color into HDR
+        // range (see ScaleStartColorBrightness) has no visible effect unless it's additive.
+        public void MakeAdditive()
+        {
+            if (_particleSystemRenderer == null) return;
+
+            var material = _particleSystemRenderer.material;
+            material.SetFloat(_blendProp, 2f); // Additive
+            material.SetFloat(_srcBlend, (float) UnityEngine.Rendering.BlendMode.SrcAlpha);
+            material.SetFloat(_dstBlend, (float) UnityEngine.Rendering.BlendMode.One);
+            material.SetFloat(_srcBlendAlpha, (float) UnityEngine.Rendering.BlendMode.One);
+            material.SetFloat(_dstBlendAlpha, (float) UnityEngine.Rendering.BlendMode.One);
         }
 
         // Scales this particle's start color RGB (not alpha) by the given factor, regardless of

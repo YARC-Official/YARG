@@ -14,8 +14,10 @@ namespace YARG.Gameplay.Visuals
         // How tall the arc's bulge gets at its midpoint, as a multiple of the original flat
         // quad's half-height. The ends of the arc stay anchored at the quad's original edges
         // (so it still lines up with the kick frets at the sides), while the middle lifts up
-        // and clears the button row instead of lying flat across it.
-        private const float ARC_HEIGHT_FACTOR = 0.35f;
+        // and clears the button row instead of lying flat across it. Kept fairly low (rather
+        // than a tall, dramatic arc) so it stays close to the button row instead of bulging
+        // way up above it.
+        private const float ARC_HEIGHT_FACTOR = 0.25f;
 
         // Shrinks the arc inward from the original flat quad's edges so its resting width
         // doesn't additively overlap (and visually "bleed into") the striker pads' own glow.
@@ -24,13 +26,12 @@ namespace YARG.Gameplay.Visuals
         private const float ARC_WIDTH_FACTOR = 0.85f;
 
         // Drives the arc's width across its whole visible lifetime (not just the instant of
-        // the hit): it starts narrow, grows out wider as the flash's curve/bulge is "jumping"
-        // into view, then eases back down narrow again as the flash fades out. Staying narrow
-        // most of the time keeps it clear of the highway's rails and the striker pads' own
-        // glow, while the brief wide peak is what lets it visually reach out to the pads.
+        // the hit): it starts narrow, then grows out wider as the flash's curve/bulge is
+        // "jumping" into view, and holds there while the flash fades out via its texture
+        // flipbook - rather than easing back down narrow - so the arc only ever grows and
+        // disappears, instead of visibly shrinking back down first.
         private const float WIDTH_START_SCALE = 0.55f;
         private const float WIDTH_PEAK_SCALE = 1.2f;
-        private const float WIDTH_END_SCALE = 0.55f;
         // How far into the flash's lifetime (as a 0-1 fraction) the width hits its peak.
         private const float WIDTH_PEAK_TIME_FRACTION = 0.3f;
 
@@ -128,8 +129,8 @@ namespace YARG.Gameplay.Visuals
         /// <summary>
         /// Animates the arc's width across its whole visible lifetime: narrow at the start,
         /// widening out to its peak partway through (as if the curve is "jumping" up into
-        /// view), then easing back down narrow again as the flash fades. See
-        /// WIDTH_START_SCALE/WIDTH_PEAK_SCALE/WIDTH_END_SCALE above.
+        /// view), then holding there while the flash fades out via its texture flipbook. See
+        /// WIDTH_START_SCALE/WIDTH_PEAK_SCALE above.
         /// </summary>
         private void UpdateArcWidth()
         {
@@ -144,9 +145,7 @@ namespace YARG.Gameplay.Visuals
             }
             else
             {
-                float localT = (t - WIDTH_PEAK_TIME_FRACTION) / (1f - WIDTH_PEAK_TIME_FRACTION);
-                float ease = localT * localT;
-                scale = Mathf.Lerp(WIDTH_PEAK_SCALE, WIDTH_END_SCALE, ease);
+                scale = WIDTH_PEAK_SCALE;
             }
 
             _flashTransform.localScale = new Vector3(_baseScale.x * scale, _baseScale.y, _baseScale.z);
