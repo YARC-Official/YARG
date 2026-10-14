@@ -62,7 +62,7 @@ namespace YARG.Menu.ProfileInfo.Overview
         private TextMeshProUGUI _profileSummaryHeader;
         private int? _profileSummarySelectedIndex;
         private int? _statsSelectedIndex;
-        private readonly TextMeshProUGUI[] _profileSummaryValues = new TextMeshProUGUI[13];
+        private readonly TextMeshProUGUI[] _profileSummaryValues = new TextMeshProUGUI[14];
         private static readonly Dictionary<string, Sprite> InstrumentIconCache = new();
 
         private static readonly Instrument[] Instruments = Enum.GetValues(typeof(Instrument))
@@ -99,6 +99,7 @@ namespace YARG.Menu.ProfileInfo.Overview
             "Menu.ProfileInfo.Stats.FavoriteArtist",
             "Menu.ProfileInfo.Stats.FavoriteGenre",
             "Menu.ProfileInfo.Stats.FavoriteSource",
+            "Menu.ProfileInfo.Stats.AverageStars",
             "Menu.ProfileInfo.Stats.AveragePercentage",
             "Menu.ProfileInfo.Stats.LongestFullComboStreak"
         };
@@ -111,8 +112,10 @@ namespace YARG.Menu.ProfileInfo.Overview
         private void OnEnable()
         {
             var profile = _profileInfoMenu.CurrentProfile;
-            var scores = ScoreContainer.GetAllScoresByPlayerId(profile.Id);
-            var scoresWithChecksums = ScoreContainer.GetAllScoresWithChecksumsByPlayerId(profile.Id);
+            var scores = ScoreContainer.GetAllScoresWithChecksumsByPlayerId(profile.Id)
+                .Where(score => SongContainer.SongsByHash.TryGetValue(HashWrapper.Create(score.SongChecksum),
+                    out var songs) && songs.Count > 0)
+                .ToList();
 
             _profilePicture.enabled = true;
             _avatar.gameObject.SetActive(false);
@@ -132,7 +135,7 @@ namespace YARG.Menu.ProfileInfo.Overview
                 .LongCount(i => i.IsFc)
                 .ToString("N0");
 
-            PopulateProfileSummary(profile.Name, scores, scoresWithChecksums);
+            PopulateProfileSummary(profile.Name, scores);
             PopulateInstrumentStats(ScoreContainer.GetScoresInCurrentLibraryByPlayerId(profile.Id));
             FocusProfileSummary(true);
 
@@ -380,8 +383,7 @@ namespace YARG.Menu.ProfileInfo.Overview
             }
         }
 
-        private void PopulateProfileSummary(string profileName, List<PlayerScoreRecord> scores,
-            List<PlayerScoreWithChecksum> scoresWithChecksums)
+        private void PopulateProfileSummary(string profileName, List<PlayerScoreWithChecksum> scores)
         {
             if (_profileSummaryContent == null)
             {
@@ -395,7 +397,7 @@ namespace YARG.Menu.ProfileInfo.Overview
                 .Select(song => song.Hash)
                 .Distinct()
                 .LongCount();
-            var playHistory = GetPlayHistorySummary(scoresWithChecksums);
+            var playHistory = GetPlayHistorySummary(scores);
             var summaryValues = new[]
             {
                 songsOwned.ToString("N0"),
@@ -409,6 +411,7 @@ namespace YARG.Menu.ProfileInfo.Overview
                 playHistory.MostPlayedArtist,
                 playHistory.MostPlayedGenre,
                 playHistory.MostPlayedSource,
+                FormatAverageStars(scores),
                 playHistory.AveragePercentage,
                 playHistory.LongestFullComboStreak
             };
@@ -545,6 +548,17 @@ namespace YARG.Menu.ProfileInfo.Overview
             return SettingsManager.Settings.ShowPercentDecimals.Value
                 ? $"{Math.Floor(percentage * 1000) / 10:0.0}%"
                 : $"{Math.Floor(percentage * 100):0}%";
+        }
+
+        private static string FormatAverageStars(IReadOnlyCollection<PlayerScoreRecord> scores)
+        {
+            if (scores.Count == 0)
+            {
+                return "-";
+            }
+
+            double averageStars = scores.Average(score => GetProfileStarPoints(score.Stars));
+            return averageStars.ToString(SettingsManager.Settings.ShowPercentDecimals.Value ? "0.00" : "0.0");
         }
 
         private void PopulateInstrumentStats(List<PlayerScoreWithChecksum> scores)
