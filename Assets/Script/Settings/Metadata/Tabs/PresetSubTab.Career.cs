@@ -386,7 +386,8 @@ namespace YARG.Settings.Metadata
                     {
                         "png",
                         "jpg",
-                        "jpeg"
+                        "jpeg",
+                        "webm",
                     };
 
                     FileExplorerHelper.OpenChooseFile("", extensions, mediaPath =>
