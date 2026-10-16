@@ -317,6 +317,11 @@ namespace YARG.Menu.Settings
 
         private void FocusNavigation(NavigationGroup target, bool animate = true)
         {
+            if (target == null)
+            {
+                return;
+            }
+
             _categorySidebar.SetCollapsed(collapsed: target != _categorySidebar.NavigationGroup, animate: animate);
 
             var current = NavigationGroup.CurrentNavigationGroup;

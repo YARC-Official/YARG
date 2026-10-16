@@ -529,7 +529,7 @@ namespace YARG.Menu.MusicLibrary
             // Stop any library preview audio so the Filters menu doesn't inherit it
             StopPreview();
 
-            var menu = YARG.Menu.Filters.FiltersMenu.Instance;
+            var menu = Filters.FiltersMenu.Instance;
             if (menu == null)
                 return;
 
@@ -539,7 +539,7 @@ namespace YARG.Menu.MusicLibrary
 
         private static bool IsFiltersMenuOpen()
         {
-            var menu = YARG.Menu.Filters.FiltersMenu.Instance;
+            var menu = Filters.FiltersMenu.Instance;
             return menu != null && menu.gameObject.activeInHierarchy;
         }
 
