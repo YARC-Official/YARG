@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text;
 using LibVLCSharp;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
@@ -17,11 +18,10 @@ using Debug = UnityEngine.Debug;
 
 /// <summary>
 /// Creates the process-wide <c>VLCMediaPlayer.LibVLC</c> from YARG code, so the vendored vlc-unity
-/// files stay unmodified. Nothing in the repo ships a libvlc. On Mac and Windows it finds a libVLC 4
-/// install (the VlcLibraryPath setting, then standard install locations) and preloads it, which is
-/// what binds LibVLCSharp's imports. On Linux libvlc binds at launch from the library path, so the
-/// player relaunches itself with the setting's folder there (RelaunchWithLibVlcPath), and this
-/// uses whatever was bound. It must run before the first <c>VLCMediaPlayer.Awake</c>, which only builds its own LibVLC when none exists;
+/// files stay unmodified. Nothing in the repo ships a libvlc. It finds a libVLC 4 install (the
+/// VlcLibraryPath setting, then standard install locations) and preloads it by absolute path, which
+/// is what binds LibVLCSharp's imports (on Linux, together with a Mono dllmap entry). It must run
+/// before the first <c>VLCMediaPlayer.Awake</c>, which only builds its own LibVLC when none exists;
 /// <see cref="YargVideoPlayer"/> calls it from its Awake.
 /// </summary>
 public static class VlcLibraryLoader
@@ -63,30 +63,25 @@ public static class VlcLibraryLoader
 
         try
         {
-#if UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX
-            if (!TryFindBoundLibVlc(out string libDir, out string pluginsDir))
-                return false;
-#else
             if (!TryPreload(out string libDir, out string pluginsDir))
             {
                 Debug.LogWarning("[VlcLibraryLoader] No usable libVLC 4 found; using Unity's video player.");
                 return false;
             }
 
-            // Not needed on Linux: the plugin loaded at startup (TryFindBoundLibVlc requires it), so
-            // vlc-unity's OnLoad succeeded there.
+#if !(UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX)
+            // Not on Linux, where vlc-unity's renderer is unused (see VlcCpuMediaPlayer).
             CompleteVlcUnityOnLoad();
 #endif
 
             // Needs a non-empty path on Mac/Windows and ignores it on Linux. Its own lookup misses
-            // (and logs it). LibVLCSharp's DllImports then bind to the libraries preloaded above on
-            // Mac/Windows, and through the launch-time library path on Linux.
+            // (and logs it). LibVLCSharp's DllImports then bind to the libraries preloaded above.
             Core.Initialize(libDir);
 
             // Must be the last write before new LibVLC, whose libvlc_new reads it. Two others
             // overwrite it before this point: Core.Initialize, through the plugin's SetPluginPath
             // (Mac/Windows; a backslash-joined path that never exists on Mac), and vlc-unity's
-            // OnLoad (Linux, at startup). Any earlier set is lost.
+            // OnLoad (Linux, at startup, when its plugin loads then). Any earlier set is lost.
             if (pluginsDir != null)
                 Environment.SetEnvironmentVariable("VLC_PLUGIN_PATH", pluginsDir);
 
@@ -122,10 +117,11 @@ public static class VlcLibraryLoader
     private static readonly MethodInfo HookLibVLCMethod =
         typeof(VLCUnityLogger).GetMethod("HookLibVLC", BindingFlags.NonPublic | BindingFlags.Static);
 
-    // Mac/Windows: vlc-unity's OnLoad runs before the first scene, when its plugin can't load yet
-    // (the plugin links libvlc, which isn't loaded until TryPreload), so it throws before setting
-    // the colour space (read by the D3D11 renderer). Its renderer-cleanup pump is replaced by
-    // ScheduleRendererCleanup.
+#if !(UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX)
+    // vlc-unity's OnLoad runs before the first scene, when its plugin can't load yet (the plugin
+    // links libvlc, which isn't loaded until TryPreload), so it throws before setting the colour
+    // space (read by the D3D11 renderer) and hooking its renderer-cleanup pump. The pump is
+    // replaced by ScheduleRendererCleanup.
     private static void CompleteVlcUnityOnLoad()
     {
         try
@@ -139,16 +135,20 @@ public static class VlcLibraryLoader
         }
     }
 
+    [DllImport(VlcUnityPlugin, CallingConvention = CallingConvention.Cdecl, EntryPoint = "libvlc_unity_set_color_space")]
+    private static extern void SetColorSpace(int colorSpace);
+#endif
+
     /// <summary>
     /// Frees the native renderers of VLC players destroyed around now. A released player's renderer
     /// is only retired; the plugin destroys it after two cleanup render events on separate frames,
     /// or at graphics shutdown. Call when a VLC player
-    /// is torn down; the pump runs from a static hook, so it outlives the scene. A no-op on Linux,
-    /// where vlc-unity's own OnLoad succeeded and hooked its pump.
+    /// is torn down; the pump runs from a static hook, so it outlives the scene. On Linux the
+    /// renderer is never used, but every player is still created through the plugin, which
+    /// registers one.
     /// </summary>
     public static void ScheduleRendererCleanup()
     {
-#if !(UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX)
         if (VLCMediaPlayer.LibVLC == null)
             return;
 
@@ -158,7 +158,6 @@ public static class VlcLibraryLoader
             return;
         _cleanupHooked = true;
         UnityEngine.Application.onBeforeRender += PumpRendererCleanup;
-#endif
     }
 
     private const int CLEANUP_MIN_FRAMES = 10;
@@ -190,14 +189,11 @@ public static class VlcLibraryLoader
         _cleanupHooked = false;
     }
 
-    // Not libVLCUnityPlugin, which vlc-unity's own imports use on Mac: that name's first load fails
-    // at startup, before libvlc is loaded, and every import using it then stays failed for the
-    // process. VLCUnityPlugin is the name LibVLCSharp uses, so on Mac it first loads (as the
-    // re-export shim) after the preload.
+    // Not libVLCUnityPlugin, which vlc-unity's own imports use on Mac and Linux: that name's first
+    // load fails at startup, before libvlc is loaded, and every import using it then stays failed
+    // for the process. VLCUnityPlugin is the name LibVLCSharp uses, so it first loads (on Mac as
+    // the re-export shim) after the preload.
     private const string VlcUnityPlugin = "VLCUnityPlugin";
-
-    [DllImport(VlcUnityPlugin, CallingConvention = CallingConvention.Cdecl, EntryPoint = "libvlc_unity_set_color_space")]
-    private static extern void SetColorSpace(int colorSpace);
 
     [DllImport(VlcUnityPlugin, CallingConvention = CallingConvention.Cdecl, EntryPoint = "libvlc_unity_has_retired_renderers")]
     [return: MarshalAs(UnmanagedType.I1)]
@@ -206,7 +202,6 @@ public static class VlcLibraryLoader
     [DllImport(VlcUnityPlugin, CallingConvention = CallingConvention.Cdecl)]
     private static extern IntPtr GetRenderEventFunc();
 
-#if !(UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX)
     private static IEnumerable<string> SearchRoots()
     {
         if (!string.IsNullOrEmpty(PathOverride))
@@ -264,7 +259,6 @@ public static class VlcLibraryLoader
         Debug.Log($"[VlcLibraryLoader] No libVLC 4 found (checked: {string.Join(", ", checkedDirs)}).");
         return false;
     }
-#endif
 
 #if UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
     private static IEnumerable<string> StandardRoots()
@@ -301,22 +295,36 @@ public static class VlcLibraryLoader
     private static bool LoadLibraries(string dir, out string error) =>
         Dlopen(Path.Combine(dir, "libvlccore.dylib"), out error) &&
         Dlopen(Path.Combine(dir, "libvlc.dylib"), out error);
+#endif
+
+#if UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX || UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX
+#if UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
+    private const string LIBDL = "libSystem.dylib";
+    private const int RTLD_GLOBAL = 0x8;
+#else
+    // Not libc.so.6, which only has dlopen from glibc 2.34; libdl.so.2 has it on every glibc.
+    private const string LIBDL = "libdl.so.2";
+    private const int RTLD_GLOBAL = 0x100;
+    private const int RTLD_NOLOAD = 0x4;
+
+    [DllImport(LIBDL, EntryPoint = "dlsym")]
+    private static extern IntPtr Dlsym(IntPtr handle, string symbol);
+#endif
+    private const int RTLD_NOW = 0x2;
 
     // NativeLibrary isn't available at this project's API compatibility level, hence raw dlopen.
-    [DllImport("libSystem.dylib", EntryPoint = "dlopen")]
+    [DllImport(LIBDL, EntryPoint = "dlopen")]
     private static extern IntPtr DlopenNative(string path, int mode);
 
-    [DllImport("libSystem.dylib", EntryPoint = "dlerror")]
+    [DllImport(LIBDL, EntryPoint = "dlerror")]
     private static extern IntPtr Dlerror();
-
-    private const int RTLD_NOW_GLOBAL = 0x2 | 0x8;
 
     private static bool Dlopen(string path, out string error)
     {
         // Binds the import (its first-call resolution runs dlopen/dlsym, clearing the error) and
         // clears any stale error, so the one read below is this dlopen's.
         Dlerror();
-        if (DlopenNative(path, RTLD_NOW_GLOBAL) != IntPtr.Zero)
+        if (DlopenNative(path, RTLD_NOW | RTLD_GLOBAL) != IntPtr.Zero)
         {
             error = null;
             return true;
@@ -327,99 +335,14 @@ public static class VlcLibraryLoader
 #endif
 
 #if UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX
-    // libvlc binds at launch, through the library path: vlc-unity's plugin (DT_NEEDED libvlc.so.12,
-    // loaded by Unity before graphics init, as its Vulkan renderer needs) and LibVLCSharp's bare
-    // "libvlc" import both resolve there. So use the libvlc the plugin bound, never a second copy:
-    // a VlcLibraryPath changed since launch would otherwise load another libvlc beside it.
-    // Returns false when the plugin missed the startup load; then the "libvlc" import would fail
-    // and poison itself for the process, and under Vulkan libVLC would open a window of its own.
-    private static bool TryFindBoundLibVlc(out string libDir, out string pluginsDir)
+    // Searched after VlcLibraryPath. A distro's libVLC is usually 3.x, which IsVlc3 skips.
+    private static IEnumerable<string> StandardRoots() => new[]
     {
-        libDir = null;
-        pluginsDir = null;
-
-        // Only the relaunch puts PathOverride on the library path, and it skips an unusable folder.
-        string overrideProblem = string.IsNullOrEmpty(PathOverride) ? null : LibVlcFolderProblem(PathOverride);
-
-        string libvlc = MappedFile("libvlc.so.");
-        if (MappedFile("libVLCUnityPlugin.so") == null || libvlc == null)
-        {
-            Debug.LogWarning(overrideProblem != null
-                ? $"[VlcLibraryLoader] {InvalidOverrideMessage(overrideProblem)} No libVLC 4 was found on the default " +
-                    "library path either; using Unity's video player."
-                : "[VlcLibraryLoader] vlc-unity's plugin didn't load at startup (libvlc wasn't on the library path at " +
-                    "launch); using Unity's video player.");
-            return false;
-        }
-
-        libDir = Path.GetDirectoryName(libvlc);
-        if (!File.Exists(Path.Combine(libDir, "libvlc.so")))
-        {
-            Debug.LogWarning($"[VlcLibraryLoader] '{libDir}' has no unversioned libvlc.so, which LibVLCSharp imports; " +
-                "using Unity's video player.");
-            return false;
-        }
-
-        if (overrideProblem != null)
-            Debug.LogWarning($"[VlcLibraryLoader] {InvalidOverrideMessage(overrideProblem)} Using '{libDir}' from the " +
-                "default library path instead.");
-        else if (!string.IsNullOrEmpty(PathOverride) && !LibDirCandidates(PathOverride).Select(RealPath).Contains(libDir))
-            Debug.LogWarning($"[VlcLibraryLoader] VlcLibraryPath is '{PathOverride}', but libVLC was bound from " +
-                $"'{libDir}' at launch; restart YARG to use it.");
-
-        pluginsDir = PluginDirCandidates(libDir).FirstOrDefault(Directory.Exists);
-        Debug.Log($"[VlcLibraryLoader] Using libVLC bound at launch from '{libDir}', plugins from '{pluginsDir ?? "nowhere"}'.");
-        return true;
-    }
-
-    private static string InvalidOverrideMessage(string problem) =>
-        $"VlcLibraryPath '{PathOverride}' isn't a usable libVLC 4 folder ({problem}), so YARG didn't launch with it. " +
-        "To fix it, point VlcLibraryPath at the folder holding libvlc.so and libvlccore.so* (or its parent, with " +
-        "them in lib/), from a libVLC 4 SDK or -dev/-devel install, then restart YARG.";
-
-    // Why root holds no libVLC 4 the relaunch would use (see ConfiguredLibDir), or null if it does.
-    private static string LibVlcFolderProblem(string root)
-    {
-        if (!Directory.Exists(root))
-            return "the folder doesn't exist";
-
-        var dirs = LibDirCandidates(root).ToList();
-        if (dirs.Any(dir => HasLibVlc(dir) && !IsVlc3(dir)))
-            return null;
-        if (dirs.Any(IsVlc3))
-            return "it's VLC 3.x";
-        if (dirs.Any(dir => Directory.Exists(dir) && Directory.EnumerateFiles(dir, "libvlc.so.*").Any()))
-            return "it has a versioned libvlc.so.N but no unversioned libvlc.so, or no libvlccore.so*";
-        return "no libvlc.so in it or its lib/ folder";
-    }
-
-    // The first mapped file whose name starts with fileNamePrefix. Mapped paths are canonical.
-    private static string MappedFile(string fileNamePrefix) =>
-        File.ReadLines("/proc/self/maps")
-            .Select(line => line.IndexOf('/') is var i && i >= 0 ? line.Substring(i) : null)
-            .FirstOrDefault(path => path != null && Path.GetFileName(path).StartsWith(fileNamePrefix, StringComparison.Ordinal));
-
-    // Canonical form, to compare with mapped paths (e.g. Fedora Atomic's /home -> /var/home).
-    private static string RealPath(string path)
-    {
-        IntPtr resolved = RealPathNative(path, IntPtr.Zero);
-        if (resolved == IntPtr.Zero)
-            return null;
-        try
-        {
-            return Marshal.PtrToStringAnsi(resolved);
-        }
-        finally
-        {
-            Free(resolved);
-        }
-    }
-
-    [DllImport("libc.so.6", EntryPoint = "realpath")]
-    private static extern IntPtr RealPathNative(string path, IntPtr resolved);
-
-    [DllImport("libc.so.6", EntryPoint = "free")]
-    private static extern void Free(IntPtr ptr);
+        "/usr/local/lib",
+        "/usr/lib/x86_64-linux-gnu",
+        "/usr/lib64",
+        "/usr/lib",
+    };
 
     // The folder itself (pointed directly at the lib dir), or its lib subfolder (an SDK/install root).
     private static IEnumerable<string> LibDirCandidates(string root) => new[]
@@ -436,90 +359,269 @@ public static class VlcLibraryLoader
         Path.Combine(Path.GetDirectoryName(libDir) ?? string.Empty, "plugins"),
     };
 
-    // For the relaunch. LibVLCSharp imports bare "libvlc", which resolves to the unversioned
-    // libvlc.so (what a -dev/-devel package provides); libvlccore may be versioned-only.
-    private static bool HasLibVlc(string dir) =>
-        File.Exists(Path.Combine(dir, "libvlc.so")) && LibVlcCorePath(dir) != null;
-
     // libVLC 3's SONAME is libvlc.so.5; 4's is libvlc.so.12.
-    private static bool IsVlc3(string dir) => File.Exists(Path.Combine(dir, "libvlc.so.5"));
+    private const int LIBVLC_4_SONAME_MAJOR = 12;
 
-    private static string LibVlcCorePath(string dir)
+    private static bool HasLibVlc(string dir) =>
+        LibVlcFiles(dir).Any(file => SonameMajor(ReadElfDynamic(file)?.Soname) >= 0);
+
+    private static bool IsVlc3(string dir) => LibVlcPath(dir) == null;
+
+    // The libVLC 4 library in dir, by its SONAME rather than its file name: dllmap needs no
+    // unversioned libvlc.so, and only the SONAME tells 3 from 4 when that is all there is.
+    private static string LibVlcPath(string dir)
     {
-        string unversioned = Path.Combine(dir, "libvlccore.so");
-        if (File.Exists(unversioned))
-            return unversioned;
-        return Directory.Exists(dir)
-            ? Directory.EnumerateFiles(dir, "libvlccore.so.*").OrderBy(f => f, StringComparer.Ordinal).FirstOrDefault()
-            : null;
+        foreach (string file in LibVlcFiles(dir))
+        {
+            string soname = ReadElfDynamic(file)?.Soname;
+            if (SonameMajor(soname) >= LIBVLC_4_SONAME_MAJOR)
+            {
+                string bySoname = Path.Combine(dir, soname);
+                return File.Exists(bySoname) ? bySoname : file;
+            }
+        }
+        return null;
     }
 
-#if !UNITY_EDITOR
-    // Holds the original LD_LIBRARY_PATH ("" if unset) across the relaunch; also stops a second one.
-    private const string RELAUNCH_ENV = "YARG_VLC_RELAUNCH";
+    private static IEnumerable<string> LibVlcFiles(string dir) =>
+        Directory.Exists(dir)
+            ? Directory.EnumerateFiles(dir, "libvlc.so*").OrderBy(f => f, StringComparer.Ordinal)
+            : Enumerable.Empty<string>();
 
-    // Unity loads vlc-unity's plugin before graphics init, as its Vulkan renderer needs, and that
-    // load needs libvlc.so.12 on the library path, which glibc fixes at exec. So when the plugin
-    // missed it and the VlcLibraryPath folder isn't on LD_LIBRARY_PATH, execve the player with it
-    // added: same PID and arguments. The relaunched process puts the original value back, so
-    // programs it starts don't inherit the folder; its own search list keeps it. BeforeSceneLoad
-    // because PathHelper's settings path is set up at BeforeSplashScreen.
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-    private static void RelaunchWithLibVlcPath()
+    private static int SonameMajor(string soname)
     {
-        try
+        const string prefix = "libvlc.so.";
+        return soname != null && soname.StartsWith(prefix, StringComparison.Ordinal) &&
+            int.TryParse(soname.Substring(prefix.Length).Split('.')[0], out int major)
+                ? major
+                : -1;
+    }
+
+    // Loads libvlc by absolute path with the libraries it needs, then the bundled libraries its
+    // plugins need. libVLC dlopens its plugins itself, and glibc resolves their DT_NEEDED only
+    // against the search path and already-loaded SONAMEs, so a dependency that only ships beside
+    // libVLC (a snap's FFmpeg, a self-contained build's libidn.so.12) must already be loaded.
+    // LibVLCSharp's bare "libvlc" import isn't matched by SONAME, so MapLibVlcImport binds it.
+    private static bool LoadLibraries(string dir, out string error)
+    {
+        string libvlc = LibVlcPath(dir);
+        var loader = new BundledLibraryLoader(dir);
+        if (!loader.Load(libvlc, out error) || !MapLibVlcImport(libvlc, out error))
+            return false;
+
+        string pluginsDir = PluginDirCandidates(dir).FirstOrDefault(Directory.Exists);
+        if (pluginsDir != null)
+            loader.LoadPluginDependencies(pluginsDir);
+        return true;
+    }
+
+    // A bundle (a snap's usr/lib, an SDK's lib) can carry its own copies of system libraries,
+    // down to a whole graphics stack (Mesa's libGL and libgbm, X11, Wayland). Loading those
+    // beside the system's would put two copies of one library in the process, so a library from
+    // the bundle's multiarch folder is loaded only when the system has no library by that
+    // SONAME. libVLC's own folders always win: its libvlccore.so.9 must not resolve to a system
+    // VLC 3's of the same SONAME, and its plugins' helper libraries (<libdir>/vlc/libvlc_*.so.0)
+    // are found through a RUNPATH of /usr/lib/vlc, wrong once the bundle is moved. Dependencies
+    // load first, so glibc finds each one loaded when it resolves the DT_NEEDED naming it.
+    private sealed class BundledLibraryLoader
+    {
+        // Debian multiarch, where a snap or Debian-built bundle keeps its third-party libraries.
+        private const string MULTIARCH_DIR = "x86_64-linux-gnu";
+
+        // Where the system's own libraries live, across Fedora, Debian/Ubuntu, Arch and the
+        // Freedesktop runtime.
+        private static readonly string[] SystemLibDirs =
+            { "/usr/lib64", "/lib64", "/usr/lib/x86_64-linux-gnu", "/lib/x86_64-linux-gnu", "/usr/lib", "/lib" };
+
+        private readonly string[] _ownDirs;
+        private readonly string _multiarchDir;
+        private readonly HashSet<string> _visited = new();
+
+        public BundledLibraryLoader(string libDir)
         {
-            string original = Environment.GetEnvironmentVariable(RELAUNCH_ENV);
-            if (original != null)
+            _ownDirs = new[] { libDir, Path.Combine(libDir, "vlc") };
+            _multiarchDir = Path.Combine(libDir, MULTIARCH_DIR);
+        }
+
+        public bool Load(string path, out string error)
+        {
+            error = null;
+            if (!_visited.Add(path))
+                return true;
+
+            foreach (string needed in ReadElfDynamic(path)?.Needed ?? Enumerable.Empty<string>())
             {
-                Environment.SetEnvironmentVariable("LD_LIBRARY_PATH", original.Length > 0 ? original : null);
-                Environment.SetEnvironmentVariable(RELAUNCH_ENV, null);
-                return;
+                string bundled = BundledPath(needed);
+                if (bundled != null && !Load(bundled, out error))
+                    return false;
             }
 
-            if (MappedFile("libVLCUnityPlugin.so") != null)
-                return;
-
-            string libDir = ConfiguredLibDir();
-            string ldPath = Environment.GetEnvironmentVariable("LD_LIBRARY_PATH") ?? string.Empty;
-            if (libDir == null || ldPath.Split(':').Contains(libDir))
-                return;
-
-            var env = Environment.GetEnvironmentVariables().Cast<System.Collections.DictionaryEntry>()
-                .Where(e => (string) e.Key != "LD_LIBRARY_PATH")
-                .Select(e => $"{e.Key}={e.Value}")
-                .Append($"LD_LIBRARY_PATH={(ldPath.Length > 0 ? libDir + ":" + ldPath : libDir)}")
-                .Append($"{RELAUNCH_ENV}={ldPath}");
-
-            Debug.Log($"[VlcLibraryLoader] Relaunching with '{libDir}' on LD_LIBRARY_PATH so vlc-unity's plugin loads at startup.");
-            // Arrays end in null: execve takes NULL-terminated char* arrays.
-            Execve("/proc/self/exe", Environment.GetCommandLineArgs().Append(null).ToArray(), env.Append(null).ToArray());
-            Debug.LogWarning($"[VlcLibraryLoader] Relaunch failed (errno {Marshal.GetLastWin32Error()}).");
+            return Dlopen(path, out error);
         }
-        catch (Exception ex)
+
+        // Plugins whose dependencies still fail are only unavailable; libVLC logs and skips them.
+        // gui/ is skipped: those are VLC's own interfaces (Qt), never used here.
+        public void LoadPluginDependencies(string pluginsDir)
         {
-            Debug.LogWarning($"[VlcLibraryLoader] Relaunch failed: {ex}");
+            int before = _visited.Count;
+            var failed = new List<string>();
+            var plugins = Directory.EnumerateFiles(pluginsDir, "*.so", SearchOption.AllDirectories)
+                .Where(plugin => !plugin.StartsWith(Path.Combine(pluginsDir, "gui") + Path.DirectorySeparatorChar, StringComparison.Ordinal));
+            foreach (string plugin in plugins)
+            {
+                foreach (string needed in ReadElfDynamic(plugin)?.Needed ?? Enumerable.Empty<string>())
+                {
+                    string bundled = BundledPath(needed);
+                    if (bundled != null && !_visited.Contains(bundled) && !Load(bundled, out string error))
+                        failed.Add(error);
+                }
+            }
+
+            if (_visited.Count > before)
+                Debug.Log($"[VlcLibraryLoader] Loaded {_visited.Count - before} bundled libraries for libVLC's plugins.");
+            if (failed.Count > 0)
+                Debug.LogWarning("[VlcLibraryLoader] Some bundled libraries didn't load, so the plugins needing them " +
+                    $"are unavailable: {string.Join("; ", failed.Distinct())}");
+        }
+
+        private string BundledPath(string soname)
+        {
+            if (IsLoaded(soname))
+                return null;
+
+            string own = _ownDirs.Select(dir => Path.Combine(dir, soname)).FirstOrDefault(File.Exists);
+            if (own != null)
+                return own;
+
+            string multiarch = Path.Combine(_multiarchDir, soname);
+            if (File.Exists(multiarch) && !SystemHas(soname))
+                return multiarch;
+            return null;
+        }
+
+        private static bool IsLoaded(string soname) => DlopenNative(soname, RTLD_NOW | RTLD_NOLOAD) != IntPtr.Zero;
+
+        // ReadElfDynamic rejects a 32-bit library in a shared /usr/lib.
+        private static bool SystemHas(string soname) =>
+            SystemLibDirs.Any(dir => ReadElfDynamic(Path.Combine(dir, soname)) != null);
+    }
+
+    // Mono resolves a DllImport by name, trying "libvlc.so" for "libvlc". glibc finds no file by
+    // that name on its search path, and a bare name only matches an already-loaded library's
+    // SONAME (libvlc.so.12). A dllmap entry sends the name to the loaded file instead. Mono is
+    // already loaded, so RTLD_NOLOAD finds it by its SONAME (the same in every Unity player and
+    // Editor); mono_dllmap_insert is part of its embedding API.
+    private static bool MapLibVlcImport(string libvlcPath, out string error)
+    {
+        const string monoSoname = "libmonoboehm-2.0.so.1";
+        IntPtr mono = DlopenNative(monoSoname, RTLD_NOW | RTLD_NOLOAD);
+        IntPtr insert = mono != IntPtr.Zero ? Dlsym(mono, "mono_dllmap_insert") : IntPtr.Zero;
+        if (insert == IntPtr.Zero)
+        {
+            error = $"couldn't find mono_dllmap_insert in {monoSoname}, so LibVLCSharp can't bind to '{libvlcPath}'";
+            return false;
+        }
+
+        // Null assembly: a global entry, for LibVLCSharp's imports and vlc-unity's alike.
+        Marshal.GetDelegateForFunctionPointer<MonoDllMapInsert>(insert)(IntPtr.Zero, "libvlc", null, libvlcPath, null);
+        Debug.Log($"[VlcLibraryLoader] Mapped LibVLCSharp's libvlc imports to '{libvlcPath}'.");
+        error = null;
+        return true;
+    }
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    private delegate void MonoDllMapInsert(IntPtr assembly,
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string dll, [MarshalAs(UnmanagedType.LPUTF8Str)] string func,
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string targetDll, [MarshalAs(UnmanagedType.LPUTF8Str)] string targetFunc);
+
+    private sealed class ElfDynamic
+    {
+        public string Soname;
+        public readonly List<string> Needed = new();
+    }
+
+    // The SONAME and DT_NEEDED entries of a 64-bit little-endian ELF file; null if it isn't one.
+    private static ElfDynamic ReadElfDynamic(string path)
+    {
+        const uint PT_LOAD = 1, PT_DYNAMIC = 2;
+        const long DT_NULL = 0, DT_NEEDED = 1, DT_STRTAB = 5, DT_SONAME = 14;
+
+        try
+        {
+            using var file = File.OpenRead(path);
+            using var reader = new BinaryReader(file);
+            // "\x7fELF", ELFCLASS64, ELFDATA2LSB.
+            if (reader.ReadUInt32() != 0x464C457F || reader.ReadByte() != 2 || reader.ReadByte() != 1)
+                return null;
+
+            file.Position = 0x20;
+            long programHeaders = (long) reader.ReadUInt64();
+            file.Position = 0x36;
+            int entrySize = reader.ReadUInt16();
+            int entryCount = reader.ReadUInt16();
+
+            var loads = new List<(ulong vaddr, ulong offset, ulong size)>();
+            long dynamicOffset = -1;
+            long dynamicSize = 0;
+            for (int i = 0; i < entryCount; i++)
+            {
+                file.Position = programHeaders + (long) i * entrySize;
+                uint type = reader.ReadUInt32();
+                reader.ReadUInt32(); // p_flags
+                ulong offset = reader.ReadUInt64();
+                ulong vaddr = reader.ReadUInt64();
+                reader.ReadUInt64(); // p_paddr
+                ulong fileSize = reader.ReadUInt64();
+                if (type == PT_LOAD)
+                    loads.Add((vaddr, offset, fileSize));
+                else if (type == PT_DYNAMIC)
+                    (dynamicOffset, dynamicSize) = ((long) offset, (long) fileSize);
+            }
+            if (dynamicOffset < 0)
+                return null;
+
+            ulong stringTable = 0;
+            long soname = -1;
+            var needed = new List<long>();
+            file.Position = dynamicOffset;
+            for (long read = 0; read + 16 <= dynamicSize; read += 16)
+            {
+                long tag = reader.ReadInt64();
+                ulong value = reader.ReadUInt64();
+                if (tag == DT_NULL)
+                    break;
+                if (tag == DT_NEEDED)
+                    needed.Add((long) value);
+                else if (tag == DT_STRTAB)
+                    stringTable = value;
+                else if (tag == DT_SONAME)
+                    soname = (long) value;
+            }
+
+            // DT_STRTAB is a virtual address; the PT_LOAD segment holding it maps it to the file.
+            var segment = loads.FirstOrDefault(load => stringTable >= load.vaddr && stringTable < load.vaddr + load.size);
+            if (segment.size == 0)
+                return null;
+            long stringTableOffset = (long) (stringTable - segment.vaddr + segment.offset);
+
+            string ReadString(long offset)
+            {
+                file.Position = stringTableOffset + offset;
+                var bytes = new List<byte>();
+                for (byte b = reader.ReadByte(); b != 0; b = reader.ReadByte())
+                    bytes.Add(b);
+                return Encoding.UTF8.GetString(bytes.ToArray());
+            }
+
+            var result = new ElfDynamic { Soname = soname >= 0 ? ReadString(soname) : null };
+            result.Needed.AddRange(needed.Select(ReadString));
+            return result;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return null;
         }
     }
-
-    // Only the configured folder: the standard ones are already on the default search path.
-    // Read from settings.json directly, since SettingsManager loads later.
-    private static string ConfiguredLibDir()
-    {
-        string settingsFile = Path.Combine(YARG.Helpers.PathHelper.PersistentDataPath, "settings.json");
-        if (!File.Exists(settingsFile))
-            return null;
-
-        string root = (string) Newtonsoft.Json.Linq.JObject.Parse(File.ReadAllText(settingsFile))["VlcLibraryPath"];
-        if (string.IsNullOrEmpty(root))
-            return null;
-
-        return LibDirCandidates(root).FirstOrDefault(dir => HasLibVlc(dir) && !IsVlc3(dir));
-    }
-
-    [DllImport("libc.so.6", EntryPoint = "execve", SetLastError = true)]
-    private static extern int Execve(string path, string[] argv, string[] envp);
-#endif
 #endif
 
 #if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN

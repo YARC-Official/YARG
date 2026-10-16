@@ -439,8 +439,6 @@ rm -rf "$OUT"
 
 cd "$ROOT"
 git add Assets/VLCUnity Assets/Plugins/vlc vlc/BUILT_WITH
-# Drop removed patch files from the index if they were tracked.
-git add -u vlc/patches 2>/dev/null || true
 
 if $NO_COMMIT; then
     log "--no-commit: changes staged, not committed"

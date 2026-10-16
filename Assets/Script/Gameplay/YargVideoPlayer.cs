@@ -2,13 +2,23 @@
 #define VLC_SUPPORTED
 #endif
 
+#if VLC_SUPPORTED && (UNITY_EDITOR_LINUX || UNITY_STANDALONE_LINUX)
+#define VLC_CPU_OUTPUT
+#endif
+
 using System;
 using UnityEngine;
 using UnityEngine.Video;
 using YARG.Core.Logging;
+#if VLC_CPU_OUTPUT
+using VlcPlayer = VlcCpuMediaPlayer;
+#elif VLC_SUPPORTED
+using VlcPlayer = LibVLCSharp.VLCMediaPlayer;
+#endif
 
 /// <summary>
-/// Video player wrapper that tries VLC (via vlc-unity) first,
+/// Video player wrapper that tries VLC first (vlc-unity's VLCMediaPlayer on macOS and Windows,
+/// <see cref="VlcCpuMediaPlayer"/> on Linux; see VlcPlayer),
 /// falling back to Unity's built-in VideoPlayer if VLC native
 /// binaries are not available. On platforms without a native plugin
 /// (e.g. WSA), the VLC code path is compiled out entirely
@@ -22,7 +32,9 @@ public class YargVideoPlayer : MonoBehaviour
     [SerializeField] private VideoPlayer _unityVideoPlayer;
 
 #if VLC_SUPPORTED
+    // Only read in Awake. On Linux it is replaced by a VlcCpuMediaPlayer on the same GameObject.
     [SerializeField] private LibVLCSharp.VLCMediaPlayer _vlcPlayer;
+    private VlcPlayer _vlc;
     private bool _usingVLC = false;
 #endif
 
@@ -43,17 +55,22 @@ public class YargVideoPlayer : MonoBehaviour
         get
         {
 #if VLC_SUPPORTED
-            if (_usingVLC && _vlcPlayer != null)
+            if (usingVlc)
             {
-                return _vlcPlayer.OutputTexture;
+                return _vlc.OutputTexture;
             }
 #endif
             return _unityVideoPlayer.targetTexture;
         }
         set
         {
+#if VLC_CPU_OUTPUT
+            // The picture is fitted inside it, so a larger video never needs copying at full size.
+            if (_vlc != null && value != null)
+                _vlc.SetMaxOutputSize(value.width, value.height);
+#endif
 #if VLC_SUPPORTED
-            if (_usingVLC && _vlcPlayer != null && value != null)
+            if (usingVlc && value != null)
             {
                 YargLogger.LogInfo("[YargVideoPlayer] Ignoring external output texture in vlc mode");
             }
@@ -79,8 +96,8 @@ public class YargVideoPlayer : MonoBehaviour
 #if VLC_SUPPORTED
             if (_usingVLC)
             {
-                if (_vlcPlayer != null)
-                    _vlcPlayer.enabled = value;
+                if (_vlc != null)
+                    _vlc.enabled = value;
             }
             else
 #endif
@@ -94,7 +111,7 @@ public class YargVideoPlayer : MonoBehaviour
     public double time
     {
 #if VLC_SUPPORTED
-        get => _usingVLC && _vlcPlayer != null ? _vlcPlayer.Time / 1000.0 : _unityVideoPlayer.time;
+        get => usingVlc ? _vlc.Time / 1000.0 : _unityVideoPlayer.time;
 #else
         get => _unityVideoPlayer.time;
 #endif
@@ -102,9 +119,9 @@ public class YargVideoPlayer : MonoBehaviour
         {
             YargLogger.LogFormatDebug("YargVideoPlayer::SetTime {0}", value);
 #if VLC_SUPPORTED
-            if (_usingVLC && _vlcPlayer != null)
+            if (usingVlc)
             {
-                _vlcPlayer.SetTime((long)(value * 1000));
+                _vlc.SetTime((long)(value * 1000));
                 // LibVLC's SetTime (SeekTo) is synchronous, so the seek has already
                 // completed. VLC exposes no async seek-completion callback, so fire
                 // seekCompleted here so BackgroundManager.OnVideoSeeked can resume
@@ -120,7 +137,7 @@ public class YargVideoPlayer : MonoBehaviour
     public double length
     {
 #if VLC_SUPPORTED
-        get => _usingVLC && _vlcPlayer != null ? _vlcPlayer.Duration / 1000.0 : _unityVideoPlayer.length;
+        get => usingVlc ? _vlc.Duration / 1000.0 : _unityVideoPlayer.length;
 #else
         get => _unityVideoPlayer.length;
 #endif
@@ -129,15 +146,15 @@ public class YargVideoPlayer : MonoBehaviour
     public float playbackSpeed
     {
 #if VLC_SUPPORTED
-        get => _usingVLC && _vlcPlayer != null ? _vlcPlayer.MediaPlayer.Rate : _unityVideoPlayer.playbackSpeed;
+        get => usingVlc ? _vlc.MediaPlayer.Rate : _unityVideoPlayer.playbackSpeed;
 #else
         get => _unityVideoPlayer.playbackSpeed;
 #endif
         set
         {
 #if VLC_SUPPORTED
-            if (_usingVLC && _vlcPlayer != null)
-                _vlcPlayer.MediaPlayer.SetRate(value);
+            if (usingVlc)
+                _vlc.MediaPlayer.SetRate(value);
             else if (_unityVideoPlayer != null)
                 _unityVideoPlayer.playbackSpeed = value;
 #else
@@ -166,8 +183,8 @@ public class YargVideoPlayer : MonoBehaviour
     public bool isPaused
     {
 #if VLC_SUPPORTED
-        get => _usingVLC && _vlcPlayer != null
-            ? !_vlcPlayer.MediaPlayer.IsPlaying
+        get => usingVlc
+            ? !_vlc.MediaPlayer.IsPlaying
             : !_unityVideoPlayer.isPlaying;
 #else
         get => !_unityVideoPlayer.isPlaying;
@@ -175,6 +192,15 @@ public class YargVideoPlayer : MonoBehaviour
     }
 
     public Camera targetCamera => _unityVideoPlayer?.targetCamera;
+
+    /// <summary>Which backend actually took the video. A VLC init failure falls back to Unity's
+    /// player silently, and the two do not behave alike.</summary>
+    public bool usingVlc =>
+#if VLC_SUPPORTED
+        _usingVLC && _vlc != null;
+#else
+        false;
+#endif
 
     // ─── Events ───
 
@@ -186,7 +212,7 @@ public class YargVideoPlayer : MonoBehaviour
     public void Prepare()
     {
 #if VLC_SUPPORTED
-        if (_usingVLC && _vlcPlayer != null)
+        if (usingVlc)
         {
             PrepareVlc();
             return;
@@ -202,12 +228,11 @@ public class YargVideoPlayer : MonoBehaviour
     {
         try
         {
-            await _vlcPlayer.OpenAsync(_url);
+            await _vlc.OpenAsync(_url);
         }
         catch (Exception ex)
         {
-            YargLogger.LogFormatWarning("[YargVideoPlayer] VLC failed to open the video, falling back to Unity VideoPlayer: {0}", ex);
-            SwitchToVideoPlayerFallback();
+            FallBackToUnity("VLC failed to open the video: " + ex);
             PrepareUnity();
         }
     }
@@ -216,8 +241,7 @@ public class YargVideoPlayer : MonoBehaviour
     private void PrepareUnity()
     {
         // Unity VideoPlayer path. Works identically on Windows (VLC compiled out) and
-        // on the VLC fallback path, so it must fully configure the player itself:
-        // SwitchToVideoPlayerFallback (which also set renderMode) is VLC-only.
+        // on the VLC fallback path, so it must fully configure the player itself.
         _unityVideoPlayer.url = _url;
         _unityVideoPlayer.renderMode = VideoRenderMode.RenderTexture;
         // (Re)wire native events idempotently so per-song Prepare() calls on a persisted
@@ -235,9 +259,9 @@ public class YargVideoPlayer : MonoBehaviour
     public void Play()
     {
 #if VLC_SUPPORTED
-        if (_usingVLC && _vlcPlayer != null)
+        if (usingVlc)
         {
-            _vlcPlayer.Play();
+            _vlc.Play();
             return;
         }
 #endif
@@ -248,9 +272,9 @@ public class YargVideoPlayer : MonoBehaviour
     public void Pause()
     {
 #if VLC_SUPPORTED
-        if (_usingVLC && _vlcPlayer != null)
+        if (usingVlc)
         {
-            _vlcPlayer.Pause();
+            _vlc.Pause();
             return;
         }
 #endif
@@ -261,9 +285,9 @@ public class YargVideoPlayer : MonoBehaviour
     public void Stop()
     {
 #if VLC_SUPPORTED
-        if (_usingVLC && _vlcPlayer != null)
+        if (usingVlc)
         {
-            _vlcPlayer.Stop();
+            _vlc.Stop();
             return;
         }
 #endif
@@ -282,11 +306,25 @@ public class YargVideoPlayer : MonoBehaviour
         if (_vlcPlayer != null && _vlcPlayer.didAwake)
             YargLogger.LogError("[YargVideoPlayer] VLCMediaPlayer woke first; its own libVLC init may have poisoned VLC for this session");
 
-        if (_vlcPlayer != null && !VlcLibraryLoader.EnsureLoaded(_vlcPlayer))
+        if (_vlcPlayer == null)
+            return;
+
+        if (!VlcLibraryLoader.EnsureLoaded(_vlcPlayer))
         {
             DestroyImmediate(_vlcPlayer);
             _vlcPlayer = null;
+            return;
         }
+
+#if VLC_CPU_OUTPUT
+        // Removed before it wakes, so it never creates a player through vlc-unity's Linux output.
+        var playerObject = _vlcPlayer.gameObject;
+        DestroyImmediate(_vlcPlayer);
+        _vlcPlayer = null;
+        _vlc = playerObject.AddComponent<VlcCpuMediaPlayer>();
+#else
+        _vlc = _vlcPlayer;
+#endif
 #endif
     }
 
@@ -300,21 +338,21 @@ public class YargVideoPlayer : MonoBehaviour
     private void OnDestroy()
     {
 #if VLC_SUPPORTED
-        if (_vlcPlayer != null)
+        if (_vlc != null)
         {
             try
             {
-                _vlcPlayer.Stop();
+                _vlc.Stop();
             }
             catch (Exception ex)
             {
                 YargLogger.LogWarning("[YargVideoPlayer] Error stopping VLC player: " + ex.Message);
             }
-            Destroy(_vlcPlayer.gameObject);
+            Destroy(_vlc.gameObject);
         }
 
         // Outside the check: scene unload can destroy the VLC player's GameObject before this one,
-        // making _vlcPlayer null here after it already released its renderer.
+        // making _vlc null here after it already released its renderer.
         VlcLibraryLoader.ScheduleRendererCleanup();
 #endif
     }
@@ -324,34 +362,26 @@ public class YargVideoPlayer : MonoBehaviour
 #if VLC_SUPPORTED
     private void TryInitializeVLC()
     {
-        if (_vlcPlayer == null)
+        if (_vlc == null)
         {
-            _usingVLC = false;
-            YargLogger.LogInfo("[YargVideoPlayer] VLC not available, using Unity VideoPlayer");
-            SwitchToVideoPlayerFallback();
+            FallBackToUnity("VLC not available");
             return;
         }
 
         try
         {
-            _vlcPlayer.enabled = true;
-            _vlcPlayer.playOnAwake = false;
-            _vlcPlayer.flipTextureX = true;
-            _vlcPlayer.flipTextureY = true;
-            _vlcPlayer.logPlayerActivity = false;
-            _vlcPlayer.OnTextureResized += OnVLCTextureResized;
+            _vlc.enabled = true;
+#if !VLC_CPU_OUTPUT
+            _vlc.playOnAwake = false;
+            _vlc.flipTextureX = true;
+            _vlc.flipTextureY = true;
+            _vlc.logPlayerActivity = false;
+#endif
+            _vlc.OnTextureResized += OnVLCTextureResized;
 
-            if (!_vlcPlayer.enabled || !_vlcPlayer.didAwake || _vlcPlayer.MediaPlayer == null)
+            if (!_vlc.enabled || !_vlc.didAwake || _vlc.MediaPlayer == null)
             {
                 throw new InvalidOperationException("VLC player failed initialization");
-            }
-
-            if (LibVLCSharp.VLCMediaPlayer.LibVLC == null)
-            {
-                _usingVLC = false;
-                YargLogger.LogInfo("[YargVideoPlayer] VLC not available, using Unity VideoPlayer");
-                SwitchToVideoPlayerFallback();
-                return;
             }
 
             _usingVLC = true;
@@ -359,22 +389,20 @@ public class YargVideoPlayer : MonoBehaviour
         }
         catch (Exception ex)
         {
-            YargLogger.LogInfo("[YargVideoPlayer] VLC initialization failed, falling back to Unity VideoPlayer: " + ex.Message);
-            _usingVLC = false;
-            if (_vlcPlayer != null)
+            if (_vlc != null)
             {
                 // It was already enabled above, so it would otherwise keep updating.
-                Destroy(_vlcPlayer);
-                _vlcPlayer = null;
+                Destroy(_vlc);
+                _vlc = null;
             }
-            SwitchToVideoPlayerFallback();
+            FallBackToUnity("VLC initialization failed: " + ex.Message);
         }
     }
 
     private void OnVLCTextureResized(RenderTexture texture)
     {
-        // vlc-unity raises this with null when it tears the textures down. Throwing here aborts
-        // VLCMediaPlayer.OnDestroy before it releases the native player, which then keeps its
+        // Both players raise this with null when they tear the textures down. Throwing here aborts
+        // the player's OnDestroy before it releases the native player, which then keeps its
         // renderer and video-output thread alive for the rest of the process.
         if (texture == null || texture.height == 0)
         {
@@ -387,14 +415,13 @@ public class YargVideoPlayer : MonoBehaviour
         prepareCompleted?.Invoke(this);
     }
 
-    private void SwitchToVideoPlayerFallback()
+    private void FallBackToUnity(string reason)
     {
+        YargLogger.LogInfo($"[YargVideoPlayer] {reason}; using Unity VideoPlayer");
         _usingVLC = false;
         _unityVideoPlayer.enabled = true;
-        _unityVideoPlayer.url = _url;
-        _unityVideoPlayer.renderMode = VideoRenderMode.RenderTexture;
-        // prepareCompleted/seekCompleted are wired in Prepare() instead, so the Unity
-        // path stays identical whether we got here via fallback or via a VLC-less build.
+        // PrepareUnity configures the player, so the Unity path stays identical whether we got
+        // here via fallback or via a VLC-less build.
     }
 #endif
 
