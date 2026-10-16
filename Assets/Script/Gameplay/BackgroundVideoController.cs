@@ -42,9 +42,15 @@ namespace YARG.Gameplay
         // Speed steps come 0.05 per keypress; re-park once they stop.
         private const float SPEED_STEP_SETTLE_SECONDS = 0.3f;
 
-        // How far ahead (in song seconds at 1x) a speed re-park seeks. The video holds one frame for
-        // about this long, so it must cover the seek's landing.
+        // How far ahead (in song seconds at 1x) a re-park seeks: after a speed step, and at a resume
+        // with no usable park. The video holds one frame for about this long, so it must cover the
+        // seek's landing.
         private const double REPARK_MARGIN_SECONDS = 0.4;
+
+        // Nothing holds the song on a park, so it waits for the real landing. Taking the short
+        // default instead pauses a long-GOP video mid catch-up (libVLC can't decode while paused),
+        // leaving it parked short of its target.
+        private const float PARK_SEEK_TIMEOUT_SECONDS = 3f;
 
         private readonly GameManager _gameManager;
         private readonly YargVideoPlayer _videoPlayer;
@@ -86,7 +92,8 @@ namespace YARG.Gameplay
         // A running video's seek takes the song's rate back once it lands (rule 3).
         private bool _applyRateOnSeekLanded;
 
-        // None → Seeking: BeginPark (pause, speed re-park). Seeking → Parked: OnVideoSeeked.
+        // None → Seeking: BeginPark (pause, speed re-park, a resume with no usable park).
+        // Seeking → Parked: OnVideoSeeked.
         // None → Parked: a held seek landing at non-100% speed.
         // Parked → Releasing: ArmParkRelease (resume, re-park landing, song start).
         // Releasing → None: ReleaseParkedVideo plays it once the song reaches the parked frame.
@@ -416,12 +423,12 @@ namespace YARG.Gameplay
 
         // Every seek drops to rate 1 (rule 2); ApplyVideoRate restores the song's rate when the
         // seek lands or the park is released.
-        private void SeekVideo(double target)
+        private void SeekVideo(double target, float completionTimeoutSeconds = YargVideoPlayer.SEEK_TIMEOUT_SECONDS)
         {
             if (_videoPlayer.usingVlc)
                 _videoPlayer.playbackSpeed = 1f;
 
-            _videoPlayer.time = target;
+            _videoPlayer.Seek(target, completionTimeoutSeconds);
         }
 
         // Play must come first (rule 1).
@@ -445,14 +452,16 @@ namespace YARG.Gameplay
         }
 
         // Called as the song resumes from a pause's rewind. A parked video is released once the song
-        // reaches its frame; otherwise this falls back to Play-then-seek, which lands late by the
-        // decoder's catch-up from the target's keyframe.
+        // reaches its frame. Without one, it re-parks ahead of the song and releases as the song
+        // arrives: a Play-then-seek to where the song is would land late by the decoder's catch-up
+        // from the target's keyframe, and stay that late.
         private void ResyncVideoToSong()
         {
             if (!IsRealignable)
                 return;
 
-            double target = VideoTargetFor(_gameManager.GetVideoPlaybackTime());
+            double time = _gameManager.GetVideoPlaybackTime();
+            double target = VideoTargetFor(time);
 
             // Outside the video's own span, the start block and end check already own it.
             if (!IsWithinVideo(target))
@@ -466,7 +475,11 @@ namespace YARG.Gameplay
             }
 
             CancelPark();
-            SeekWhilePlaying(target);
+            double ahead = VideoTargetFor(time + REPARK_MARGIN_SECONDS * _gameManager.SongSpeed);
+            if (IsWithinVideo(ahead))
+                BeginPark(ahead, releaseOnLanding: true);
+            else
+                SeekWhilePlaying(target);
         }
 
         // Where the park stops needn't be exact: the release reads back the picture actually
@@ -476,7 +489,7 @@ namespace YARG.Gameplay
             _parkState = ParkState.Seeking;
             _releaseParkOnLanding = releaseOnLanding;
             SetVideoPlaying(true);
-            SeekVideo(target);
+            SeekVideo(target, PARK_SEEK_TIMEOUT_SECONDS);
         }
 
         private void LandPark(bool release)
