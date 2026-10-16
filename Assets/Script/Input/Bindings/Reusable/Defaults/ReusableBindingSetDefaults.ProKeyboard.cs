@@ -14,175 +14,175 @@ namespace YARG.Input.Bindings
                 ActionStrings.KEYS_PRO_KEY_1,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_1],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, nameof(ProKeyboard.key1))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, ControlStrings.PRO_KEYBOARD_KEY_1)
                 )
             },
             {
                 ActionStrings.KEYS_PRO_KEY_2,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_2],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, nameof(ProKeyboard.key2))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, ControlStrings.PRO_KEYBOARD_KEY_2)
                 )
             },
             {
                 ActionStrings.KEYS_PRO_KEY_3,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_3],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, nameof(ProKeyboard.key3))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, ControlStrings.PRO_KEYBOARD_KEY_3)
                 )
             },
             {
                 ActionStrings.KEYS_PRO_KEY_4,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_4],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, nameof(ProKeyboard.key4))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, ControlStrings.PRO_KEYBOARD_KEY_4)
                 )
             },
             {
                 ActionStrings.KEYS_PRO_KEY_5,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_5],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, nameof(ProKeyboard.key5))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, ControlStrings.PRO_KEYBOARD_KEY_5)
                 )
             },
             {
                 ActionStrings.KEYS_PRO_KEY_6,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_6],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, nameof(ProKeyboard.key6))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, ControlStrings.PRO_KEYBOARD_KEY_6)
                 )
             },
             {
                 ActionStrings.KEYS_PRO_KEY_7,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_7],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, nameof(ProKeyboard.key7))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, ControlStrings.PRO_KEYBOARD_KEY_7)
                 )
             },
             {
                 ActionStrings.KEYS_PRO_KEY_8,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_8],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, nameof(ProKeyboard.key8))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, ControlStrings.PRO_KEYBOARD_KEY_8)
                 )
             },
             {
                 ActionStrings.KEYS_PRO_KEY_9,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_9],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, nameof(ProKeyboard.key9))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, ControlStrings.PRO_KEYBOARD_KEY_9)
                 )
             },
             {
                 ActionStrings.KEYS_PRO_KEY_10,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_10],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, nameof(ProKeyboard.key10))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, ControlStrings.PRO_KEYBOARD_KEY_10)
                 )
             },
             {
                 ActionStrings.KEYS_PRO_KEY_11,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_11],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, nameof(ProKeyboard.key11))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, ControlStrings.PRO_KEYBOARD_KEY_11)
                 )
             },
             {
                 ActionStrings.KEYS_PRO_KEY_12,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_12],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, nameof(ProKeyboard.key12))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, ControlStrings.PRO_KEYBOARD_KEY_12)
                 )
             },
             {
                 ActionStrings.KEYS_PRO_KEY_13,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_13],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, nameof(ProKeyboard.key13))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, ControlStrings.PRO_KEYBOARD_KEY_13)
                 )
             },
             {
                 ActionStrings.KEYS_PRO_KEY_14,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_14],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, nameof(ProKeyboard.key14))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, ControlStrings.PRO_KEYBOARD_KEY_14)
                 )
             },
             {
                 ActionStrings.KEYS_PRO_KEY_15,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_15],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, nameof(ProKeyboard.key15))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, ControlStrings.PRO_KEYBOARD_KEY_15)
                 )
             },
             {
                 ActionStrings.KEYS_PRO_KEY_16,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_16],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, nameof(ProKeyboard.key16))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, ControlStrings.PRO_KEYBOARD_KEY_16)
                 )
             },
             {
                 ActionStrings.KEYS_PRO_KEY_17,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_17],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, nameof(ProKeyboard.key17))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, ControlStrings.PRO_KEYBOARD_KEY_17)
                 )
             },
             {
                 ActionStrings.KEYS_PRO_KEY_18,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_18],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, nameof(ProKeyboard.key18))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, ControlStrings.PRO_KEYBOARD_KEY_18)
                 )
             },
             {
                 ActionStrings.KEYS_PRO_KEY_19,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_19],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, nameof(ProKeyboard.key19))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, ControlStrings.PRO_KEYBOARD_KEY_19)
                 )
             },
             {
                 ActionStrings.KEYS_PRO_KEY_20,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_20],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, nameof(ProKeyboard.key20))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, ControlStrings.PRO_KEYBOARD_KEY_20)
                 )
             },
             {
                 ActionStrings.KEYS_PRO_KEY_21,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_21],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, nameof(ProKeyboard.key21))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, ControlStrings.PRO_KEYBOARD_KEY_21)
                 )
             },
             {
                 ActionStrings.KEYS_PRO_KEY_22,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_22],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, nameof(ProKeyboard.key22))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, ControlStrings.PRO_KEYBOARD_KEY_22)
                 )
             },
             {
                 ActionStrings.KEYS_PRO_KEY_23,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_23],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, nameof(ProKeyboard.key23))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, ControlStrings.PRO_KEYBOARD_KEY_23)
                 )
             },
             {
                 ActionStrings.KEYS_PRO_KEY_24,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_24],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, nameof(ProKeyboard.key24))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, ControlStrings.PRO_KEYBOARD_KEY_24)
                 )
             },
             {
                 ActionStrings.KEYS_PRO_KEY_25,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_PRO_KEY_25],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, nameof(ProKeyboard.key25))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, ControlStrings.PRO_KEYBOARD_KEY_25)
                 )
             },
 
@@ -192,10 +192,10 @@ namespace YARG.Input.Bindings
                     ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_FIVE_LANE_OPEN],
                     new List<ReusableSingleButtonBindingConfig>()
                     {
-                        new (ControllerFamily.ProKeyboard, nameof(ProKeyboard.key10)),
-                        new (ControllerFamily.ProKeyboard, nameof(ProKeyboard.key12)),
-                        new (ControllerFamily.ProKeyboard, nameof(ProKeyboard.key22)),
-                        new (ControllerFamily.ProKeyboard, nameof(ProKeyboard.key24)),
+                        new (ControllerFamily.ProKeyboard, ControlStrings.PRO_KEYBOARD_KEY_10),
+                        new (ControllerFamily.ProKeyboard, ControlStrings.PRO_KEYBOARD_KEY_12),
+                        new (ControllerFamily.ProKeyboard, ControlStrings.PRO_KEYBOARD_KEY_22),
+                        new (ControllerFamily.ProKeyboard, ControlStrings.PRO_KEYBOARD_KEY_24),
                     }
 
                 )
@@ -206,9 +206,9 @@ namespace YARG.Input.Bindings
                     ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_FIVE_LANE_GREEN],
                     new List<ReusableSingleButtonBindingConfig>()
                     {
-                        new (ControllerFamily.ProKeyboard, nameof(ProKeyboard.key1)),
-                        new (ControllerFamily.ProKeyboard, nameof(ProKeyboard.key13)),
-                        new (ControllerFamily.ProKeyboard, nameof(ProKeyboard.key25))
+                        new (ControllerFamily.ProKeyboard, ControlStrings.PRO_KEYBOARD_KEY_1),
+                        new (ControllerFamily.ProKeyboard, ControlStrings.PRO_KEYBOARD_KEY_13),
+                        new (ControllerFamily.ProKeyboard, ControlStrings.PRO_KEYBOARD_KEY_25)
                     }
                     
                 )
@@ -219,8 +219,8 @@ namespace YARG.Input.Bindings
                     ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_FIVE_LANE_RED],
                     new List<ReusableSingleButtonBindingConfig>()
                     {
-                        new (ControllerFamily.ProKeyboard, nameof(ProKeyboard.key3)),
-                        new (ControllerFamily.ProKeyboard, nameof(ProKeyboard.key15))
+                        new (ControllerFamily.ProKeyboard, ControlStrings.PRO_KEYBOARD_KEY_3),
+                        new (ControllerFamily.ProKeyboard, ControlStrings.PRO_KEYBOARD_KEY_15)
                     }
 
                 )
@@ -231,8 +231,8 @@ namespace YARG.Input.Bindings
                     ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_FIVE_LANE_YELLOW],
                     new List<ReusableSingleButtonBindingConfig>()
                     {
-                        new (ControllerFamily.ProKeyboard, nameof(ProKeyboard.key5)),
-                        new (ControllerFamily.ProKeyboard, nameof(ProKeyboard.key17))
+                        new (ControllerFamily.ProKeyboard, ControlStrings.PRO_KEYBOARD_KEY_5),
+                        new (ControllerFamily.ProKeyboard, ControlStrings.PRO_KEYBOARD_KEY_17)
                     }
 
                 )
@@ -243,8 +243,8 @@ namespace YARG.Input.Bindings
                     ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_FIVE_LANE_BLUE],
                     new List<ReusableSingleButtonBindingConfig>()
                     {
-                        new (ControllerFamily.ProKeyboard, nameof(ProKeyboard.key6)),
-                        new (ControllerFamily.ProKeyboard, nameof(ProKeyboard.key18))
+                        new (ControllerFamily.ProKeyboard, ControlStrings.PRO_KEYBOARD_KEY_6),
+                        new (ControllerFamily.ProKeyboard, ControlStrings.PRO_KEYBOARD_KEY_18)
                     }
 
                 )
@@ -255,8 +255,8 @@ namespace YARG.Input.Bindings
                     ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_FIVE_LANE_ORANGE],
                     new List<ReusableSingleButtonBindingConfig>()
                     {
-                        new (ControllerFamily.ProKeyboard, nameof(ProKeyboard.key8)),
-                        new (ControllerFamily.ProKeyboard, nameof(ProKeyboard.key20))
+                        new (ControllerFamily.ProKeyboard, ControlStrings.PRO_KEYBOARD_KEY_8),
+                        new (ControllerFamily.ProKeyboard, ControlStrings.PRO_KEYBOARD_KEY_20)
                     }
 
                 )
@@ -266,14 +266,21 @@ namespace YARG.Input.Bindings
                 ActionStrings.KEYS_STAR_POWER,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_STAR_POWER],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, nameof(ProKeyboard.overdrive))
+                    new List<ReusableSingleButtonBindingConfig>() {
+                        new(ControllerFamily.ProKeyboard, ControlStrings.PLASTICBAND_SELECT),
+                        new(ControllerFamily.ProKeyboard, ControlStrings.PRO_KEYBOARD_OVERDRIVE),
+                        new(ControllerFamily.ProKeyboard, ControlStrings.PRO_KEYBOARD_DIGITAL_PEDAL)
+                    }
                 )
             },
             {
                 ActionStrings.KEYS_TOUCH_EFFECTS,
                 new ReusableAxisBinding(
                     ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_TOUCH_EFFECTS],
-                    new ReusableSingleAxisBindingConfig(ControllerFamily.ProKeyboard, nameof(ProKeyboard.touchStrip))
+                    new List<ReusableSingleAxisBindingConfig>() {
+                        new(ControllerFamily.ProKeyboard, ControlStrings.PRO_KEYBOARD_TOUCH_STRIP),
+                        new(ControllerFamily.ProKeyboard, ControlStrings.PRO_KEYBOARD_ANALOG_PEDAL),
+                    }
                 )
             },
         };
@@ -284,14 +291,14 @@ namespace YARG.Input.Bindings
                 ActionStrings.MENU_START,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.MENU[ActionStrings.MENU_START],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, nameof(ProKeyboard.startButton))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, ControlStrings.PLASTICBAND_START)
                 )
             },
             {
                 ActionStrings.MENU_SELECT,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.MENU[ActionStrings.MENU_SELECT],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, nameof(ProKeyboard.selectButton))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, ControlStrings.PLASTICBAND_SELECT)
                 )
             },
 
@@ -299,28 +306,28 @@ namespace YARG.Input.Bindings
                 ActionStrings.MENU_GREEN,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.MENU[ActionStrings.MENU_GREEN],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, nameof(ProKeyboard.buttonSouth))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, ControlStrings.GAMEPAD_BUTTON_SOUTH)
                 )
             },
             {
                 ActionStrings.MENU_RED,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.MENU[ActionStrings.MENU_RED],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, nameof(ProKeyboard.buttonEast))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, ControlStrings.GAMEPAD_BUTTON_EAST)
                 )
             },
             {
                 ActionStrings.MENU_YELLOW,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.MENU[ActionStrings.MENU_YELLOW],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, nameof(ProKeyboard.buttonNorth))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, ControlStrings.GAMEPAD_BUTTON_NORTH)
                 )
             },
             {
                 ActionStrings.MENU_BLUE,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.MENU[ActionStrings.MENU_BLUE],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, nameof(ProKeyboard.buttonWest))
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.ProKeyboard, ControlStrings.GAMEPAD_BUTTON_WEST)
                 )
             },
 

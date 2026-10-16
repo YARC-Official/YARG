@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using PlasticBand.Devices;
+using System.Collections.Generic;
 using System.Linq;
 using YARG.Core;
 using YARG.Helpers;
@@ -103,6 +104,12 @@ namespace YARG.Input.Serialization
 
             LEGACY_4L_DRUMKIT,
             LEGACY_4L_DRUMKIT_MENU,
-        };
+
+            LEGACY_5L_DRUMKIT,
+            LEGACY_5L_DRUMKIT_MENU,
+
+            LEGACY_PRO_KEYBOARD,
+            LEGACY_PRO_KEYBOARD_MENU,
+        }; 
     }
 }
