@@ -121,11 +121,14 @@ strip --strip-unneeded \
 Copy the resulting `libVLCUnityPlugin.so` to
 `Assets/Plugins/vlc/Linux/x86_64/libVLCUnityPlugin.so`.
 
-At runtime Unity loads it by name (`libVLCUnityPlugin`); standalone builds
-flatten plugins into `<app>_Data/Plugins/`, while in the editor the plugin is
-picked up from the `Assets/Plugins/vlc/Linux/x86_64` tree. The
-`VLC_PLUGIN_PATH` environment variable (pointing at the libVLC plugin
-directory) is set automatically by `OnLoad.cs` before anything is loaded.
+At runtime the plugin loads on the first `VLCUnityPlugin` import, after
+`VlcLibraryLoader` has loaded libvlc (its `DT_NEEDED` `libvlc.so.12` then
+matches the loaded library); standalone builds flatten plugins into
+`<app>_Data/Plugins/`, while in the editor it is picked up from the
+`Assets/Plugins/vlc/Linux/x86_64` tree. It isn't preloaded at startup
+(`isPreloaded: 0`), since libvlc isn't on the library path then. On Linux it
+only creates the libVLC player: `VlcCpuMediaPlayer` replaces its renderer with
+libVLC's vmem output.
 
 ## libVLCUnityPlugin.dylib (macOS)
 
@@ -185,5 +188,7 @@ Everything above is automated by `vlc/build.sh`, which:
 
 The script does not build libVLC itself. On Linux it links against the libvlc
 4.x dev files available to pkg-config; on macOS and Windows it links against
-the downloaded SDKs. Runtime still needs libvlc 4 next to the plugin (or on
-the system library path).
+the downloaded SDKs. Nothing in the repo ships libvlc: at runtime
+`VlcLibraryLoader` finds a libVLC 4 in the VLC / libVLC Path setting's folder,
+then in standard install locations, and loads it by absolute path (VLC_PLUGIN_PATH
+is set from the same folder).
