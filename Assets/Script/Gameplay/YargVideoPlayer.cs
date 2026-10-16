@@ -45,6 +45,11 @@ public class YargVideoPlayer : MonoBehaviour
         // thread_count - 1 frames, and at 24-30fps that delay is the whole offset the video would
         // otherwise sit behind the song at. No seek or resume timing can shift it.
         ":avcodec-threads=1",
+        // The same for AV1. dav1d sizes its threads to the CPU count, and its frame delay with them:
+        // up to 8 frames, past the 100ms of caching below, so on a many-core machine most pictures
+        // arrive after their display time and are dropped. One thread decodes these sizes in real
+        // time many times over.
+        ":dav1d-thread-frames=1",
         ":low-delay",
         // libVLC maps its first picture after a seek to "now + input caching" in wall time while
         // the stream advances at the playback rate, so at rate r the video settles
@@ -139,25 +144,38 @@ public class YargVideoPlayer : MonoBehaviour
 #else
         get => _unityVideoPlayer.time;
 #endif
-        set
-        {
-#if VLC_SUPPORTED
-            if (usingVlc)
-            {
-                _timeWatch.BeginSeek(value);
+        set => Seek(value);
+    }
 
-                // fast: false seeks to the requested timestamp rather than the preceding keyframe,
-                // which can be seconds out on a long-GOP video. SeekTo returns false when there's
-                // no input to seek within (e.g. after Stop()); it returns true for a seek issued
-                // while paused, which is dropped all the same.
-                if (!_vlc.MediaPlayer.SeekTo(TimeSpan.FromSeconds(value), fast: false))
-                    YargLogger.LogFormatWarning("[YargVideoPlayer] Seek to {0:F4} failed (state={1})",
-                        value, _vlc.MediaPlayer.State);
-                return;
-            }
-#endif
-            _unityVideoPlayer.time = value;
+    /// <summary>
+    /// The default for <see cref="Seek"/>: a caller may be holding the song paused on the seek. A
+    /// seek to the position the player already holds presents nothing new, so it ends here.
+    /// </summary>
+    public const float SEEK_TIMEOUT_SECONDS = 0.35f;
+
+    /// <summary>
+    /// Seeks, raising <see cref="seekCompleted"/> once it lands or, on VLC, once
+    /// <paramref name="completionTimeoutSeconds"/> passes. A caller holding the song on the seek
+    /// needs the short default; one that only acts on the landing can wait longer.
+    /// </summary>
+    public void Seek(double target, float completionTimeoutSeconds = SEEK_TIMEOUT_SECONDS)
+    {
+#if VLC_SUPPORTED
+        if (usingVlc)
+        {
+            _timeWatch.BeginSeek(target, completionTimeoutSeconds);
+
+            // fast: false seeks to the requested timestamp rather than the preceding keyframe,
+            // which can be seconds out on a long-GOP video. SeekTo returns false when there's
+            // no input to seek within (e.g. after Stop()); it returns true for a seek issued
+            // while paused, which is dropped all the same.
+            if (!_vlc.MediaPlayer.SeekTo(TimeSpan.FromSeconds(target), fast: false))
+                YargLogger.LogFormatWarning("[YargVideoPlayer] Seek to {0:F4} failed (state={1})",
+                    target, _vlc.MediaPlayer.State);
+            return;
         }
+#endif
+        _unityVideoPlayer.time = target;
     }
 
     public double length
@@ -449,7 +467,7 @@ public class YargVideoPlayer : MonoBehaviour
         {
             YargLogger.LogFormatWarning(
                 "[YargVideoPlayer] Seek to {0:F4} unconfirmed after {1:F2}s (at {2:F4}, accepted={3}, frames={4}, watchActive={5})",
-                _timeWatch.SeekTarget, VlcTimeWatch.SEEK_TIMEOUT_SECONDS, time, _timeWatch.SeekAccepted,
+                _timeWatch.SeekTarget, _timeWatch.SeekTimeout, time, _timeWatch.SeekAccepted,
                 _timeWatch.PicturesSinceSeek, _timeWatch.Active);
         }
 
@@ -465,7 +483,7 @@ public class YargVideoPlayer : MonoBehaviour
         }
     }
 
-    // LateUpdate, not Update: VLCMediaPlayer fetches libVLC's newest picture in its own Update,
+    // LateUpdate, not Update: the VLC player fetches libVLC's newest picture in its own Update,
     // and the two have no defined order, so blitting in Update shows the previous frame's picture.
     private void LateUpdate()
     {
