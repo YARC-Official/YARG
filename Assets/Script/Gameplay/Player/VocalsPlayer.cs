@@ -404,9 +404,10 @@ namespace YARG.Gameplay.Player
         {
             if (_cachedParticleSystems == null) return;
 
-            int colorIdx = Mathf.Clamp(harmonyIndex, 0, VocalTrack.Colors.Length - 1);
+            var colors = GameManager.VocalTrack.Colors;
+            int colorIdx = Mathf.Clamp(harmonyIndex, 0, colors.Length - 1);
             var color = Player.Profile.CurrentInstrument == Instrument.PartyVocals
-                ? VocalTrack.Colors[colorIdx]
+                ? colors[colorIdx]
                 : _partColor;
             foreach (var system in _cachedParticleSystems)
             {
@@ -528,9 +529,10 @@ namespace YARG.Gameplay.Player
             }
             MaterialPropertyInstance.Instance.SetFloat(OutlineWidthID, enableOutline ? OUTLINE_WIDTH : 0f);
             // Not sure if I need to set this every time, but it was being weird if I didn't
+            var colors = GameManager.VocalTrack.Colors;
             MaterialPropertyInstance.Instance.SetColor(OutlineColorID,
                 Player.Profile.CurrentInstrument == Instrument.PartyVocals
-                    ? VocalTrack.Colors[Mathf.Clamp(harmonyIdx, 0, VocalTrack.Colors.Length - 1)]
+                    ? colors[Mathf.Clamp(harmonyIdx, 0, colors.Length - 1)]
                     : _partColor);
             _needleRenderer.SetPropertyBlock(MaterialPropertyInstance.Instance);
             _outlineEnabled = enableOutline;
