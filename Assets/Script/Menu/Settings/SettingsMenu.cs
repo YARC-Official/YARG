@@ -417,6 +417,14 @@ namespace YARG.Menu.Settings
 
         public void OnSettingClicked(NavigatableBehaviour selected)
         {
+            // Settings visuals are also reused by other menus (for example, the
+            // Filters menu). Ignore clicks from those foreign navigation trees.
+            if (selected == null || selected.NavigationGroup == null ||
+                !selected.transform.IsChildOf(transform))
+            {
+                return;
+            }
+
             FocusNavigation(selected.NavigationGroup);
             selected.SetSelected(true, SelectionOrigin.Mouse);
         }
@@ -479,6 +487,14 @@ namespace YARG.Menu.Settings
                 {
                     ClearSettingDetails();
                 }
+                return;
+            }
+
+            // A recycled setting row may belong to another menu. SettingsMenu
+            // must not handle its selection or prevent that menu's listener from
+            // receiving the event.
+            if (!selected.transform.IsChildOf(transform))
+            {
                 return;
             }
 

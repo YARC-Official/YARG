@@ -118,9 +118,9 @@ MonoBehaviour:
   m_IgnoreLayout: 0
   m_MinWidth: -1
   m_MinHeight: -1
-  m_PreferredWidth: 800
+  m_PreferredWidth: 1
   m_PreferredHeight: -1
-  m_FlexibleWidth: -1
+  m_FlexibleWidth: 1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
 --- !u!222 &2578682794761478311
@@ -254,9 +254,9 @@ MonoBehaviour:
   m_IgnoreLayout: 0
   m_MinWidth: -1
   m_MinHeight: -1
-  m_PreferredWidth: 1000
+  m_PreferredWidth: 1
   m_PreferredHeight: -1
-  m_FlexibleWidth: -1
+  m_FlexibleWidth: 1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
 --- !u!114 &2116239974973485482
@@ -342,7 +342,7 @@ MonoBehaviour:
   _rightScrollRect: {fileID: 2243225531722659897}
   _rightNavGroup: {fileID: 6608382796522232100}
   _rightContainer: {fileID: 4560325456581486449}
-  _filterEntryRowPrefab: {fileID: 9218983968934493604, guid: 4c2bf4b1295221f4999942fe55936f87, type: 3}
+  _filterEntryRowPrefab: {fileID: 7977843324733893486, guid: 4c2bf4b1295221f4999942fe55936f87, type: 3}
   _filterCategoryRowPrefab: {fileID: 7474116738746911944, guid: 9f23404a9464fb343b772e3b8b902cfa, type: 3}
   _sortedByDropdownPrefab: {fileID: 5552788490976803366, guid: 87dae5d50dddcb543920ce79cdc31e7a, type: 3}
   _showRecommendationsTogglePrefab: {fileID: 5552788490976803366, guid: cfbe0f197d333b640bdae8e1c3bc1420, type: 3}
