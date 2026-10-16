@@ -29,10 +29,6 @@ public sealed class VlcTimeWatch
     // decoder.
     private const long SEEK_MIN_FRAMES = 1;
 
-    // Always ends the wait: a caller may be holding the song paused on it. A seek to the position
-    // the player already holds presents nothing new, so it ends here.
-    public const float SEEK_TIMEOUT_SECONDS = 0.35f;
-
     public enum SeekStatus { None, Pending, Landed, TimedOut }
 
     private readonly IVlcPlayer _owner;
@@ -80,6 +76,7 @@ public sealed class VlcTimeWatch
     }
 
     public double SeekTarget { get; private set; }
+    public float SeekTimeout { get; private set; }
     public bool SeekAccepted => _seekAccepted;
     public long PicturesSinceSeek => PicturesPresented - _seekFrameBaseline;
 
@@ -146,11 +143,12 @@ public sealed class VlcTimeWatch
     }
 
     /// <summary>Call before issuing the seek: on_seek can arrive before SeekTo returns.</summary>
-    public void BeginSeek(double target)
+    public void BeginSeek(double target, float timeoutSeconds)
     {
         SeekTarget = target;
+        SeekTimeout = timeoutSeconds;
         _seekFrameBaseline = PicturesPresented;
-        _seekDeadline = Time.unscaledTime + SEEK_TIMEOUT_SECONDS;
+        _seekDeadline = Time.unscaledTime + timeoutSeconds;
         _seekPending = true;
         _seekAccepted = false;
         Interlocked.Exchange(ref _seekFinished, 0);
