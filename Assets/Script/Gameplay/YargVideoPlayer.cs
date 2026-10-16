@@ -56,6 +56,11 @@ public class YargVideoPlayer : MonoBehaviour
         // arrive after their display time and are dropped. One thread decodes these sizes in real
         // time many times over.
         ":dav1d-thread-frames=1",
+        // With direct rendering, libavcodec's VP9 decoder holds its reference frames in libVLC's
+        // picture pool. After a seek it waits on that pool forever, so no picture is shown again and
+        // releasing the player (leaving the song) deadlocks joining the decoder. A larger vmem
+        // picture count doesn't help. Costs one copy per software-decoded frame.
+        ":avcodec-dr=0",
         ":low-delay",
         // libVLC maps its first picture after a seek to "now + input caching" in wall time while
         // the stream advances at the playback rate, so at rate r the video settles
