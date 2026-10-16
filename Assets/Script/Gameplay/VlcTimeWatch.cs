@@ -2,6 +2,11 @@
 
 using System.Threading;
 using LibVLCSharp;
+#if UNITY_EDITOR_LINUX || UNITY_STANDALONE_LINUX
+using VlcPlayer = VlcCpuMediaPlayer;
+#else
+using VlcPlayer = LibVLCSharp.VLCMediaPlayer;
+#endif
 using UnityEngine;
 using YARG.Core.Logging;
 
@@ -35,7 +40,7 @@ public sealed class VlcTimeWatch
 
     public enum SeekStatus { None, Pending, Landed, TimedOut }
 
-    private readonly VLCMediaPlayer _owner;
+    private readonly VlcPlayer _owner;
     private MediaPlayer _watchedPlayer;
     private VlcPlayerTeardownHook _teardownHook;
 
@@ -55,7 +60,7 @@ public sealed class VlcTimeWatch
     private long _seekFrameBaseline;
     private float _seekDeadline;
 
-    public VlcTimeWatch(VLCMediaPlayer owner)
+    public VlcTimeWatch(VlcPlayer owner)
     {
         _owner = owner;
     }
