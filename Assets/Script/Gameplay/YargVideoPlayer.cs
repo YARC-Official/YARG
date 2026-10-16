@@ -36,8 +36,6 @@ public class YargVideoPlayer : MonoBehaviour
     [SerializeField] private LibVLCSharp.VLCMediaPlayer _vlcPlayer;
     private VlcPlayer _vlc;
     private bool _usingVLC = false;
-    // The 180-degree flip happens in BlitContained rather than in VLCMediaPlayer; see TryInitializeVLC.
-    private bool _flipInBlit;
     // Latches prepareCompleted to one fire per Prepare() -- see OnVLCTextureResized.
     private bool _vlcPreparedFired = false;
     private VlcTimeWatch _timeWatch;
@@ -53,6 +51,11 @@ public class YargVideoPlayer : MonoBehaviour
         // thread_count - 1 frames, and at 24-30fps that delay is the whole offset the video would
         // otherwise sit behind the song at. No seek or resume timing can shift it.
         ":avcodec-threads=1",
+        // The same for AV1. dav1d sizes its threads to the CPU count, and its frame delay with them:
+        // up to 8 frames, past the 100ms of caching below, so on a many-core machine most pictures
+        // arrive after their display time and are dropped. One thread decodes these sizes in real
+        // time many times over.
+        ":dav1d-thread-frames=1",
         ":low-delay",
         // libVLC maps its first picture after a seek to "now + input caching" in wall time while
         // the stream advances at the playback rate, so at rate r the video settles
@@ -111,6 +114,11 @@ public class YargVideoPlayer : MonoBehaviour
             // Named here: the logger formats on its own thread, where Object.ToString throws.
             YargLogger.LogFormatDebug("[YargVideoPlayer/UnityPlayer] targetTexture set to {0}", value != null ? value.name : "null");
             _unityVideoPlayer.targetTexture = value;
+#if VLC_CPU_OUTPUT
+            // The picture is fitted inside it, so a larger video never needs copying at full size.
+            if (_vlc != null && value != null)
+                _vlc.SetMaxOutputSize(value.width, value.height);
+#endif
         }
     }
 
@@ -149,25 +157,38 @@ public class YargVideoPlayer : MonoBehaviour
 #else
         get => _unityVideoPlayer.time;
 #endif
-        set
-        {
-#if VLC_SUPPORTED
-            if (usingVlc)
-            {
-                _timeWatch.BeginSeek(value);
+        set => Seek(value);
+    }
 
-                // fast: false seeks to the requested timestamp rather than the preceding keyframe,
-                // which can be seconds out on a long-GOP video. SeekTo returns false when there's
-                // no input to seek within (e.g. after Stop()); it returns true for a seek issued
-                // while paused, which is dropped all the same.
-                if (!_vlc.MediaPlayer.SeekTo(TimeSpan.FromSeconds(value), fast: false))
-                    YargLogger.LogFormatWarning("[YargVideoPlayer] Seek to {0:F4} failed (state={1})",
-                        value, _vlc.CurrentState);
-                return;
-            }
-#endif
-            _unityVideoPlayer.time = value;
+    /// <summary>
+    /// The default for <see cref="Seek"/>: a caller may be holding the song paused on the seek. A
+    /// seek to the position the player already holds presents nothing new, so it ends here.
+    /// </summary>
+    public const float SEEK_TIMEOUT_SECONDS = 0.35f;
+
+    /// <summary>
+    /// Seeks, raising <see cref="seekCompleted"/> once it lands or, on VLC, once
+    /// <paramref name="completionTimeoutSeconds"/> passes. A caller holding the song on the seek
+    /// needs the short default; one that only acts on the landing can wait longer.
+    /// </summary>
+    public void Seek(double target, float completionTimeoutSeconds = SEEK_TIMEOUT_SECONDS)
+    {
+#if VLC_SUPPORTED
+        if (usingVlc)
+        {
+            _timeWatch.BeginSeek(target, completionTimeoutSeconds);
+
+            // fast: false seeks to the requested timestamp rather than the preceding keyframe,
+            // which can be seconds out on a long-GOP video. SeekTo returns false when there's
+            // no input to seek within (e.g. after Stop()); it returns true for a seek issued
+            // while paused, which is dropped all the same.
+            if (!_vlc.MediaPlayer.SeekTo(TimeSpan.FromSeconds(target), fast: false))
+                YargLogger.LogFormatWarning("[YargVideoPlayer] Seek to {0:F4} failed (state={1})",
+                    target, _vlc.CurrentState);
+            return;
         }
+#endif
+        _unityVideoPlayer.time = target;
     }
 
     public double length
@@ -409,6 +430,7 @@ public class YargVideoPlayer : MonoBehaviour
 
 #if VLC_CPU_OUTPUT
         // Removed before it wakes, so it never creates a player through vlc-unity's Linux output.
+        // Same GameObject, so VlcPlayerTeardownHook still disables before the player is disposed.
         var playerObject = _vlcPlayer.gameObject;
         DestroyImmediate(_vlcPlayer);
         _vlcPlayer = null;
@@ -437,7 +459,7 @@ public class YargVideoPlayer : MonoBehaviour
         {
             YargLogger.LogFormatWarning(
                 "[YargVideoPlayer] Seek to {0:F4} unconfirmed after {1:F2}s (at {2:F4}, accepted={3}, frames={4}, watchActive={5})",
-                _timeWatch.SeekTarget, VlcTimeWatch.SEEK_TIMEOUT_SECONDS, time, _timeWatch.SeekAccepted,
+                _timeWatch.SeekTarget, _timeWatch.SeekTimeout, time, _timeWatch.SeekAccepted,
                 _timeWatch.PicturesSinceSeek, _timeWatch.Active);
         }
 
@@ -453,7 +475,7 @@ public class YargVideoPlayer : MonoBehaviour
         }
     }
 
-    // LateUpdate, not Update: VLCMediaPlayer fetches libVLC's newest picture in its own Update,
+    // LateUpdate, not Update: the VLC player fetches libVLC's newest picture in its own Update,
     // and the two have no defined order, so blitting in Update shows the previous frame's picture.
     private void LateUpdate()
     {
@@ -490,15 +512,14 @@ public class YargVideoPlayer : MonoBehaviour
             return;
         }
 
-        BlitContained(source, _targetTexture, _flipInBlit);
+        BlitContained(source, _targetTexture);
     }
 
     // Centers source inside dest at source's own aspect ratio, filling the remainder with
     // black bars. VLC decodes at the video's native resolution, and every consumer of
     // targetTexture -- the venue RawImage, the yarground screen material -- maps the whole
     // texture onto a fixed rect, so without this the video is stretched to that rect.
-    // flip rotates the picture 180 degrees, the flipTextureX/Y the VLC player would otherwise apply.
-    private static void BlitContained(Texture source, RenderTexture dest, bool flip)
+    private static void BlitContained(Texture source, RenderTexture dest)
     {
         float sourceAspect = (float) source.width / source.height;
 
@@ -524,13 +545,10 @@ public class YargVideoPlayer : MonoBehaviour
         GL.PushMatrix();
         // y-down (bottom > top), which is what keeps this stage orientation-neutral:
         // Graphics.DrawTexture maps v=0 to the rect's top edge, so a y-up matrix flips the
-        // image. The pipeline's flip convention lives elsewhere: _flipInBlit (or _vlc's
-        // flipTextureX/Y) and the yarground image blit's (1, -1).
+        // image. The pipeline's flip convention lives elsewhere: VLCMediaPlayer's flipTextureX/Y
+        // (VlcCpuMediaPlayer draws upright to match) and the yarground image blit's (1, -1).
         GL.LoadPixelMatrix(0, dest.width, dest.height, 0);
-        if (flip)
-            Graphics.DrawTexture(fitted, source, new Rect(1f, 1f, -1f, -1f), 0, 0, 0, 0);
-        else
-            Graphics.DrawTexture(fitted, source);
+        Graphics.DrawTexture(fitted, source);
         GL.PopMatrix();
         RenderTexture.active = previous;
     }
@@ -589,13 +607,8 @@ public class YargVideoPlayer : MonoBehaviour
             _vlc.enabled = true;
 #if !VLC_CPU_OUTPUT
             _vlc.playOnAwake = false;
-            // On Linux Vulkan, any flip makes vlc-unity copy each frame into a Texture2D and
-            // Graphics.Blit it into a second texture. Without one, the plugin writes straight into
-            // OutputTexture, and the flip rides along in our own blit.
-            _flipInBlit = (Application.platform is RuntimePlatform.LinuxPlayer or RuntimePlatform.LinuxEditor) &&
-                SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Vulkan;
-            _vlc.flipTextureX = !_flipInBlit;
-            _vlc.flipTextureY = !_flipInBlit;
+            _vlc.flipTextureX = true;
+            _vlc.flipTextureY = true;
             _vlc.logPlayerActivity = false;
 #endif
             _vlc.OnTextureResized += OnVLCTextureResized;

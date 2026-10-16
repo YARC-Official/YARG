@@ -2,16 +2,16 @@
 
 using System.Threading;
 using LibVLCSharp;
+using UnityEngine;
+using YARG.Core.Logging;
 #if UNITY_EDITOR_LINUX || UNITY_STANDALONE_LINUX
 using VlcPlayer = VlcCpuMediaPlayer;
 #else
 using VlcPlayer = LibVLCSharp.VLCMediaPlayer;
 #endif
-using UnityEngine;
-using YARG.Core.Logging;
 
 /// <summary>
-/// libVLC's watch_time timer for one <see cref="VLCMediaPlayer"/>: counts presented pictures,
+/// libVLC's watch_time timer for one VLC player (VlcPlayer): counts presented pictures,
 /// records the last one's timestamp, and decides when a seek has landed.
 /// </summary>
 /// <remarks>
@@ -21,7 +21,7 @@ using YARG.Core.Logging;
 /// <item>Callbacks run on libVLC threads. They only record into Interlocked fields and never call
 /// into the player.</item>
 /// <item>libVLC asserts at player deletion that no watcher remains, aborting the process. So
-/// <see cref="Stop"/> must run before VLCMediaPlayer disposes the player, which
+/// <see cref="Stop"/> must run before the VLC player component disposes the player, which
 /// <see cref="VlcPlayerTeardownHook"/> guarantees.</item>
 /// </list>
 /// </remarks>
@@ -33,10 +33,6 @@ public sealed class VlcTimeWatch
     // nearest decodable frame. Any picture after on_seek is post-seek: the seek flushes the
     // decoder.
     private const long SEEK_MIN_FRAMES = 1;
-
-    // Always ends the wait: a caller may be holding the song paused on it. A seek to the position
-    // the player already holds presents nothing new, so it ends here.
-    public const float SEEK_TIMEOUT_SECONDS = 0.35f;
 
     public enum SeekStatus { None, Pending, Landed, TimedOut }
 
@@ -81,6 +77,7 @@ public sealed class VlcTimeWatch
     }
 
     public double SeekTarget { get; private set; }
+    public float SeekTimeout { get; private set; }
     public bool SeekAccepted => _seekAccepted;
     public long PicturesSinceSeek => PicturesPresented - _seekFrameBaseline;
 
@@ -147,11 +144,12 @@ public sealed class VlcTimeWatch
     }
 
     /// <summary>Call before issuing the seek: on_seek can arrive before SeekTo returns.</summary>
-    public void BeginSeek(double target)
+    public void BeginSeek(double target, float timeoutSeconds)
     {
         SeekTarget = target;
+        SeekTimeout = timeoutSeconds;
         _seekFrameBaseline = PicturesPresented;
-        _seekDeadline = Time.unscaledTime + SEEK_TIMEOUT_SECONDS;
+        _seekDeadline = Time.unscaledTime + timeoutSeconds;
         _seekPending = true;
         _seekAccepted = false;
         Interlocked.Exchange(ref _seekFinished, 0);

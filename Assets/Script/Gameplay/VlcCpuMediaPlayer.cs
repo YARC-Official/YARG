@@ -1,6 +1,7 @@
 #if UNITY_EDITOR_LINUX || UNITY_STANDALONE_LINUX
 
 using System;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -40,13 +41,10 @@ public sealed class VlcCpuMediaPlayer : MonoBehaviour
     /// </summary>
     public event Action<RenderTexture> OnTextureResized;
 
-    /// <summary>The playback time in milliseconds.</summary>
     /// <summary>True once <see cref="Awake"/> has run, as VLCMediaPlayer's is.</summary>
     public bool didAwake { get; private set; }
 
-    public VLCState CurrentState => MediaPlayer != null ? MediaPlayer.State : VLCState.NothingSpecial;
-
-    public long Time => MediaPlayer != null ? MediaPlayer.Time / 1000 : 0;
+    public VLCState CurrentState { get; private set; }
 
     /// <summary>The media duration in milliseconds.</summary>
     public long Duration
@@ -68,6 +66,8 @@ public sealed class VlcCpuMediaPlayer : MonoBehaviour
         lock (_frameLock)
             (_maxWidth, _maxHeight) = (width, height);
     }
+
+    private readonly ConcurrentQueue<VLCState> _stateChanges = new();
 
     // Guards everything below. libVLC calls back on its own threads; the main thread uploads under
     // it, so a session's cleanup can't free a buffer mid-upload.
@@ -129,6 +129,13 @@ public sealed class VlcCpuMediaPlayer : MonoBehaviour
             SetFormatCallbacks(MediaPlayer.NativeReference, FormatCallback, CleanupCallback);
             SetCallbacks(MediaPlayer.NativeReference, LockCallback, IntPtr.Zero, DisplayCallback,
                 GCHandle.ToIntPtr(_handle));
+
+            MediaPlayer.Opening += (_, _) => _stateChanges.Enqueue(VLCState.Opening);
+            MediaPlayer.Playing += (_, _) => _stateChanges.Enqueue(VLCState.Playing);
+            MediaPlayer.Paused += (_, _) => _stateChanges.Enqueue(VLCState.Paused);
+            MediaPlayer.Stopping += (_, _) => _stateChanges.Enqueue(VLCState.Stopping);
+            MediaPlayer.Stopped += (_, _) => _stateChanges.Enqueue(VLCState.Stopped);
+            MediaPlayer.EncounteredError += (_, _) => _stateChanges.Enqueue(VLCState.Error);
         }
         catch (Exception ex)
         {
@@ -166,16 +173,14 @@ public sealed class VlcCpuMediaPlayer : MonoBehaviour
 
     public void Play() => MediaPlayer.Play();
 
-    // SetPause, not VLCMediaPlayer.Pause's libvlc_media_player_pause, which toggles: on a player
-    // that hasn't reached Playing yet it starts playback instead.
-    public void Pause() => MediaPlayer.SetPause(true);
-
     public void Stop() => MediaPlayer?.Stop();
-
-    public void SetTime(long milliseconds) => MediaPlayer.SeekTo(TimeSpan.FromMilliseconds(milliseconds));
 
     private void Update()
     {
+        // VLCMediaPlayer applies state changes on the main thread the same way.
+        while (_stateChanges.TryDequeue(out var state))
+            CurrentState = state;
+
         bool resized = false;
         lock (_frameLock)
         {
