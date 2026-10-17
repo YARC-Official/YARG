@@ -21,7 +21,8 @@ namespace YARG.Settings.Customization
             Converters = new List<JsonConverter>
             {
                 new JsonColorConverter(),
-                new JsonVector2Converter()
+                new JsonVector2Converter(),
+                new JsonFileInfoConverter()
             }
         };
 
@@ -259,7 +260,7 @@ namespace YARG.Settings.Customization
             }
         }
 
-        private string SavePresetFile(T preset)
+        public string SavePresetFile(T preset)
         {
             preset.Type = PresetTypeStringName;
             var text = JsonConvert.SerializeObject(preset, JsonSettings);
@@ -416,6 +417,26 @@ namespace YARG.Settings.Customization
 
         protected virtual void SaveAdditionalFilesFromExport(ZipArchive archive, T preset)
         {
+        }
+
+        protected static void CopyAdditionalFiles(string source, string destination)
+        {
+            if (source == null || destination == null)
+            {
+                return;
+            }
+
+            if (!Directory.Exists(source))
+            {
+                YargLogger.LogFormatError("Source directory does not exist: {0}", source);
+            }
+
+            Directory.CreateDirectory(destination);
+
+            foreach (var file in Directory.GetFiles(source))
+            {
+                File.Copy(file, Path.Join(destination, Path.GetFileName(file)));
+            }
         }
 
         private static T LoadFile(string path)

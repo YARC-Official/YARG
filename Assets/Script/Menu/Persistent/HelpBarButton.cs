@@ -14,6 +14,8 @@ namespace YARG.Menu.Persistent
         [SerializeField]
         private Image _buttonImage;
         [SerializeField]
+        private Sprite _verticalDirectionalIcon;
+        [SerializeField]
         private Image _buttonBackground;
         [SerializeField]
         private Image _buttonHoldFill;
@@ -48,6 +50,10 @@ namespace YARG.Menu.Persistent
         private ButtonState _defaultState = ButtonState.NONE;
 
         private ButtonState _currentState = ButtonState.NONE;
+        private Vector2 _buttonImageSize;
+        private Vector2 _buttonImagePosition;
+        private Sprite _defaultButtonIcon;
+        private bool _directionalIconVertical;
         private bool IsPointerHolding => _entry?.HasHoldHandler == true && _holdTracker?.IsHolding == true;
         private bool IsDisabledState => _currentState == ButtonState.DISABLED;
 
@@ -90,9 +96,39 @@ namespace YARG.Menu.Persistent
                 : Selectable.Transition.SpriteSwap;
 
             // Set sprite and fill color, then apply idle state
-            _buttonImage.sprite = icons.GetIcon(entry.Action);
+            _defaultButtonIcon = icons.GetIcon(entry.Action);
+            _buttonImage.sprite = _defaultButtonIcon;
+            _directionalIconVertical = false;
+            if (_buttonImageSize == default)
+            {
+                _buttonImageSize = _buttonImage.rectTransform.sizeDelta;
+                _buttonImagePosition = _buttonImage.rectTransform.anchoredPosition;
+            }
+            _buttonImage.rectTransform.anchoredPosition = _buttonImagePosition;
+            _buttonImage.rectTransform.sizeDelta = _buttonImageSize;
             _buttonHoldFill.color = _buttonFillColor;
             ApplyState(_defaultState);
+        }
+
+        public void SetDirectionalIconVertical(bool vertical)
+        {
+            if (_directionalIconVertical == vertical) return;
+
+            _directionalIconVertical = vertical;
+            _buttonImage.sprite = vertical ? _verticalDirectionalIcon : _defaultButtonIcon;
+            if (vertical)
+            {
+                float pixelsToUiScale = _buttonImageSize.x / _defaultButtonIcon.rect.width;
+                Vector2 verticalSize = _verticalDirectionalIcon.rect.size * pixelsToUiScale;
+                _buttonImage.rectTransform.anchoredPosition = _buttonImagePosition +
+                    Vector2.right * ((_buttonImageSize.x - verticalSize.x) / 2f);
+                _buttonImage.rectTransform.sizeDelta = verticalSize;
+            }
+            else
+            {
+                _buttonImage.rectTransform.anchoredPosition = _buttonImagePosition;
+                _buttonImage.rectTransform.sizeDelta = _buttonImageSize;
+            }
         }
 
         public void OnPointerEnter(PointerEventData eventData)
@@ -288,16 +324,23 @@ namespace YARG.Menu.Persistent
         // triggered by the Navigator when the hold is complete
         private void HandleControllerHold()
         {
-            var rawHoldProgress = _entry.HasValue
-                ? Navigator.Instance.GetHoldProgress(_entry.Value.Action)
-                : -1f;
-            if (rawHoldProgress >= 0f)
+            if (!_entry.HasValue) return;
+
+            var action = _entry.Value.Action;
+            bool isHeld = Navigator.Instance.IsActionHeld(action);
+            var rawHoldProgress = Navigator.Instance.GetHoldProgress(action);
+            if (isHeld)
             {
                 if (_currentState != ButtonState.HOLD)
                 {
                     ApplyState(ButtonState.HOLD);
                 }
-                var visualProgress = _holdTracker.GetVisualHoldProgress(rawHoldProgress);
+
+                // A modifier chord can cancel the pending hold action while the physical button
+                // remains pressed. Keep the pressed highlight, but clear the canceled hold fill.
+                var visualProgress = rawHoldProgress >= 0f
+                    ? _holdTracker.GetVisualHoldProgress(rawHoldProgress)
+                    : 0f;
                 UpdateButtonFillAmount(visualProgress);
             }
             else if (_buttonHoldFill.fillAmount > 0f || _currentState == ButtonState.HOLD)

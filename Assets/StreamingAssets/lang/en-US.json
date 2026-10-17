@@ -205,6 +205,7 @@
             "Toggle": "Toggle",
             "On": "On",
             "Off": "Off",
+            "Skip": "Skip",
             "Start": "Start",
             "Up": "Up",
             "Down": "Down",
@@ -354,6 +355,15 @@
             "WarningPlayerNoInputDevice": "This player has no input device assigned! Assign one from the Profiles menu.",
             "WarningVocalistNoMicrophone": "This vocalist has no microphone assigned! Assign one from the Profiles menu."
         },
+        "GameModes": {
+            "Options": {
+                "Name": "Game Modes",
+                "CareerList": "Careers",
+                "Practice": "Practice",
+                "History": "History",
+                "Back": "Main Menu"
+            }
+        },
         "History": {
             "Name": "History",
             "Time": {
@@ -369,13 +379,29 @@
             "ViewScoreCard": "View Results",
             "PlayWithReplay": "Play With Replay"
         },
+        "Career": {
+            "StarProgress": "{0} / {1}",
+            "UnlockStars": "Earn {0} more stars to unlock",
+            "UnlockSongs": "Complete {0} more songs to unlock",
+            "Locked": "Locked",
+            "SongMissing": "Not Found In Library",
+            "SongArtistAlbum": "{0} - {1}",
+            "HeaderPlayers": "Players: {0}",
+            "HeaderTier": "Current tier: {0}",
+            "NoPlayers": "No eligible players",
+            "Reset": "(Hold) Reset Progress",
+            "ResetDone": "Career progress has been reset.",
+            "NothingToReset": "This career has no progress to reset yet.",
+            "UnlockTitle": "Tier Unlocked",
+            "UnlockMessage": "New tier available: {0}",
+            "UnknownTier": "Unknown tier"
+        },
         "Main": {
             "MessageOfTheDay": "<align=center><size=32><b>Welcome to v0.15!</b></size></align>\n\nv0.15 is a major update that adds many highly requested and necessary gameplay features such as roll/trill lanes and Big \"YARG\" endings, as well as revamped user interface in the song selection and results screen, drum lane customization, automatic genre categorization, experimental custom vocalist characters in venues, and more.\n\n<b>If you have any feedback or find any bugs, please let us know on Discord or GitHub.</b>\n\nHappy YARGin'!",
             "Options": {
                 "Quickplay": "Quickplay",
-                "Practice": "Practice",
+                "GameModes": "Game Modes",
                 "Profiles": "Profiles",
-                "History": "History",
                 "Content": "Content",
                 "Settings": "Settings",
                 "Credits": "Credits",
@@ -398,6 +424,11 @@
             "Sort": {
                 "Intensity": "Intensity: {0}",
                 "Unplayed": "Unplayed Songs",
+                "PlayCount": {
+                    "Singular": "1 Play",
+                    "Plural": "{0:N0} Plays",
+                    "Bucket": "{0:N0}+ Plays"
+                },
                 "NoPart": "No Part",
                 "Percentage": {
                     "100": "100%",
@@ -472,6 +503,7 @@
             "SelectArtist": "Select Current Artist",
             "ExitSearchHold": "(Hold) Exit Search",
             "SkipSection": "<align=left>Navigate Sections</align>",
+            "SkipPage": "<align=left>Navigate Pages</align>",
             "MoveInPlaylist": "Move Song",
             "CurrentSetlist": "Current Setlist",
             "AddToSet": "Add To Setlist",
@@ -482,13 +514,13 @@
             "HoldPlayShow": "(Hold) Play A Show",
             "Filters": "Filters",
             "HoldFilters": "(Hold) Filters",
-            "SortAndFilter": "<align=left><size=80%>Sort By...<br>(Hold) Filters</size></align>",
+            "SortAndFilter": "<align=left>Sort By...<br><size=80%>(Hold) Filters</size></align>",
             "NoSongsInPlaylist": "No Songs In Playlist",
             "CannotAddToSelf": "No, I will not create an ouroboros for you. Nice try, Jaden.",
             "AddToShow": "Add To Show",
             "AddedToShow": "Added To Show",
             "StartShow": "Start The Show",
-            "MoreOptionsAndGoToSection": "<align=left><size=80%>More Options<br>(Hold) Go to Section...</size></align>",
+            "MoreOptionsAndGoToSection": "<align=left>More Options<br><size=80%>(Hold) Go to Section...</size></align>",
             "MoreOptions": "More Options",
             "PlayAShow": {
                 "LongSong": "A Long Song",
@@ -1444,11 +1476,12 @@
             "Header": "Unison Bonus"
         }
     },
-    "Preview": {
-        "Experimental": {
-            "Notice": "IMPORTANT\n\nThese settings represent a work in progress. They are subject to change, may contain bugs, and could even cause major problems if enabled."
-        }
-    },
+	"Preview": {
+    "Title": "Preview",
+		"Experimental": {
+			"Notice": "IMPORTANT\n\nThese settings represent a work in progress. They are subject to change, may contain bugs, and could even cause major problems if enabled."
+		}
+	},
     "Discord": {
         "Default": {
             "Details": "Hello there ladies and gentlemen!",
@@ -1634,6 +1667,7 @@
             "Volume": "Volume",
             "Graphics": "Graphics",
             "Camera": "Camera",
+            "Visuals": "Visuals",
             "SongFolders": "Song Folders",
             "SongUpgrades": "Song Upgrades",
             "Cache": "Cache",
@@ -1665,7 +1699,10 @@
             "Gameplay": "Gameplay",
             "CrowdFX": "Crowd FX",
             "OutputConfiguration": "Output Configuration",
-            "Accessibility": "Accessibility"
+            "Accessibility": "Accessibility",
+            "CareerInformation": "Career Information",
+            "CareerTiers": "Career Tiers",
+            "NoTiers": "  (No tiers created. Click '+ Add Tier' above)"
         },
         "Button": {
             "CopyCurrentSongJsonFilePath": "Copy Current Song Json File Path",
@@ -1752,6 +1789,14 @@
                 "Dropdown": {
                     "Classic": "Classic",
                     "Expanded": "Expanded"
+                }
+            },
+            "NavigationJumpDistance": {
+                "Name": "Navigation Jump Distance",
+                "Description": "Choose whether navigation jumps between sections or by one screen of library content.",
+                "Dropdown": {
+                    "Sections": "Sections",
+                    "Pages": "Pages"
                 }
             },
             "DisableBloom": {
@@ -2130,8 +2175,8 @@
                 "Default": "<i>Default ({0})</i>"
             },
             "EffectsMode": {
-                "Name": "Effects Mode",
-                "Description": "Selects the audio fx quality for reverb and time stretching.",
+                "Name": "High quality audio effects",
+                "Description": "Uses improved reverb and time stretching effects, with increased CPU usage.",
                 "Dropdown": {
                     "Performance": "Performance",
                     "Quality": "Quality"
@@ -2172,6 +2217,22 @@
                     "AlbumsByYearSongsByTitle": "Albums by Year / Songs by Title",
                     "AlbumsByYearSongsByTrack": "Albums by Year / Songs by Track",
                     "Off": "Off"
+                }
+            },
+            "SecondarySourceSort": {
+                "Name": "Secondary Source Sort",
+                "Description": "Groups songs by intensity under secondary headers when sorting the Music Library by source.",
+                "Dropdown": {
+                    "Off": "Off",
+                    "Intensity": "Intensity"
+                }
+            },
+            "SecondaryIntensitySort": {
+                "Name": "Secondary Intensity Sort",
+                "Description": "Groups songs by source under secondary headers when sorting the Music Library by intensity.",
+                "Dropdown": {
+                    "Off": "Off",
+                    "Source": "Source"
                 }
             },
             "ShowHitWindow": {
@@ -2554,8 +2615,9 @@
             "CameraSettingsContainer": "Camera Presets",
             "ColorProfileContainer": "Color Profiles",
             "EnginePresetContainer": "Engine Presets",
-            "HighwayPresetContainer": "Highway Presets",
-            "RockMeterPresetContainer": "Rock Meter Presets"
+            "HighwayPresetContainer" : "Highway Presets",
+			      "RockMeterPresetContainer" : "Rock Meter Presets",
+            "CareerContainer": "Career Presets"
         },
         "PresetSetting": {
             "PreviewVisuals": {
@@ -2638,6 +2700,20 @@
                 "OrthographicSize": {
                     "Name": "Orthographic Size",
                     "Description": "The orthographic view size (half the vertical view height in world units). Only used when Orthographic Camera is enabled."
+                }
+            },
+            "CareerPreset": {
+                "Description": {
+                    "Name": "Description",
+                    "Description": "The long text description of the career."
+                },
+                "BackgroundImageName": {
+                    "Name": "Background Image",
+                    "Description": "The filename of the background image for this career."
+                },
+                "Source": {
+                    "Name": "Source",
+                    "Description": "The source of the career, in the same format as an ini source tag"
                 }
             },
             "ColorProfile": {

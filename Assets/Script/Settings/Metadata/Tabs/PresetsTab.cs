@@ -6,6 +6,7 @@ using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using YARG.Career;
 using YARG.Core.Game;
 using YARG.Core.Logging;
 using YARG.Menu;
@@ -49,9 +50,13 @@ namespace YARG.Settings.Metadata
 
             new PresetSubTab<RockMeterPreset>(
                 CustomContentManager.RockMeterPresets,
-                new TrackPreviewBuilder(),
+                null,
                 true),
 
+            new CareerPresetSubTab(
+                CustomContentManager.Careers,
+                null, // TODO: Make a different kind of preview for these
+                true)
         };
 
         private static readonly Dictionary<Type, BasePreset> _lastSelectedPresetOfType = new();
@@ -159,6 +164,8 @@ namespace YARG.Settings.Metadata
             _watcher?.Dispose();
             _watcher = null;
         }
+
+        public override bool HasPreview => CurrentSubTab?.HasPreview == true;
 
         public override void BuildSettingTab(Transform settingContainer, NavigationGroup navGroup)
         {

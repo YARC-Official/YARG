@@ -2222,9 +2222,10 @@ MonoBehaviour:
   _artistName: {fileID: 924495893}
   _bandStarView: {fileID: 1284876700}
   _bandScore: {fileID: 1305557732}
-  _bandScoreNotSavedPill: {fileID: 202862751}
+  _scoreStatusPill: {fileID: 202862751}
   _cardScrollRect: {fileID: 1251677025}
-  _horizontalScrollRate: 30
+  _horizontalScrollDuration: 0.25
+  _horizontalScrollEase: 9
   _verticalScrollRate: 15
   _guitarCardPrefab: {fileID: 5926515049655832625, guid: 67a865c532a041040af79b1d10b9e981, type: 3}
   _drumsCardPrefab: {fileID: -2071408240334197186, guid: ed90c7135db69294fb83c178b9639d1d, type: 3}

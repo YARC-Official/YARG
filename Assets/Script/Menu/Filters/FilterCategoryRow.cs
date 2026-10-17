@@ -1,6 +1,8 @@
 ﻿using TMPro;
 using UnityEngine;
 using System;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 using YARG.Menu.Navigation;
 
 namespace YARG.Menu.Filters
@@ -43,7 +45,10 @@ namespace YARG.Menu.Filters
         public FilterKey Key { get; private set; }
         public FilterGroup Group => Key.Group;
 
+        public event Action<FilterCategoryRow> Clicked;
+
         private FilterRowBackgroundVisual _backgroundVisual;
+        private Image _selectionBackground;
 
         protected override void Awake()
         {
@@ -52,6 +57,15 @@ namespace YARG.Menu.Filters
             _backgroundVisual = GetComponent<FilterRowBackgroundVisual>();
             if (_backgroundVisual == null)
                 _backgroundVisual = gameObject.AddComponent<FilterRowBackgroundVisual>();
+
+            // BaseSetting's legacy selection image became transparent in the settings
+            // redesign, but this prefab variant still relies on it for controller focus.
+            _selectionBackground = transform.Find("Selected Background")?.GetComponent<Image>();
+            if (_selectionBackground != null)
+            {
+                _selectionBackground.sprite = null;
+                _selectionBackground.color = new Color(0.035f, 0.3f, 0.42f, 0.9f);
+            }
         }
 
         public void Init(FilterKey key, string label, string secondaryLabel = null)
@@ -64,6 +78,12 @@ namespace YARG.Menu.Filters
         public void AssignIndex(int index)
         {
             _backgroundVisual?.AssignIndex(index);
+        }
+
+        public override void OnPointerDown(PointerEventData eventData)
+        {
+            base.OnPointerDown(eventData);
+            Clicked?.Invoke(this);
         }
 
         public void SetSecondaryText(string text)

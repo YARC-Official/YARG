@@ -275,7 +275,12 @@ namespace YARG.Menu.ProfileList
                     Localize.KeyFormat("Menu.ProfileList.StealController", controller.displayName, existingUser.Profile.Name);
 
                 controllerCount++;
-                dialog.AddListButton(text, async () =>
+                // Only Windows awaits the XInput mode prompt. Non-Windows omits async to prevent CS1998 warning.
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
+                dialog.AddListButton(controller.displayName, async () =>
+#else
+                dialog.AddListButton(controller.displayName, () =>
+#endif
                 {
                     if (existingUser is not null)
                     {

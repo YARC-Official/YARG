@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -39,6 +40,12 @@ namespace YARG.Settings
         LegacyLabels,
     }
 
+    public enum NavigationJumpDistance
+    {
+        Sections,
+        Pages,
+    }
+
     public enum SecondaryAlbumSortMode
     {
         AlbumsByTitleSongsByTitle,
@@ -46,6 +53,18 @@ namespace YARG.Settings
         AlbumsByYearSongsByTitle,
         AlbumsByYearSongsByTrack,
         Off,
+    }
+
+    public enum SecondarySourceSortMode
+    {
+        Off,
+        Intensity,
+    }
+
+    public enum SecondaryIntensitySortMode
+    {
+        Off,
+        Source,
     }
 
     public enum ShowMeanSongOffsetCalibrationMode
@@ -311,6 +330,13 @@ namespace YARG.Settings
 
             public ToggleSetting ShowFavoriteButton { get; } = new(true);
 
+            public DropdownSetting<NavigationJumpDistance> NavigationJumpDistance { get; }
+                = new(YARG.Settings.NavigationJumpDistance.Sections)
+                {
+                    YARG.Settings.NavigationJumpDistance.Sections,
+                    YARG.Settings.NavigationJumpDistance.Pages,
+                };
+
             public DropdownSetting<SecondaryAlbumSortMode> SecondaryAlbumSort { get; }
                 = new(SecondaryAlbumSortMode.AlbumsByTitleSongsByTitle,
                     _ => MusicLibraryMenu.SetReload(MusicLibraryReloadState.Partial))
@@ -320,6 +346,22 @@ namespace YARG.Settings
                     SecondaryAlbumSortMode.AlbumsByYearSongsByTitle,
                     SecondaryAlbumSortMode.AlbumsByYearSongsByTrack,
                     SecondaryAlbumSortMode.Off,
+                };
+
+            public DropdownSetting<SecondarySourceSortMode> SecondarySourceSort { get; }
+                = new(SecondarySourceSortMode.Off,
+                    _ => MusicLibraryMenu.SetReload(MusicLibraryReloadState.Partial))
+                {
+                    SecondarySourceSortMode.Off,
+                    SecondarySourceSortMode.Intensity,
+                };
+
+            public DropdownSetting<SecondaryIntensitySortMode> SecondaryIntensitySort { get; }
+                = new(SecondaryIntensitySortMode.Off,
+                    _ => MusicLibraryMenu.SetReload(MusicLibraryReloadState.Partial))
+                {
+                    SecondaryIntensitySortMode.Off,
+                    SecondaryIntensitySortMode.Source,
                 };
 
             public ToggleSetting ShowRecommendedSongs { get; } = new(true, ShowRecommendedSongsCallback);
@@ -808,12 +850,7 @@ namespace YARG.Settings
                 BandComboType.Lenient,
                 BandComboType.Strict
             };
-            public DropdownSetting<EffectsMode> EffectsMode { get; } = new(YARG.Settings.EffectsMode.Performance,
-                EffectsModeCallback)
-            {
-                YARG.Settings.EffectsMode.Performance,
-                YARG.Settings.EffectsMode.Quality
-            };
+            public EffectsModeSetting EffectsMode { get; } = new(mode => EffectsModeCallback(mode).Forget());
 
             public ReverbMode CurrentReverbMode => EffectsMode.Value == YARG.Settings.EffectsMode.Quality
                 ? ReverbMode.Quality
@@ -1131,9 +1168,19 @@ namespace YARG.Settings
                 }
             }
 
-            private static void EffectsModeCallback(EffectsMode mode)
+            private static async UniTaskVoid EffectsModeCallback(EffectsMode mode)
             {
                 if (!IsInitialized)
+                {
+                    return;
+                }
+
+                // This toggle will reinitialize audio which blocks the ui briefly, so flip the toggle first then execute
+                await UniTask.WaitForEndOfFrame();
+                await UniTask.NextFrame();
+
+                // Abort if the setting was changed again while yielding
+                if (mode != Settings.EffectsMode.Value)
                 {
                     return;
                 }
