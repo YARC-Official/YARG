@@ -63,11 +63,14 @@ namespace YARG.Gameplay.Visuals
             // Offset via calibration
             float videoCalibrationOffset = -SettingsManager.Settings.VideoCalibration.Value / 1000f;
             float inputCalibrationOffset = (float) -_player.Player.Profile.InputCalibrationSeconds;
+            // This player's personal video offset shifts where notes actually cross their highway,
+            // so the hit window marker needs to follow it or it'll show the wrong zone for them.
+            float videoOffsetOffset = -(float) _player.VideoOffsetSeconds;
 
             _transformCache.localScale = _transformCache.localScale
                 .WithY((float) totalWindow * _player.NoteSpeed);
             _transformCache.localPosition = _transformCache.localPosition
-                .WithZ((baseOffset + videoCalibrationOffset + inputCalibrationOffset) * _player.NoteSpeed);
+                .WithZ((baseOffset + videoCalibrationOffset + inputCalibrationOffset + videoOffsetOffset) * _player.NoteSpeed);
         }
 
         private void Update()
