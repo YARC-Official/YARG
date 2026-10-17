@@ -6,7 +6,7 @@ namespace YARG.Settings
 {
     internal static class SettingsMigration
     {
-        internal const int CURRENT_SETTINGS_SCHEMA_VERSION = 1;
+        internal const int CURRENT_SETTINGS_SCHEMA_VERSION = 2;
 
         private const string SETTINGS_SCHEMA_VERSION_PROPERTY = "SettingsSchemaVersion";
         private const string LEGACY_CROWD_FX_SETTING = "UseCrowdFx";
@@ -15,6 +15,15 @@ namespace YARG.Settings
         private const string CROWD_IDLE_SETTING = nameof(SettingsManager.SettingContainer.UseCrowdIdle);
         private const string STAR_POWER_CLAPS_SETTING = nameof(SettingsManager.SettingContainer.UseStarPowerClaps);
         private const string PERFORMANCE_CLAPS_SETTING = nameof(SettingsManager.SettingContainer.UsePerformanceClaps);
+        private const string REVERB_IMPLEMENTATION_SETTING =
+            nameof(SettingsManager.SettingContainer.ReverbImplementation);
+        private const string LIBRARY_SORT_SETTING = nameof(SettingsManager.SettingContainer.LibrarySort);
+        private const string PREVIOUS_LIBRARY_SORT_SETTING =
+            nameof(SettingsManager.SettingContainer.PreviousLibrarySort);
+
+        // SortAttribute is saved as an integer. The new Folder sort was inserted right before Source (10),
+        // so every saved value from Source onwards moves up by one.
+        private const int LEGACY_SORT_SOURCE_VALUE = 10;
 
         private enum LegacyCrowdFxMode
         {
@@ -49,6 +58,10 @@ namespace YARG.Settings
                     case 0:
                         MigrateSettingsV0ToV1(settings);
                         version = 1;
+                        break;
+                    case 1:
+                        MigrateSettingsV1ToV2(settings);
+                        version = 2;
                         break;
                     default:
                         canSave = false;
@@ -89,6 +102,26 @@ namespace YARG.Settings
         private static void MigrateSettingsV0ToV1(JObject settings)
         {
             MigrateLegacyCrowdSettings(settings);
+        }
+
+        private static void MigrateSettingsV1ToV2(JObject settings)
+        {
+            ShiftLegacySortAttribute(settings, LIBRARY_SORT_SETTING);
+            ShiftLegacySortAttribute(settings, PREVIOUS_LIBRARY_SORT_SETTING);
+        }
+
+        private static void ShiftLegacySortAttribute(JObject settings, string propertyName)
+        {
+            if (!settings.TryGetValue(propertyName, out var token) || !TryGetInteger(token, out var raw))
+            {
+                return;
+            }
+
+            // The old Folder sort (value 9) is now Pack and keeps its value
+            if (raw >= LEGACY_SORT_SOURCE_VALUE)
+            {
+                settings[propertyName] = raw + 1;
+            }
         }
 
         private static void MigrateLegacyCrowdSettings(JObject settings)
