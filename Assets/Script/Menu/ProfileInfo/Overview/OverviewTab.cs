@@ -277,8 +277,7 @@ namespace YARG.Menu.ProfileInfo.Overview
             sizeFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
             var header = CreateHeader(_profileSummaryContent, Localize.Key("Menu.ProfileInfo.ProfileHeader"),
-                headerHeight: 105,
-                navigationGroup: _profileSummaryNavigationGroup);
+                headerHeight: 105);
             _profileSummaryHeader = header.GetComponentInChildren<TextMeshProUGUI>();
             _profileSummaryHeader.fontSize = 40;
             _profileSummaryHeader.fontStyle = FontStyles.Bold;
@@ -860,8 +859,7 @@ namespace YARG.Menu.ProfileInfo.Overview
         private void CreateInstrumentSection(string instrumentName, string[] statValues, Instrument instrument,
             bool hasOfficialSetlistScore)
         {
-            CreateHeader(_statsContent, instrumentName, GetInstrumentIcon(instrument),
-                navigationGroup: _statsNavigationGroup);
+            CreateHeader(_statsContent, instrumentName, GetInstrumentIcon(instrument));
 
             for (int statIndex = 0; statIndex < StatLabelKeys.Length; statIndex++)
             {
@@ -872,8 +870,7 @@ namespace YARG.Menu.ProfileInfo.Overview
             }
         }
 
-        private GameObject CreateHeader(Transform parent, string label, Sprite icon = null, float headerHeight = 70,
-            NavigationGroup navigationGroup = null)
+        private GameObject CreateHeader(Transform parent, string label, Sprite icon = null, float headerHeight = 70)
         {
             var header = Instantiate(_settingsHeaderPrefab, parent, false);
             header.name = $"{label} Header";
@@ -888,8 +885,6 @@ namespace YARG.Menu.ProfileInfo.Overview
             if (icon != null)
                 AddHeaderIcon(header, headerText, icon, 40, 20);
             header.AddComponent<LayoutElement>().preferredHeight = headerHeight;
-            if (navigationGroup != null)
-                navigationGroup.AddNavigatable(RuntimeNavigatable.Attach(header, null));
             return header;
         }
 
@@ -996,9 +991,13 @@ namespace YARG.Menu.ProfileInfo.Overview
             valueText.name = "Value";
             valueText.text = value;
             valueText.fontStyle = FontStyles.Bold;
-            // Match the large values from the original profile summary header.
+            // This prefab normally auto-sizes values to 24 points. Keep the three lifetime
+            // totals at the same size as the profile name instead.
             if (largeValue)
-                valueText.fontSize = _totalScore.fontSize;
+            {
+                valueText.enableAutoSizing = false;
+                valueText.fontSize = _profileSummaryHeader.fontSize;
+            }
             valueText.alignment = TextAlignmentOptions.Right;
             valueText.textWrappingMode = TextWrappingModes.NoWrap;
             valueText.margin = new Vector4(0, 0, labelText.margin.x, 0);
