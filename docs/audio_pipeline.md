@@ -97,6 +97,8 @@ To prevent audio dropouts in low-latency playback without introducing audible de
 - **Hardware Safety Floor**: Even if the playback buffer is set to 0 ms in the app, the native layer still maintains an internal cushion sized to at least double the driver's hardware callback buffer (configured in your ASIO/OS device settings). However, ultra-low driver cushions (e.g. 2–5 ms) can still underrun if OS thread scheduling or multi-stem decoding takes longer than that tiny window to wake up and produce the next chunk.
 - **Prefill on Start/Seek** ([`BassSongConnection.Play`](../Assets/Script/Audio/Bass/BassSongConnection.cs)): When playback begins or seeks, the output stream remains paused until the worker fills the ring buffer completely, guaranteeing glitch-free initial playback.
 
+Each song stream reserves capacity for the maximum selectable buffer (5,000 ms) when created. Live buffer-size changes only update the worker’s fill target, preserving queued samples and playback-position state without reallocating or stopping playback. Smaller targets let existing samples drain. Reserved capacity does not add latency; the fill target determines how much audio is decoded ahead. Start and seek still explicitly flush and prefill.
+
 ### Position Tracking & Anti-Stutter Protections
 Because audio frames sit in the read-ahead buffer before reaching the speakers, calculating the exact **Heard Position** (what the player is currently hearing) requires specialized handling:
 

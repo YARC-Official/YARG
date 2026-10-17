@@ -32,7 +32,11 @@ public:
     std::uint32_t streamHandle() const noexcept { return stream_; }
     std::uint32_t sampleRate() const noexcept { return sampleRate_; }
     std::uint32_t channels() const noexcept { return channels_; }
-    int latencyFrames() const noexcept { return BLOCK_FRAMES; }
+    int latencyFrames() const noexcept {
+        const int warmupFrames = ((stretch_.outputLatency() + BLOCK_FRAMES - 1) /
+            BLOCK_FRAMES) * BLOCK_FRAMES;
+        return warmupFrames + BLOCK_FRAMES;
+    }
     void setSpeed(float speed, float pitch) noexcept;
     bool position(double outputFrame, double& seconds) const noexcept;
     bool getPosition(std::int64_t bytes, double& seconds) noexcept;

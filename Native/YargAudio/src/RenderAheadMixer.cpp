@@ -12,24 +12,24 @@ namespace {
 
 constexpr int BassErrorParameter = 20;
 constexpr int BassErrorNotAvailable = 37;
+constexpr std::uint32_t MAXIMUM_BUFFER_MILLISECONDS = 5000;
 
-std::size_t computeTargetFrames(std::uint32_t sampleRate, std::uint32_t callbackFrames,
+} // namespace
+
+std::size_t RenderAheadMixer::bufferFrames(std::uint32_t sampleRate, std::uint32_t callbackFrames,
     std::uint32_t milliseconds) {
     const auto configured = static_cast<std::size_t>(
         std::ceil(static_cast<double>(sampleRate) * milliseconds / 1000.0));
     return std::max(configured, static_cast<std::size_t>(callbackFrames) * 2);
 }
 
-} // namespace
-
 RenderAheadMixer::RenderAheadMixer(std::unique_ptr<IAudioSource> source,
     std::uint32_t sampleRate, std::uint32_t channels, std::uint32_t callbackFrames,
     std::uint32_t bufferMilliseconds)
     : source_(std::move(source)), channels_(channels),
-      targetFrames_(computeTargetFrames(sampleRate, callbackFrames, bufferMilliseconds)),
-      lowWatermarkFrames_(targetFrames_ > RenderChunkFrames
-          ? targetFrames_ - RenderChunkFrames : 0),
-      ring_(targetFrames_ + RenderChunkFrames * 2, channels),
+      targetFrames_(bufferFrames(sampleRate, callbackFrames, bufferMilliseconds)),
+      ring_(bufferFrames(sampleRate, callbackFrames,
+          std::max(bufferMilliseconds, MAXIMUM_BUFFER_MILLISECONDS)) + RenderChunkFrames * 2, channels),
       scratch_(RenderChunkFrames * channels) {
 }
 
@@ -56,9 +56,9 @@ bool RenderAheadMixer::prefill(std::chrono::milliseconds timeout) {
     std::unique_lock lock(mutex_);
     wake_.notify_one();
     return prefilled_.wait_for(lock, timeout, [this] {
-        return ring_.available() >= targetFrames_ || failed_.load() ||
+        return ring_.available() >= targetFrames() || failed_.load() ||
             stopping_.load();
-    }) && ring_.available() >= targetFrames_;
+    }) && ring_.available() >= targetFrames();
 }
 
 void RenderAheadMixer::stop() noexcept {
@@ -81,6 +81,25 @@ bool RenderAheadMixer::clear() {
     generationProducedFrames_.store(0, std::memory_order_relaxed);
     positionOutputFrame_.store(0, std::memory_order_relaxed);
     return true;
+}
+
+bool RenderAheadMixer::setTargetFrames(std::size_t frames) noexcept {
+    if (frames > ring_.capacity()) {
+        return false;
+    }
+
+    {
+        std::lock_guard lock(mutex_);
+        targetFrames_.store(frames, std::memory_order_release);
+    }
+    wake_.notify_one();
+    prefilled_.notify_all();
+    return true;
+}
+
+std::size_t RenderAheadMixer::lowWatermarkFrames() const noexcept {
+    const auto target = targetFrames();
+    return target > RenderChunkFrames ? target - RenderChunkFrames : 0;
 }
 
 std::int64_t RenderAheadMixer::bufferedSourcePosition(
@@ -140,7 +159,8 @@ bool RenderAheadMixer::sourcePositionSnapshotLocked(
 std::size_t RenderAheadMixer::consume(float* samples, std::size_t frames) noexcept {
     const auto before = ring_.available();
     const auto consumed = ring_.read(samples, frames);
-    if (before >= lowWatermarkFrames_ && ring_.available() <= lowWatermarkFrames_) {
+    const auto lowWatermark = lowWatermarkFrames();
+    if (before >= lowWatermark && ring_.available() <= lowWatermark) {
         wake_.notify_one();
     }
     return consumed;
@@ -158,11 +178,11 @@ void RenderAheadMixer::run() noexcept {
     }
 
     while (!stopping_.load(std::memory_order_acquire)) {
-        if (ring_.available() >= targetFrames_) {
+        if (ring_.available() >= targetFrames()) {
             prefilled_.notify_all();
             std::unique_lock lock(mutex_);
             wake_.wait(lock, [this] {
-                return stopping_.load() || ring_.available() <= lowWatermarkFrames_;
+                return stopping_.load() || ring_.available() <= lowWatermarkFrames();
             });
             continue;
         }
@@ -197,7 +217,7 @@ void RenderAheadMixer::run() noexcept {
             continue;
         }
 
-        if (ring_.available() >= targetFrames_) prefilled_.notify_all();
+        if (ring_.available() >= targetFrames()) prefilled_.notify_all();
     }
 }
 
