@@ -187,12 +187,12 @@ namespace YARG.Gameplay.Player
             }
 
             int index = _enabledHarmonyIndex;
-            if (index < 0 || index >= VocalTrack.Colors.Length)
+            if (index < 0 || index >= _vocalTrack.Colors.Length)
             {
                 return Color.white;
             }
 
-            return VocalTrack.Colors[index];
+            return _vocalTrack.Colors[index];
         }
 
         private VocalsPart GetEnabledPart()

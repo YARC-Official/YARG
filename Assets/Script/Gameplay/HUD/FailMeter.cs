@@ -157,7 +157,7 @@ namespace YARG.Gameplay.HUD
 
                 var sprite = Addressables.LoadAssetAsync<Sprite>(spriteName).WaitForCompletion();
                 handleImage.sprite = sprite;
-                handleImage.color = _players[i].GetGameplayIconColor();
+                handleImage.color = _gameManager.Players[i].Player.GetGameplayIconColor();
 
                 _playerSliders[i].value = 0.01f;
                 _needleSliders[i].value = 0.01f;
@@ -429,7 +429,6 @@ namespace YARG.Gameplay.HUD
             Green
         }
     }
-
     internal static class FailMeterExtensions
     {
         public static bool IsRegistered(this EngineManager engineManager, EngineManager.EngineContainer player) =>

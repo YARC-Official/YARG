@@ -43,19 +43,30 @@ namespace YARG.Gameplay.Visuals
                 "Line renderer count does not match width multiplier count!");
             YargLogger.Assert(_glowLineRenderer, "Glow line renderer is null!");
 
-            RefreshColor();
+            // Keep the initial setup order used by the original vocal-note renderer:
+            // color the solid tube layers, initialize all line geometry (including the
+            // glow shader's dimensions), then let SetSpGlow apply the glow state after
+            // EnableFromPool returns. Applying the glow block before its dimensions
+            // exist can leave newly pooled pitch tubes with an empty glow render.
+            ApplyLineColor(VocalTrack.GetPartColor(NoteRef.HarmonyPart));
             UpdateLinePoints();
         }
 
         /// <summary>
         /// Re-applies this note's colors: the part color on the note lines and the glow color
-        /// on the glow line. Called on spawn and when the practice guide pitch part changes,
-        /// so notes already on screen re-tint. Follow with <see cref="UpdateLinePoints"/> to
-        /// restore the glow line's dimensions property.
+        /// on the glow line. Called when the practice guide pitch part changes so notes already
+        /// on screen re-tint. Follow with <see cref="UpdateLinePoints"/> when the tube geometry
+        /// also needs to be recalculated.
         /// </summary>
         public void RefreshColor()
         {
             var color = VocalTrack.GetPartColor(NoteRef.HarmonyPart);
+            ApplyLineColor(color);
+            ApplyGlowColor(color);
+        }
+
+        private void ApplyLineColor(Color color)
+        {
             MaterialPropertyInstance.Instance.Clear();
             MaterialPropertyInstance.Instance.SetColor(BaseColor, color);
 
@@ -64,8 +75,6 @@ namespace YARG.Gameplay.Visuals
             {
                 line.SetPropertyBlock(MaterialPropertyInstance.Instance);
             }
-
-            ApplyGlowColor(color);
         }
 
         private void ApplyGlowColor(Color color)
