@@ -14,7 +14,7 @@ At 50% playback speed, input advances half as far as output. At 200%, it advance
 
 Startup and seeks reset and prime the engine. Priming supplies the analysis latency and discards the synthesis warm-up output. The adapter records each processed block's input-frame mapping; playback-position queries interpolate that history. Read-ahead and endpoint delay are handled by the surrounding song pipeline. Processing does not add independent stem offsets or insert local transient speed changes.
 
-The custom engine reports a command-response estimate of 256 frames, about 5.8 ms at 44.1 kHz. This is the processing-block interval, not a measurement of the complete audible response of the overlapping windows. See [song synchronization](song_sync.md) and [the audio pipeline](audio_pipeline.md) for buffering and control behavior.
+The custom engine reports a conservative command-response estimate: its synthesis latency rounded up to whole 256-frame processing blocks, plus one block for output already processed when the request arrives. At 44.1 kHz this is 1792 frames, about 40.6 ms; measured position feedback begins reflecting a speed change after 1536–1791 frames, depending on where the request falls within a block. This bounds the timing-map response rather than measuring the first perceptible change in the overlapping audio windows. Read-ahead and endpoint queues add their own transport delay separately. See [song synchronization](song_sync.md) and [the audio pipeline](audio_pipeline.md) for buffering and control behavior.
 
 ## Preserving Audio at 100%
 

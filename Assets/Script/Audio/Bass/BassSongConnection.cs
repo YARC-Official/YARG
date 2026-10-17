@@ -294,22 +294,13 @@ namespace YARG.Audio.BASS
                 return;
             }
 
-            bool resume = IsPlaying;
-            if (!FlushBuffer() || !_readAhead.SetBufferLength(bufferLength))
+            if (!_readAhead.SetBufferLength(bufferLength))
             {
                 YargLogger.LogError("Failed to change song read-ahead buffer");
-                _bufferNeedsPrefill = true;
                 return;
             }
 
             _bufferLengthMilliseconds = bufferLength;
-            _bufferNeedsPrefill = true;
-            if (resume && _readAhead.Prefill(PREFILL_TIMEOUT_MILLISECONDS))
-            {
-                _bufferNeedsPrefill = false;
-                SetSongOutputPaused(false);
-            }
-
             UpdateMixerLatency();
         }
 
