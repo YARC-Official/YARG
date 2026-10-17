@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -156,6 +156,12 @@ namespace YARG.Menu
         public void SetValueWithoutNotify(float value)
         {
             SetValue(value, notify: false);
+        }
+
+        public void SetInteractable(bool interactable)
+        {
+            _slider.interactable = interactable;
+            _inputField.interactable = interactable;
         }
     }
 }

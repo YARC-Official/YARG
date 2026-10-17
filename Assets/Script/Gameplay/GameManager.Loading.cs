@@ -459,7 +459,7 @@ namespace YARG.Gameplay
                     {
                         // Reset microphones (resets channel buffers)
                         // We probably wanna do this no matter what, so put it up here
-                        foreach (var mic in player.Bindings.Microphones)
+                        foreach (var mic in player.DeviceInfo.Microphones)
                         {
                             mic.Reset();
                         }
