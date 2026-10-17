@@ -135,6 +135,7 @@ namespace YARG.Settings.Metadata
                             "Menu.Common.Delete",
                             MenuData.Colors.CancelButton, () =>
                             {
+                                DialogManager.Instance.ClearDialog();
                                 _presetRef.RemoveTierAt(tierIndex);
                                 SaveAndRefresh();
                             });
@@ -386,7 +387,8 @@ namespace YARG.Settings.Metadata
                     {
                         "png",
                         "jpg",
-                        "jpeg"
+                        "jpeg",
+                        "webm",
                     };
 
                     FileExplorerHelper.OpenChooseFile("", extensions, mediaPath =>

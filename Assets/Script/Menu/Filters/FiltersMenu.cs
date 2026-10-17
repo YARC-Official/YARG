@@ -108,7 +108,7 @@ namespace YARG.Menu.Filters
         [SerializeField]
         private RectTransform _rightContainer;
         [SerializeField]
-        private FilterEntryRow _filterEntryRowPrefab;
+        private GameObject _filterEntryRowPrefab;
 
         [Space]
         [SerializeField]
@@ -180,6 +180,7 @@ namespace YARG.Menu.Filters
         private int? _lastRightIndex;
 
         private FocusSide _focusSide = FocusSide.Left;
+        private FilterKey? _displayedFilterKey;
 
         public static Func<SongEntry, bool> ActiveFilterPredicate { get; private set; }
 
@@ -427,13 +428,33 @@ namespace YARG.Menu.Filters
                 {
                     _rightNavGroup.ClearNavigatables();
                     _rightContainer.DestroyChildren();
+                    _displayedFilterKey = null;
                 }
                 return;
             }
 
+            ShowCategory(row);
+        }
+
+        private void OnCategoryClicked(FilterCategoryRow row)
+        {
+            if (row == null || !row.transform.IsChildOf(transform))
+                return;
+
+            ShowCategory(row);
+        }
+
+        private void ShowCategory(FilterCategoryRow row)
+        {
+            if (_rightContainer == null || row == null)
+                return;
+
+            if (_displayedFilterKey == row.Key && _rightContainer.childCount > 0)
+                return;
+
+            _displayedFilterKey = row.Key;
             _rightNavGroup.ClearNavigatables();
             _rightContainer.DestroyChildren();
-
             BuildOptionsFor(row.Key);
         }
 
@@ -505,6 +526,7 @@ namespace YARG.Menu.Filters
             string secondary = key.Group == FilterGroup.Genre ? Localize.Key("Menu.Filters.All") : string.Empty;
 
             row.Init(key, label, secondary);
+            row.Clicked += OnCategoryClicked;
             navGroup.AddNavigatable(row);
             return row;
         }
@@ -708,7 +730,13 @@ namespace YARG.Menu.Filters
             int rowIndex = 0;
             foreach (string value in values)
             {
-                var row = Instantiate(_filterEntryRowPrefab, _rightContainer);
+                var rowObject = Instantiate(_filterEntryRowPrefab, _rightContainer);
+                var row = rowObject.GetComponent<FilterEntryRow>();
+                if (row == null)
+                {
+                    Destroy(rowObject);
+                    continue;
+                }
                 _rightNavGroup.AddNavigatable(row.gameObject);
 
                 row.AssignIndex(rowIndex++);
@@ -812,6 +840,7 @@ namespace YARG.Menu.Filters
                     continue;
 
                 tmp.text = label;
+                NormalizeSettingLabelIndent(tmp);
                 break;
             }
         }
@@ -823,7 +852,23 @@ namespace YARG.Menu.Filters
 
             var tmp = row.GetComponentInChildren<TextMeshProUGUI>(true);
             if (tmp != null)
+            {
                 tmp.text = label;
+                NormalizeSettingLabelIndent(tmp);
+            }
+        }
+
+        private static void NormalizeSettingLabelIndent(TMP_Text label)
+        {
+            // Use the same inset mechanism as FilterCategoryRow so dropdown,
+            // toggle, and category labels share an exact left edge.
+            var margin = label.margin;
+            margin.x = 25f;
+            label.margin = margin;
+
+            var position = label.rectTransform.anchoredPosition;
+            position.x = 0f;
+            label.rectTransform.anchoredPosition = position;
         }
 
         private static int FindSortIndex(IReadOnlyList<SortAttribute> values, SortAttribute sort)
@@ -953,7 +998,7 @@ namespace YARG.Menu.Filters
                     RichTextUtils.StripRichTextTags(text)));
         }
         
-        private const int FilterLabelWrapLimit = 30;
+        private const int FilterLabelWrapLimit = 40;
 
         private static string WrapFilterLabel(string text)
         {
@@ -962,23 +1007,35 @@ namespace YARG.Menu.Filters
             string plain = RichTextUtils.StripRichTextTags(text);
             if (plain.Length <= FilterLabelWrapLimit) return text;
 
-            int breakVisibleIndex = FindLastWhitespaceIndex(plain, FilterLabelWrapLimit);
+            int breakVisibleIndex = FindBalancedWhitespaceIndex(plain, FilterLabelWrapLimit);
             if (breakVisibleIndex < 0)
                 breakVisibleIndex = FilterLabelWrapLimit;
 
             return InsertLineBreakAtVisibleIndex(text, breakVisibleIndex);
         }
 
-        private static int FindLastWhitespaceIndex(string text, int maxIndex)
+        private static int FindBalancedWhitespaceIndex(string text, int lineLimit)
         {
-            int last = -1;
-            int limit = Math.Min(text.Length - 1, maxIndex);
-            for (int i = 0; i <= limit; i++)
+            int minimum = Math.Max(1, text.Length - lineLimit);
+            int maximum = Math.Min(text.Length - 1, lineLimit);
+            int target = text.Length / 2;
+            int closest = -1;
+            int closestDistance = int.MaxValue;
+
+            for (int i = minimum; i <= maximum; i++)
             {
                 if (char.IsWhiteSpace(text[i]))
-                    last = i;
+                {
+                    int distance = Math.Abs(i - target);
+                    if (distance < closestDistance)
+                    {
+                        closest = i;
+                        closestDistance = distance;
+                    }
+                }
             }
-            return last;
+
+            return closest;
         }
 
         private static string InsertLineBreakAtVisibleIndex(string text, int visibleIndex)

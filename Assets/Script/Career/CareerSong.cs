@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using YARG.Core.Logging;
 using YARG.Core.Song;
+using YARG.Core.Utility;
 using YARG.Song;
 
 namespace YARG.Career
@@ -39,6 +40,7 @@ namespace YARG.Career
 
         // Possible identifiers, choose one
         public Guid?        SongId;
+        [JsonConverter(typeof(JsonHashWrapperConverter))]
         public HashWrapper? SongHash;
         public string?      ShortName;
         public SongTuple?   SongTuple;
