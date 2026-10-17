@@ -22,6 +22,8 @@ namespace YARG.Gameplay.Visuals
         [SerializeField]
         private Color _precision;
         [SerializeField]
+        private Color _tournament;
+        [SerializeField]
         private Color _custom;
 
         [Header("Custom Preset Setting Colors")]
@@ -51,6 +53,10 @@ namespace YARG.Gameplay.Visuals
             else if (enginePreset == EnginePreset.Precision)
             {
                 SpawnStripe(_precision);
+            }
+            else if (enginePreset == EnginePreset.Tournament)
+            {
+                SpawnStripe(_tournament);
             }
             else
             {
