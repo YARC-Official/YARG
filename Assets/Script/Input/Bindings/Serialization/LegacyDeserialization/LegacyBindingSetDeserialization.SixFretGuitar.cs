@@ -1,5 +1,4 @@
-﻿using YARG.Assets.Script.Helpers;
-using YARG.Core;
+﻿using YARG.Core;
 using YARG.Helpers;
 using YARG.Menu.ProfileList;
 
