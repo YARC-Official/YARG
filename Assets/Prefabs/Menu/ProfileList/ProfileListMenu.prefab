@@ -748,7 +748,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
-  _localizationKey: AttachController
+  _localizationKey: Profiles.Settings.AttachController
 --- !u!1 &603687852376363846
 GameObject:
   m_ObjectHideFlags: 0
@@ -11054,7 +11054,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
-  _localizationKey: AttachMicrophone
+  _localizationKey: Profiles.Settings.AttachMicrophone
 --- !u!1 &7973517960327298300
 GameObject:
   m_ObjectHideFlags: 0
@@ -13015,7 +13015,7 @@ PrefabInstance:
       value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 5240628994194081110, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
-      propertyPath: m_ActiveFontFeatures.Array.data[0]
+      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
       value: 1801810542
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -13083,6 +13083,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1731608351740115695}
     m_Modifications:
+    - target: {fileID: 5240628994194081110, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
+      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
+      value: 1801810542
+      objectReference: {fileID: 0}
     - target: {fileID: 1424403399501945098, guid: 0dab2d5fd611fdb4bb5ca54e023d39b7, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
       value: 1
@@ -13234,10 +13238,6 @@ PrefabInstance:
     - target: {fileID: 5245842211347915737, guid: 0dab2d5fd611fdb4bb5ca54e023d39b7, type: 3}
       propertyPath: _tabs.Array.data[1].DisplayName
       value: Bindings
-      objectReference: {fileID: 0}
-    - target: {fileID: 5240628994194081110, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
-      propertyPath: m_ActiveFontFeatures.Array.data[0]
-      value: 1801810542
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -13434,7 +13434,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: [{targetCorrespondingSourceObject: {fileID: 4441713907549617493, guid: 1559ee81882cd0045b6d33a64692e938, type: 3}, insertIndex: -1, addedObject: {fileID: 5342786583757032478}}]
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4441713907549617493, guid: 1559ee81882cd0045b6d33a64692e938, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5342786583757032478}
   m_SourcePrefab: {fileID: 100100000, guid: 1559ee81882cd0045b6d33a64692e938, type: 3}
 --- !u!1 &2439746370158396694 stripped
 GameObject:
@@ -14402,7 +14405,7 @@ PrefabInstance:
       value: Add Profile
       objectReference: {fileID: 0}
     - target: {fileID: 5240628994194081110, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
-      propertyPath: m_ActiveFontFeatures.Array.data[0]
+      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
       value: 1801810542
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -15155,7 +15158,7 @@ PrefabInstance:
       value: Import Binding Set
       objectReference: {fileID: 0}
     - target: {fileID: 5240628994194081110, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
-      propertyPath: m_ActiveFontFeatures.Array.data[0]
+      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
       value: 1801810542
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -15357,15 +15360,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6644935322093698912, guid: a3b2677e603872648a647475adee140f, type: 3}
       propertyPath: m_Value
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6284328856193187805, guid: a3b2677e603872648a647475adee140f, type: 3}
-      propertyPath: m_AnchorMax.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6284328856193187805, guid: a3b2677e603872648a647475adee140f, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7471163247741345243, guid: a3b2677e603872648a647475adee140f, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
@@ -16406,11 +16401,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6232041351873830570, guid: 81863a63e0d96cf459c263ee0ea6f98e, type: 3}
       propertyPath: m_Size
-      value: 0.4406365
+      value: 0.5717881
       objectReference: {fileID: 0}
     - target: {fileID: 6232041351873830570, guid: 81863a63e0d96cf459c263ee0ea6f98e, type: 3}
       propertyPath: m_Value
-      value: 1
+      value: 0.9999998
       objectReference: {fileID: 0}
     - target: {fileID: 8647224329583555657, guid: 81863a63e0d96cf459c263ee0ea6f98e, type: 3}
       propertyPath: m_IsActive
@@ -17045,7 +17040,7 @@ PrefabInstance:
       value: 4291606434
       objectReference: {fileID: 0}
     - target: {fileID: 5240628994194081110, guid: 23b94837fb849574ebf1ad7d180706e3, type: 3}
-      propertyPath: m_ActiveFontFeatures.Array.data[0]
+      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
       value: 1801810542
       objectReference: {fileID: 0}
     m_RemovedComponents: []
