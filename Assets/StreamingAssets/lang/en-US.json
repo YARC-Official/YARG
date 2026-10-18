@@ -798,6 +798,10 @@
                             "Title": "{0}",
                             "Text": "This is a {0} that is connected to your setup."
                         },
+						"ExpandController": {
+						    "Title": "Expand Controller",
+							"Text": "Expand this controller listing to view and edit its gameplay and menu binding sets."
+						},
                         "JumpTo": {
                             "Title": "Jump to Binding Set",
                             "Text": "{0}",
@@ -816,6 +820,10 @@
                             "Title": "Detach Microphone",
                             "Text": "Detach this microphone from this profile."
                         },
+						"MicrophoneName": {
+							"Title": "{0}",
+							"Text": "This is a microphone (or other audio source) that is connected to your setup."
+						},
                         "GameplayBindingsIndicator": {
                             "Title": "Gameplay Bindings",
                             "Text": "{0}",

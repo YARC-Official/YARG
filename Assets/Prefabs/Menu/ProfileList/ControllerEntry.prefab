@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 2718896017180081393}
   - component: {fileID: 2400966265406438531}
   - component: {fileID: 12301032415404209}
+  - component: {fileID: 3624552212790437423}
   m_Layer: 5
   m_Name: Arrow
   m_TagString: Untagged
@@ -132,6 +133,19 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+--- !u!114 &3624552212790437423
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 279353631094181899}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
+  _localizationKey: Profiles.Settings.ExpandController
 --- !u!1 &1013558426332097752
 GameObject:
   m_ObjectHideFlags: 0
