@@ -18,7 +18,7 @@ namespace YARG.Menu.ProfileList
         private YargProfile _profile;
         private ProfileView _profileView;
         private ProfileCenterPane _profileSidebar;
-        private MicDevice _microphone;
+        public MicDevice Microphone { get; private set; }
 
         public void Initialize(YargProfile profile, ProfileView profileView, ProfileCenterPane profileSidebar, MicDevice microphone)
         {
@@ -26,13 +26,13 @@ namespace YARG.Menu.ProfileList
             _profile = profile;
             _profileView = profileView;
             _profileSidebar = profileSidebar;
-            _microphone = microphone;
+            Microphone = microphone;
         }
 
         public void Remove()
         {
             var player = PlayerContainer.GetPlayerFromProfile(_profile);
-            player.DeviceInfo.RemoveMicrophone(_microphone);
+            player.DeviceInfo.RemoveMicrophone(Microphone);
             _profileSidebar.UpdateCenterPane(_profile, _profileView);
         }
     }

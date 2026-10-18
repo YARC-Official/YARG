@@ -87,6 +87,7 @@ GameObject:
   - component: {fileID: 8916567841787272338}
   - component: {fileID: 7416004921672696879}
   - component: {fileID: 5437393595772978970}
+  - component: {fileID: 2440759113733294152}
   m_Layer: 5
   m_Name: Remove
   m_TagString: Untagged
@@ -208,6 +209,19 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &2440759113733294152
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1372805919565282042}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
+  _localizationKey: Profiles.Settings.DetachMicrophone
 --- !u!1 &5753369685925887173
 GameObject:
   m_ObjectHideFlags: 0
@@ -219,6 +233,7 @@ GameObject:
   - component: {fileID: 5753369685925887170}
   - component: {fileID: 5753369685925887168}
   - component: {fileID: 5753369685925887171}
+  - component: {fileID: 2852372341533448562}
   m_Layer: 5
   m_Name: Name
   m_TagString: Untagged
@@ -345,6 +360,20 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &2852372341533448562
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5753369685925887173}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e0128f63129f7444a5bfcf7309c150b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.ProfileList.MicrophoneNameTooltipTrigger
+  _localizationKey: Profiles.Settings.MicrophoneName
+  _entry: {fileID: 6592208601745545353}
 --- !u!1 &5753369685943773599
 GameObject:
   m_ObjectHideFlags: 0
