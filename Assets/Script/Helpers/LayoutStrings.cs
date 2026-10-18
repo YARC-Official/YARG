@@ -22,7 +22,7 @@ namespace YARG.Helpers
         public const string INPUT_DEVICE = nameof(InputDevice);
 
         public const string MOUSE = nameof(Mouse);
-        public const string KEYBOARD = nameof(Keyboard);
+        public const string COMPUTER_KEYBOARD = nameof(Keyboard);
         public const string GAMEPAD = nameof(Gamepad);
         public const string MIDI_DEVICE = nameof(MidiDevice);
 
