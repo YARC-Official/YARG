@@ -278,7 +278,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b26196d37ae82ed47b49a5192a17d0c9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.ProfileList.JumpToButtonTooltipTrigger
-  _localizationKey: JumpTo
+  _localizationKey: Profiles.Settings.JumpTo
   _entry: {fileID: 3692162781744761990}
   _isMenu: 1
 --- !u!1 &1973820577190300102
@@ -431,7 +431,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 509f2a5c087797d4fa0cacb9db924820, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.ProfileList.MenuBindingsTooltipTrigger
-  _localizationKey: MenuBindings
+  _localizationKey: Profiles.Settings.MenuBindings
   _entry: {fileID: 3692162781744761990}
 --- !u!1 &2717996210709253775
 GameObject:
@@ -677,7 +677,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4bd6ea9f68e26d144b73b6e2e9069aa9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.ProfileList.ControllerNameTooltipTrigger
-  _localizationKey: ControllerName
+  _localizationKey: Profiles.Settings.ControllerName
   _entry: {fileID: 3692162781744761990}
 --- !u!1 &4991616566551107522
 GameObject:
@@ -900,7 +900,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b26196d37ae82ed47b49a5192a17d0c9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.ProfileList.JumpToButtonTooltipTrigger
-  _localizationKey: JumpTo
+  _localizationKey: Profiles.Settings.JumpTo
   _entry: {fileID: 3692162781744761990}
   _isMenu: 0
 --- !u!1 &5753369685925887173
@@ -1282,7 +1282,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4598fee885800f942b467b2382f82073, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.ProfileList.GameplayBindingsTooltipTrigger
-  _localizationKey: GameplayBindings
+  _localizationKey: Profiles.Settings.GameplayBindings
   _entry: {fileID: 3692162781744761990}
 --- !u!1 &7487939998335066118
 GameObject:
@@ -1507,7 +1507,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0a2a9dce37ed17f42898726faad779ee, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.ProfileList.DetachControllerTooltipTrigger
-  _localizationKey: DetachController
+  _localizationKey: Profiles.Settings.DetachController
   _entry: {fileID: 3692162781744761990}
 --- !u!1 &8280036969726439909
 GameObject:
@@ -1690,7 +1690,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4675742482725982392, guid: d880f2500fb367e41b8f2c5f41d25156, type: 3}
       propertyPath: _localizationKey
-      value: GameplayBindingsIndicator
+      value: Profiles.Settings.GameplayBindingsIndicator
       objectReference: {fileID: 0}
     - target: {fileID: 5597822503437359775, guid: d880f2500fb367e41b8f2c5f41d25156, type: 3}
       propertyPath: m_text
@@ -1958,7 +1958,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 509f2a5c087797d4fa0cacb9db924820, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.ProfileList.MenuBindingsTooltipTrigger
-  _localizationKey: MenuBindings
+  _localizationKey: Profiles.Settings.MenuBindings
   _entry: {fileID: 3692162781744761990}
 --- !u!1001 &7021894326263018192
 PrefabInstance:
@@ -2066,7 +2066,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4675742482725982392, guid: d880f2500fb367e41b8f2c5f41d25156, type: 3}
       propertyPath: _localizationKey
-      value: MenuBindingsIndicator
+      value: Profiles.Settings.MenuBindingsIndicator
       objectReference: {fileID: 0}
     - target: {fileID: 5597822503437359775, guid: d880f2500fb367e41b8f2c5f41d25156, type: 3}
       propertyPath: m_text
@@ -2334,5 +2334,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4598fee885800f942b467b2382f82073, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.ProfileList.GameplayBindingsTooltipTrigger
-  _localizationKey: GameplayBindings
+  _localizationKey: Profiles.Settings.GameplayBindings
   _entry: {fileID: 3692162781744761990}
