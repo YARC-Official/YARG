@@ -13,6 +13,7 @@ using YARG.Core.Replays;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
 using YARG.Helpers;
+using YARG.Helpers.Extensions;
 using YARG.Input;
 using YARG.Player;
 using YARG.Settings;
@@ -64,6 +65,7 @@ namespace YARG.Gameplay.Player
         private bool      _newHighScoreShown;
         private bool      _outlineEnabled;
         private MaterialPropertyBlock _needleMaterialPropertyBlock;
+        private Color _partColor;
 
         private VocalsPlayerHUD _hud;
         private VocalPercussionTrack _percussionTrack;
@@ -89,6 +91,13 @@ namespace YARG.Gameplay.Player
 
             base.Initialize(index, player, chart, lastHighScore);
 
+            bool isHarmony = player.Profile.CurrentInstrument is Instrument.Harmony or Instrument.PartyVocals;
+            int partIndex = player.Profile.HarmonyIndex;
+            _partColor = player.ColorProfile.Vocals
+                .GetPartColor(partIndex, isHarmony)
+                .ToUnityColor();
+            GameManager.VocalTrack.AssignPartColor(player);
+
             // Save the chart
             _chart = chart;
 
@@ -97,7 +106,8 @@ namespace YARG.Gameplay.Player
             var materialPath = $"VocalNeedle/{needleIndex}";
             _needleRenderer.material = Addressables.LoadAssetAsync<Material>(materialPath).WaitForCompletion();
 
-            MaterialPropertyInstance.Instance.SetColor(OutlineColorID, VocalTrack.Colors[Player.Profile.HarmonyIndex]);
+            MaterialPropertyInstance.Instance.SetColor(OutlineColorID,
+                _partColor);
             MaterialPropertyInstance.Instance.SetFloat(OutlineWidthID, 0f);
             _needleRenderer.SetPropertyBlock(MaterialPropertyInstance.Instance);
             _outlineEnabled = false;
@@ -162,7 +172,7 @@ namespace YARG.Gameplay.Player
                 var startSpeed = main.startSpeed;
                 startSpeed.constant *= trackSpeed;
                 main.startSpeed = startSpeed;
-                main.startColor = VocalTrack.Colors[Player.Profile.HarmonyIndex];
+                main.startColor = _partColor;
             }
 
             // Initialize player specific vocal visuals
@@ -394,8 +404,11 @@ namespace YARG.Gameplay.Player
         {
             if (_cachedParticleSystems == null) return;
 
-            int colorIdx = Mathf.Clamp(harmonyIndex, 0, VocalTrack.Colors.Length - 1);
-            var color = VocalTrack.Colors[colorIdx];
+            var colors = GameManager.VocalTrack.Colors;
+            int colorIdx = Mathf.Clamp(harmonyIndex, 0, colors.Length - 1);
+            var color = Player.Profile.CurrentInstrument == Instrument.PartyVocals
+                ? colors[colorIdx]
+                : _partColor;
             foreach (var system in _cachedParticleSystems)
             {
                 var main = system.main;
@@ -516,8 +529,11 @@ namespace YARG.Gameplay.Player
             }
             MaterialPropertyInstance.Instance.SetFloat(OutlineWidthID, enableOutline ? OUTLINE_WIDTH : 0f);
             // Not sure if I need to set this every time, but it was being weird if I didn't
+            var colors = GameManager.VocalTrack.Colors;
             MaterialPropertyInstance.Instance.SetColor(OutlineColorID,
-                VocalTrack.Colors[Mathf.Clamp(harmonyIdx, 0, VocalTrack.Colors.Length - 1)]);
+                Player.Profile.CurrentInstrument == Instrument.PartyVocals
+                    ? colors[Mathf.Clamp(harmonyIdx, 0, colors.Length - 1)]
+                    : _partColor);
             _needleRenderer.SetPropertyBlock(MaterialPropertyInstance.Instance);
             _outlineEnabled = enableOutline;
             _outlineHarmonyIndex = harmonyIdx;
