@@ -59,9 +59,9 @@ namespace YARG.Input
         private readonly RuntimeInputAggregator _gameplayInputAggregator = new();
         private readonly RuntimeInputAggregator _menuInputAggregator = new();
 
-        public bool HasDeviceAssigned => _controllers.Count > 0;
-        public bool HasMicrophoneAssigned => _microphones.Count == 0;
-        public bool HasNoDevices => !HasDeviceAssigned && !HasMicrophoneAssigned;
+        public bool HasControllerAssigned => _controllers.Count > 0;
+        public bool HasMicrophoneAssigned => _microphones.Count > 0;
+        public bool HasNoDevices => !HasControllerAssigned && !HasMicrophoneAssigned;
 
         public event Action<InputDevice> ControllerAdded;
         public event Action<InputDevice> ControllerRemoved;
