@@ -111,6 +111,7 @@ namespace YARG.Settings
                 nameof(Settings.ShowPercentDecimals),
                 new HeaderMetadata("SortingAndFiltering"),
                 nameof(Settings.MaxSongRating),
+                nameof(Settings.UnratedSongRating),
                 nameof(Settings.CensorMatureContent),
                 nameof(Settings.RememberFilters),
                 nameof(Settings.SecondaryAlbumSort),

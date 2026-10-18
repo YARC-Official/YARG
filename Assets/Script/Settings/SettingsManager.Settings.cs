@@ -319,6 +319,16 @@ namespace YARG.Settings
                 SongRating.None,
             };
 
+            public DropdownSetting<SongRating> UnratedSongRating { get; }
+                = new(SongRating.None, _ => RefreshSongs())
+            {
+                SongRating.Family_Friendly,
+                SongRating.Supervision_Recommended,
+                SongRating.Mature,
+                SongRating.Sensitive_Content,
+                SongRating.None,
+            };
+
             // If MaxSongRating is set to anything other than Family_Friendly,
             // this setting could change the available songs, so we need to refresh the song list
             public ToggleSetting CensorMatureContent { get; } = new(false, _ => RefreshSongs());

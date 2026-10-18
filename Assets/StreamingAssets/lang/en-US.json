@@ -1476,6 +1476,17 @@
                     "None": "None"
                 }
             },
+            "UnratedSongRating": {
+                "Name": "Treat Unrated Songs As",
+                "Description": "Treat songs with no rating metadata as the selected rating when applying the maximum song rating filter.",
+                "Dropdown": {
+                    "Family_Friendly": "Family Friendly",
+                    "Supervision_Recommended": "Supervision Recommended",
+                    "Mature": "Mature",
+                    "Sensitive_Content": "Sensitive Content",
+                    "None": "None"
+                }
+            },
             "CensorMatureContent": {
                 "Name": "Censor Mature Content",
                 "Description": "On supported songs, mutes and censors mature content in lyrics and vocals, and downgrades the song's rating to \"Supervision Recommended\"."
