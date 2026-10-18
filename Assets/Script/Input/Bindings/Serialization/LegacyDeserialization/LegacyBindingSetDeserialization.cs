@@ -17,7 +17,12 @@ namespace YARG.Input.Serialization
      */
     public static partial class LegacyBindingSetDeserialization
     {
-        public static bool SerializedBindingSetIsOldDefault(SerializedReusableBindingSet candidate)
+        public static bool LegacyBindingSetShouldBeDeserialized(SerializedReusableBindingSet candidate)
+        {
+            return candidate is not null && candidate.Bindings.Count is not 0 && !SerializedBindingSetIsOldDefault(candidate);
+        }
+
+        private static bool SerializedBindingSetIsOldDefault(SerializedReusableBindingSet candidate)
         {
             foreach (var bindingSet in _legacyDefaults)
             {
