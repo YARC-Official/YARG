@@ -306,7 +306,8 @@
                 "Practice": "Practice",
                 "History": "History",
                 "Back": "Main Menu"
-            }
+            },
+            "MessageOfTheDay": "Check the careers menu for the included careers and any custom careers you have created or imported from the presets tab in the settings menu."
         },
         "History": {
             "Name": "History",
