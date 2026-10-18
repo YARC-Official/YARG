@@ -107,8 +107,6 @@ namespace YARG.Input.Bindings
 
             if (control is null)
             {
-                // TODO-FRICK: The old bindings fallback from ControlBinding::DeserializeControl? Are we sanitizing that away now?
-
                 YargLogger.LogWarning($"Could not find control {ControlPath} on controller {controller}!");
                 return null;
             }
