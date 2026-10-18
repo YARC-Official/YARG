@@ -1,10 +1,11 @@
-﻿using System;
+﻿using Cysharp.Threading.Tasks;
+using System;
 using System.Collections.Generic;
-using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.XInput;
+using UnityEngine.InputSystem.XR;
 using UnityEngine.UI;
 using YARG.Core.Audio;
 using YARG.Core.Game;
@@ -272,12 +273,12 @@ namespace YARG.Menu.ProfileList
 
                 var text = existingUser is null ?
                     controller.displayName :
-                    Localize.KeyFormat("Menu.ProfileList.StealController", controller.displayName, existingUser.Profile.Name);
+                    Localize.KeyFormat("Menu.ProfileList.StealDevice", controller.displayName, existingUser.Profile.Name);
 
                 controllerCount++;
                 // Only Windows awaits the XInput mode prompt. Non-Windows omits async to prevent CS1998 warning.
 #if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
-                dialog.AddListButton(controller.displayName, async () =>
+                dialog.AddListButton(text, async () =>
 #else
                 dialog.AddListButton(controller.displayName, () =>
 #endif
