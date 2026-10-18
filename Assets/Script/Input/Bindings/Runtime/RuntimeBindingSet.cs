@@ -54,7 +54,7 @@ namespace YARG.Input.Bindings
                         new RuntimeImpulseBinding(controller, button) :
                         new RuntimeButtonBinding(controller, button),
                     ReusableAxisBinding axis => new RuntimeAxisBinding(controller, axis),
-                    ReusableIntegerBinding integer => throw new NotImplementedException(), // TODO-FRICK
+                    ReusableIntegerBinding integer => throw new NotImplementedException(), // Unused since Protar was removed; implement when needed
                     _ => throw new ArgumentOutOfRangeException("Unrecognized reusable binding type")
                 };
 
