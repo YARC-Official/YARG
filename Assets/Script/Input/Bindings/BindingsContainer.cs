@@ -84,6 +84,15 @@ namespace YARG.Input.Bindings
             },
 
             {
+                ControllerFamily.ProGuitar,
+                new()
+                {
+                    { GameMode.Menu, new() { ReusableBindingSetDefaults.DefaultProGuitarMenu}},
+                    { GameMode.FiveFretGuitar, new() { ReusableBindingSetDefaults.DefaultFiveFretGuitarOnProGuitar}},
+                }
+            },
+
+            {
                 ControllerFamily.MidiDevice,
                 new()
                 {
@@ -179,7 +188,7 @@ namespace YARG.Input.Bindings
                 ControllerFamily.FiveLaneDrumkit => new() { GameMode.FiveLaneDrums },
                 ControllerFamily.ProKeyboard => new() { GameMode.ProKeys },
                 ControllerFamily.MidiDevice => new() { GameMode.ProKeys, GameMode.EliteDrums },
-                ControllerFamily.ProGuitar => new() { GameMode.ProGuitar },
+                ControllerFamily.ProGuitar => new() { GameMode.ProGuitar, GameMode.FiveFretGuitar },
                 ControllerFamily.Gamepad => new() { GameMode.Vocals },
                 ControllerFamily.ComputerKeyboard => new() { GameMode.FiveFretGuitar, GameMode.SixFretGuitar, GameMode.FourLaneDrums, GameMode.FiveLaneDrums, GameMode.EliteDrums, GameMode.ProKeys, GameMode.Vocals },
                 ControllerFamily.Mouse => new() { GameMode.Vocals },
