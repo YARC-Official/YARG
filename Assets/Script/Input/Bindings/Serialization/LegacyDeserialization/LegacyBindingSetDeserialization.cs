@@ -1,10 +1,5 @@
-﻿using PlasticBand.Devices;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using YARG.Core;
-using YARG.Helpers;
-using YARG.Input.Bindings;
-using YARG.Menu.ProfileList;
 
 namespace YARG.Input.Serialization
 {
