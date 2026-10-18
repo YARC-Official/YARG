@@ -340,7 +340,8 @@
             "NothingToReset": "This career has no progress to reset yet.",
             "UnlockTitle": "Tier Unlocked",
             "UnlockMessage": "New tier available: {0}",
-            "UnknownTier": "Unknown tier"
+            "UnknownTier": "Unknown tier",
+            "BonusTier": "Bonus: {0}"
         },
         "Main": {
             "MessageOfTheDay": "<align=center><size=32><b>Welcome to v0.15!</b></size></align>\n\nv0.15 is a major update that adds many highly requested and necessary gameplay features such as roll/trill lanes and Big \"YARG\" endings, as well as revamped user interface in the song selection and results screen, drum lane customization, automatic genre categorization, experimental custom vocalist characters in venues, and more.\n\n<b>If you have any feedback or find any bugs, please let us know on Discord or GitHub.</b>\n\nHappy YARGin'!",
