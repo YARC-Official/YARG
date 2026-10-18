@@ -98,7 +98,7 @@ namespace YARG.Helpers
                 ControllerFamily.FiveLaneDrumkit => LayoutStrings.FIVE_LANE_DRUMKIT,
                 ControllerFamily.ProKeyboard => LayoutStrings.PRO_KEYBOARD,
                 ControllerFamily.ProGuitar => LayoutStrings.PRO_GUITAR,
-                ControllerFamily.ComputerKeyboard => LayoutStrings.KEYBOARD,
+                ControllerFamily.ComputerKeyboard => LayoutStrings.COMPUTER_KEYBOARD,
                 ControllerFamily.Mouse => LayoutStrings.MOUSE,
                 ControllerFamily.Gamepad => LayoutStrings.GAMEPAD,
                 ControllerFamily.MidiDevice => LayoutStrings.MIDI_DEVICE,
@@ -116,7 +116,7 @@ namespace YARG.Helpers
                 case LayoutStrings.FIVE_LANE_DRUMKIT:       return ControllerFamily.FiveLaneDrumkit;
                 case LayoutStrings.PRO_KEYBOARD:            return ControllerFamily.ProKeyboard;
                 case LayoutStrings.PRO_GUITAR:              return ControllerFamily.ProGuitar;
-                case LayoutStrings.KEYBOARD:                return ControllerFamily.ComputerKeyboard;
+                case LayoutStrings.COMPUTER_KEYBOARD:                return ControllerFamily.ComputerKeyboard;
                 case LayoutStrings.MOUSE:                   return ControllerFamily.Mouse;
                 case LayoutStrings.GAMEPAD:                 return ControllerFamily.Gamepad;
                 case LayoutStrings.MIDI_DEVICE:             return ControllerFamily.MidiDevice;
@@ -138,7 +138,7 @@ namespace YARG.Helpers
                 ControllerFamily.ProGuitar => LayoutStrings.PRO_GUITAR,
                 ControllerFamily.MidiDevice => LayoutStrings.MIDI_DEVICE,
                 ControllerFamily.Gamepad => LayoutStrings.GAMEPAD,
-                ControllerFamily.ComputerKeyboard => LayoutStrings.KEYBOARD,
+                ControllerFamily.ComputerKeyboard => LayoutStrings.COMPUTER_KEYBOARD,
                 ControllerFamily.Mouse => LayoutStrings.MOUSE,
                 _ => LayoutStrings.INPUT_DEVICE
             };
@@ -156,7 +156,7 @@ namespace YARG.Helpers
                 ControllerFamily.ProGuitar => new() { LayoutStrings.PRO_GUITAR },
                 ControllerFamily.MidiDevice => new() { LayoutStrings.MIDI_DEVICE },
                 ControllerFamily.Gamepad => new() { LayoutStrings.GAMEPAD },
-                ControllerFamily.ComputerKeyboard => new() { LayoutStrings.KEYBOARD },
+                ControllerFamily.ComputerKeyboard => new() { LayoutStrings.COMPUTER_KEYBOARD },
                 ControllerFamily.Mouse => new() { LayoutStrings.MOUSE },
                 _ => new() { }
             };
