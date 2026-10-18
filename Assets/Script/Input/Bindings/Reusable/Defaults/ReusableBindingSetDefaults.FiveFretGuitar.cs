@@ -1,7 +1,4 @@
-﻿using PlasticBand.Devices;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using YARG.Core;
 using YARG.Helpers;
 using YARG.Menu.ProfileList;

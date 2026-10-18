@@ -134,6 +134,9 @@ namespace YARG.Input.Serialization
             LEGACY_WIITAR_THING_DRUMS_MENU,
             LEGACY_RB4_INSTRUMENT_MAPPER_DRUMS,
             LEGACY_RB4_INSTRUMENT_MAPPER_DRUMS_MENU,
+
+            LEGACY_5F_ON_PRO_GUITAR,
+            LEGACY_PRO_GUITAR_MENU,
         }; 
     }
 }

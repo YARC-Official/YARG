@@ -113,6 +113,14 @@ namespace YARG.Helpers
         public const string PRO_KEYBOARD_DIGITAL_PEDAL = "digitalPedal";
         public const string PRO_KEYBOARD_ANALOG_PEDAL = "analogPedal";
 
+        public const string PRO_GUITAR_STRUM_1 = "strum1";
+        public const string PRO_GUITAR_STRUM_2 = "strum2";
+        public const string PRO_GUITAR_STRUM_3 = "strum3";
+        public const string PRO_GUITAR_STRUM_4 = "strum4";
+        public const string PRO_GUITAR_STRUM_5 = "strum5";
+        public const string PRO_GUITAR_STRUM_6 = "strum6";
+        public const string PRO_GUITAR_DIGITAL_PEDAL = "digitalPedal";
+
         public const string JOYSTICK_UP = "joystick/up";
         public const string JOYSTICK_DOWN = "joystick/down";
         public const string JOYSTICK_LEFT = "joystick/left";
