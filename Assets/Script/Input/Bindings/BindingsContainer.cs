@@ -101,6 +101,7 @@ namespace YARG.Input.Bindings
                 {
                     { GameMode.Menu, new() {
                         ReusableBindingSetDefaults.DefaultGamepadMenu,
+                        ReusableBindingSetDefaults.DefaultSwitchGamepadMenu,
                         ReusableBindingSetDefaults.DefaultGamepadFiveFretGuitarMenu,
                         ReusableBindingSetDefaults.DefaultGamepadSixFretGuitarMenu,
                         ReusableBindingSetDefaults.DefaultGamepadFourLaneDrumkitMenu,

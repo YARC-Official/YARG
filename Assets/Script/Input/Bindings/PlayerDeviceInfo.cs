@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Switch;
 using UnityEngine.InputSystem.Utilities;
 using YARG.Core;
 using YARG.Core.Audio;
@@ -644,6 +645,12 @@ namespace YARG.Input
                 // Special cases to catch certain controller types - move to a helper if this gets too long
                 switch ((family, mode))
                 {
+                    case (ControllerFamily.Gamepad, GameMode.Menu):
+                        if (controller is SwitchProControllerHID)
+                        {
+                            return ReusableBindingSetDefaults.DefaultSwitchGamepadMenu;
+                        }
+                        break;
                     case (ControllerFamily.FiveFretGuitar, GameMode.FiveFretGuitar):
                         if (controller.name.Contains("Riffmaster"))
                         {
