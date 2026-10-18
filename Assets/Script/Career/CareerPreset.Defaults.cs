@@ -537,6 +537,7 @@ namespace YARG.Career
                 "YARG Setlist Pop",
                 "So you wanna be a pop star. Get to it!",
                 null,
+                "yarg",
                 true,
                 tiers);
         }
