@@ -154,7 +154,20 @@ namespace YARG.Song
 
         public static SongEntry[] UnfilteredSongs => _songCache.Entries.Values.SelectMany(e => e).ToArray();
 
-        private static bool AllowedByRating(SongRating rating) => rating <= SettingsManager.Settings.MaxSongRating.Value;
+        public static SongRating GetEffectiveSongRating(SongEntry song)
+        {
+            SongRating rating = song.GetSongRating(SettingsManager.Settings.CensorMatureContent.Value);
+            if (rating is SongRating.Unspecified or SongRating.No_Rating &&
+                SettingsManager.Settings.UnratedSongRating.Value != SongRating.None)
+            {
+                return SettingsManager.Settings.UnratedSongRating.Value;
+            }
+
+            return rating;
+        }
+
+        private static bool AllowedByRating(SongEntry song) =>
+            GetEffectiveSongRating(song) <= SettingsManager.Settings.MaxSongRating.Value;
 
 #nullable enable
         public static async UniTask RunRefresh(bool quick, LoadingContext? context = null)
@@ -1116,7 +1129,7 @@ namespace YARG.Song
                     var count = node.Value.Count;
                     for (int i = 0; i < count; i++)
                     {
-                        if (AllowedByRating(node.Value[i].GetSongRating(SettingsManager.Settings.CensorMatureContent.Value)))
+                        if (AllowedByRating(node.Value[i]))
                         {
                             songCount++;
                         }
@@ -1131,7 +1144,7 @@ namespace YARG.Song
                     for (int i = 0; i < node.Value.Count; i++)
                     {
                         var song = node.Value[i];
-                        if (AllowedByRating(node.Value[i].GetSongRating(SettingsManager.Settings.CensorMatureContent.Value)))
+                        if (AllowedByRating(node.Value[i]))
                         {
                             if (!_songsByHash.TryGetValue(node.Key, out var hashSongs))
                             {

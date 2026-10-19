@@ -253,6 +253,8 @@ namespace YARG.Menu.MusicLibrary
             }
             else if (_reloadState == MusicLibraryReloadState.Partial)
             {
+                SetRecommendedSongs();
+
                 // Note that the order matters here: SelectedPlaylist must be set before calling UpdateSearch,
                 // but SelectedIndex must be set _after_ calling UpdateSearch
                 SelectedPlaylist = _savedPlaylist;
@@ -737,7 +739,11 @@ namespace YARG.Menu.MusicLibrary
                 }
 
                 var secondaryAlbumSort = SettingsManager.Settings.SecondaryAlbumSort.Value;
-                if (includeSongs && SettingsManager.Settings.LibrarySort == SortAttribute.Source &&
+                // Qualified filters preserve the configured sort hierarchy, just like primary
+                // headers do. Unrestricted text searches flatten results by relevance instead.
+                bool includeSecondaryGroups = includeSongs &&
+                    (!_searchField.IsSearching || !_searchField.IsUnspecified);
+                if (includeSecondaryGroups && SettingsManager.Settings.LibrarySort == SortAttribute.Source &&
                     SettingsManager.Settings.SecondarySourceSort.Value == SecondarySourceSortMode.Intensity)
                 {
                     var players = PlayerContainer.Players
@@ -785,7 +791,7 @@ namespace YARG.Menu.MusicLibrary
                         intensityHeader.HasGoldStars = !intensityHasNonGoldSong;
                     }
                 }
-                else if (includeSongs && SettingsManager.Settings.LibrarySort >= SortAttribute.Instrument &&
+                else if (includeSecondaryGroups && SettingsManager.Settings.LibrarySort >= SortAttribute.Instrument &&
                     SettingsManager.Settings.SecondaryIntensitySort.Value == SecondaryIntensitySortMode.Source)
                 {
                     var sourceGroups = displayedSongs
@@ -826,7 +832,8 @@ namespace YARG.Menu.MusicLibrary
                         sourceHeader.HasGoldStars = !sourceHasNonGoldSong;
                     }
                 }
-                else if (includeSongs && SettingsManager.Settings.LibrarySort == SortAttribute.Artist &&
+                else if (includeSecondaryGroups &&
+                    SettingsManager.Settings.LibrarySort == SortAttribute.Artist &&
                     secondaryAlbumSort != SecondaryAlbumSortMode.Off)
                 {
                     IEnumerable<IGrouping<SortString, SongEntry>> albumGroups = displayedSongs

@@ -1476,6 +1476,17 @@
                     "None": "None"
                 }
             },
+            "UnratedSongRating": {
+                "Name": "Treat Unrated Songs As",
+                "Description": "Treat songs with no rating metadata as the selected rating when applying the maximum song rating filter.",
+                "Dropdown": {
+                    "Family_Friendly": "Family Friendly",
+                    "Supervision_Recommended": "Supervision Recommended",
+                    "Mature": "Mature",
+                    "Sensitive_Content": "Sensitive Content",
+                    "None": "None"
+                }
+            },
             "CensorMatureContent": {
                 "Name": "Censor Mature Content",
                 "Description": "On supported songs, mutes and censors mature content in lyrics and vocals, and downgrades the song's rating to \"Supervision Recommended\"."
@@ -1483,6 +1494,10 @@
             "RememberFilters": {
                 "Name": "Remember Filters",
                 "Description": "Saves your Filters Menu selections so they are restored the next time you start the game."
+            },
+            "NumberOfRecommendations": {
+                "Name": "Number of Recommendations",
+                "Description": "Sets how many recommended songs appear in the Music Library. Recommendations are hidden when the library or filtered results contain no more songs than this value."
             },
             "MetronomeVolume": {
                 "Name": "Metronome Volume",
