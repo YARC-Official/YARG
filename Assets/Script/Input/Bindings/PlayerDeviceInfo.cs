@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Switch;
 using UnityEngine.InputSystem.Utilities;
@@ -8,6 +9,7 @@ using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Game;
 using YARG.Core.Logging;
+using YARG.Gameplay;
 using YARG.Helpers;
 using YARG.Input.Bindings;
 using YARG.Input.Serialization;
@@ -336,6 +338,30 @@ namespace YARG.Input
             }            
         }
 
+        private void SetActiveGameplayBindingsForController(InputDevice controller, ReusableBindingSet bindingSet)
+        {
+            if (_activeGameplayRuntimeBindings.Remove(controller, out var oldBindings))
+            {
+                _gameplayInputAggregator.Remove(oldBindings);
+                oldBindings.Dispose();
+            }
+
+            if (bindingSet is null)
+            {
+                return;
+            }
+
+            var runtimeBindings = bindingSet.GetRuntimeBindings(Profile, controller);
+
+            _activeGameplayRuntimeBindings[controller] = runtimeBindings;
+            _gameplayInputAggregator.Add(runtimeBindings);
+
+            if (_inputsEnabled)
+            {
+                runtimeBindings.EnableInputs();
+            }
+        }
+
         public ReusableBindingSet GetSelectedGameplayBindingsForController(InputDevice controller)
         {
             return _selectedGameplayBindings.GetValueOrDefault(controller, null);
@@ -568,6 +594,12 @@ namespace YARG.Input
             }
 
             SetActiveMenuBindingsForController(controller, GetBindingSetForController(controller, menu: true));
+
+            var gameManager = UnityEngine.Object.FindAnyObjectByType<GameManager>();
+            if (gameManager is not null)
+            {
+                SetActiveGameplayBindingsForController(controller, GetBindingSetForController(controller, menu: false));
+            }
 
             ControllerAdded?.Invoke(controller);
         }
