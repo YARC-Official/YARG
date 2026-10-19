@@ -452,7 +452,9 @@ namespace YARG.Menu.MusicLibrary
                         continue;
                     }
 
-                    var dateAdded = entry.GetLastWriteTime().Date;
+                    var dateAdded = SettingsManager.Settings.DateAddedSort.Value == DateAddedSortMode.ReleaseDate
+                        ? entry.ReleaseDate?.Date ?? entry.GetLastModifiedTime().Date
+                        : entry.GetLastModifiedTime().Date;
                     if (!sorted.DatesAdded.TryGetValue(dateAdded, out var category))
                     {
                         sorted.DatesAdded.Add(dateAdded, category = new List<SongEntry>());
