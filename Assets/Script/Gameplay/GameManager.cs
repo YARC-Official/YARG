@@ -318,7 +318,7 @@ namespace YARG.Gameplay
 
             ApplySongSpeed();
             BeatEventHandler.Update(_songRunner.SongTime, _songRunner.VisualTime);
-            CrowdEventHandler.Update(_songRunner.SongTime);
+            CrowdEventHandler?.Update(_songRunner.SongTime);
 
             // Update players
             int totalScore = 0;

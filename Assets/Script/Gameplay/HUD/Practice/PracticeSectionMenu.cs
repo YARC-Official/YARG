@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Input;
 using YARG.Menu.Navigation;
@@ -34,6 +37,9 @@ namespace YARG.Gameplay.HUD
 
         private readonly List<PracticeSectionView> _sectionViews = new();
 
+        private PreviewContext          _previewContext;
+        private CancellationTokenSource _previewCanceller;
+
         private int _hoveredIndex;
         public int HoveredIndex
         {
@@ -61,6 +67,7 @@ namespace YARG.Gameplay.HUD
                 }
 
                 UpdateSectionViews();
+                _ = UpdatePreviewAudio();
             }
         }
 
@@ -111,6 +118,8 @@ namespace YARG.Gameplay.HUD
                 Navigator.Instance.PopScheme();
                 _navigationPushed = false;
             }
+
+            _ = StopPreview(_previewContext, _previewCanceller);
         }
 
         protected override void OnChartLoaded(SongChart chart)
@@ -128,6 +137,7 @@ namespace YARG.Gameplay.HUD
             LastSelectedIndex = null;
             RegisterNavigationScheme();
             UpdateSectionViews();
+            _ = UpdatePreviewAudio();
         }
 
         private void UpdateSectionViews()
@@ -158,6 +168,117 @@ namespace YARG.Gameplay.HUD
 
 
             _navigationPushed = true;
+        }
+
+        private async UniTaskVoid UpdatePreviewAudio()
+        {
+            const double FADE_DURATION = 1.25;
+            const double PREVIEW_SCROLL_DELAY = .6f;
+            float previewVolume = SettingsManager.Settings.PreviewVolume.Value;
+
+            if (previewVolume == 0)
+            {
+                return;
+            }
+
+            var previewCanceller = _previewCanceller;
+            var previewContext = _previewContext;
+
+            var newPreviewCanceller = new CancellationTokenSource();
+            _previewCanceller = newPreviewCanceller;
+
+            await StopPreview(previewContext, previewCanceller);
+
+            if (!ReferenceEquals(_previewCanceller, newPreviewCanceller) ||
+                newPreviewCanceller.IsCancellationRequested)
+            {
+                // We got interrupted by the user scrolling to a new section
+                newPreviewCanceller.Dispose();
+                return;
+            }
+
+            if (_sections.Count == 0 || HoveredIndex >= _sections.Count)
+            {
+                if (ReferenceEquals(_previewCanceller, newPreviewCanceller))
+                {
+                    _previewCanceller = null;
+                }
+
+                newPreviewCanceller.Dispose();
+                return;
+            }
+
+            var section = _sections[HoveredIndex];
+            var startTime = section.Time;
+            var length = section.TimeLength;
+
+            var context = await PreviewContext.Create(
+                GameManager.Song,
+                previewVolume,
+                GlobalVariables.State.SongSpeed,
+                PREVIEW_SCROLL_DELAY,
+                FADE_DURATION,
+                SettingsManager.Settings.CensorMatureContent.Value,
+                startTime,
+                length,
+                newPreviewCanceller.Token);
+
+            if (!ReferenceEquals(_previewCanceller, newPreviewCanceller) ||
+                newPreviewCanceller.IsCancellationRequested)
+            {
+                // We got interrupted by the user scrolling to a new section
+                context?.Dispose();
+                newPreviewCanceller.Dispose();
+                return;
+            }
+
+            if (context != null)
+            {
+                _previewContext = context;
+            }
+            else
+            {
+                if (ReferenceEquals(_previewCanceller, newPreviewCanceller))
+                {
+                    _previewCanceller = null;
+                }
+
+                newPreviewCanceller.Dispose();
+            }
+
+            // if (context != null)
+            // {
+            //     if (!_previewCanceller.IsCancellationRequested)
+            //     {
+            //         _previewContext = context;
+            //     }
+            //     else
+            //     {
+            //         context.Dispose();
+            //     }
+            // }
+        }
+
+        private async UniTask StopPreview(PreviewContext previewContext, CancellationTokenSource previewCanceller)
+        {
+            previewCanceller?.Cancel();
+            if (previewContext != null)
+            {
+                await previewContext.WaitForCompletionAsync();
+            }
+
+            // Only clear these if they are the copies we own
+            if (ReferenceEquals(_previewContext, previewContext))
+            {
+                _previewContext = null;
+            }
+
+            if (ReferenceEquals(_previewCanceller, previewCanceller))
+            {
+                _previewCanceller = null;
+            }
+
+            previewCanceller?.Dispose();
         }
 
         private void Confirm()
