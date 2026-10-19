@@ -233,10 +233,7 @@ namespace YARG.Input.Bindings
 
         private void OnButtonPressed(ref GameInput input)
         {
-            if (_buttonStates.TryGetValue(input.Action, out var state) && state)
-            {
-                InputProcessed?.Invoke(ref input);
-            }
+            InputProcessed?.Invoke(ref input);
         }
 
         private void OnButtonInputProcessed(RuntimeBindingSet source, ref GameInput input)
