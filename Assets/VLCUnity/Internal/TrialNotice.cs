@@ -25,6 +25,7 @@ public static class TrialNotice
 #endif
 
     [DllImport(UnityPlugin, CallingConvention = CallingConvention.Cdecl, EntryPoint = "libvlc_unity_is_trial")]
+    [return: MarshalAs(UnmanagedType.I1)]
     static extern bool IsTrialNative();
 
     // Treat a missing native plugin as not a trial instead of throwing.
