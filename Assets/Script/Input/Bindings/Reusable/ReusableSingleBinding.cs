@@ -107,7 +107,8 @@ namespace YARG.Input.Bindings
 
             if (control is null)
             {
-                YargLogger.LogWarning($"Could not find control {ControlPath} on controller {controller}!");
+                // Not unexpected; not all controllers feature all controls (e.g. among 5F Guitars, only CRKD
+                // guitars have a joystick)
                 return null;
             }
 
