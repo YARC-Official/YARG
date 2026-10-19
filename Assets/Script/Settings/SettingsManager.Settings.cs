@@ -335,8 +335,9 @@ namespace YARG.Settings
 
             public ToggleSetting RememberFilters { get; } = new(false);
 
-            public SliderSetting NumberOfRecommendations { get; } = new(10, 0,
-                () => SongContainer.Count, _ => ShowRecommendedSongsCallback(true), wholeNumbers: true);
+            public SliderSetting NumberOfRecommendations { get; } = new(10, 0, 100,
+                _ => ShowRecommendedSongsCallback(true), wholeNumbers: true, clampMax: false,
+                inputMax: () => Mathf.Max(0, SongContainer.Count - 1));
 
             public ToggleSetting AllowDuplicateSongs { get; } = new(true, _ => MusicLibraryMenu.SetReload(MusicLibraryReloadState.Partial));
             public ToggleSetting UseFullDirectoryForPlaylists { get; } = new(false);

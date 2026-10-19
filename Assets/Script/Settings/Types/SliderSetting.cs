@@ -8,29 +8,20 @@ namespace YARG.Settings.Types
         public override string AddressableName => "Setting/Slider";
 
         public float Min { get; private set; }
-        public float Max => _maxProvider?.Invoke() ?? _max;
+        public float Max { get; private set; }
         public bool WholeNumbers { get; }
-
-        private readonly float _max;
-        private readonly Func<float> _maxProvider;
+        public bool ClampMax { get; }
+        public Func<float> InputMax { get; }
 
         public SliderSetting(float value, float min = float.NegativeInfinity, float max = float.PositiveInfinity,
-            Action<float> onChange = null, bool wholeNumbers = false) : base(onChange)
+            Action<float> onChange = null, bool wholeNumbers = false, bool clampMax = true,
+            Func<float> inputMax = null) : base(onChange)
         {
             Min = min;
-            _max = max;
+            Max = max;
             WholeNumbers = wholeNumbers;
-
-            _value = value;
-        }
-
-        public SliderSetting(float value, float min, Func<float> maxProvider,
-            Action<float> onChange = null, bool wholeNumbers = false) : base(onChange)
-        {
-            Min = min;
-            _max = float.PositiveInfinity;
-            _maxProvider = maxProvider;
-            WholeNumbers = wholeNumbers;
+            ClampMax = clampMax;
+            InputMax = inputMax;
 
             _value = value;
         }
@@ -40,7 +31,7 @@ namespace YARG.Settings.Types
             if (WholeNumbers)
                 value = Mathf.Round(value);
 
-            _value = Mathf.Clamp(value, Min, Max);
+            _value = ClampMax ? Mathf.Clamp(value, Min, Max) : Mathf.Max(value, Min);
         }
 
         public override bool ValueEquals(float value)

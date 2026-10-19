@@ -115,9 +115,15 @@ namespace YARG.Menu.MusicLibrary
                 return;
             }
 
+            var recommendationSetting = SettingsManager.Settings.NumberOfRecommendations;
+            int maximumRecommendationCount = Mathf.Max(0, SongContainer.Count - 1);
+            int recommendationCount = recommendationSetting.Value >= maximumRecommendationCount
+                ? maximumRecommendationCount
+                : (int) recommendationSetting.Value;
+            recommendationSetting.SetValueWithoutNotify(recommendationCount);
+
             var recommendations = RecommendedSongs.GetRecommendedSongs(
-                YARG.Menu.Filters.FiltersMenu.ActiveFilterPredicate,
-                (int) SettingsManager.Settings.NumberOfRecommendations.Value);
+                YARG.Menu.Filters.FiltersMenu.ActiveFilterPredicate, recommendationCount);
             _recommendedSongs = recommendations.Length > 0 ? recommendations : null;
         }
 

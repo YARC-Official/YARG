@@ -153,10 +153,10 @@ namespace YARG.Menu
             if (setText)
                 _inputField.SetTextWithoutNotify(value.ToString(_formatString));
 
+            _isSettingValue = false;
+
             if (notify)
                 ValueChanged.Invoke(value);
-
-            _isSettingValue = false;
         }
 
         public void SetValueWithoutNotify(float value)
