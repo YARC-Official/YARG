@@ -2667,6 +2667,10 @@
                 "EnableLanes": {
                     "Name": "Enable Trill/Tremolo Lanes",
                     "Description": "If enabled, the game honors charted trill/tremolo lanes."
+                },
+                "ReleaseKeysCanHitNotes": {
+                    "Name": "Hit Notes On Lift",
+                    "Description": "5LK Only: If enabled, releasing keys can hit notes."
                 }
             },
             "HighwayPreset" : {
