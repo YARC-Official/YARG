@@ -114,6 +114,7 @@ namespace YARG.Menu.ProfileList
         {
             InputManager.DeviceAdded += OnControllerAdded;
             InputManager.DeviceRemoved += OnControllerRemoved;
+            UpdateDummyControllerMenuSuppression();
         }
 
         public void OnDisable()
@@ -121,6 +122,10 @@ namespace YARG.Menu.ProfileList
             InputManager.DeviceAdded -= OnControllerAdded;
             InputManager.DeviceRemoved -= OnControllerRemoved;
             HideContents();
+            foreach (var player in PlayerContainer.Players)
+            {
+                player.DeviceInfo.UnsuppressDummyControllerMenuInputs();
+            }
         }
 
         public async void ShowQuickBind()
