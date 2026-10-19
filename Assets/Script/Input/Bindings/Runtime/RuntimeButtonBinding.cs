@@ -79,7 +79,7 @@ namespace YARG.Input.Bindings
             }
 
             State = _debounceTimer.Stop();
-            FireInputEvent(time, State);
+            FireStateInputEvent(time, State);
 
             // Only start collective debounce on button press
             if (State && !_debounceTimer.IsRunning)
@@ -89,6 +89,11 @@ namespace YARG.Input.Bindings
         public override void UpdateForFrame(double updateTime)
         {
             UpdateDebounce(updateTime);
+        }
+
+        protected virtual void FireStateInputEvent(double time, bool state)
+        {
+            FireInputEvent(time, state);
         }
 
         private void UpdateDebounce(double updateTime)
@@ -112,7 +117,7 @@ namespace YARG.Input.Bindings
                 return;
 
             State = state;
-            FireInputEvent(updateTime, state);
+            FireStateInputEvent(updateTime, state);
             FireStateChanged();
         }
     }
@@ -137,6 +142,14 @@ namespace YARG.Input.Bindings
             if (singleBinding.JustPressed)
             {
                 FirePressedEvent(time);
+            }
+        }
+
+        protected override void FireStateInputEvent(double time, bool state)
+        {
+            if (!state)
+            {
+                base.FireStateInputEvent(time, state);
             }
         }
 
