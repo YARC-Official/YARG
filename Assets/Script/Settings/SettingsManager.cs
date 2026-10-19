@@ -114,6 +114,7 @@ namespace YARG.Settings
                 nameof(Settings.UnratedSongRating),
                 nameof(Settings.CensorMatureContent),
                 nameof(Settings.RememberFilters),
+                nameof(Settings.NumberOfRecommendations),
                 nameof(Settings.SecondaryAlbumSort),
                 nameof(Settings.SecondarySourceSort),
                 nameof(Settings.SecondaryIntensitySort),

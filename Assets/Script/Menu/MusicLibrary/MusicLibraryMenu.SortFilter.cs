@@ -115,16 +115,10 @@ namespace YARG.Menu.MusicLibrary
                 return;
             }
 
-            if (SongContainer.Count > RecommendedSongs.RECOMMEND_SONGS_COUNT)
-            {
-                var recommendations = RecommendedSongs.GetRecommendedSongs(
-                    YARG.Menu.Filters.FiltersMenu.ActiveFilterPredicate);
-                _recommendedSongs = recommendations.Length > 0 ? recommendations : null;
-            }
-            else
-            {
-                _recommendedSongs = null;
-            }
+            var recommendations = RecommendedSongs.GetRecommendedSongs(
+                YARG.Menu.Filters.FiltersMenu.ActiveFilterPredicate,
+                (int) SettingsManager.Settings.NumberOfRecommendations.Value);
+            _recommendedSongs = recommendations.Length > 0 ? recommendations : null;
         }
 
         private void UpdateSearch(bool force)

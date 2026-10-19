@@ -67,6 +67,9 @@ namespace YARG.Menu.Settings.Visuals
             _ignoreCallback = true;
             _slider.MinimumValue = Setting.Min;
             _slider.MaximumValue = Setting.Max;
+            _slider.WholeNumbers = Setting.WholeNumbers;
+            if (Setting.WholeNumbers)
+                _slider.FormatString = "F0";
 
             _ignoreCallback = false;
 

@@ -51,6 +51,12 @@ namespace YARG.Menu
             set => _slider.maxValue = value;
         }
 
+        public bool WholeNumbers
+        {
+            get => _slider.wholeNumbers;
+            set => _slider.wholeNumbers = value;
+        }
+
         private string _beforeEditText;
         private float _beforeEditValue;
 

@@ -1495,6 +1495,10 @@
                 "Name": "Remember Filters",
                 "Description": "Saves your Filters Menu selections so they are restored the next time you start the game."
             },
+            "NumberOfRecommendations": {
+                "Name": "Number of Recommendations",
+                "Description": "Sets how many recommended songs appear in the Music Library. Recommendations are hidden when the library or filtered results contain no more songs than this value."
+            },
             "MetronomeVolume": {
                 "Name": "Metronome Volume",
                 "PauseName": "Metronome",
