@@ -39,7 +39,14 @@ namespace YARG.Gameplay
         private const string DEFAULT_ANIMATION_CONTROLLER_FILENAME = "DefaultController";
         private const string DEFAULT_ANIMATION_PARAMETERS_FILENAME = "AnimatorParameters";
 
-        private string VIDEO_PATH;
+        private const string DEFAULT_TEMP_VIDEO_EXTENSION = ".mp4";
+        private const string TEMP_VIDEO_PREFIX            = "yarg-video-";
+        private const int    TEMP_VIDEO_COPY_BUFFER_SIZE  = 1024 * 1024;
+
+        private static readonly TimeSpan STALE_TEMP_VIDEO_AGE = TimeSpan.FromDays(1);
+        private static          bool     _sweptStaleTempVideos;
+
+        private string _tempVideoPath;
 
         [SerializeField]
         private YargVideoPlayer _videoPlayer;
@@ -506,25 +513,20 @@ namespace YARG.Gameplay
             textureManager.CreateVideoTexture();
             _videoPlayer.targetTexture = videoTexture;
 
-            switch (bg.Stream)
+            if (bg.Stream is FileStream fs)
             {
-                case FileStream fs:
+                _videoPlayer.url = fs.Name;
+            }
+            else
+            {
+                // The video players only accept a path, so any other stream must be copied out in full
+                var extension = bg.Stream is SngFileStream sngStream ? Path.GetExtension(sngStream.Name) : null;
+                if (!TryCopyVideoToTempFile(bg.Stream, extension, out var path))
                 {
-                    _videoPlayer.url = fs.Name;
-                    break;
+                    return;
                 }
-                case SngFileStream sngStream:
-                {
-                    // UNFORTUNATELY, Videoplayer can't use streams, so video files
-                    // MUST BE FULLY DECRYPTED
 
-                    VIDEO_PATH = Path.Combine(Application.persistentDataPath, sngStream.Name);
-                    using var tmp = File.OpenWrite(VIDEO_PATH);
-                    File.SetAttributes(VIDEO_PATH, File.GetAttributes(VIDEO_PATH) | FileAttributes.Temporary | FileAttributes.Hidden);
-                    bg.Stream.CopyTo(tmp);
-                    _videoPlayer.url = VIDEO_PATH;
-                    break;
-                }
+                _videoPlayer.url = path;
             }
 
             _videoPlayer.playerEnabled = true;
@@ -532,6 +534,79 @@ namespace YARG.Gameplay
             _videoPlayer.seekCompleted += OnVideoSeeked;
             _videoPlayer.Prepare();
             enabled = true;
+        }
+
+        private bool TryCopyVideoToTempFile(Stream source, string extension, out string path)
+        {
+            DeleteTempVideo();
+            SweepStaleTempVideos();
+
+            if (string.IsNullOrEmpty(extension))
+            {
+                extension = DEFAULT_TEMP_VIDEO_EXTENSION;
+            }
+
+            path = Path.Combine(Application.temporaryCachePath, TEMP_VIDEO_PREFIX + Guid.NewGuid().ToString("N") + extension);
+            _tempVideoPath = path;
+            try
+            {
+                using var file = new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.None);
+                source.CopyTo(file, TEMP_VIDEO_COPY_BUFFER_SIZE);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                YargLogger.LogException(ex, "Failed to copy video background to a temporary file");
+                DeleteTempVideo();
+                path = null;
+                return false;
+            }
+        }
+
+        private void DeleteTempVideo()
+        {
+            if (_tempVideoPath == null)
+            {
+                return;
+            }
+
+            try
+            {
+                File.Delete(_tempVideoPath);
+            }
+            catch (Exception ex)
+            {
+                YargLogger.LogException(ex, $"Failed to delete temporary video {_tempVideoPath}");
+            }
+
+            _tempVideoPath = null;
+        }
+
+        // Files left behind by a crash. The age check keeps this from deleting a video that another running
+        // instance is still playing, since temporaryCachePath is shared between instances.
+        private static void SweepStaleTempVideos()
+        {
+            if (_sweptStaleTempVideos)
+            {
+                return;
+            }
+
+            _sweptStaleTempVideos = true;
+            try
+            {
+                var cutoff = DateTime.UtcNow - STALE_TEMP_VIDEO_AGE;
+                foreach (var file in Directory.EnumerateFiles(Application.temporaryCachePath, TEMP_VIDEO_PREFIX + "*"))
+                {
+                    if (File.GetLastWriteTimeUtc(file) < cutoff)
+                    {
+                        File.Delete(file);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                YargLogger.LogException(ex, "Failed to clean up stale temporary videos");
+            }
         }
 
         private void Update()
@@ -1271,11 +1346,7 @@ namespace YARG.Gameplay
 
         public void Dispose()
         {
-            if (VIDEO_PATH != null)
-            {
-                File.Delete(VIDEO_PATH);
-                VIDEO_PATH = null;
-            }
+            DeleteTempVideo();
 
             // In case this somehow doesn't happen in GameplayDestroy
             if (loadedAddressable)
