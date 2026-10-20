@@ -1,3 +1,4 @@
+// pattern: Mixed (needs refactoring)
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -184,6 +185,14 @@ namespace YARG.Gameplay.Player
             }
 
             Engine = CreateEngine();
+            if (Engine is PartyVocalsCoordinatorEngine coordinator)
+            {
+                // Capture full-song membership once. Practice engines have filtered parts.
+                var availableParts = new bool[coordinator.PartCount];
+                for (int part = 0; part < availableParts.Length; part++)
+                    availableParts[part] = coordinator.PartHasContent(part);
+                _hud.InitializeHarmonyMeters(availableParts, VocalTrack.Colors);
+            }
 
             if (GameManager.IsPractice)
             {
@@ -198,6 +207,7 @@ namespace YARG.Gameplay.Player
 
         protected override void FinishDestruction()
         {
+            DetachPartyPhraseHandler();
             _inputContext?.Stop();
         }
 
@@ -213,6 +223,7 @@ namespace YARG.Gameplay.Player
 
         protected VocalsEngine CreateEngine()
         {
+            DetachPartyPhraseHandler();
             if (!Player.IsReplay)
             {
                 var singToActivateStarPower = SettingsManager.Settings.VoiceActivatedVocalStarPower.Value;
@@ -248,6 +259,9 @@ namespace YARG.Gameplay.Player
 
             EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack, Player.Profile.HarmonyIndex, _chart, Player.RockMeterPreset);
 
+            if (engine is PartyVocalsCoordinatorEngine coordinator)
+                coordinator.OnPartyVocalsPhrase += OnPartyVocalsPhrase;
+
             engine.OnComboIncrement += OnComboIncrement;
             engine.OnComboReset += OnComboReset;
 
@@ -272,7 +286,10 @@ namespace YARG.Gameplay.Player
                 ShowTextNotifications(isLastPhrase);
 
                 // Order is important here. ShowVocalPhraseResult() will skip showing AWESOME! if other, more important notifications are already showing.
-                _hud.ShowPhraseHit(percent, Combo);
+                // The party event follows this callback. Keep streak/FC priority here,
+                // but let its authoritative grade supply successful phrase feedback.
+                _hud.ShowPhraseHit(percent, Combo,
+                    engine is not PartyVocalsCoordinatorEngine || !fullPoints);
             };
 
             engine.OnNoteHit += (_, note) =>
@@ -332,10 +349,22 @@ namespace YARG.Gameplay.Player
             return engine;
         }
 
+        private void DetachPartyPhraseHandler()
+        {
+            if (Engine is PartyVocalsCoordinatorEngine coordinator)
+                coordinator.OnPartyVocalsPhrase -= OnPartyVocalsPhrase;
+        }
+
+        private void OnPartyVocalsPhrase(PhraseGrade grade, IReadOnlyList<PartyPartResult> parts, bool isLastPhrase)
+        {
+            _hud.ShowPartyVocalsGrade(grade, Combo);
+        }
+
         protected override void ResetVisuals()
         {
             _lastTargetNote = null;
             _hud.SetFullCombo(IsFc);
+            _hud.ResetHarmonyMeters();
         }
 
         public override void ResetPracticeSection()
@@ -432,6 +461,19 @@ namespace YARG.Gameplay.Player
             int displayMultiplier = GameManager.TotalPlayers > 1 && engineStats.IsStarPowerActive
                 ? engineStats.ScoreMultiplier / 2
                 : engineStats.ScoreMultiplier;
+
+            if (Engine is PartyVocalsCoordinatorEngine coordinator)
+            {
+                double beatPhase = GameManager.BeatEventHandler.Visual.StrongBeat.CurrentPercentage;
+                for (int part = 0; part < coordinator.PartCount; part++)
+                {
+                    var state = HarmonyMeterPresentation.Evaluate(
+                        coordinator.PartInCurrentPhrase(part), coordinator.PartInNextPhrase(part),
+                        coordinator.CurrentPhraseProgress, coordinator.CanonicalMeters[part],
+                        coordinator.AwesomeThreshold, beatPhase);
+                    _hud.UpdateHarmonyMeter(part, state, IsFc);
+                }
+            }
 
             // Update HUD
             _hud.UpdateInfo(fill, displayMultiplier,
