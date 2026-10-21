@@ -108,11 +108,17 @@ namespace YARG.Playlists
             }
 
             int replaced = PlaylistContainer.ReplaceHashes(Playlist, replacements);
-            if (replaced > 0)
+            if (replaced == 0)
             {
-                YargLogger.LogFormatInfo("Replaced {0} updated song hashes in the setlist", replaced);
-                OnChanged();
+                return;
             }
+
+            // A song's new hash can already be in the setlist; AddSong never allows a song twice, so keep the first.
+            var seen = new HashSet<HashWrapper>();
+            Playlist.SongHashes.RemoveAll(hash => !seen.Add(hash));
+
+            YargLogger.LogFormatInfo("Replaced {0} updated song hashes in the setlist", replaced);
+            OnChanged();
         }
 
         private static Playlist CreatePlaylist()
