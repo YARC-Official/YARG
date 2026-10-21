@@ -19,7 +19,7 @@ namespace YARG.Input.Serialization
 
         private static bool SerializedBindingSetIsOldDefault(SerializedReusableBindingSet candidate)
         {
-            foreach (var bindingSet in _legacyDefaults)
+            foreach (var bindingSet in LegacyDefaults.All)
             {
                 if (SerializedBindingSetsAreEquivalent(bindingSet, candidate))
                 {
@@ -89,54 +89,59 @@ namespace YARG.Input.Serialization
             return true;
         }
 
-        private static List<SerializedReusableBindingSet> _legacyDefaults = new()
+        // Nested class to ensure that the list is initialized after all of its members (from other partial
+        // class files) have been initialized
+        private static class LegacyDefaults
         {
-            LEGACY_5F_GUITAR,
-            LEGACY_RB_GUITAR,
-            LEGACY_GH_GUITAR,
-            LEGACY_RIFFMASTER,
-            LEGACY_5F_GUITAR_MENU,
-            LEGACY_RB_GUITAR_MENU,
-            LEGACY_RIFFMASTER_MENU,
+            internal static List<SerializedReusableBindingSet> All = new()
+            {
+                LEGACY_5F_GUITAR,
+                LEGACY_RB_GUITAR,
+                LEGACY_GH_GUITAR,
+                LEGACY_RIFFMASTER,
+                LEGACY_5F_GUITAR_MENU,
+                LEGACY_RB_GUITAR_MENU,
+                LEGACY_RIFFMASTER_MENU,
 
-            LEGACY_6F_GUITAR,
-            LEGACY_6F_GUITAR_MENU,
+                LEGACY_6F_GUITAR,
+                LEGACY_6F_GUITAR_MENU,
 
-            LEGACY_4L_DRUMKIT,
-            LEGACY_4L_DRUMKIT_MENU,
+                LEGACY_4L_DRUMKIT,
+                LEGACY_4L_DRUMKIT_MENU,
 
-            LEGACY_5L_DRUMKIT,
-            LEGACY_5L_DRUMKIT_MENU,
+                LEGACY_5L_DRUMKIT,
+                LEGACY_5L_DRUMKIT_MENU,
 
-            LEGACY_PRO_KEYBOARD,
-            LEGACY_PRO_KEYBOARD_MENU,
+                LEGACY_PRO_KEYBOARD,
+                LEGACY_PRO_KEYBOARD_MENU,
 
-            LEGACY_COMPUTER_KEYBOARD_5F,
-            LEGACY_COMPUTER_KEYBOARD_6F,
-            LEGACY_COMPUTER_KEYBOARD_4L_DRUMS,
-            LEGACY_COMPUTER_KEYBOARD_5L_DRUMS,
-            LEGACY_COMPUTER_KEYBOARD_MIDI_DRUMKIT,
-            LEGACY_COMPUTER_KEYBOARD_KEYS,
-            LEGACY_COMPUTER_KEYBOARD_VOCALS,
-            LEGACY_COMPUTER_KEYBOARD_MENU,
+                LEGACY_COMPUTER_KEYBOARD_5F,
+                LEGACY_COMPUTER_KEYBOARD_6F,
+                LEGACY_COMPUTER_KEYBOARD_4L_DRUMS,
+                LEGACY_COMPUTER_KEYBOARD_5L_DRUMS,
+                LEGACY_COMPUTER_KEYBOARD_MIDI_DRUMKIT,
+                LEGACY_COMPUTER_KEYBOARD_KEYS,
+                LEGACY_COMPUTER_KEYBOARD_VOCALS,
+                LEGACY_COMPUTER_KEYBOARD_MENU,
 
-            LEGACY_GAMEPAD_5F,
-            LEGACY_GAMEPAD_VOCALS,
-            LEGACY_GAMEPAD_MENU,
-            LEGACY_SWITCH_GAMEPAD_MENU,
-            LEGACY_GAMEPAD_AS_5F,
-            LEGACY_CRKD,
-            LEGACY_CRKD_FW300,
-            LEGACY_CRKD_MENU,
-            LEGACY_GAMEPAD_AS_6F,
-            LEGACY_GAMEPAD_AS_5F_MENU,
-            LEGACY_WIITAR_THING_DRUMS,
-            LEGACY_WIITAR_THING_DRUMS_MENU,
-            LEGACY_RB4_INSTRUMENT_MAPPER_DRUMS,
-            LEGACY_RB4_INSTRUMENT_MAPPER_DRUMS_MENU,
+                LEGACY_GAMEPAD_5F,
+                LEGACY_GAMEPAD_VOCALS,
+                LEGACY_GAMEPAD_MENU,
+                LEGACY_SWITCH_GAMEPAD_MENU,
+                LEGACY_GAMEPAD_AS_5F,
+                LEGACY_CRKD,
+                LEGACY_CRKD_FW300,
+                LEGACY_CRKD_MENU,
+                LEGACY_GAMEPAD_AS_6F,
+                LEGACY_GAMEPAD_AS_5F_MENU,
+                LEGACY_WIITAR_THING_DRUMS,
+                LEGACY_WIITAR_THING_DRUMS_MENU,
+                LEGACY_RB4_INSTRUMENT_MAPPER_DRUMS,
+                LEGACY_RB4_INSTRUMENT_MAPPER_DRUMS_MENU,
 
-            LEGACY_5F_ON_PRO_GUITAR,
-            LEGACY_PRO_GUITAR_MENU,
-        }; 
+                LEGACY_5F_ON_PRO_GUITAR,
+                LEGACY_PRO_GUITAR_MENU,
+            };
+        }
     }
 }

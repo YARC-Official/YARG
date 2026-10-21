@@ -3,6 +3,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine.InputSystem;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Helpers;
@@ -142,13 +143,18 @@ namespace YARG.Input.Serialization
             var converted = new SerializedModeMappingCollection();
             foreach (var controller in controllers)
             {
+                var controllerSourceLayout = LayoutHelper.LayoutStringToSourceLayout(controller.Layout);
+
                 SerializedReusableBindingSet? reusableBindingSet = null;
 
                 foreach (var (actionId, controlBinding) in serialized)
                 {
                     foreach (var singleBinding in controlBinding)
                     {
-                        if (singleBinding?.Device is not null && singleBinding.Device.Hash == controller.Hash)
+                        var bindingLayout = InputControlPath.TryGetDeviceLayout(singleBinding.ControlPath);
+                        var bindingSourceLayout = LayoutHelper.LayoutStringToSourceLayout(bindingLayout);
+
+                        if (bindingSourceLayout == controllerSourceLayout)
                         {
                             reusableBindingSet ??= new SerializedReusableBindingSet(
                                 $"{profileName}'s {controller.Layout} Bindings",
@@ -157,10 +163,7 @@ namespace YARG.Input.Serialization
                             )
                             { Guid = Guid.NewGuid() };
 
-                            if (singleBinding?.Device is not null && singleBinding.Device.Hash == controller.Hash)
-                            {
-                                reusableBindingSet.Bindings[actionId] = controlBinding.Deserialize();
-                            }
+                            reusableBindingSet.Bindings[actionId] = controlBinding.Deserialize();
                         }
                     }
                 }
