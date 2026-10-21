@@ -127,6 +127,7 @@ namespace YARG.Song
         private static Difficulty _starsCacheDifficulty = Difficulty.Easy;
         private static HighScoreHistoryMode _starsCacheHighScoreHistoryMode;
         private static bool _starsCacheUsesBandScores;
+        private static PartyVocalsChartPreference _starsCacheVocalPreference;
         private static bool _starsCacheValid;
 
         public static IReadOnlyDictionary<string, List<SongEntry>> Titles => _sortedSongs.Titles;
@@ -592,7 +593,8 @@ namespace YARG.Song
                 _starsCacheInstrument == cacheInstrument &&
                 _starsCacheDifficulty == profile.CurrentDifficulty &&
                 _starsCacheHighScoreHistoryMode == SettingsManager.Settings.HighScoreHistory.Value &&
-                _starsCacheUsesBandScores == useBandScores)
+                _starsCacheUsesBandScores == useBandScores &&
+                _starsCacheVocalPreference == PlayerContainer.GetPartyVocalsChartPreference())
             {
                 return _sortStars;
             }
@@ -667,6 +669,7 @@ namespace YARG.Song
             _starsCacheDifficulty = profile.CurrentDifficulty;
             _starsCacheHighScoreHistoryMode = SettingsManager.Settings.HighScoreHistory.Value;
             _starsCacheUsesBandScores = useBandScores;
+            _starsCacheVocalPreference = PlayerContainer.GetPartyVocalsChartPreference();
             _starsCacheValid = true;
             return _sortStars;
         }

@@ -26,7 +26,8 @@
             "ProGuitar": "Pro Guitar (17-Fret, 22-Fret)",
             "ProKeys": "Keys (5-Lane, Pro)",
             "Menu": "Menu",
-            "Vocals": "Vocals"
+            "Vocals": "Vocals",
+            "PartyVocals": "Party Vocals"
         },
         "Instrument": {
             "FiveFretGuitar": "Guitar",
@@ -49,7 +50,7 @@
             "ProKeys": "Pro Keys",
             "Vocals": "Vocals",
             "Harmony": "Harmony",
-            "PartyVocals": "Free Harmonies",
+            "PartyVocals": "Party Vocals",
             "Dj": "DJ",
             "Band": "Band"
         },
@@ -281,6 +282,10 @@
             }
         },
         "DifficultySelect": {
+            "WarningMissingBoundMicrophones": "{0} of {1} bound microphones are available. Missing: {2}. Reconnect them or remove their bindings in profile setup.",
+            "ChartFallback": "(fallback)",
+            "ChartFollowing": "(following {0})",
+            "PartyMicLimit": "Party Vocals supports up to seven microphones per profile.",
             "Instrument": "Instrument",
             "Difficulty": "Difficulty",
             "Harmony": "Harmony",
@@ -586,6 +591,7 @@
             }
         },
         "ProfileList": {
+            "MissingMicrophone": "{0} (not connected)",
             "Name": "Profiles",
             "ActiveProfiles" : "Active Profiles",
             "AddBot": "Add Bot",
@@ -783,6 +789,7 @@
             "PointsResult": "{0:N0}\nPOINTS"
         },
         "Vocals": {
+            "MicrophonesAvailable": "{0} of {1} microphones available",
             "Performance": {
                 "Awesome": "AWESOME!",
                 "DoubleAwesome": "DOUBLE AWESOME!",

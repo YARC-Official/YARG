@@ -1,3 +1,4 @@
+using YARG.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -733,6 +734,9 @@ namespace YARG.Gameplay
                     PlayerId = profile.Id,
 
                     Instrument = profile.CurrentInstrument,
+                    VocalChartSource = profile.GameMode == GameMode.PartyVocals &&
+                        player.BaseEngine.BaseParameters is YARG.Core.Engine.Vocals.VocalsEngineParameters vocalParameters
+                        ? vocalParameters.PartyVocalsChartSource : null,
                     Difficulty = profile.CurrentDifficulty,
 
                     EnginePresetId = profile.EnginePreset,

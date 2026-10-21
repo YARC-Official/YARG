@@ -218,9 +218,9 @@ namespace YARG.Gameplay.HUD
             _hudCoroutine = null;
         }
 
-        public void ShowPlayerName(YargPlayer player, int needleId)
+        public void ShowPlayerName(YargPlayer player, IReadOnlyList<int> needleIds, IReadOnlyList<bool> connectedSlots = null)
         {
-            _playerNameDisplay.ShowPlayer(player, needleId);
+            _playerNameDisplay.ShowPlayer(player, needleIds, connectedSlots);
         }
 
         public void InitializeHarmonyMeters(IReadOnlyList<bool> availableParts, IReadOnlyList<Color> colors)
