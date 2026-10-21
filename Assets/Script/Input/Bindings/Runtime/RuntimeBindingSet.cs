@@ -127,7 +127,7 @@ namespace YARG.Input.Bindings
             // Don't add more than one binding for the same action
             // Bindings already support multiple controls
             if (_bindings.Any((bind) => bind.Key == binding.Key || bind.Action == binding.Action))
-                throw new InvalidOperationException($"A binding already exists for binding {binding.Key} with action {binding.Action}!");
+                throw new InvalidOperationException($"A binding already exists for binding {binding.Key} and/or action {binding.Action}!");
 
             _bindings.Add(binding);
         }
