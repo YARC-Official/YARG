@@ -114,10 +114,10 @@ namespace YARG.Input.Serialization
                     }
                 }
 
-                // We don't want to flood a first-time upgrader with a bazillion redundant copies of the same default binding set, or really any duplicates at all
+                // We don't want to flood a first-time upgrader with a bazillion redundant copies of the same default binding set
                 if (LegacyBindingSetDeserialization.LegacyBindingSetShouldBeDeserialized(reusableBindingSet))
                 {
-                    converted.MappingsByControllerFamily[reusableBindingSet.Family] = reusableBindingSet.Guid!.Value;
+                    converted.MappingsByControllerFamily[reusableBindingSet!.Family] = reusableBindingSet.Guid!.Value;
                     reusableBindingSets[reusableBindingSet.Guid!.Value] = reusableBindingSet;
                 }
             }
