@@ -268,10 +268,18 @@ namespace YARG.Menu.ProfileList
             // Add InputSystem devices immediately — fast, no probe
             foreach (var controller in InputSystem.devices)
             {
-                if (!controller.enabled) continue;
-                var existingUser = PlayerContainer.GetControllerUser(controller);
+                if (!controller.enabled)
+                {
+                    continue;
+                }
 
-                var text = existingUser is null ?
+                var existingUser = PlayerContainer.GetControllerUser(controller);
+                if (existingUser == player)
+                {
+                    continue;
+                }
+
+                var text = (existingUser is null) ?
                     controller.displayName :
                     Localize.KeyFormat("Menu.ProfileList.StealDevice", controller.displayName, existingUser.Profile.Name);
 
@@ -280,7 +288,7 @@ namespace YARG.Menu.ProfileList
 #if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
                 dialog.AddListButton(text, async () =>
 #else
-                dialog.AddListButton(controller.displayName, () =>
+                dialog.AddListButton(text, () =>
 #endif
                 {
                     if (existingUser is not null)
