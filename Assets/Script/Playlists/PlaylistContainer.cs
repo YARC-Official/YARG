@@ -121,21 +121,7 @@ namespace YARG.Playlists
 
             void ReplaceAndSave(Playlist playlist, string path)
             {
-                if (playlist?.SongHashes == null)
-                {
-                    return;
-                }
-
-                int playlistReplacements = 0;
-                for (int i = 0; i < playlist.SongHashes.Count; i++)
-                {
-                    if (replacements.TryGetValue(playlist.SongHashes[i], out var replacement))
-                    {
-                        playlist.SongHashes[i] = replacement;
-                        playlistReplacements++;
-                    }
-                }
-
+                int playlistReplacements = ReplaceHashes(playlist, replacements);
                 if (playlistReplacements == 0)
                 {
                     return;
@@ -150,6 +136,30 @@ namespace YARG.Playlists
             foreach (var playlist in _playlists)
             {
                 ReplaceAndSave(playlist, Path.Join(PlaylistDirectory, GetFileNameForPlaylist(playlist)));
+            }
+
+            return replaced;
+        }
+
+        /// <summary>
+        /// Replaces each hash in <paramref name="playlist"/> found in <paramref name="replacements"/>,
+        /// without saving. Returns how many were replaced.
+        /// </summary>
+        internal static int ReplaceHashes(Playlist playlist, IReadOnlyDictionary<HashWrapper, HashWrapper> replacements)
+        {
+            if (playlist?.SongHashes == null)
+            {
+                return 0;
+            }
+
+            int replaced = 0;
+            for (int i = 0; i < playlist.SongHashes.Count; i++)
+            {
+                if (replacements.TryGetValue(playlist.SongHashes[i], out var replacement))
+                {
+                    playlist.SongHashes[i] = replacement;
+                    replaced++;
+                }
             }
 
             return replaced;

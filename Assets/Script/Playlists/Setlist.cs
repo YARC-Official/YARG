@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using YARG.Core.Logging;
 using YARG.Core.Song;
 
 namespace YARG.Playlists
@@ -75,6 +76,24 @@ namespace YARG.Playlists
         {
             EndShow();
             Playlist.Clear();
+        }
+
+        /// <summary>
+        /// Follows songs whose hash changed in a rescan (see <see cref="PlaylistContainer.ReplaceUpdatedSongHashes"/>).
+        /// </summary>
+        public static void ReplaceUpdatedSongHashes(IReadOnlyDictionary<HashWrapper, HashWrapper> replacements)
+        {
+            if (replacements == null || replacements.Count == 0)
+            {
+                return;
+            }
+
+            int replaced = PlaylistContainer.ReplaceHashes(Playlist, replacements);
+            if (replaced > 0)
+            {
+                YargLogger.LogFormatInfo("Replaced {0} updated song hashes in the setlist", replaced);
+                OnChanged();
+            }
         }
 
         private static Playlist CreatePlaylist()
