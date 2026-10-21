@@ -1,0 +1,62 @@
+﻿using Minis;
+using System;
+using System.Collections.Generic;
+using System.Text;
+using UnityEngine;
+using UnityEngine.InputSystem.Layouts;
+using YARG.Assets.Script.Menu.ProfileList;
+using YARG.Helpers;
+using YARG.Input;
+using YARG.Input.Bindings;
+using YARG.Menu.ProfileInfo;
+using YARG.Player;
+
+namespace YARG.Menu.ProfileList
+{
+    public class ReusableButtonBindGroup
+        : ReusableBindGroup<ReusableSingleButtonBindView, ReusableButtonBinding, bool, ReusableSingleButtonBinding, float>
+    {
+        [Space]
+        [SerializeField]
+        private ButtonDisplay _pressedIndicator;
+
+        [Space]
+        [SerializeField]
+        private ValueSlider _debounceSlider;
+
+        public override void Init(
+            ProfilesMenu profilesMenu,
+            BindingSetsCenterPane centerPane,
+            BindingsCenterPaneSettingsPanel settingsPanel,
+            DummyControllerRecordDialogMenu quickBindDialog,
+            ReusableBindingSet bindingSet,
+            ReusableButtonBinding binding,
+            List<ControlItemInfo> controls
+        )
+        {
+            base.Init(profilesMenu, centerPane, settingsPanel, quickBindDialog, bindingSet, binding, controls);
+
+            _debounceSlider.SetValueWithoutNotify(binding.DebounceThreshold);
+            _debounceSlider.SetInteractable(!bindingSet.IsHardcoded);
+        }
+
+        public void OnDebounceValueChanged()
+        {
+            Binding.DebounceThreshold = (long)_debounceSlider.Value;
+        }
+
+        protected override void UpdateDisplay()
+        {
+            foreach (var state in _states)
+            {
+                if (state)
+                {
+                    _pressedIndicator.IsPressed = true;
+                    return;
+                }
+            }
+
+            _pressedIndicator.IsPressed = false;
+        }
+    }
+}

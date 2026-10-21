@@ -380,7 +380,7 @@ namespace YARG.Menu.DifficultySelect
             {
                 ShowWarning(Localize.Key("Menu.DifficultySelect.WarningVocalistNoMicrophone"));
             }
-            else if (player.IsMissingInputDevice)
+            else if (player.IsMissingController)
             {
                 ShowWarning(Localize.Key("Menu.DifficultySelect.WarningPlayerNoInputDevice"));
             }
