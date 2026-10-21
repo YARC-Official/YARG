@@ -913,7 +913,7 @@ namespace YARG.Menu.MusicLibrary
 
         private void ExitLibrary()
         {
-            ShowPlaylist.Clear();
+            Setlist.Reset();
             _ = _previewPlayer.StopPreview();
             StemSettings.ApplySettings = true;
             MenuManager.Instance.PopMenu();

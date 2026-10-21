@@ -1215,6 +1215,15 @@ namespace YARG.Menu.DifficultySelect
         private void OnDisable()
         {
             Navigator.Instance.PopScheme();
+
+            // Start Set marks the show as playing before opening this menu, so leaving it by any route
+            // (Back, the header's back button, nobody playing) cancels the show. Loading gameplay or
+            // opening a menu on top disables this menu without popping it.
+            var menuManager = MenuManager.Instance;
+            if (menuManager != null && !menuManager.IsOpen(MenuManager.Menu.DifficultySelect))
+            {
+                Setlist.EndShow();
+            }
         }
 
         private DifficultyItem CreateItem(string header, string body, bool selected, DifficultyItem difficultyItem, UnityAction a, bool interactable = true)
