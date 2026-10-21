@@ -24,6 +24,9 @@ namespace YARG.Scores
         public Instrument Instrument { get; set; }
         public Difficulty Difficulty { get; set; }
 
+        // Null for older records whose effective chart was not recorded.
+        public Instrument? VocalChartSource { get; set; }
+
         public Guid EnginePresetId { get; set; }
 
         public int        Score { get; set; }

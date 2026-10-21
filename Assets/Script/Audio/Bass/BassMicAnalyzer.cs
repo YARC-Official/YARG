@@ -56,6 +56,10 @@ namespace YARG.Audio.BASS
         private bool   _paused;
 
         private volatile bool _stopRequested;
+        private volatile bool _workerExited;
+
+        // Silence and a worker which has not started yet are both healthy.
+        public bool HasFailed => _workerExited && !_stopRequested;
 
         public BassMicAnalyzer(IBassMicSampleSource source, Func<bool> isOutputRecording, Func<double> getInputTime)
         {
@@ -133,6 +137,10 @@ namespace YARG.Audio.BASS
             catch (Exception exception)
             {
                 YargLogger.LogException(exception, "Microphone analysis worker failed");
+            }
+            finally
+            {
+                _workerExited = true;
             }
         }
 

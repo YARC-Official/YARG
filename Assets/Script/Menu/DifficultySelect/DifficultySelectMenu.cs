@@ -8,6 +8,7 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Extensions;
+using YARG.Core.Engine.Vocals;
 using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Core.Song;
@@ -376,7 +377,22 @@ namespace YARG.Menu.DifficultySelect
         {
             var player = CurrentPlayer;
 
-            if (player.IsMissingMicrophone)
+            bool tooManyMics = player.Profile.GameMode == GameMode.PartyVocals &&
+                !player.Profile.IsBot && !player.IsReplay && player.Bindings.Microphones.Count + player.Bindings.UnresolvedMicrophones.Count > VocalsEngineParameters.MAX_PARTY_MIC_COUNT;
+            if (tooManyMics)
+            {
+                ShowWarning(LocalizeHeader("PartyMicLimit"));
+            }
+            else if (!player.IsReplay && !player.Profile.IsBot &&
+                player.Profile.GameMode is (GameMode.Vocals or GameMode.PartyVocals) &&
+                player.Bindings.UnresolvedMicrophones.Count > 0)
+            {
+                int available = player.Bindings.Microphones.Count;
+                var missing = player.Bindings.UnresolvedMicrophones;
+                ShowWarning(Localize.KeyFormat("Menu.DifficultySelect.WarningMissingBoundMicrophones",
+                    available, available + missing.Count, string.Join(", ", missing.Select(mic => mic.Name))));
+            }
+            else if (player.IsMissingMicrophone)
             {
                 ShowWarning(Localize.Key("Menu.DifficultySelect.WarningVocalistNoMicrophone"));
             }
@@ -395,8 +411,10 @@ namespace YARG.Menu.DifficultySelect
                 // Ready button
                 CreateItem(LocalizeHeader("Ready"), _lastMenuState == State.Main, _difficultyGreenPrefab, () =>
                 {
+                    if (tooManyMics)
+                        return;
                     // If the player just selected vocal modifiers, don't show them again
-                    if (player.Profile.GameMode == GameMode.Vocals &&
+                    if (player.Profile.GameMode is (GameMode.Vocals or GameMode.PartyVocals) &&
                         _vocalModifierSelectIndex == -1)
                     {
                         _vocalModifierSelectIndex = _playerIndex;
@@ -405,13 +423,35 @@ namespace YARG.Menu.DifficultySelect
                     ChangePlayer(1);
                 });
 
+                var song = GlobalVariables.State.CurrentSong;
+                var currentInstrument = player.Profile.CurrentInstrument;
+                IReadOnlyList<Instrument> displayInstruments = _possibleInstruments;
+                var instrumentName = GetInstrumentDisplayName(currentInstrument, player.Profile.GameMode);
+                bool canChooseInstrument = true;
+                if (player.Profile.GameMode == GameMode.PartyVocals)
+                {
+                    var leader = GetPartyChartLeader();
+                    var requested = leader.Profile.PartyVocalsChartPreference == PartyVocalsChartPreference.Solo
+                        ? Instrument.Vocals : Instrument.Harmony;
+                    currentInstrument = song.HasInstrument(requested) ? requested :
+                        requested == Instrument.Vocals ? Instrument.Harmony : Instrument.Vocals;
+                    displayInstruments = new[] { Instrument.Vocals, Instrument.Harmony }
+                        .Where(instrument => song.HasInstrument(instrument)).ToArray();
+                    instrumentName = currentInstrument.ToLocalizedName();
+                    if (currentInstrument != requested)
+                        instrumentName += " " + LocalizeHeader("ChartFallback");
+                    canChooseInstrument = leader == player;
+                    if (!canChooseInstrument)
+                        instrumentName += " " + string.Format(LocalizeHeader("ChartFollowing"), leader.Profile.Name);
+                }
+
                 var instrumentItem = CreateItem(LocalizeHeader("Instrument"),
-                    GetInstrumentDisplayName(player.Profile.CurrentInstrument, player.Profile.GameMode),
+                    instrumentName,
                     _lastMenuState == State.Instrument, _ringsItemPrefab, () =>
                 {
                     _menuState = State.Instrument;
                     UpdateForPlayer();
-                });
+                }, interactable: canChooseInstrument);
 
                 // Show every available instrument's tier wheel on its own row
                 // within the item (localized instrument names can be long, so a
@@ -419,20 +459,18 @@ namespace YARG.Menu.DifficultySelect
                 // instrument gets a backdrop circle behind its ring; the rest
                 // are dimmed, deeper while another field has focus (the black
                 // unfocused row hides the circle and shrinks the dim contrast).
-                if (_difficultyRing != null && _possibleInstruments.Count > 0)
+                if (_difficultyRing != null && displayInstruments.Count > 0)
                 {
                     const float ringSize = 40f;
 
-                    var song = GlobalVariables.State.CurrentSong;
                     var rings = instrumentItem.GetComponent<DifficultyItemRings>()
-                        .AttachRingRow(_difficultyRing, _possibleInstruments.Count, ringSize);
+                        .AttachRingRow(_difficultyRing, displayInstruments.Count, ringSize);
 
-                    var currentInstrument = player.Profile.CurrentInstrument;
                     DifficultyRing selectedRing = null;
 
-                    for (int i = 0; i < _possibleInstruments.Count; i++)
+                    for (int i = 0; i < displayInstruments.Count; i++)
                     {
-                        var instrument = _possibleInstruments[i];
+                        var instrument = displayInstruments[i];
                         rings[i].SetInfo(
                             GetInstrumentRingAsset(instrument, song.VocalsCount),
                             instrument,
@@ -490,7 +528,7 @@ namespace YARG.Menu.DifficultySelect
                 }
 
                 // Only allow vocal modifiers to be selected once (so they don't conflict)
-                if (player.Profile.GameMode != GameMode.Vocals ||
+                if (player.Profile.GameMode is not (GameMode.Vocals or GameMode.PartyVocals) ||
                     _vocalModifierSelectIndex == -1 ||
                     _vocalModifierSelectIndex == _playerIndex)
                 {
@@ -547,6 +585,36 @@ namespace YARG.Menu.DifficultySelect
             }
         }
 
+        private YargPlayer GetPartyChartLeader()
+        {
+            for (int i = 0; i < _playerIndex; i++)
+            {
+                var player = PlayerContainer.Players[i];
+                if (!player.SittingOut && player.Profile.GameMode == GameMode.PartyVocals)
+                    return player;
+            }
+            return CurrentPlayer;
+        }
+
+        private void CreatePartyChartMenu()
+        {
+            var song = GlobalVariables.State.CurrentSong;
+            foreach (var preference in new[] { PartyVocalsChartPreference.Solo, PartyVocalsChartPreference.Harmony })
+            {
+                var instrument = preference == PartyVocalsChartPreference.Solo ? Instrument.Vocals : Instrument.Harmony;
+                var chartInstrument = song.HasInstrument(instrument) ? instrument :
+                    instrument == Instrument.Vocals ? Instrument.Harmony : Instrument.Vocals;
+                string label = instrument.ToLocalizedName()
+                    + $"\n<size=18><color=#FFFFFF80>{GetTierLabel(GetTierValues(song, chartInstrument))}</color></size>";
+                CreateItem(label, CurrentPlayer.Profile.PartyVocalsChartPreference == preference, () =>
+                {
+                    CurrentPlayer.Profile.PartyVocalsChartPreference = preference;
+                    _menuState = State.Main;
+                    UpdateForPlayer();
+                });
+            }
+        }
+
         private void ShowWarning(string message)
         {
             if (string.IsNullOrEmpty(message))
@@ -586,6 +654,12 @@ namespace YARG.Menu.DifficultySelect
 
         private void CreateInstrumentMenu()
         {
+            if (CurrentPlayer.Profile.GameMode == GameMode.PartyVocals)
+            {
+                CreatePartyChartMenu();
+                return;
+            }
+
             var song = GlobalVariables.State.CurrentSong;
 
             foreach (var instrument in _possibleInstruments)
@@ -1077,7 +1151,7 @@ namespace YARG.Menu.DifficultySelect
                         if (player.SittingOut) continue;
                         if (player == primaryPlayer) continue;
 
-                        if (player.Profile.GameMode == GameMode.Vocals)
+                        if (player.Profile.GameMode is GameMode.Vocals or GameMode.PartyVocals)
                         {
                             player.Profile.ApplySessionModifiers(primaryPlayer.Profile);
                         }
@@ -1222,10 +1296,10 @@ namespace YARG.Menu.DifficultySelect
             return FinishCreateItem(btn, header, body, selected, a, interactable);
         }
 
-        private DifficultyItem CreateItem(string header, string body, bool selected, GameObject itemPrefab, UnityAction a)
+        private DifficultyItem CreateItem(string header, string body, bool selected, GameObject itemPrefab, UnityAction a, bool interactable = true)
         {
             var btn = Instantiate(itemPrefab, _container).GetComponent<DifficultyItem>();
-            return FinishCreateItem(btn, header, body, selected, a);
+            return FinishCreateItem(btn, header, body, selected, a, interactable);
         }
 
         private DifficultyItem FinishCreateItem(DifficultyItem btn, string header, string body,
@@ -1298,6 +1372,8 @@ namespace YARG.Menu.DifficultySelect
 
         private bool HasPlayableInstrument(SongEntry entry, in Instrument instrument)
         {
+            if (CurrentPlayer.Profile.GameMode == GameMode.Vocals && instrument == Instrument.PartyVocals)
+                return false;
             // For vocals, all players *must* select the same gamemode (solo/harmony/party)
             if (instrument is Instrument.Vocals or Instrument.Harmony or Instrument.PartyVocals)
             {
