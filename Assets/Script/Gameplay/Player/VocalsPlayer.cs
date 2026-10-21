@@ -120,6 +120,16 @@ namespace YARG.Gameplay.Player
                 ? (player.IsReplay ? ((VocalsEngineParameters) player.EngineParameterOverride).PartyVocalsMicCount
                     : Mathf.Max(1, _microphoneSlots.Count))
                 : 1;
+            if (IsPartySession && !player.IsReplay && player.Profile.IsBot)
+            {
+                _micCount = 1;
+                for (int part = 0; part < multiTrack.Parts.Count; part++)
+                {
+                    // Preserve part ordinals for bot preferences, ignoring trailing empty slots.
+                    if (multiTrack.Parts[part].NotePhrases.Count > 0)
+                        _micCount = part + 1;
+                }
+            }
             if (_micCount > VocalsEngineParameters.MAX_PARTY_MIC_COUNT)
                 throw new System.InvalidOperationException("Too many microphones for a Party Vocals session.");
             var needleIndex = (vocalIndex % NEEDLES_COUNT) + 1;
