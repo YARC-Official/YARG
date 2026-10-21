@@ -1046,9 +1046,6 @@ namespace YARG.Menu.DifficultySelect
                     // Everything before the first playable player is a bot, so there is nowhere to
                     // step back to; leaving the menu is the only way out, same as on the first player.
                     _playerIndex = 0;
-                    // ChangePlayer(0) runs inside OnEnable, where Unity won't deactivate this object
-                    // ("already being activated"), so OnDisable can't be relied on to end the show here
-                    Setlist.EndShow();
                     MenuManager.Instance.PopMenu();
                     return;
                 }
@@ -1060,7 +1057,6 @@ namespace YARG.Menu.DifficultySelect
                 // If everyone is sitting out, show a warning and boot back to music library
                 if (PlayerContainer.Players.All(i => i.SittingOut))
                 {
-                    Setlist.EndShow();
                     MenuManager.Instance.PopMenu();
 
                     DialogManager.Instance.ShowMessage("Nobody's Playing!",
@@ -1219,15 +1215,6 @@ namespace YARG.Menu.DifficultySelect
         private void OnDisable()
         {
             Navigator.Instance.PopScheme();
-
-            // Start Set marks the show as playing before opening this menu, so leaving it by any route
-            // (Back, the header's back button, nobody playing) cancels the show. Loading gameplay or
-            // opening a menu on top disables this menu without popping it.
-            var menuManager = MenuManager.Instance;
-            if (menuManager != null && !menuManager.IsOpen(MenuManager.Menu.DifficultySelect))
-            {
-                Setlist.EndShow();
-            }
         }
 
         private DifficultyItem CreateItem(string header, string body, bool selected, DifficultyItem difficultyItem, UnityAction a, bool interactable = true)

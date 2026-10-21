@@ -209,6 +209,10 @@ namespace YARG.Menu.MusicLibrary
         {
             base.OnEnable();
 
+            // Start Set marks the show as playing before opening Difficulty Select, and every way out of that menu
+            // short of gameplay pops back here. Anything else that starts a show needs its own way to end it.
+            Setlist.EndShow();
+
             // Playable Songs used to be a sort that also filtered the library. Preserve that
             // preference while migrating it to the independent filter.
             if (SettingsManager.Settings.LibrarySort == SortAttribute.Playable)
@@ -928,7 +932,7 @@ namespace YARG.Menu.MusicLibrary
 
         private void ExitLibrary()
         {
-            Setlist.Reset();
+            ShowPlaylist.Clear();
             _ = _previewPlayer.StopPreview();
             StemSettings.ApplySettings = true;
             MenuManager.Instance.PopMenu();

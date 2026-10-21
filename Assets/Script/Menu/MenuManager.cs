@@ -112,11 +112,6 @@ namespace YARG.Menu
             return newMenu;
         }
 
-        public bool IsOpen(Menu menu)
-        {
-            return _openMenus.Contains(menu);
-        }
-
         public void PopMenu()
         {
             //Don't pop the only remaining menu

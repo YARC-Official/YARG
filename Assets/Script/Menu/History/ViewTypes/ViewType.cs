@@ -3,7 +3,6 @@ using YARG.Core.Game;
 using YARG.Core.Replays;
 using YARG.Core.Song;
 using YARG.Menu.ListMenu;
-using YARG.Playlists;
 using YARG.Scores;
 
 namespace YARG.Menu.History
@@ -57,7 +56,6 @@ namespace YARG.Menu.History
         protected static void PlayWithReplay(ReplayInfo replay, SongEntry song)
         {
             GlobalVariables.State = PersistentState.Default;
-            Setlist.EndShow();
 
             GlobalVariables.State.CurrentSong = song;
             GlobalVariables.State.CurrentReplay = replay;
@@ -70,7 +68,6 @@ namespace YARG.Menu.History
         protected static void LoadIntoReplay(ReplayInfo replay, SongEntry song)
         {
             GlobalVariables.State = PersistentState.Default;
-            Setlist.EndShow();
 
             GlobalVariables.State.CurrentSong = song;
             GlobalVariables.State.CurrentReplay = replay;

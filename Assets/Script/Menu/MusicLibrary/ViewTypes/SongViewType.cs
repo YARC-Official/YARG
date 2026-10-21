@@ -163,7 +163,6 @@ namespace YARG.Menu.MusicLibrary
             MusicLibraryMenu.SetReload(MusicLibraryReloadState.Partial);
 
             GlobalVariables.State.CurrentSong = SongEntry;
-            Setlist.EndShow();
 
             MenuManager.Instance.PushMenu(MenuManager.Menu.DifficultySelect);
         }
