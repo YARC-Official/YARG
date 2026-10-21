@@ -260,7 +260,8 @@ namespace YARG.Menu.MusicLibrary
                 // but SelectedIndex must be set _after_ calling UpdateSearch
                 SelectedPlaylist = _savedPlaylist;
 
-                // The setlist is emptied whenever the menu scene loads, so its view has nothing left to show
+                // The saved view can be the setlist after it was emptied (on every menu scene load, for
+                // instance), and an empty setlist view has nothing to show
                 bool savedSetlistWasCleared = SelectedPlaylist == ShowPlaylist && ShowPlaylist.Count == 0;
                 if (savedSetlistWasCleared)
                 {

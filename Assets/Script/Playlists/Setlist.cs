@@ -115,9 +115,10 @@ namespace YARG.Playlists
 
             // A song's new hash can already be in the setlist; AddSong never allows a song twice, so keep the first.
             var seen = new HashSet<HashWrapper>();
-            Playlist.SongHashes.RemoveAll(hash => !seen.Add(hash));
+            int duplicates = Playlist.SongHashes.RemoveAll(hash => !seen.Add(hash));
 
-            YargLogger.LogFormatInfo("Replaced {0} updated song hashes in the setlist", replaced);
+            YargLogger.LogFormatInfo("Replaced {0} updated song hashes in the setlist, removing {1} duplicates",
+                replaced, duplicates);
             OnChanged();
         }
 

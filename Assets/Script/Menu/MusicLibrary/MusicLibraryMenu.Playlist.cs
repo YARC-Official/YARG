@@ -437,6 +437,7 @@ namespace YARG.Menu.MusicLibrary
 
         private void StartSetlist()
         {
+            // TODO: Tell the player when none of the setlist's songs are playable, instead of doing nothing
             if (PlayerContainer.Players.Count > 0 && Setlist.TryStart(out var firstSong))
             {
                 // If we are in the main library, save the current index
