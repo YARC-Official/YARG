@@ -15,7 +15,7 @@ namespace YARG.Menu.MusicLibrary
 {
     public partial class MusicLibraryMenu
     {
-        public Playlist       ShowPlaylist   { get; set; }         = new(true);
+        public Playlist       ShowPlaylist => Setlist.Playlist;
         private Playlist      _lastPlaylistSelectPlaylist;
 
         private List<ViewType> CreatePlaylistSelectViewList()
@@ -445,10 +445,7 @@ namespace YARG.Menu.MusicLibrary
                     _mainLibraryIndex = SelectedIndex;
                 }
 
-                GlobalVariables.State.PlayingAShow = true;
-                GlobalVariables.State.ShowSongs = ShowPlaylist.ToList();
-                GlobalVariables.State.CurrentSong = GlobalVariables.State.ShowSongs.First();
-                GlobalVariables.State.ShowIndex = 0;
+                GlobalVariables.State.CurrentSong = Setlist.Start();
                 MenuManager.Instance.PushMenu(MenuManager.Menu.DifficultySelect);
             }
         }

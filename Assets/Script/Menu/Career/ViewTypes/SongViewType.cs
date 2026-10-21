@@ -4,6 +4,7 @@ using YARG.Career;
 using YARG.Core.Logging;
 using YARG.Core.Song;
 using YARG.Localization;
+using YARG.Playlists;
 
 namespace YARG.Menu.Career
 {
@@ -111,9 +112,7 @@ namespace YARG.Menu.Career
             }
 
             GlobalVariables.State.CurrentSong = _songEntry;
-            GlobalVariables.State.ShowSongs.Clear();
-            GlobalVariables.State.ShowSongs.Add(_songEntry);
-            GlobalVariables.State.PlayingAShow = false;
+            Setlist.EndShow();
             GlobalVariables.State.CurrentCareer = new CareerContext
             {
                 CareerId = _careerId,

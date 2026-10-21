@@ -7,6 +7,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Helpers.Extensions;
+using YARG.Playlists;
 using YARG.Song;
 
 namespace YARG.Gameplay.HUD
@@ -180,13 +181,13 @@ namespace YARG.Gameplay.HUD
 
         public void Skip()
         {
-            if (!GlobalVariables.State.PlayingAShow)
+            if (!Setlist.IsPlaying)
             {
                 // We should not be called in this case, so do nothing
                 return;
             }
 
-            if (GlobalVariables.State.ShowIndex >= GlobalVariables.State.ShowSongs.Count - 1)
+            if (!Setlist.TryAdvance(out var nextSong))
             {
                 // There is no next song, so again we shouldn't have been called, but we
                 // can do something this time
@@ -194,9 +195,7 @@ namespace YARG.Gameplay.HUD
                 return;
             }
 
-            // Go to next song in setlist
-            GlobalVariables.State.ShowIndex++;
-            GlobalVariables.State.CurrentSong = GlobalVariables.State.ShowSongs[GlobalVariables.State.ShowIndex];
+            GlobalVariables.State.CurrentSong = nextSong;
             GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
         }
     }

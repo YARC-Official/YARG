@@ -163,10 +163,7 @@ namespace YARG.Menu.MusicLibrary
             MusicLibraryMenu.SetReload(MusicLibraryReloadState.Partial);
 
             GlobalVariables.State.CurrentSong = SongEntry;
-            // This just makes stuff in DifficultySelectMenu easier
-            GlobalVariables.State.ShowSongs.Clear();
-            GlobalVariables.State.ShowSongs.Add(SongEntry);
-            GlobalVariables.State.PlayingAShow = false;
+            Setlist.EndShow();
 
             MenuManager.Instance.PushMenu(MenuManager.Menu.DifficultySelect);
         }

@@ -30,6 +30,11 @@ namespace YARG.Playlists
 
         public int Count => SongHashes.Count;
 
+        /// <summary>
+        /// Raised after every change made through this class's methods.
+        /// Writes straight to <see cref="SongHashes"/> don't raise it.
+        /// </summary>
+        public event Action Edited;
 
         public Playlist(bool ephemeral)
         {
@@ -47,14 +52,14 @@ namespace YARG.Playlists
             if (!ContainsSong(song))
             {
                 SongHashes.Add(song.Hash);
-                SaveAfterManualEdit();
+                OnEdited();
             }
         }
 
         public void RemoveSong(SongEntry song)
         {
             SongHashes.Remove(song.Hash);
-            SaveAfterManualEdit();
+            OnEdited();
         }
 
         public bool ContainsSong(SongEntry song)
@@ -86,7 +91,7 @@ namespace YARG.Playlists
             if (index > 0)
             {
                 (SongHashes[index - 1], SongHashes[index]) = (SongHashes[index], SongHashes[index - 1]);
-                SaveAfterManualEdit();
+                OnEdited();
             }
         }
 
@@ -99,13 +104,19 @@ namespace YARG.Playlists
             if (index < SongHashes.Count - 1)
             {
                 (SongHashes[index + 1], SongHashes[index]) = (SongHashes[index], SongHashes[index + 1]);
-                SaveAfterManualEdit();
+                OnEdited();
             }
         }
 
         public void Clear()
         {
+            if (SongHashes.Count == 0)
+            {
+                return;
+            }
+
             SongHashes.Clear();
+            Edited?.Invoke();
         }
 
         public void SortByName(bool ascending = true)
@@ -120,7 +131,7 @@ namespace YARG.Playlists
                 SongHashes.Add(song.Hash);
             }
 
-            SaveAfterManualEdit();
+            OnEdited();
         }
 
         public void SortByArtist(bool ascending = true)
@@ -135,18 +146,18 @@ namespace YARG.Playlists
                 SongHashes.Add(song.Hash);
             }
 
-            SaveAfterManualEdit();
+            OnEdited();
         }
 
-        private void SaveAfterManualEdit()
+        private void OnEdited()
         {
-            if (Ephemeral)
+            if (!Ephemeral)
             {
-                return;
+                PlaylistContainer.RemoveDeadHashes(this, SongContainer.SongsByHash);
+                PlaylistContainer.SavePlaylist(this);
             }
 
-            PlaylistContainer.RemoveDeadHashes(this, SongContainer.SongsByHash);
-            PlaylistContainer.SavePlaylist(this);
+            Edited?.Invoke();
         }
 
         private static int CompareSongsByName(SongEntry lhs, SongEntry rhs, bool ascending)
