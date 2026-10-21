@@ -461,12 +461,6 @@ namespace YARG.Menu.MusicLibrary
             if (CurrentSelection is SongViewType selection)
             {
                 ShowPlaylist.AddSong(selection.SongEntry);
-                if (ShowPlaylist.Count == 1)
-                {
-                    // We need to rebuild the navigation scheme after adding the first song
-                    SetNavigationScheme(true);
-                }
-
                 ToastManager.ToastSuccess(Localize.Key("Menu.MusicLibrary.AddedToSet"));
             }
         }
@@ -501,12 +495,6 @@ namespace YARG.Menu.MusicLibrary
             else
             {
                 ToastManager.ToastWarning(Localize.Key("Menu.MusicLibrary.NoSongsInPlaylist"));
-            }
-
-            if (count > 0 && ShowPlaylist.Count == count)
-            {
-                // We need to rebuild the navigation scheme the first time we add song(s)
-                SetNavigationScheme(true);
             }
 
             RefreshAndReselect();

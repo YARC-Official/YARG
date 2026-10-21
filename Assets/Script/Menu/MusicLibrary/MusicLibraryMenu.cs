@@ -181,6 +181,7 @@ namespace YARG.Menu.MusicLibrary
 
         private static bool _needsReload                  = false;
         protected      bool _needsNavigationSchemeRefresh = false;
+        private        bool _setlistHadSongs;
 
         protected virtual bool SearchAllowed => true;
 
@@ -326,6 +327,9 @@ namespace YARG.Menu.MusicLibrary
 
             PlayerContainer.PlayerAdded += OnPlayerAdded;
             PlayerContainer.PlayerRemoved += OnPlayerRemoved;
+
+            _setlistHadSongs = ShowPlaylist.Count > 0;
+            Setlist.Changed += OnSetlistChanged;
 
             // Ensure the sidebar is rendered correctly on first entry
             _sidebar.UpdateSidebar(true);
@@ -954,6 +958,25 @@ namespace YARG.Menu.MusicLibrary
             return false;
         }
 
+        private void OnSetlistChanged()
+        {
+            // The green button's action and label depend on whether the setlist is empty
+            bool hasSongs = ShowPlaylist.Count > 0;
+            if (hasSongs == _setlistHadSongs)
+            {
+                return;
+            }
+
+            _setlistHadSongs = hasSongs;
+            if (IsNavigationSchemeBlocked())
+            {
+                _needsNavigationSchemeRefresh = true;
+                return;
+            }
+
+            SetNavigationScheme(true);
+        }
+
         public void RefreshNavigationSchemeAfterPopup()
         {
             if (!_needsNavigationSchemeRefresh) return;
@@ -1035,6 +1058,7 @@ namespace YARG.Menu.MusicLibrary
         {
             base.OnDisable();
             SetSidebarDifficultiesVisible(false);
+            Setlist.Changed -= OnSetlistChanged;
 
             if (Navigator.Instance == null) return;
 
