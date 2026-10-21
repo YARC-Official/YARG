@@ -7,6 +7,7 @@ using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.Layouts;
 using UnityEngine.InputSystem.LowLevel;
 using YARG.Core.Input;
+using YARG.Input.Bindings;
 using YARG.Core.Logging;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
@@ -32,6 +33,7 @@ namespace YARG.Input
         public static event MenuInputEvent MenuInput;
 
         private static double _latestInputTime;
+        private static double _nextMicrophoneRefresh;
 
         /// <summary>
         /// The time to be used for gameplay input updates.
@@ -180,6 +182,14 @@ namespace YARG.Input
                     "The last input event for this update is in the future! After-update time: {0}, last input time: {1}",
                     InputUpdateTime, _latestInputTime
                 );
+            }
+
+            double now = Time.realtimeSinceStartupAsDouble;
+            if (now >= _nextMicrophoneRefresh)
+            {
+                _nextMicrophoneRefresh = now + 1;
+                if (BindingsContainer.RefreshMicrophones() && StatsManager.Instance != null)
+                    StatsManager.Instance.UpdateActivePlayers();
             }
 
             // Update bindings using the input update time

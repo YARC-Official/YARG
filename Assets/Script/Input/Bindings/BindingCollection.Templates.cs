@@ -187,7 +187,7 @@ namespace YARG.Input
             new AxisBinding("ProKeys.TouchEffects", (int) ProKeysAction.TouchEffects),
         };
 
-        public static BindingCollection CreateVocalsBindings() => new(GameMode.Vocals)
+        public static BindingCollection CreateVocalsBindings(GameMode mode = GameMode.Vocals) => new(mode)
         {
             // Only needed if we want to over-do it and run audio devices
             // through the Unity input system (which actually wouldn't be that hard lol)
@@ -211,7 +211,7 @@ namespace YARG.Input
                 GameMode.ProGuitar => CreateProGuitarBindings(),
                 GameMode.ProKeys => CreateProKeysBindings(),
 
-                GameMode.Vocals => CreateVocalsBindings(),
+                GameMode.Vocals or GameMode.PartyVocals => CreateVocalsBindings(mode),
 
                 _ => throw new NotImplementedException($"Unhandled game mode {mode}!")
             };

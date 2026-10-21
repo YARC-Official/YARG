@@ -62,6 +62,28 @@ namespace YARG.Audio.BASS
             }
         }
 
+        public bool IsConnected
+        {
+            get
+            {
+                lock (_lock)
+                {
+                    return !_disposed && GetIsConnectedCore();
+                }
+            }
+        }
+
+        public bool IsRecovering
+        {
+            get
+            {
+                lock (_lock)
+                {
+                    return !_disposed && GetIsRecoveringCore();
+                }
+            }
+        }
+
         public int Read(Span<float> destination)
         {
             lock (_lock)
@@ -207,6 +229,8 @@ namespace YARG.Audio.BASS
             handler?.Invoke();
         }
 
+        protected virtual bool GetIsConnectedCore() => GetIsValidCore();
+        protected virtual bool GetIsRecoveringCore() => false;
         protected abstract int GetSampleRateCore();
         protected abstract bool GetIsValidCore();
         protected abstract int ReadCore(Span<float> destination);
