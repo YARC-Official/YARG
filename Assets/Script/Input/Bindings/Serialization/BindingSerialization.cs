@@ -196,7 +196,7 @@ namespace YARG.Input.Serialization
 
                 var bindings = version switch
                 {
-                    0 => DeserializeBindingsV0(jObject),
+                    0 => DeserializeBindingsV0(jObject), 
                     1 => DeserializeBindingsV1(jObject),
                     2 => DeserializeBindingsV2(jObject),
                     3 => DeserializeBindingsV3(jObject),

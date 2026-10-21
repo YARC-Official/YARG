@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using UnityEngine.InputSystem;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
 using YARG.Helpers;
+using YARG.Input.Bindings;
 using YARG.Player;
 
 #nullable enable
@@ -31,10 +33,10 @@ namespace YARG.Input.Serialization
         public SerializedBindings Deserialize()
         {
             var deserialized = new SerializedBindings();
-            foreach (var (id, bind) in Profiles)
+            foreach (var (profileGuid, bindingCollection) in Profiles)
             {
-                var profileName = PlayerContainer.GetProfileById(id)?.Name ?? "Someone";
-                deserialized.Profiles[id] = bind.Deserialize(deserialized.ReusableBindingSets, profileName);
+                var profileName = PlayerContainer.GetProfileById(profileGuid)?.Name ?? "Someone";
+                deserialized.Profiles[profileGuid] = bindingCollection.Deserialize(deserialized.ReusableBindingSets, profileName);
             }
 
             return deserialized;
@@ -68,11 +70,23 @@ namespace YARG.Input.Serialization
 
             foreach (var (gameMode, bindings) in ModeMappings)
             {
-                deserialized.ModeMappings[gameMode] = bindings.Deserialize(this, gameMode, Devices, reusableBindingSets, profileName);
+                var deserializedModeMappings = bindings.Deserialize(this, gameMode, Devices, reusableBindingSets, profileName);
+
+                if (deserializedModeMappings.MappingsByControllerFamily.Count > 0)
+                {
+                    deserialized.ModeMappings[gameMode] = deserializedModeMappings;
+                }
             }
 
             if (MenuMappings is not null)
-                deserialized.ModeMappings[GameMode.Menu] = MenuMappings.Deserialize(this, GameMode.Menu, Devices, reusableBindingSets, profileName);
+            {
+                var deserializedMenuMappings = MenuMappings.Deserialize(this, GameMode.Menu, Devices, reusableBindingSets, profileName);
+
+                if (deserializedMenuMappings.MappingsByControllerFamily.Count > 0)
+                {
+                    deserialized.ModeMappings[GameMode.Menu] = deserializedMenuMappings;
+                }
+            }
 
             return deserialized;
         }
@@ -97,13 +111,18 @@ namespace YARG.Input.Serialization
 
             foreach (var controller in controllers)
             {
+                var controllerSourceLayout = LayoutHelper.LayoutStringToSourceLayout(controller.Layout);
+
                 SerializedReusableBindingSet? reusableBindingSet = null;
 
                 foreach (var (actionId, controlBinding) in Bindings)
                 {
                     foreach (var singleBinding in controlBinding.Controls)
                     {
-                        if (singleBinding?.Device is not null && singleBinding.Device.Hash == controller.Hash)
+                        var bindingLayout = InputControlPath.TryGetDeviceLayout(singleBinding.ControlPath);
+                        var bindingSourceLayout = LayoutHelper.LayoutStringToSourceLayout(bindingLayout);
+
+                        if (bindingSourceLayout == controllerSourceLayout)
                         {
                             reusableBindingSet ??= new SerializedReusableBindingSet(
                                 $"{profileName}'s {controller.Layout} Bindings",
@@ -111,9 +130,14 @@ namespace YARG.Input.Serialization
                                 mode
                             ) { Guid = Guid.NewGuid() };
 
-                            if (singleBinding?.Device is not null && singleBinding.Device.Hash == controller.Hash)
+                            if (!reusableBindingSet.Bindings.ContainsKey(actionId))
                             {
                                 reusableBindingSet.Bindings[actionId] = controlBinding.Deserialize(binds);
+                            }
+
+                            var deserializedSingle = singleBinding.Deserialize(binds);
+                            if (deserializedSingle is not null) {
+                                reusableBindingSet.Bindings[actionId].Controls.Add(deserializedSingle);
                             }
                         }
                     }
@@ -122,6 +146,16 @@ namespace YARG.Input.Serialization
                 // We don't want to flood a first-time upgrader with a bazillion redundant copies of the same default binding set
                 if (LegacyBindingSetDeserialization.LegacyBindingSetShouldBeDeserialized(reusableBindingSet))
                 {
+                    // Flesh out any empty bindings from the template so we don't get KeyNotFound exceptions later
+                    var template = ReusableBindingSetTemplates.GetTemplate(mode);
+                    foreach (var templateAction in template.Keys)
+                    {
+                        if (!reusableBindingSet!.Bindings.ContainsKey(templateAction))
+                        {
+                            reusableBindingSet.Bindings.Add(templateAction, new());
+                        }
+                    }
+
                     converted.MappingsByControllerFamily[reusableBindingSet!.Family] = reusableBindingSet.Guid!.Value;
                     reusableBindingSets[reusableBindingSet.Guid!.Value] = reusableBindingSet;
                 }
@@ -146,15 +180,6 @@ namespace YARG.Input.Serialization
             foreach (var (name, value) in Parameters)
             {
                 control.Parameters.Add(name, value);
-            }
-
-            foreach (var bind in Controls)
-            {
-                var deserialized = bind.Deserialize(binds);
-                if (deserialized is null)
-                    continue;
-
-                control.Controls.Add(deserialized);
             }
 
             return control;
@@ -195,7 +220,8 @@ namespace YARG.Input.Serialization
                 return null;
             }
 
-            return new(ControlPath, LayoutHelper.LayoutStringToSourceLayout(Device.Layout))
+            var controlName = LegacyBindingSetDeserialization.IsolateControlName(ControlPath);
+            return new(controlName, LayoutHelper.LayoutStringToSourceLayout(Device.Layout))
             {
                 Parameters = Parameters,
             };

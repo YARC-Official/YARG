@@ -3,9 +3,11 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine.InputSystem;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Helpers;
+using YARG.Input.Bindings;
 using YARG.Player;
 
 #nullable enable
@@ -42,11 +44,23 @@ namespace YARG.Input.Serialization
 
             foreach (var (gameMode, bindings) in Bindings)
             {
-                converted.ModeMappings[gameMode] = bindings.Deserialize(this, gameMode, Devices, reusableBindingSets, profileName);
+                var deserializedModeMappings = bindings.Deserialize(this, gameMode, Devices, reusableBindingSets, profileName);
+
+                if (deserializedModeMappings.MappingsByControllerFamily.Count > 0)
+                {
+                    converted.ModeMappings[gameMode] = deserializedModeMappings;
+                }
             }
 
             if (MenuBindings is not null)
-                converted.ModeMappings[GameMode.Menu] = MenuBindings.Deserialize(this, GameMode.Menu, Devices, reusableBindingSets, profileName);
+            {
+                var deserializedMenuMappings = MenuBindings.Deserialize(this, GameMode.Menu, Devices, reusableBindingSets, profileName);
+
+                if (deserializedMenuMappings.MappingsByControllerFamily.Count > 0)
+                {
+                    converted.ModeMappings[GameMode.Menu] = deserializedMenuMappings;
+                }
+            }
 
             return converted;
         }
@@ -82,7 +96,8 @@ namespace YARG.Input.Serialization
 
         public SerializedSingleBinding Deserialize()
         {
-            return new(ControlPath, LayoutHelper.LayoutStringToSourceLayout(Device.Layout))
+            var controlName = LegacyBindingSetDeserialization.IsolateControlName(ControlPath);
+            return new(controlName, LayoutHelper.LayoutStringToSourceLayout(Device.Layout))
             {
                 Parameters = Parameters,
             };
@@ -142,13 +157,18 @@ namespace YARG.Input.Serialization
             var converted = new SerializedModeMappingCollection();
             foreach (var controller in controllers)
             {
+                var controllerSourceLayout = LayoutHelper.LayoutStringToSourceLayout(controller.Layout);
+
                 SerializedReusableBindingSet? reusableBindingSet = null;
 
                 foreach (var (actionId, controlBinding) in serialized)
                 {
                     foreach (var singleBinding in controlBinding)
                     {
-                        if (singleBinding?.Device is not null && singleBinding.Device.Hash == controller.Hash)
+                        var bindingLayout = InputControlPath.TryGetDeviceLayout(singleBinding.ControlPath);
+                        var bindingSourceLayout = LayoutHelper.LayoutStringToSourceLayout(bindingLayout);
+
+                        if (bindingSourceLayout == controllerSourceLayout)
                         {
                             reusableBindingSet ??= new SerializedReusableBindingSet(
                                 $"{profileName}'s {controller.Layout} Bindings",
@@ -157,9 +177,15 @@ namespace YARG.Input.Serialization
                             )
                             { Guid = Guid.NewGuid() };
 
-                            if (singleBinding?.Device is not null && singleBinding.Device.Hash == controller.Hash)
+                            if (!reusableBindingSet.Bindings.ContainsKey(actionId))
                             {
                                 reusableBindingSet.Bindings[actionId] = controlBinding.Deserialize();
+                            }
+
+                            var deserializedSingle = singleBinding.Deserialize();
+                            if (deserializedSingle is not null)
+                            {
+                                reusableBindingSet.Bindings[actionId].Controls.Add(deserializedSingle);
                             }
                         }
                     }
@@ -168,6 +194,16 @@ namespace YARG.Input.Serialization
                 // We don't want to flood a first-time upgrader with a bazillion redundant copies of the same default binding set
                 if (LegacyBindingSetDeserialization.LegacyBindingSetShouldBeDeserialized(reusableBindingSet))
                 {
+                    // Flesh out any empty bindings from the template so we don't get KeyNotFound exceptions later
+                    var template = ReusableBindingSetTemplates.GetTemplate(mode);
+                    foreach (var templateAction in template.Keys)
+                    {
+                        if (!reusableBindingSet!.Bindings.ContainsKey(templateAction))
+                        {
+                            reusableBindingSet.Bindings.Add(templateAction, new());
+                        }
+                    }
+
                     converted.MappingsByControllerFamily[reusableBindingSet!.Family] = reusableBindingSet.Guid!.Value;
                     reusableBindingSets[reusableBindingSet.Guid!.Value] = reusableBindingSet;
                 }
