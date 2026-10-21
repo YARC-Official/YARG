@@ -25,6 +25,7 @@ using YARG.Menu.Persistent;
 using YARG.Menu.ScoreScreen;
 using YARG.Playback;
 using YARG.Player;
+using YARG.Playlists;
 using YARG.Replays;
 using YARG.Scores;
 using YARG.Settings;
@@ -198,8 +199,7 @@ namespace YARG.Gameplay
         private bool   _autoCalibrateVideoOnPause;
         private double _preFadeOutVolume = DEFAULT_VOLUME;
 
-        public bool PlayingAShow => GlobalVariables.State.PlayingAShow;
-        public int  ShowIndex = 0;
+        public bool PlayingAShow => Setlist.IsPlaying;
 
         private BandComboType _bandComboType;
 
@@ -445,7 +445,7 @@ namespace YARG.Gameplay
                 {
                     _pauseMenu.PushMenu(PauseMenuManager.Menu.PracticePause);
                 }
-                else if (GlobalVariables.State.PlayingAShow)
+                else if (PlayingAShow)
                 {
                     _pauseMenu.PushMenu(PauseMenuManager.Menu.SetlistPause);
                 }
