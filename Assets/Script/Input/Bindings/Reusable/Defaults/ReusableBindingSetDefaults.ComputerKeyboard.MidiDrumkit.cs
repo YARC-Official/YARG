@@ -13,7 +13,7 @@ namespace YARG.Input.Bindings
             {
                 ActionStrings.DRUMS_KICK,
                 new ReusableButtonBinding(
-                    ReusableBindingSetTemplates.FOUR_LANE_DRUMKIT[ActionStrings.DRUMS_KICK],
+                    ReusableBindingSetTemplates.ELITE_DRUMS[ActionStrings.DRUMS_KICK],
                     new List<ReusableSingleButtonBindingConfig>() {
                         new(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_SPACE),
                         new(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_LEFT_ALT),
