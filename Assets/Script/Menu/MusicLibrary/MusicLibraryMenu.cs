@@ -259,7 +259,16 @@ namespace YARG.Menu.MusicLibrary
                 // Note that the order matters here: SelectedPlaylist must be set before calling UpdateSearch,
                 // but SelectedIndex must be set _after_ calling UpdateSearch
                 SelectedPlaylist = _savedPlaylist;
-                if (SelectedPlaylist != null)
+
+                // The setlist is emptied whenever the menu scene loads, so its view has nothing left to show
+                bool savedSetlistWasCleared = SelectedPlaylist == ShowPlaylist && ShowPlaylist.Count == 0;
+                if (savedSetlistWasCleared)
+                {
+                    SelectedPlaylist = null;
+                    MenuState = MenuState.PlaylistSelect;
+                    ClearPreview();
+                }
+                else if (SelectedPlaylist != null)
                 {
                     // Preserve the playlist select anchor across menu reloads (e.g., after playing a song)
                     _lastPlaylistSelectPlaylist = SelectedPlaylist;
@@ -268,7 +277,12 @@ namespace YARG.Menu.MusicLibrary
 
                 UpdateSearch(true);
 
-                if (MenuState == MenuState.Library && _mainLibraryIndex != -1)
+                if (savedSetlistWasCleared)
+                {
+                    SetNavigationScheme(true);
+                    SelectedIndex = 0;
+                }
+                else if (MenuState == MenuState.Library && _mainLibraryIndex != -1)
                 {
                     SelectedIndex = _mainLibraryIndex;
                 }
