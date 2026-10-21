@@ -598,10 +598,15 @@ namespace YARG.Menu.DifficultySelect
 
         private void CreatePartyChartMenu()
         {
+            var song = GlobalVariables.State.CurrentSong;
             foreach (var preference in new[] { PartyVocalsChartPreference.Solo, PartyVocalsChartPreference.Harmony })
             {
                 var instrument = preference == PartyVocalsChartPreference.Solo ? Instrument.Vocals : Instrument.Harmony;
-                CreateItem(instrument.ToLocalizedName(), CurrentPlayer.Profile.PartyVocalsChartPreference == preference, () =>
+                var chartInstrument = song.HasInstrument(instrument) ? instrument :
+                    instrument == Instrument.Vocals ? Instrument.Harmony : Instrument.Vocals;
+                string label = instrument.ToLocalizedName()
+                    + $"\n<size=18><color=#FFFFFF80>{GetTierLabel(GetTierValues(song, chartInstrument))}</color></size>";
+                CreateItem(label, CurrentPlayer.Profile.PartyVocalsChartPreference == preference, () =>
                 {
                     CurrentPlayer.Profile.PartyVocalsChartPreference = preference;
                     _menuState = State.Main;
