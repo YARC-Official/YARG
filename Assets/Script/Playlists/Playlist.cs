@@ -31,7 +31,8 @@ namespace YARG.Playlists
         public int Count => SongHashes.Count;
 
         /// <summary>
-        /// Raised after every change made through this class's methods.
+        /// Raised after each editing call on this class, even one that changes nothing (such as removing a song
+        /// that isn't there); <see cref="Clear"/> raises it only when it removed something.
         /// Writes straight to <see cref="SongHashes"/> don't raise it.
         /// </summary>
         public event Action Edited;

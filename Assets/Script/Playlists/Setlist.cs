@@ -15,7 +15,7 @@ namespace YARG.Playlists
         public static bool IsPlaying { get; private set; }
 
         /// <summary>
-        /// Index into <see cref="Songs"/> of the song being played. Only meaningful while <see cref="IsPlaying"/>.
+        /// Index into <see cref="ResolveSongs"/> of the song being played. Only meaningful while <see cref="IsPlaying"/>.
         /// </summary>
         public static int Index { get; private set; }
 
@@ -24,33 +24,52 @@ namespace YARG.Playlists
         /// </summary>
         public static int Revision { get; private set; }
 
+        /// <summary>
+        /// Raised synchronously after every change. A handler that throws is logged and doesn't stop the others.
+        /// During <see cref="TryStart"/> and <see cref="TryAdvance"/> it fires before the caller updates
+        /// <c>GlobalVariables.State.CurrentSong</c>, so read the current song as <c>ResolveSongs()[Index]</c>.
+        /// </summary>
         public static event Action Changed;
 
-        /// <summary>
-        /// The setlist's songs that resolve in the current library. Hashes that don't resolve stay in
-        /// <see cref="Playlist"/> but are skipped, so a song hidden by a filter comes back when it's shown again.
-        /// </summary>
-        public static List<SongEntry> Songs => Playlist.ToList();
-
-        public static bool HasNext => IsPlaying && Index + 1 < Songs.Count;
+        public static bool HasNext => IsPlaying && Index + 1 < ResolveSongs().Count;
 
         /// <summary>
-        /// Starts playing from the first song and returns it. The caller must check that <see cref="Songs"/> isn't empty.
+        /// Resolves the setlist's songs in the current library, allocating a new list. Hashes that don't resolve
+        /// (for example, songs hidden by the content-rating settings) stay in <see cref="Playlist"/> but are skipped,
+        /// until a sort rebuilds the playlist from this list and drops them.
         /// </summary>
-        public static SongEntry Start()
+        public static List<SongEntry> ResolveSongs() => Playlist.ToList();
+
+        /// <summary>
+        /// Starts playing from the first song. Returns false, changing nothing, when no song resolves.
+        /// </summary>
+        public static bool TryStart(out SongEntry first)
         {
+            var songs = ResolveSongs();
+            if (songs.Count == 0)
+            {
+                first = null;
+                return false;
+            }
+
             IsPlaying = true;
             Index = 0;
             OnChanged();
-            return Songs[0];
+            first = songs[0];
+            return true;
         }
 
         public static bool TryAdvance(out SongEntry next)
         {
-            var songs = Songs;
-            if (!IsPlaying || Index + 1 >= songs.Count)
+            next = null;
+            if (!IsPlaying)
             {
-                next = null;
+                return false;
+            }
+
+            var songs = ResolveSongs();
+            if (Index + 1 >= songs.Count)
+            {
                 return false;
             }
 
@@ -106,7 +125,23 @@ namespace YARG.Playlists
         private static void OnChanged()
         {
             Revision++;
-            Changed?.Invoke();
+            if (Changed is null)
+            {
+                return;
+            }
+
+            // Changes happen inside scene loads and menu actions; one failing subscriber must not abort them.
+            foreach (var handler in Changed.GetInvocationList())
+            {
+                try
+                {
+                    ((Action) handler)();
+                }
+                catch (Exception ex)
+                {
+                    YargLogger.LogException(ex, "Setlist.Changed handler failed");
+                }
+            }
         }
     }
 }

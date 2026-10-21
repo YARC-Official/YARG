@@ -437,7 +437,7 @@ namespace YARG.Menu.MusicLibrary
 
         private void StartSetlist()
         {
-            if (ShowPlaylist.Count > 0 && PlayerContainer.Players.Count > 0)
+            if (PlayerContainer.Players.Count > 0 && Setlist.TryStart(out var firstSong))
             {
                 // If we are in the main library, save the current index
                 if (MenuState == MenuState.Library)
@@ -445,7 +445,7 @@ namespace YARG.Menu.MusicLibrary
                     _mainLibraryIndex = SelectedIndex;
                 }
 
-                GlobalVariables.State.CurrentSong = Setlist.Start();
+                GlobalVariables.State.CurrentSong = firstSong;
                 MenuManager.Instance.PushMenu(MenuManager.Menu.DifficultySelect);
             }
         }

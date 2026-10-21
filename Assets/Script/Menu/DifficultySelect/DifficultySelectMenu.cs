@@ -195,7 +195,7 @@ namespace YARG.Menu.DifficultySelect
 
             if (Setlist.IsPlaying)
             {
-                _songList = Setlist.Songs;
+                _songList = Setlist.ResolveSongs();
             }
             else
             {
