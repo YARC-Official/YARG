@@ -27,10 +27,25 @@ namespace YARG.Gameplay.Player
     public class DrumsPlayer : TrackPlayer<DrumsEngine, DrumNote>
     {
         private const float DRUM_PAD_FLASH_HOLD_DURATION = 0.2f;
+        // Only used for Circular's kick animation (see AnimateFret/PlayKickFretAnimation call
+        // sites below) - short enough to read as a quick instant flash rather than a held burn.
+        private const float KICK_BUTTON_BURST_DURATION = 0.06f;
+        // How long every button's own light-up stays on for a kick hit (see
+        // FlashAllButtonsForKick) - matches the ring pulse's own duration (KICK_BUTTON_BURST_DURATION
+        // * 2) instead of the much longer DRUM_PAD_FLASH_HOLD_DURATION used for a regular
+        // tom/cymbal hit's own light, so all of the kick's effects (jump, flame burst, ring
+        // pulse, button light) read as one cohesive, similarly-timed flash instead of the light
+        // visibly outlasting the rest.
+        private const float KICK_BUTTON_FLASH_HOLD_DURATION = KICK_BUTTON_BURST_DURATION * 2f;
         private static readonly Fret.AnimType[] AnimTypes = (Fret.AnimType[]) Enum.GetValues(typeof(Fret.AnimType));
 
         // Key is a FourLaneDrumPad or FiveLaneDrumPad
         private Dictionary<int, HighwayOrderingInfo> _highwayOrdering = new();
+
+        // Cached once at init so per-hit kick handling doesn't need to re-check the preset.
+        // Drives Circular-only kick animation/flash differences (see FinishInitialization and
+        // the AnimateFret/PlayKickFretAnimation call sites below).
+        private bool _isCircularTheme;
 
         // The highway ordering is indexed by pad, so we need a special value for dedicated-lane double kicks, since those are
         // indistinguishable from 1x kicks by pad number
@@ -143,6 +158,18 @@ namespace YARG.Gameplay.Player
         [SerializeField]
         private KickFretFlash _kickFretFlash;
 
+        // Only created/used for Circular - see FinishInitialization.
+        private KickRingPulse   _kickRingPulse;
+        private float           _kickRingMaxRadius;
+
+        // The same ring pulse shape, squashed inward/expanded outward instead of front/back -
+        // see KickRingPulse.ConfigureAsSidePulse - positioned just past the row's leftmost and
+        // rightmost buttons. Synchronized with the main ring pulse (triggered from the same
+        // PlayKickFlash call, same duration) so they all read as one cohesive kick flash rather
+        // than separate effects.
+        private KickRingPulse[] _kickSidePulses;
+        private float           _kickSidePulseMaxRadius;
+
         public override bool ShouldUpdateInputsOnResume => false;
 
         protected override float[] StarMultiplierThresholds { get; set; } =
@@ -153,8 +180,23 @@ namespace YARG.Gameplay.Player
         private int[] _drumSoundEffectRoundRobin = new int[8];
         private float _drumSoundEffectAccentThreshold;
 
-        private Dictionary<int, float>                            _padToLastPressedTimeDelta       = new();
         private Dictionary<Fret.AnimType, Dictionary<int, float>> _animTypeToPadToLastPressedDelta = new();
+        // Tracked separately from the per-note hit delta above so Circular's whole-kit kick
+        // flash (FlashAllButtonsForKick) can hold for its own shorter duration (matching the
+        // kick's other, already-short effects - see KICK_BUTTON_FLASH_HOLD_DURATION) without
+        // changing how long a regular tom/cymbal hit's own light stays on.
+        private Dictionary<int, float> _padToLastKickFlashTimeDelta = new();
+        // Tracked separately again for a genuine overhit's own dim light-up (see
+        // Fret.SetOverhitPressed) - a standalone one-shot timer doesn't work here since
+        // UpdateFretArray unconditionally re-sets every fret's light every frame, so overhit
+        // has to be tracked the same continuous way as the two deltas above to not get
+        // immediately stomped back off.
+        private Dictionary<int, float> _padToLastOverhitTimeDelta = new();
+        // How long an overhit's dim light-up stays on for - deliberately its own single value
+        // (not reusing DRUM_PAD_FLASH_HOLD_DURATION/KICK_BUTTON_FLASH_HOLD_DURATION) since both
+        // the single-pad (tom/cymbal) and whole-kit (kick) overhit cases share this same
+        // dictionary/threshold.
+        private const float OVERHIT_LIGHT_HOLD_DURATION = 0.15f;
 
 
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, StemMixer mixer,
@@ -283,6 +325,49 @@ namespace YARG.Gameplay.Player
 
             // Particle 0 is always kick fret
             _kickFretFlash.Initialize(colors.GetParticleColor(0).ToUnityColor());
+
+            _isCircularTheme = Player.ThemePreset.AssetBundleThemePath == "Themes/Circular";
+
+            // Circular doesn't use the Rectangular-authored kick flash beam at all - that mesh
+            // lives deep inside an unrelated nested prefab whose local space has no reliable
+            // relationship to the button row's, which made correctly positioning/sizing it here
+            // impossible to get right blind (no Editor access to verify). Instead, hide it and
+            // spawn a small ring pulse as a direct child of the Fret Array transform, whose
+            // coordinate frame already IS the buttons' real one (frets themselves are parented
+            // under it with only a local X offset), guaranteeing correct placement with no
+            // guessing.
+            if (_isCircularTheme)
+            {
+                _kickFretFlash.gameObject.SetActive(false);
+
+                var buttonBounds = _fretArray.GetFretButtonWorldBounds();
+                // Shrunk down from the full half-row-width (0.5f) - the back pulse was reading
+                // as too large/noticeable at that reach.
+                _kickRingMaxRadius = buttonBounds.size.x * 0.4f;
+
+                var ringObject = new GameObject("KickRingPulse");
+                ringObject.transform.SetParent(_fretArray.transform, worldPositionStays: false);
+                ringObject.transform.localPosition = Vector3.zero;
+                ringObject.transform.localRotation = Quaternion.identity;
+
+                _kickRingPulse = ringObject.AddComponent<KickRingPulse>();
+                // Dimmed below the side pulses' own default brightness (see KickRingPulse's
+                // brightnessMultiplier param) - this central back pulse was reading as too
+                // prominent on its own.
+                _kickRingPulse.Initialize(_fretArray.GetHitEffectTemplateMaterial(), colors.GetParticleColor(0).ToUnityColor(), brightnessMultiplier: 1.1f);
+
+                // Sized off a single button's own width rather than the whole row (like the main
+                // ring pulse above), so each side pulse reads as a small, local accent beside its
+                // own edge button instead of something as large as the central pulse.
+                var singleButtonWidth = buttonBounds.size.x / LaneCount;
+                _kickSidePulseMaxRadius = singleButtonWidth * 0.6f;
+
+                _kickSidePulses = new[]
+                {
+                    CreateKickSidePulse("KickSidePulseLeft", buttonBounds.min.x, outwardSign: -1f, colors),
+                    CreateKickSidePulse("KickSidePulseRight", buttonBounds.max.x, outwardSign: 1f, colors),
+                };
+            }
 
             // Initialize drum activation notes
             NoteTrack.SetDrumActivationFlags(Player.Profile.StarPowerActivationType);
@@ -687,6 +772,11 @@ namespace YARG.Gameplay.Player
             // Remember that drums treat each note separately
 
             (NotePool.GetByKey(note) as DrumsNoteElement)?.MissNote();
+
+            // Intentionally no fret visual here. "Miss" in this codebase's terms (per the user)
+            // means pressing the wrong pad (an overhit - see OnPadHit), not a charted note
+            // silently passing by unhit - that passthrough case (this method) should have no
+            // button movement at all.
         }
 
         private void OnNoteHitOrMissed(DrumNote note)
@@ -779,8 +869,6 @@ namespace YARG.Gameplay.Player
 
         private void OnPadHit(DrumsAction action, bool wasNoteHit, bool wasNoteHitCorrectly, bool wasOverhitInLane, DrumNoteType type, float velocity)
         {
-            var fret = DrumsActionToPad(action);
-
             // This is done here for drums rather than in-engine because engine doesn't know about pad ordering
             if (Engine.IsCodaActive)
             {
@@ -846,8 +934,33 @@ namespace YARG.Gameplay.Player
                         _fretArray.PlayHitAnimation(DOUBLE_KICK_FRET_INDEX);
                     }
                 }
+                else if (_isCircularTheme)
+                {
+                    // Genuine overhit - the player pressed a pad with no note there at all to
+                    // hit (as opposed to OnNoteMissed, which fires when an actual charted note
+                    // passes by unhit, and intentionally has no visual at all). Show the same
+                    // widen/jump movement a hit gets on the pad actually pressed, so the player
+                    // gets clear feedback on which pad they hit, but skip the flame burst since
+                    // it wasn't a correct hit - instead play the dedicated small MissEffect
+                    // particle so the pad still reads as clearly wrong, not just a dimmer hit.
+                    // Circular-only - its shared Miss Animator trigger reads as far too subtle
+                    // to be worth using here, unlike other themes (see the else branch below).
+                    var pad = DrumsActionToPad(action);
+                    _fretArray.PlayOverhitAnimation(pad, IsCymbalPad(pad), playParticles: true);
+                    _fretArray.PlayDrumJumpBoost(pad);
+                    ZeroOutOverhitTime(pad);
+
+                    // Special case for split-dedicated kicks; we don't know which pedal was used, so animate both
+                    if (action is DrumsAction.Kick && NumberOfDedicatedKickLanes is 2)
+                    {
+                        _fretArray.PlayOverhitAnimation(DOUBLE_KICK_FRET_INDEX, isCymbal: false, playParticles: true);
+                        _fretArray.PlayDrumJumpBoost(DOUBLE_KICK_FRET_INDEX);
+                        ZeroOutOverhitTime(DOUBLE_KICK_FRET_INDEX);
+                    }
+                }
                 else
                 {
+                    var fret = DrumsActionToPad(action);
                     _fretArray.PlayMissAnimation(fret);
 
                     // Special case for split-dedicated kicks; we don't know which pedal was used, so animate both
@@ -857,13 +970,35 @@ namespace YARG.Gameplay.Player
                     }
                 }
             }
+
             else
             {
-                _fretArray.PlayKickFretAnimation();
                 if (isDrumFreestyle)
                 {
-                    _kickFretFlash.PlayHitAnimation();
+                    _fretArray.PlayKickFretAnimation();
+                    if (_isCircularTheme)
+                    {
+                        _fretArray.PlayKickButtonBurst(KICK_BUTTON_BURST_DURATION);
+                        FlashAllButtonsForKick();
+                    }
+                    PlayKickFlash();
                     CameraPositioner.Bounce();
+                }
+                else
+                {
+                    // Genuine overhit (wrong timing) - show the kick's own widen/jump movement
+                    // only (PlayKickFretAnimation already has no particles attached to it), plus
+                    // every regular button's own jump (same movement a correct kick hit gives
+                    // them - see PlayKickButtonBurst) and a dim version of the same inner
+                    // light-up a correct kick hit gives every button (see
+                    // SetPressedImpulse/FlashAllButtonsForKick), but skip the particle burst and
+                    // ring pulse - those should only ever represent a correct hit.
+                    _fretArray.PlayKickFretAnimation();
+                    if (_isCircularTheme)
+                    {
+                        _fretArray.PlayKickButtonJump();
+                        FlashAllButtonsOverhitForKick();
+                    }
                 }
             }
         }
@@ -954,7 +1089,8 @@ namespace YARG.Gameplay.Player
         {
             foreach (var pad in _highwayOrdering.Keys)
             {
-                _padToLastPressedTimeDelta[pad] = float.MaxValue;
+                _padToLastKickFlashTimeDelta[pad] = float.MaxValue;
+                _padToLastOverhitTimeDelta[pad] = float.MaxValue;
             }
         }
 
@@ -984,18 +1120,53 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        // i.e., flash this fret by making it seem pressed
+        // i.e., mark this pad's own accent/anim-type classification, used by GetAnimType for
+        // whichever fret ends up lit (currently only via the kick's whole-kit flash - see
+        // FlashAllButtonsForKick) and by UpdateAccentColorState's accent-color whitening.
         private void ZeroOutHitTime(int pad, Fret.AnimType animType)
         {
-            _padToLastPressedTimeDelta[pad] = 0f;
             _animTypeToPadToLastPressedDelta[animType][pad] = 0f;
+        }
+
+        // Lights up every regular button's own color/emission the same way a tom/cymbal hit
+        // lights up its own button, instead of just that button's own pad. Used alongside
+        // PlayKickButtonBurst so Circular's whole-kit kick flash also lights the buttons up, not
+        // just jumps/flames them. Uses its own separately-tracked delta/duration (see
+        // _padToLastKickFlashTimeDelta/KICK_BUTTON_FLASH_HOLD_DURATION) rather than reusing
+        // ZeroOutHitTime, so it neither stretches out to the regular hold duration (which read
+        // as too long next to the kick's other, much shorter effects) nor overwrites any pad's
+        // own real per-note AnimType classification.
+        private void FlashAllButtonsForKick()
+        {
+            foreach (var pad in _highwayOrdering.Keys)
+            {
+                _padToLastKickFlashTimeDelta[pad] = 0f;
+            }
+        }
+
+        // i.e., mark this pad's own dim overhit light-up as just starting - see
+        // Fret.SetOverhitPressed/UpdateFretArray. Used for a tom/cymbal overhit (wrong pad).
+        private void ZeroOutOverhitTime(int pad)
+        {
+            _padToLastOverhitTimeDelta[pad] = 0f;
+        }
+
+        // Same as ZeroOutOverhitTime, but for every button at once - used for a wrong-timing
+        // kick hit, mirroring FlashAllButtonsForKick's own whole-kit behavior.
+        private void FlashAllButtonsOverhitForKick()
+        {
+            foreach (var pad in _highwayOrdering.Keys)
+            {
+                _padToLastOverhitTimeDelta[pad] = 0f;
+            }
         }
 
         private void UpdateHitTimes()
         {
             foreach (var pad in _highwayOrdering.Keys)
             {
-                _padToLastPressedTimeDelta[pad] += Time.deltaTime;
+                _padToLastKickFlashTimeDelta[pad] += Time.deltaTime;
+                _padToLastOverhitTimeDelta[pad] += Time.deltaTime;
             }
         }
 
@@ -1015,11 +1186,18 @@ namespace YARG.Gameplay.Player
             // For each visual fret...
             for (var i = 0; i < LaneCount; i++)
             {
-                // ...find the lowest last-pressed delta among pads that the visual fret represents
-                // Usually there's just one pad for each fret, but tom+cymbal frets have two so we
-                // want to take the minimum of those
-
-                var lowestDelta = float.MaxValue;
+                // ...find the lowest last-kick-flash delta among pads that the visual fret
+                // represents. Usually there's just one pad for each fret, but tom+cymbal frets
+                // have two so we want to take the minimum of those.
+                //
+                // Note the button "light up" (SetPressedImpulse) is only driven by the kick flash
+                // now, not by regular tom/cymbal hits - those still get their own flame/hit
+                // particle animation (see AnimateAction/AnimateFret), just without this
+                // additional light up.
+                var lowestKickFlashDelta = float.MaxValue;
+                // Same idea, but for a genuine overhit's own dim light-up (see
+                // Fret.SetOverhitPressed/ZeroOutOverhitTime/FlashAllButtonsOverhitForKick).
+                var lowestOverhitDelta = float.MaxValue;
 
                 // The fret array's animation functions take pads, so we need to know which pad is relevant for the
                 // current visual fret. If there are multiple (shared fret), we can send it either; the fret array
@@ -1033,19 +1211,33 @@ namespace YARG.Gameplay.Player
                     if (highwayOrderingInfo.Position == i)
                     {
                         padToPress ??= pad;
-                        if (_padToLastPressedTimeDelta[pad] < lowestDelta)
+                        if (_padToLastKickFlashTimeDelta[pad] < lowestKickFlashDelta)
                         {
-                            lowestDelta = _padToLastPressedTimeDelta[pad];
+                            lowestKickFlashDelta = _padToLastKickFlashTimeDelta[pad];
+                        }
+                        if (_padToLastOverhitTimeDelta[pad] < lowestOverhitDelta)
+                        {
+                            lowestOverhitDelta = _padToLastOverhitTimeDelta[pad];
                         }
                     }
                 }
 
                 if (padToPress is not null)
                 {
-                    _fretArray.SetPressedImpulse(padToPress.Value, lowestDelta < DRUM_PAD_FLASH_HOLD_DURATION, GetAnimType(padToPress.Value));
+                    var pressed = lowestKickFlashDelta < KICK_BUTTON_FLASH_HOLD_DURATION;
+                    _fretArray.SetPressedImpulse(padToPress.Value, pressed, GetAnimType(padToPress.Value));
                     _fretArray.UpdateAccentColorState(padToPress.Value,
                         _animTypeToPadToLastPressedDelta[Fret.AnimType.CorrectHard][padToPress.Value] <
                         DRUM_PAD_FLASH_HOLD_DURATION);
+
+                    // Circular-only dim overhit light-up (see Fret.SetOverhitPressed) - only
+                    // applies when a correct-hit light isn't already active, so a genuine
+                    // overhit never dims down an in-progress correct flash.
+                    if (_isCircularTheme && !pressed)
+                    {
+                        var overhitPressed = lowestOverhitDelta < OVERHIT_LIGHT_HOLD_DURATION;
+                        _fretArray.SetOverhitPressed(padToPress.Value, overhitPressed);
+                    }
                 }
             }
         }
@@ -1074,6 +1266,7 @@ namespace YARG.Gameplay.Player
             return Fret.AnimType.CorrectNormal;
         }
 
+
         private void AnimateAction(DrumsAction action)
         {
             var index = DrumsActionToPad(action);
@@ -1090,6 +1283,15 @@ namespace YARG.Gameplay.Player
                     _fretArray.PlayHitAnimation(index);
                 }
 
+                // Layers a stronger, code-driven scale "pop" on top of the above (see
+                // FretArray.PlayDrumJumpBoost) - Circular's shared Hit/CymbalHit jump clip is
+                // too subtle on its own for drums and can't be safely amplified without also
+                // affecting guitar.
+                if (_isCircularTheme)
+                {
+                    _fretArray.PlayDrumJumpBoost(index);
+                }
+
                 return;
             }
 
@@ -1102,6 +1304,77 @@ namespace YARG.Gameplay.Player
             {
                 _fretArray.PlayHitAnimation(index);
             }
+
+            if (_isCircularTheme)
+            {
+                _fretArray.PlayDrumJumpBoost(index);
+            }
+        }
+
+        /// <summary>
+        /// Plays the kick's own dedicated visual - Rectangular's flash beam, or Circular's ring
+        /// pulse, whichever is active for the current theme.
+        /// </summary>
+        private void PlayKickFlash()
+        {
+            if (_isCircularTheme)
+            {
+                _kickRingPulse.PlayPulse(KICK_BUTTON_BURST_DURATION * 2f, _kickRingMaxRadius);
+
+                // Same duration as the main pulse (not its own separately-tunable value) so both
+                // read as a single, cohesive flash instead of drifting out of sync with each other.
+                foreach (var sidePulse in _kickSidePulses)
+                {
+                    sidePulse.PlayPulse(KICK_BUTTON_BURST_DURATION * 2f, _kickSidePulseMaxRadius);
+                }
+            }
+            else
+            {
+                _kickFretFlash.PlayHitAnimation();
+            }
+        }
+
+        /// <summary>
+        /// Creates one of the two side pulses - the same ring-pulse mesh/animation as the main
+        /// kick pulse, but squashed inward (toward the row's center) and expanded outward (away
+        /// from the highway, past the row's edge) instead of front/back - see
+        /// KickRingPulse.ConfigureAsSidePulse. Positioned at the row's own edge
+        /// (<paramref name="worldX"/>, with the main ring's own world Y/Z) so it sits flush
+        /// against the leftmost/rightmost button rather than overlapping it.
+        /// </summary>
+        private KickRingPulse CreateKickSidePulse(string name, float worldX, float outwardSign, IFretColorProvider colors)
+        {
+            var pulseObject = new GameObject(name);
+            pulseObject.transform.SetParent(_fretArray.transform, worldPositionStays: false);
+            pulseObject.transform.position = new Vector3(worldX, _fretArray.transform.position.y, _fretArray.transform.position.z);
+            pulseObject.transform.rotation = _fretArray.transform.rotation;
+
+            var pulse = pulseObject.AddComponent<KickRingPulse>();
+            pulse.Initialize(_fretArray.GetHitEffectTemplateMaterial(), colors.GetParticleColor(0).ToUnityColor());
+            pulse.ConfigureAsSidePulse(outwardSign);
+
+            return pulse;
+        }
+
+        /// <summary>
+        /// Whether <paramref name="pad"/> should use the cymbal hit animation (vs. the regular
+        /// tom one) - shared between AnimateFret (hits) and OnNoteMissed's Circular-only miss
+        /// movement, so both stay perfectly in sync about which pads count as cymbals.
+        /// </summary>
+        private bool IsCymbalPad(int pad)
+        {
+            if (_fiveLaneMode)
+            {
+                // Only use cymbal animation if the cymbal gems are being used
+                return Player.Profile.UseCymbalModels && (FiveLaneDrumPad) pad
+                    is FiveLaneDrumPad.Yellow
+                    or FiveLaneDrumPad.Orange;
+            }
+
+            return (FourLaneDrumPad) pad
+                is FourLaneDrumPad.YellowCymbal
+                or FourLaneDrumPad.BlueCymbal
+                or FourLaneDrumPad.GreenCymbal;
         }
 
         private void AnimateFret(int pad, Fret.AnimType animType)
@@ -1109,40 +1382,29 @@ namespace YARG.Gameplay.Player
             // Four and five lane drums have the same kick value
             if ((pad == (int) FourLaneDrumPad.Kick && NumberOfDedicatedKickLanes == 0) || pad == (int)FourLaneDrumPad.Wildcard)
             {
-                _kickFretFlash.PlayHitAnimation();
+                PlayKickFlash();
                 _fretArray.PlayKickFretAnimation();
+                if (_isCircularTheme)
+                {
+                    _fretArray.PlayKickButtonBurst(KICK_BUTTON_BURST_DURATION);
+                    FlashAllButtonsForKick();
+                }
                 CameraPositioner.Bounce();
                 return;
             }
 
-            if (_fiveLaneMode)
-            {
-                // Only use cymbal animation if the cymbal gems are being used
-                if (Player.Profile.UseCymbalModels && (FiveLaneDrumPad) pad
-                    is FiveLaneDrumPad.Yellow
-                    or FiveLaneDrumPad.Orange)
-                {
-                    _fretArray.PlayCymbalHitAnimation(pad);
-                }
-                else
-                {
-                    _fretArray.PlayHitAnimation(pad);
-                }
-
-                return;
-            }
-
-            // Can technically merge this condition with the above, but it's more readable like this
-            if ((FourLaneDrumPad) pad
-                is FourLaneDrumPad.YellowCymbal
-                or FourLaneDrumPad.BlueCymbal
-                or FourLaneDrumPad.GreenCymbal)
+            if (IsCymbalPad(pad))
             {
                 _fretArray.PlayCymbalHitAnimation(pad);
             }
             else
             {
                 _fretArray.PlayHitAnimation(pad);
+            }
+
+            if (_isCircularTheme)
+            {
+                _fretArray.PlayDrumJumpBoost(pad);
             }
         }
 
