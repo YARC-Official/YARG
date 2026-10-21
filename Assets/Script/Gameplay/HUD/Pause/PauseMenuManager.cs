@@ -191,6 +191,7 @@ namespace YARG.Gameplay.HUD
                 // There is no next song, so again we shouldn't have been called, but we
                 // can do something this time
                 Quit();
+                return;
             }
 
             // Go to next song in setlist
