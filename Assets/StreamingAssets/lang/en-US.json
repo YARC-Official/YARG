@@ -2085,6 +2085,11 @@
                 "Description": "Select a custom vocals character to use in venues that support characters."
             }
         },
+        "Dropdown": {
+            "Select": "(Select)",
+            "RefineSearch": "(Refine Search for More)",
+            "Search": "Search: {0}"
+        },
         "PresetType": {
             "CameraSettingsContainer": "Camera Presets",
             "ColorProfileContainer": "Color Profiles",
@@ -2094,6 +2099,69 @@
             "CareerContainer": "Career Presets"
         },
         "PresetSetting": {
+            "CareerEditor": {
+                "AddTier": "Add Tier",
+                "AddSong": "Add Song",
+                "Clear": "Clear",
+                "TierTitle": "Tier {0}: {1}",
+                "TierDetails": " [{0}{1} {2} | {3} | {4}]",
+                "BonusSummary": "Bonus | ",
+                "SongSummary": "      {0}. {1} - {2} [{3}]",
+                "EmptySongSummary": "      {0}. ... [{1}]",
+                "UnknownSong": "Unknown Song",
+                "UnknownArtist": "Unknown Artist",
+                "Fields": {
+                    "Name": "Name",
+                    "Description": "Description",
+                    "UnlockCriteria": "Unlock Criteria",
+                    "UnlockThreshold": "Unlock Threshold",
+                    "UnlockText": "Unlock Text",
+                    "IsBonusTier": "Is Bonus Tier",
+                    "SessionLength": "Session Length",
+                    "VenueSize": "Venue Size",
+                    "VenueHint": "Venue Hint",
+                    "BonusMediaType": "Bonus Media Type",
+                    "BonusMediaFile": "Bonus Media File",
+                    "BonusMediaText": "Bonus Media Text",
+                    "Song": "Song",
+                    "Artist": "Artist",
+                    "Source": "Source",
+                    "Charter": "Charter",
+                    "Identifier": "Identifier",
+                    "FallbackDescription": "Fallback Description"
+                },
+                "Enums": {
+                    "UnlockType": {
+                        "StarCount": "Star Count",
+                        "CompletionCount": "Completion Count"
+                    },
+                    "CareerCompletionMode": {
+                        "SingleSong": "Individual Songs",
+                        "FullTierPlaylist": "Tier Setlist",
+                        "FullCareerPlaylist": "Career Setlist"
+                    },
+                    "VenueSize": {
+                        "NotSpecified": "Not Specified",
+                        "Starter": "Starter",
+                        "Small": "Small",
+                        "Medium": "Medium",
+                        "Large": "Large",
+                        "Epic": "Epic"
+                    },
+                    "CompletionBonusType": {
+                        "None": "None",
+                        "Image": "Image",
+                        "Sound": "Sound",
+                        "Video": "Video"
+                    },
+                    "CareerSongIdentifier": {
+                        "SongId": "Song ID",
+                        "SongHash": "Song Hash",
+                        "ShortName": "Short Name",
+                        "SongTuple": "Song Tuple"
+                    }
+                }
+            },
             "PreviewVisuals": {
                 "Instrument": {
                     "Name": "Instrument"
