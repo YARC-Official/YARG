@@ -7,6 +7,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using YARG.Core.Input;
+using YARG.Localization;
 
 namespace YARG.Menu.Navigation
 {
@@ -14,8 +15,8 @@ namespace YARG.Menu.Navigation
     {
         private const int MAX_VISIBLE_OPTIONS = 20;
         private const int REFINE_SEARCH_INDEX = -1;
-        private const string SELECT_LABEL = "(Select)";
-        private const string REFINE_SEARCH_LABEL = "(Refine Search for More)";
+        private static string SelectLabel => Localize.Key("Settings.Dropdown.Select");
+        private static string RefineSearchLabel => Localize.Key("Settings.Dropdown.RefineSearch");
         private static readonly Color PLACEHOLDER_COLOR = new Color32(148, 158, 174, 255);
 
         private TMP_Dropdown _dropdown;
@@ -138,9 +139,9 @@ namespace YARG.Menu.Navigation
 
         private string GetDisplayLabel(int sourceIndex)
         {
-            if (sourceIndex == REFINE_SEARCH_INDEX) return REFINE_SEARCH_LABEL;
+            if (sourceIndex == REFINE_SEARCH_INDEX) return RefineSearchLabel;
             string label = GetSourceLabel(sourceIndex);
-            return string.IsNullOrEmpty(label) ? SELECT_LABEL : label;
+            return string.IsNullOrEmpty(label) ? SelectLabel : label;
         }
 
         public void SelectVisibleIndex(int visibleIndex)
@@ -187,7 +188,7 @@ namespace YARG.Menu.Navigation
                 ShowEmptySearchCaption(true);
                 return;
             }
-            _dropdown.captionText.text = isBlank ? SELECT_LABEL : CurrentLabel;
+            _dropdown.captionText.text = isBlank ? SelectLabel : CurrentLabel;
             SetCaptionHelperStyle(isBlank);
         }
 
@@ -201,7 +202,7 @@ namespace YARG.Menu.Navigation
         public void ShowSearchCaption(string query)
         {
             if (_dropdown?.captionText == null) return;
-            _dropdown.captionText.text = $"Search: {query}";
+            _dropdown.captionText.text = Localize.KeyFormat("Settings.Dropdown.Search", query);
             SetCaptionHelperStyle(false);
         }
 

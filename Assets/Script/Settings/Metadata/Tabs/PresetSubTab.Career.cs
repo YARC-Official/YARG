@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.UI;
@@ -23,6 +22,8 @@ namespace YARG.Settings.Metadata
 {
     public class CareerPresetSubTab : PresetSubTab<CareerPreset>
     {
+        private const string CAREER_EDITOR_KEY = "Settings.PresetSetting.CareerEditor";
+
         private GameObject _careerInfoPrefab;
         private GameObject _careerAddRowPrefab;
         private GameObject _careerTierPrefab;
@@ -95,17 +96,16 @@ namespace YARG.Settings.Metadata
                 var tier = tiers[tierIndex];
 
                 string tierName = string.IsNullOrWhiteSpace(tier.Name) ? "..." : tier.Name;
-                string tierTitle = $"Tier {tierIndex + 1}: {tierName}";
-                string tierDetails =
-                    $" [{(tier.IsBonus ? "Bonus | " : "")}{tier.UnlockCriteria} {tier.UnlockType} | {FormatSessionLength(tier.CompletionMode)} | {tier.VenueSize}]";
+                string tierTitle = Localize.KeyFormat(CAREER_EDITOR_KEY + ".TierTitle", tierIndex + 1, tierName);
+                string tierDetails = FormatTierDetails(tier);
 
                 var tierHeader = SpawnCareerTier(container);
                 void RefreshTierSummary()
                 {
                     string currentName = string.IsNullOrWhiteSpace(tier.Name) ? "..." : tier.Name;
-                    string currentDetails =
-                        $" [{(tier.IsBonus ? "Bonus | " : "")}{tier.UnlockCriteria} {tier.UnlockType} | {FormatSessionLength(tier.CompletionMode)} | {tier.VenueSize}]";
-                    tierHeader.SetText($"Tier {tierIndex + 1}: {currentName}{currentDetails}");
+                    string currentDetails = FormatTierDetails(tier);
+                    tierHeader.SetText(Localize.KeyFormat(CAREER_EDITOR_KEY + ".TierTitle",
+                        tierIndex + 1, currentName) + currentDetails);
                     tierHeader.SetDetailsTitle(currentName);
                 }
                 Action onAddSong = ReadOnlyFields ? null : () => AddEmptySongAndEdit(tier);
@@ -243,7 +243,7 @@ namespace YARG.Settings.Metadata
 
             var addTierRow = SpawnCareerAddRow(container);
             addTierRow.Initialize(string.Empty, onAddTier, null, null, null, null);
-            addTierRow.ConfigureAsStandaloneAddButton("Add Tier", 24, alternate);
+            addTierRow.ConfigureAsStandaloneAddButton(EditorText("AddTier"), 24, alternate);
 
             var navigatable = RuntimeNavigatable.Attach(addTierRow.gameObject, onAddTier);
             addTierRow.TightenStandaloneButtonOutline();
@@ -261,7 +261,7 @@ namespace YARG.Settings.Metadata
 
             var addSongRow = SpawnCareerAddRow(container);
             addSongRow.Initialize(string.Empty, onAddSong, null, null, null, null);
-            addSongRow.ConfigureAsStandaloneAddButton("Add Song", 48, alternate);
+            addSongRow.ConfigureAsStandaloneAddButton(EditorText("AddSong"), 48, alternate);
 
             var navigatable = RuntimeNavigatable.Attach(addSongRow.gameObject, onAddSong);
             addSongRow.TightenStandaloneButtonOutline();
@@ -324,7 +324,7 @@ namespace YARG.Settings.Metadata
             }
 
             public override string ValueToString(T value) =>
-                _formatter?.Invoke(value) ?? Regex.Replace(value.ToString(), "(\\B[A-Z])", " $1");
+                _formatter?.Invoke(value) ?? FormatEnumValue(value);
         }
 
         private DropdownSetting<T> CreateEnumSetting<T>(T value, Action<T> onChange,
@@ -342,13 +342,22 @@ namespace YARG.Settings.Metadata
             return setting;
         }
 
-        private static string FormatSessionLength(CareerCompletionMode value) => value switch
+        private static string EditorText(string key) => Localize.Key($"{CAREER_EDITOR_KEY}.{key}");
+
+        private static string FieldText(string key) => Localize.Key($"{CAREER_EDITOR_KEY}.Fields.{key}");
+
+        private static string FormatEnumValue<T>(T value) where T : Enum =>
+            Localize.Key($"{CAREER_EDITOR_KEY}.Enums.{typeof(T).Name}.{value}");
+
+        private static string FormatSessionLength(CareerCompletionMode value) => FormatEnumValue(value);
+
+        private static string FormatTierDetails(CareerTier tier)
         {
-            CareerCompletionMode.SingleSong => "Individual Songs",
-            CareerCompletionMode.FullTierPlaylist => "Tier Setlist",
-            CareerCompletionMode.FullCareerPlaylist => "Career Setlist",
-            _ => value.ToString(),
-        };
+            string bonus = tier.IsBonus ? EditorText("BonusSummary") : string.Empty;
+            return Localize.KeyFormat(CAREER_EDITOR_KEY + ".TierDetails", bonus, tier.UnlockCriteria,
+                FormatEnumValue(tier.UnlockType), FormatSessionLength(tier.CompletionMode),
+                FormatEnumValue(tier.VenueSize));
+        }
 
         private static string FormatSongSummary(CareerSong song, int songIndex, out string detailsTitle)
         {
@@ -356,10 +365,11 @@ namespace YARG.Settings.Metadata
                 ? song.SongEntry.Name.Original
                 : (!string.IsNullOrEmpty(song.Description)
                     ? song.Description
-                    : (song.ShortName ?? song.SongTuple?.Title ?? song.SongId?.ToString() ?? "Unknown Song"));
+                    : (song.ShortName ?? song.SongTuple?.Title ?? song.SongId?.ToString() ??
+                        EditorText("UnknownSong")));
             string artistName = song.SongEntry != null
                 ? song.SongEntry.Artist.Original
-                : (song.SongTuple?.Artist ?? "Unknown Artist");
+                : (song.SongTuple?.Artist ?? EditorText("UnknownArtist"));
 
             // Only the active identifier determines whether this row has a
             // selection. Ignore stale values belonging to other modes.
@@ -378,8 +388,10 @@ namespace YARG.Settings.Metadata
             bool isClearedSong = song.SongEntry == null && !hasSelectedIdentifier;
             detailsTitle = isClearedSong ? "..." : songName;
             return isClearedSong
-                ? $"      {songIndex + 1}. ... [{song.Identifier}]"
-                : $"      {songIndex + 1}. {artistName} - {songName} [{song.Identifier}]";
+                ? Localize.KeyFormat(CAREER_EDITOR_KEY + ".EmptySongSummary", songIndex + 1,
+                    FormatEnumValue(song.Identifier))
+                : Localize.KeyFormat(CAREER_EDITOR_KEY + ".SongSummary", songIndex + 1, artistName,
+                    songName, FormatEnumValue(song.Identifier));
         }
 
         private void ShowEditTierDialog(CareerTier tier, Action onInputBlur = null)
@@ -389,12 +401,12 @@ namespace YARG.Settings.Metadata
 
             var fields = new List<CareerPresetPreviewBuilder.Field>
             {
-                new("Name", new StringSetting(tier.Name ?? string.Empty, value =>
+                new(FieldText("Name"), new StringSetting(tier.Name ?? string.Empty, value =>
                 {
                     tier.Name = value;
                     Save();
                 }), editable),
-                new("Description", new StringSetting(tier.Description ?? string.Empty, value =>
+                new(FieldText("Description"), new StringSetting(tier.Description ?? string.Empty, value =>
                 {
                     tier.Description = value;
                     Save();
@@ -403,44 +415,44 @@ namespace YARG.Settings.Metadata
 
             fields.AddRange(new CareerPresetPreviewBuilder.Field[]
             {
-                new("Unlock Criteria", CreateEnumSetting(tier.UnlockType, value => tier.UnlockType = value), editable),
-                new("Unlock Threshold", new IntSetting(tier.UnlockCriteria, min: 0, onChange: value =>
+                new(FieldText("UnlockCriteria"), CreateEnumSetting(tier.UnlockType, value => tier.UnlockType = value), editable),
+                new(FieldText("UnlockThreshold"), new IntSetting(tier.UnlockCriteria, min: 0, onChange: value =>
                 {
                     tier.UnlockCriteria = value;
                     Save();
                 }), editable, !isFirstTier),
-                new("Unlock Text", new StringSetting(tier.CustomUnlockText ?? string.Empty, value =>
+                new(FieldText("UnlockText"), new StringSetting(tier.CustomUnlockText ?? string.Empty, value =>
                 {
                     tier.CustomUnlockText = value;
                     Save();
                 }), editable, !isFirstTier),
-                new("Is Bonus Tier", new ToggleSetting(tier.IsBonus, value =>
+                new(FieldText("IsBonusTier"), new ToggleSetting(tier.IsBonus, value =>
                 {
                     tier.IsBonus = value;
                     Save();
                 }), editable),
-                new("Session Length", CreateEnumSetting(tier.CompletionMode,
+                new(FieldText("SessionLength"), CreateEnumSetting(tier.CompletionMode,
                     value => tier.CompletionMode = value, FormatSessionLength), editable),
-                new("Venue Size", CreateEnumSetting(tier.VenueSize, value => tier.VenueSize = value), editable),
-                new("Venue Hint", new StringSetting(tier.VenueHint ?? string.Empty, value =>
+                new(FieldText("VenueSize"), CreateEnumSetting(tier.VenueSize, value => tier.VenueSize = value), editable),
+                new(FieldText("VenueHint"), new StringSetting(tier.VenueHint ?? string.Empty, value =>
                 {
                     tier.VenueHint = value;
                     Save();
                 }), editable),
-                new("Bonus Media Type", CreateEnumSetting(tier.CompletionBonus, value =>
+                new(FieldText("BonusMediaType"), CreateEnumSetting(tier.CompletionBonus, value =>
                 {
                     tier.CompletionBonus = value;
                     bool hasBonusMedia = !isFirstTier && value != CompletionBonusType.None;
-                    _careerPreview.SetFieldVisible("Bonus Media File", hasBonusMedia);
-                    _careerPreview.SetFieldVisible("Bonus Media Text", hasBonusMedia);
+                    _careerPreview.SetFieldVisible(FieldText("BonusMediaFile"), hasBonusMedia);
+                    _careerPreview.SetFieldVisible(FieldText("BonusMediaText"), hasBonusMedia);
                 }), editable, !isFirstTier),
-                new("Bonus Media File", new FileInfoSetting(tier.MediaFilename, _presetRef,
+                new(FieldText("BonusMediaFile"), new FileInfoSetting(tier.MediaFilename, _presetRef,
                     nameof(CareerTier.MediaFilename), value =>
                     {
                         tier.MediaFilename = value;
                         Save();
                     }), editable, !isFirstTier && tier.CompletionBonus != CompletionBonusType.None),
-                new("Bonus Media Text", new StringSetting(tier.CompletionBonusText ?? string.Empty, value =>
+                new(FieldText("BonusMediaText"), new StringSetting(tier.CompletionBonusText ?? string.Empty, value =>
                 {
                     tier.CompletionBonusText = value;
                     Save();
@@ -551,42 +563,33 @@ namespace YARG.Settings.Metadata
 
             bool editable = !ReadOnlyFields;
 
-            string identifier = song.Identifier switch
-            {
-                CareerSongIdentifier.SongHash => "Song Hash",
-                CareerSongIdentifier.SongTuple => "Song Tuple",
-                _ => "Song ID",
-            };
             bool songIdAvailable = song.SongEntry == null || HasSongId(song.SongEntry);
-            var identifierSetting = new DropdownSetting<string>(identifier, value =>
+            CareerSongIdentifier displayedIdentifier = song.Identifier == CareerSongIdentifier.ShortName
+                ? CareerSongIdentifier.SongId
+                : song.Identifier;
+            var identifierSetting = new CareerEnumSetting<CareerSongIdentifier>(displayedIdentifier, value =>
             {
-                var newIdentifier = value switch
-                {
-                    "Song Hash" => CareerSongIdentifier.SongHash,
-                    "Song Tuple" => CareerSongIdentifier.SongTuple,
-                    _ => CareerSongIdentifier.SongId,
-                };
-                song.UpdateIdentifier(newIdentifier);
+                song.UpdateIdentifier(value);
                 Save();
                 state.SummaryChanged?.Invoke();
-            }, localizable: false);
+            });
 
             if (songIdAvailable)
             {
-                identifierSetting.Add("Song ID");
+                identifierSetting.Add(CareerSongIdentifier.SongId);
             }
-            identifierSetting.Add("Song Hash");
-            identifierSetting.Add("Song Tuple");
+            identifierSetting.Add(CareerSongIdentifier.SongHash);
+            identifierSetting.Add(CareerSongIdentifier.SongTuple);
 
             _careerPreview.Show(new CareerPresetPreviewBuilder.Field[]
             {
-                new("Song", CreateSongFacetSetting(state, SongFacet.Song), editable),
-                new("Artist", CreateSongFacetSetting(state, SongFacet.Artist), editable),
-                new("Source", CreateSongFacetSetting(state, SongFacet.Source), editable),
-                new("Charter", CreateSongFacetSetting(state, SongFacet.Charter), editable),
-                new("Clear", () => ClearSongFacets(state), MenuData.Colors.CancelButton),
-                new("Identifier", identifierSetting, editable),
-                new("Fallback Description", new StringSetting(song.Description ?? string.Empty, value =>
+                new(FieldText("Song"), CreateSongFacetSetting(state, SongFacet.Song), editable),
+                new(FieldText("Artist"), CreateSongFacetSetting(state, SongFacet.Artist), editable),
+                new(FieldText("Source"), CreateSongFacetSetting(state, SongFacet.Source), editable),
+                new(FieldText("Charter"), CreateSongFacetSetting(state, SongFacet.Charter), editable),
+                new(EditorText("Clear"), () => ClearSongFacets(state), MenuData.Colors.CancelButton),
+                new(FieldText("Identifier"), identifierSetting, editable),
+                new(FieldText("FallbackDescription"), new StringSetting(song.Description ?? string.Empty, value =>
                 {
                     song.Description = value;
                     Save();
