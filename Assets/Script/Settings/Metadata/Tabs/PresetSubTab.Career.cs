@@ -78,7 +78,7 @@ namespace YARG.Settings.Metadata
             Action onAddTier = ReadOnlyFields
                 ? null
                 : AddEmptyTierAndEdit;
-            tiersHeader.Initialize(Localize.Key("Settings.Header.CareerTiers"), null, null, null, null, null);
+            tiersHeader.Initialize(Localize.Key("Settings.Header.CareerSetlist"), null, null, null, null, null);
             tiersHeader.SetButtonsVisible(false);
             _fieldIndex++;
 
