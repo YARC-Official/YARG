@@ -195,6 +195,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8bcd7c09f3d249b2a8a75d4d2ae4f19f
+    m_Address: SettingTab/CareerAddRow
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 8e15c2bf1d9201a4091b3e5a15b27ef0
     m_Address: SettingTab/PresetTypeDropdown
     m_ReadOnly: 0
@@ -217,6 +222,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a525db7d8caeaf043bc242aafb1f8ce2
     m_Address: VocalNeedle/6
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a13c9db0d4f84ef58d2c4e4167378ee1
+    m_Address: SettingPreviews/CareerPresetEditor
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

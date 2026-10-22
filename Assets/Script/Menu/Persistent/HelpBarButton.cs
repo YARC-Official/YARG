@@ -158,7 +158,13 @@ namespace YARG.Menu.Persistent
                 return;
             }
 
-            if (_entry?.HasHoldHandler == true)
+            if (_entry?.ShowHeldState == true)
+            {
+                // Modifier entries use the navigation hold tracker so chords can query their
+                // physical held state, but intentionally show no timed progress animation.
+                ApplyState(ButtonState.HOLD);
+            }
+            else if (_entry?.HasHoldHandler == true)
             {
                 _holdTracker.StartHolding();
                 ApplyState(ButtonState.HOLD);
@@ -308,6 +314,12 @@ namespace YARG.Menu.Persistent
                 return;
             }
 
+            if (_entry?.ShowHeldState == true)
+            {
+                HandleControllerHeldState();
+                return;
+            }
+
             if (_entry?.HasHoldHandler != true)
             {
                 return;
@@ -346,6 +358,22 @@ namespace YARG.Menu.Persistent
             else if (_buttonHoldFill.fillAmount > 0f || _currentState == ButtonState.HOLD)
             {
                 _buttonHoldFill.fillAmount = 0f;
+                ApplyState(_isPointerOver ? ButtonState.HOVER : _defaultState);
+            }
+        }
+
+        private void HandleControllerHeldState()
+        {
+            if (!_entry.HasValue) return;
+
+            _buttonHoldFill.fillAmount = 0f;
+            bool isHeld = Navigator.Instance.IsActionHeld(_entry.Value.Action);
+            if (isHeld && _currentState != ButtonState.HOLD)
+            {
+                ApplyState(ButtonState.HOLD);
+            }
+            else if (!isHeld && _currentState == ButtonState.HOLD)
+            {
                 ApplyState(_isPointerOver ? ButtonState.HOVER : _defaultState);
             }
         }

@@ -267,6 +267,23 @@ namespace YARG.Career
                         {
                             entry = idEntries[0];
                         }
+                        else
+                        {
+                            // Songs without a native YARG GUID are assigned a
+                            // deterministic GUID derived from their hash by
+                            // FromSongEntry/UpdateIdentifier. Resolve that same
+                            // fallback form when the career is refreshed.
+                            foreach (var pair in SongContainer.SongsByHash)
+                            {
+                                using var md5 = MD5.Create();
+                                var derivedId = new Guid(md5.ComputeHash(pair.Key.HashBytes));
+                                if (derivedId == SongId.Value && pair.Value.Count > 0)
+                                {
+                                    entry = pair.Value[0];
+                                    break;
+                                }
+                            }
+                        }
                     }
                     else
                     {

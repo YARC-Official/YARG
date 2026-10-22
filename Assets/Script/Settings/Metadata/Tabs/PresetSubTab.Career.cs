@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.UI;
@@ -20,14 +22,19 @@ namespace YARG.Settings.Metadata
 {
     public class CareerPresetSubTab : PresetSubTab<CareerPreset>
     {
+        private const string CAREER_EDITOR_KEY = "Settings.PresetSetting.CareerEditor";
+
         private GameObject _careerInfoPrefab;
+        private GameObject _careerAddRowPrefab;
         private GameObject _careerTierPrefab;
         private GameObject _careerSongPrefab;
-        private GameObject _careerSubHeaderPrefab;
+        private readonly CareerPresetPreviewBuilder _careerPreview;
 
         public CareerPresetSubTab(CustomContent<CareerPreset> customContent, IPreviewBuilder previewBuilder = null,
-            bool hasDescriptions = true) : base(customContent, previewBuilder, hasDescriptions)
+            bool hasDescriptions = true) : base(customContent,
+            previewBuilder ?? new CareerPresetPreviewBuilder(), hasDescriptions)
         {
+            _careerPreview = (CareerPresetPreviewBuilder) PreviewBuilder;
         }
 
         public override void BuildSettingTab(Transform container, NavigationGroup navGroup)
@@ -70,88 +77,78 @@ namespace YARG.Settings.Metadata
             var tiersHeader = SpawnCareerInfo(container);
             Action onAddTier = ReadOnlyFields
                 ? null
-                : () =>
-                {
-                    DialogManager.Instance.ShowRenameDialog("New Tier Name", newTierName =>
-                    {
-                        if (string.IsNullOrWhiteSpace(newTierName)) return;
-                        var newTier = new CareerTier
-                        {
-                            Id = Guid.NewGuid(),
-                            Name = newTierName.Trim(),
-                            Description = string.Empty,
-                            UnlockType = UnlockType.StarCount,
-                            UnlockCriteria = 0,
-                            VenueSize = VenueSize.NotSpecified,
-                            CompletionMode = CareerCompletionMode.SingleSong,
-                            Songs = Array.Empty<CareerSong>(),
-                        };
-                        _presetRef.AddTier(newTier);
-                        SaveAndRefresh();
-                    });
-                };
-            tiersHeader.Initialize(Localize.Key("Settings.Header.CareerTiers"), onAddTier, null, null, null, null);
+                : AddEmptyTierAndEdit;
+            tiersHeader.Initialize(Localize.Key("Settings.Header.CareerSetlist"), null, null, null, null, null);
+            tiersHeader.SetButtonsVisible(false);
             _fieldIndex++;
 
             var tiers = _presetRef.Tiers;
             if (tiers == null || tiers.Count == 0)
             {
-                SpawnCareerSubHeader(container, Localize.Key("Settings.Header.NoTiers"));
-                _fieldIndex++;
+                AddTrailingTierButton(container, navGroup, onAddTier, false);
                 return;
             }
 
+            int summaryRowIndex = 0;
             for (int t = 0; t < tiers.Count; t++)
             {
                 int tierIndex = t;
                 var tier = tiers[tierIndex];
 
-                string tierTitle = $"Tier {tierIndex + 1}: {tier.Name}";
-                string tierDetails =
-                    $" [{(tier.IsBonus ? "Bonus | " : "")}{tier.UnlockCriteria} {tier.UnlockType} | {tier.VenueSize} | {tier.CompletionMode}]";
+                string tierName = string.IsNullOrWhiteSpace(tier.Name) ? "..." : tier.Name;
+                string tierTitle = Localize.KeyFormat(CAREER_EDITOR_KEY + ".TierTitle", tierIndex + 1, tierName);
+                string tierDetails = FormatTierDetails(tier);
 
                 var tierHeader = SpawnCareerTier(container);
-                Action onAddSong = ReadOnlyFields ? null : () => ShowSongPickerDialog(tier);
-                Action onEditTier = ReadOnlyFields ? null : () => ShowEditTierDialog(tier);
+                void RefreshTierSummary()
+                {
+                    string currentName = string.IsNullOrWhiteSpace(tier.Name) ? "..." : tier.Name;
+                    string currentDetails = FormatTierDetails(tier);
+                    tierHeader.SetText(Localize.KeyFormat(CAREER_EDITOR_KEY + ".TierTitle",
+                        tierIndex + 1, currentName) + currentDetails);
+                    tierHeader.SetDetailsTitle(currentName);
+                }
+                Action onAddSong = ReadOnlyFields ? null : () => AddEmptySongAndEdit(tier);
+                Action onEditTier = ReadOnlyFields ? null : () => ShowEditTierDialog(tier, RefreshTierSummary);
                 Action onUpTier = (ReadOnlyFields || tierIndex == 0)
                     ? null
                     : () =>
                     {
                         _presetRef.MoveTier(tierIndex, tierIndex - 1);
-                        SaveAndRefresh();
+                        SaveAndRefresh(tier);
                     };
                 Action onDownTier = (ReadOnlyFields || tierIndex >= tiers.Count - 1)
                     ? null
                     : () =>
                     {
                         _presetRef.MoveTier(tierIndex, tierIndex + 1);
-                        SaveAndRefresh();
+                        SaveAndRefresh(tier);
                     };
                 Action onRemoveTier = ReadOnlyFields
                     ? null
                     : () =>
                     {
-                        ShowCompactConfirmation("Delete Tier", $"Are you sure you want to delete '{tier.Name}'?",
-                            "Menu.Common.Delete",
-                            MenuData.Colors.CancelButton, () =>
-                            {
-                                DialogManager.Instance.ClearDialog();
-                                _presetRef.RemoveTierAt(tierIndex);
-                                SaveAndRefresh();
-                            });
+                        _presetRef.RemoveTierAt(tierIndex);
+                        SaveAndRefresh();
                     };
 
                 tierHeader.Initialize(tierTitle + tierDetails, onAddSong, onEditTier, onUpTier, onDownTier,
                     onRemoveTier, marquee: true);
+                tierHeader.UseSettingRowStyle(summaryRowIndex++ % 2 != 0);
+                // An empty details title is treated by SettingsMenu as a row with
+                // no editor, so use the same visible placeholder as the summary.
+                tierHeader.SetDetailsTitle(tierName);
+                tierHeader.SetRowIdentity(tier);
+                tierHeader.SetRowActions(false, onUpTier, onDownTier, onRemoveTier);
+                AddCareerRowNavigation(navGroup, tierHeader,
+                    () => ShowEditTierDialog(tier, RefreshTierSummary));
                 _fieldIndex++;
 
                 // Render songs in this tier
                 var songs = tier.Songs;
                 if (songs == null || songs.Length == 0)
                 {
-                    var emptySongGo = SpawnCareerSubHeader(container, "      (No songs in this tier)");
-                    DimHeaderBackground(emptySongGo, 0.2f);
-                    _fieldIndex++;
+                    // The Add Song action below is the empty-state affordance.
                 }
                 else
                 {
@@ -165,32 +162,50 @@ namespace YARG.Settings.Metadata
                             song.RefreshSongEntry();
                         }
 
-                        string songName = song.SongEntry != null
-                            ? song.SongEntry.Name.Original
-                            : (!string.IsNullOrEmpty(song.Description)
-                                ? song.Description
-                                : (song.ShortName ??
-                                    song.SongTuple?.Title ?? song.SongId?.ToString() ?? "Unknown Song"));
-                        string artistName = song.SongEntry != null
-                            ? song.SongEntry.Artist.Original
-                            : (song.SongTuple?.Artist ?? "Unknown Artist");
-                        string songLabel = $"      {songIndex + 1}. {artistName} - {songName} [{song.Identifier}]";
+                        string songLabel = FormatSongSummary(song, songIndex, out string songDetailsTitle);
 
                         var songHeader = SpawnCareerSong(container);
-                        Action onEditSong = ReadOnlyFields ? null : () => ShowEditSongDialog(tier, song, songIndex);
-                        Action onUpSong = (ReadOnlyFields || songIndex == 0)
+                        void RefreshSongSummary()
+                        {
+                            string label = FormatSongSummary(song, songIndex, out string detailsTitle);
+                            songHeader.SetText(label);
+                            songHeader.SetDetailsTitle(detailsTitle);
+                        }
+                        Action onEditSong = ReadOnlyFields ? null : () =>
+                            ShowEditSongDialog(song, RefreshSongSummary);
+                        bool isFirstSongInCareer = tierIndex == 0 && songIndex == 0;
+                        bool isLastSongInCareer = tierIndex == tiers.Count - 1 &&
+                            songIndex >= songs.Length - 1;
+
+                        Action onUpSong = (ReadOnlyFields || isFirstSongInCareer)
                             ? null
                             : () =>
                             {
-                                tier.MoveSong(songIndex, songIndex - 1);
-                                SaveAndRefresh();
+                                if (songIndex > 0)
+                                {
+                                    tier.MoveSong(songIndex, songIndex - 1);
+                                }
+                                else
+                                {
+                                    tier.RemoveSongAt(songIndex);
+                                    tiers[tierIndex - 1].AddSong(song);
+                                }
+                                SaveAndRefresh(song);
                             };
-                        Action onDownSong = (ReadOnlyFields || songIndex >= songs.Length - 1)
+                        Action onDownSong = (ReadOnlyFields || isLastSongInCareer)
                             ? null
                             : () =>
                             {
-                                tier.MoveSong(songIndex, songIndex + 1);
-                                SaveAndRefresh();
+                                if (songIndex < songs.Length - 1)
+                                {
+                                    tier.MoveSong(songIndex, songIndex + 1);
+                                }
+                                else
+                                {
+                                    tier.RemoveSongAt(songIndex);
+                                    tiers[tierIndex + 1].InsertSong(0, song);
+                                }
+                                SaveAndRefresh(song);
                             };
                         Action onRemoveSong = ReadOnlyFields
                             ? null
@@ -202,24 +217,56 @@ namespace YARG.Settings.Metadata
 
                         songHeader.Initialize(songLabel, null, onEditSong, onUpSong, onDownSong, onRemoveSong,
                             marquee: true);
+                        songHeader.UseSettingRowStyle(summaryRowIndex++ % 2 != 0);
+                        songHeader.SetDetailsTitle(songDetailsTitle);
+                        songHeader.SetRowIdentity(song);
+                        songHeader.SetRowActions(true, onUpSong, onDownSong, onRemoveSong);
+                        AddCareerRowNavigation(navGroup, songHeader,
+                            () => ShowEditSongDialog(song, RefreshSongSummary));
                         _fieldIndex++;
                     }
                 }
+
+                AddTrailingSongButton(container, navGroup, onAddSong, summaryRowIndex++ % 2 != 0);
             }
+
+            AddTrailingTierButton(container, navGroup, onAddTier, summaryRowIndex % 2 != 0);
         }
 
-        private GameObject SpawnCareerSubHeader(Transform container, string text)
+        private void AddTrailingTierButton(Transform container, NavigationGroup navGroup, Action onAddTier,
+            bool alternate)
         {
-            if (_careerSubHeaderPrefab == null)
+            if (onAddTier == null)
             {
-                _careerSubHeaderPrefab = Addressables
-                    .LoadAssetAsync<GameObject>("SettingTab/CareerSubHeader")
-                    .WaitForCompletion();
+                return;
             }
 
-            var go = Object.Instantiate(_careerSubHeaderPrefab, container);
-            go.GetComponent<CareerHeader>().Initialize(text, null, null, null, null, null);
-            return go;
+            var addTierRow = SpawnCareerAddRow(container);
+            addTierRow.Initialize(string.Empty, onAddTier, null, null, null, null);
+            addTierRow.ConfigureAsStandaloneAddButton(EditorText("AddTier"), 24, alternate);
+
+            var navigatable = RuntimeNavigatable.Attach(addTierRow.gameObject, onAddTier);
+            addTierRow.TightenStandaloneButtonOutline();
+            navGroup.AddNavigatable(navigatable);
+            _fieldIndex++;
+        }
+
+        private void AddTrailingSongButton(Transform container, NavigationGroup navGroup, Action onAddSong,
+            bool alternate)
+        {
+            if (onAddSong == null)
+            {
+                return;
+            }
+
+            var addSongRow = SpawnCareerAddRow(container);
+            addSongRow.Initialize(string.Empty, onAddSong, null, null, null, null);
+            addSongRow.ConfigureAsStandaloneAddButton(EditorText("AddSong"), 48, alternate);
+
+            var navigatable = RuntimeNavigatable.Attach(addSongRow.gameObject, onAddSong);
+            addSongRow.TightenStandaloneButtonOutline();
+            navGroup.AddNavigatable(navigatable);
+            _fieldIndex++;
         }
 
         private void Save()
@@ -239,302 +286,517 @@ namespace YARG.Settings.Metadata
             SettingsMenu.Instance?.RefreshSettingsKeepPosition();
         }
 
-        private void ShowEditTierDialog(CareerTier tier)
+        private void SaveAndRefresh(object rowIdentity)
         {
-            var dialog = DialogManager.Instance.ShowList($"Edit Tier: {tier.Name}");
-
-            dialog.AddListButton($"Name: {tier.Name}", () =>
-            {
-                DialogManager.Instance.ClearDialog();
-                DialogManager.Instance.ShowRenameDialog(tier.Name, newName =>
-                {
-                    if (string.IsNullOrWhiteSpace(newName)) return;
-                    tier.Name = newName.Trim();
-                    SaveAndRefresh();
-                });
-            }, closeOnClick: false);
-
-            dialog.AddListButton(
-                $"Description: {(string.IsNullOrEmpty(tier.Description) ? "(None)" : tier.Description)}", () =>
-                {
-                    DialogManager.Instance.ClearDialog();
-                    DialogManager.Instance.ShowRenameDialog(tier.Description ?? string.Empty, newDesc =>
-                    {
-                        tier.Description = newDesc?.Trim();
-                        SaveAndRefresh();
-                    });
-                }, closeOnClick: false);
-
-            dialog.AddListButton($"Unlock Type: {tier.UnlockType}", () =>
-            {
-                DialogManager.Instance.ClearDialog();
-                var unlockDialog = DialogManager.Instance.ShowList("Select Unlock Type");
-                unlockDialog.AddListButton("Star Count", () =>
-                {
-                    tier.UnlockType = UnlockType.StarCount;
-                    SaveAndRefresh();
-                });
-                unlockDialog.AddListButton("Completion Count", () =>
-                {
-                    tier.UnlockType = UnlockType.CompletionCount;
-                    SaveAndRefresh();
-                });
-            }, closeOnClick: false);
-
-            dialog.AddListButton($"Unlock Criteria: {tier.UnlockCriteria}", () =>
-            {
-                DialogManager.Instance.ClearDialog();
-                DialogManager.Instance.ShowRenameDialog(tier.UnlockCriteria.ToString(), newCriteriaStr =>
-                {
-                    if (int.TryParse(newCriteriaStr, out int criteriaVal))
-                    {
-                        tier.UnlockCriteria = Mathf.Max(0, criteriaVal);
-                        SaveAndRefresh();
-                    }
-                });
-            }, closeOnClick: false);
-
-            dialog.AddListButton($"Is Bonus Tier: {(tier.IsBonus ? "Yes" : "No")}", () =>
-            {
-                tier.IsBonus = !tier.IsBonus;
-                SaveAndRefresh();
-            });
-
-            dialog.AddListButton($"Venue Size: {tier.VenueSize}", () =>
-            {
-                DialogManager.Instance.ClearDialog();
-                var venueDialog = DialogManager.Instance.ShowList("Select Venue Size");
-                foreach (VenueSize size in Enum.GetValues(typeof(VenueSize)))
-                {
-                    var capturedSize = size;
-                    venueDialog.AddListButton(capturedSize.ToString(), () =>
-                    {
-                        tier.VenueSize = capturedSize;
-                        SaveAndRefresh();
-                    });
-                }
-            }, closeOnClick: false);
-
-            dialog.AddListButton($"Venue Hint: {(string.IsNullOrEmpty(tier.VenueHint) ? "(None)" : tier.VenueHint)}",
-                () =>
-                {
-                    DialogManager.Instance.ClearDialog();
-                    DialogManager.Instance.ShowRenameDialog(tier.VenueHint ?? string.Empty, newHint =>
-                    {
-                        tier.VenueHint = newHint?.Trim();
-                        SaveAndRefresh();
-                    });
-                }, closeOnClick: false);
-
-            dialog.AddListButton($"Completion Mode: {tier.CompletionMode}", () =>
-            {
-                DialogManager.Instance.ClearDialog();
-                var modeDialog = DialogManager.Instance.ShowList("Select Completion Mode");
-                foreach (CareerCompletionMode mode in Enum.GetValues(typeof(CareerCompletionMode)))
-                {
-                    var capturedMode = mode;
-                    modeDialog.AddListButton(capturedMode.ToString(), () =>
-                    {
-                        tier.CompletionMode = capturedMode;
-                        SaveAndRefresh();
-                    });
-                }
-            }, closeOnClick: false);
-
-            dialog.AddListButton(
-                $"Custom Unlock Text: {(string.IsNullOrEmpty(tier.CustomUnlockText) ? "(None)" : tier.CustomUnlockText)}",
-                () =>
-                {
-                    DialogManager.Instance.ClearDialog();
-                    DialogManager.Instance.ShowRenameDialog(tier.CustomUnlockText ?? string.Empty, newText =>
-                    {
-                        tier.CustomUnlockText = newText?.Trim();
-                        SaveAndRefresh();
-                    });
-                }, closeOnClick: false);
-
-            dialog.AddListButton($"Completion Bonus: {tier.CompletionBonus}", () =>
-            {
-                DialogManager.Instance.ClearDialog();
-                var bonusDialog = DialogManager.Instance.ShowList("Select Completion Bonus");
-                foreach (CompletionBonusType bonus in Enum.GetValues(typeof(CompletionBonusType)))
-                {
-                    var capturedBonus = bonus;
-                    bonusDialog.AddListButton(capturedBonus.ToString(), () =>
-                    {
-                        tier.CompletionBonus = capturedBonus;
-                        SaveAndRefresh();
-                    });
-                }
-            }, closeOnClick: false);
-
-            dialog.AddListButton(
-                $"Completion Bonus Text: {(string.IsNullOrEmpty(tier.CompletionBonusText) ? "(None)" : tier.CompletionBonusText)}",
-                () =>
-                {
-                    DialogManager.Instance.ClearDialog();
-                    DialogManager.Instance.ShowRenameDialog(tier.CompletionBonusText ?? string.Empty, newText =>
-                    {
-                        tier.CompletionBonusText = newText?.Trim();
-                        SaveAndRefresh();
-                    });
-                }, closeOnClick: false);
-
-            var mediaButton = dialog.AddListButton(
-                $"Media File: {tier.MediaFilename?.Name ?? "(None)"}", () =>
-                {
-                    DialogManager.Instance.ClearDialog();
-                    string[] extensions =
-                    {
-                        "png",
-                        "jpg",
-                        "jpeg",
-                        "webm",
-                    };
-
-                    FileExplorerHelper.OpenChooseFile("", extensions, mediaPath =>
-                    {
-                        var mediaSetting = new FileInfoSetting(tier.MediaFilename, _presetRef,
-                            nameof(CareerTier.MediaFilename), mediaFile =>
-                            {
-                                tier.MediaFilename = mediaFile;
-                                SaveAndRefresh();
-                            });
-                        mediaSetting.Value = new FileInfo(mediaPath);
-                    });
-                }, closeOnClick: false);
-
-            dialog.AddListButton("Clear Media File", () =>
-            {
-                tier.MediaFilename = null;
-                mediaButton.Text.text = $"Media File: {tier.MediaFilename?.Name ?? "(None)"}";
-                SaveAndRefresh();
-            }, closeOnClick: false);
+            Save();
+            SettingsMenu.Instance?.RefreshSettingsAndSelectCareerRow(rowIdentity);
         }
 
-        private async void ShowSongPickerDialog(CareerTier tier, string filterQuery = null)
+        public void ClearEditor()
         {
-            if (SongContainer.Count == 0)
-            {
-                ToastManager.ToastError("No Songs in Library!");
-                return;
-            }
-
-            SongEntry selected = null;
-            var pickerDialog =
-                DialogManager.Instance.ShowLibrarySearchDialog("Select a Song to Add",
-                    songEntry => { selected = songEntry; });
-
-            await pickerDialog.WaitUntilClosed();
-
-            if (selected == null)
-            {
-                ToastManager.ToastInformation("No Song Selected");
-                return;
-            }
-
-            ShowIdentifierChoiceDialog(tier, selected);
+            _careerPreview.Show(Array.Empty<CareerPresetPreviewBuilder.Field>());
         }
 
-        private void ShowIdentifierChoiceDialog(CareerTier tier, SongEntry song)
+        private void AddCareerRowNavigation(NavigationGroup navGroup, CareerHeader row, Action showActions)
         {
-            var dialog = DialogManager.Instance.ShowList($"Add: {song.Artist.Original} - {song.Name.Original}");
-
-            if (!string.IsNullOrEmpty(song.YargGuid))
+            row.SetShowDetails(showActions);
+            var navigatable = RuntimeNavigatable.Attach(row.gameObject, _careerPreview.FocusSettings);
+            var selectionVisual = navigatable.SelectionVisual;
+            navigatable.SelectionVisual = selected =>
             {
-                dialog.AddListButton("Song ID (Use for YARG songs)", () =>
+                selectionVisual?.Invoke(selected);
+                if (selected)
                 {
-                    tier.AddSong(CareerSong.FromSongEntry(song, CareerSongIdentifier.SongId));
-                    SaveAndRefresh();
-                });
-            }
-
-            if (song is RBCONEntry rbconEntry && !string.IsNullOrEmpty(rbconEntry.RBSongId))
-            {
-                dialog.AddListButton("Song Short Name (Use for RBCON songs)", () =>
-                {
-                    tier.AddSong(CareerSong.FromSongEntry(song, CareerSongIdentifier.ShortName));
-                    SaveAndRefresh();
-                });
-            }
-
-            dialog.AddListButton("Song Hash", () =>
-            {
-                tier.AddSong(CareerSong.FromSongEntry(song, CareerSongIdentifier.SongHash));
-                SaveAndRefresh();
-            });
-
-            dialog.AddListButton("Song Tuple (Artist, Title, Source, Charter)", () =>
-            {
-                tier.AddSong(CareerSong.FromSongEntry(song, CareerSongIdentifier.SongTuple));
-                SaveAndRefresh();
-            });
+                    row.ShowDetails();
+                }
+            };
+            navGroup.AddNavigatable(navigatable);
         }
 
-        private void ShowEditSongDialog(CareerTier tier, CareerSong song, int songIndex)
+        private sealed class CareerEnumSetting<T> : DropdownSetting<T> where T : Enum
         {
-            var dialog = DialogManager.Instance.ShowList("Edit Career Song");
+            private readonly Func<T, string> _formatter;
 
-            string currentSongName = song.SongEntry != null
+            public CareerEnumSetting(T value, Action<T> onChange, Func<T, string> formatter = null)
+                : base(value, onChange, localizable: false)
+            {
+                _formatter = formatter;
+            }
+
+            public override string ValueToString(T value) =>
+                _formatter?.Invoke(value) ?? FormatEnumValue(value);
+        }
+
+        private DropdownSetting<T> CreateEnumSetting<T>(T value, Action<T> onChange,
+            Func<T, string> formatter = null) where T : Enum
+        {
+            var setting = new CareerEnumSetting<T>(value, newValue =>
+            {
+                onChange(newValue);
+                Save();
+            }, formatter);
+            foreach (T possibleValue in Enum.GetValues(typeof(T)))
+            {
+                setting.Add(possibleValue);
+            }
+            return setting;
+        }
+
+        private static string EditorText(string key) => Localize.Key($"{CAREER_EDITOR_KEY}.{key}");
+
+        private static string FieldText(string key) => Localize.Key($"{CAREER_EDITOR_KEY}.Fields.{key}");
+
+        private static string FormatEnumValue<T>(T value) where T : Enum =>
+            Localize.Key($"{CAREER_EDITOR_KEY}.Enums.{typeof(T).Name}.{value}");
+
+        private static string FormatSessionLength(CareerCompletionMode value) => FormatEnumValue(value);
+
+        private static string FormatTierDetails(CareerTier tier)
+        {
+            string bonus = tier.IsBonus ? EditorText("BonusSummary") : string.Empty;
+            return Localize.KeyFormat(CAREER_EDITOR_KEY + ".TierDetails", bonus, tier.UnlockCriteria,
+                FormatEnumValue(tier.UnlockType), FormatSessionLength(tier.CompletionMode),
+                FormatEnumValue(tier.VenueSize));
+        }
+
+        private static string FormatSongSummary(CareerSong song, int songIndex, out string detailsTitle)
+        {
+            string songName = song.SongEntry != null
                 ? song.SongEntry.Name.Original
                 : (!string.IsNullOrEmpty(song.Description)
                     ? song.Description
-                    : (song.ShortName ?? song.SongTuple?.Title ?? "Unknown"));
-            string currentArtist = song.SongEntry != null
+                    : (song.ShortName ?? song.SongTuple?.Title ?? song.SongId?.ToString() ??
+                        EditorText("UnknownSong")));
+            string artistName = song.SongEntry != null
                 ? song.SongEntry.Artist.Original
-                : (song.SongTuple?.Artist ?? "Unknown");
+                : (song.SongTuple?.Artist ?? EditorText("UnknownArtist"));
 
-            dialog.AddListButton($"Song: {currentArtist} - {currentSongName}", null);
-            dialog.AddListButton($"Current Identifier: {song.Identifier}", null);
-
-            if (!string.IsNullOrEmpty(song.SongEntry?.YargGuid))
+            // Only the active identifier determines whether this row has a
+            // selection. Ignore stale values belonging to other modes.
+            bool hasSelectedIdentifier = song.Identifier switch
             {
-                dialog.AddListButton("Change Identifier to: Song ID (GUID)", () =>
-                {
-                    song.UpdateIdentifier(CareerSongIdentifier.SongId);
-                    SaveAndRefresh();
-                });
-            }
-
-            dialog.AddListButton("Change Identifier to: Song Hash", () =>
-            {
-                song.UpdateIdentifier(CareerSongIdentifier.SongHash);
-                SaveAndRefresh();
-            });
-
-            dialog.AddListButton("Change Identifier to: Song Tuple", () =>
-            {
-                song.UpdateIdentifier(CareerSongIdentifier.SongTuple);
-                SaveAndRefresh();
-            });
-
-            if (song.SongEntry is RBCONEntry rbconEntry && !string.IsNullOrEmpty(rbconEntry.RBSongId))
-            {
-                dialog.AddListButton("Change Identifier to: Short Name", () =>
-                {
-                    song.UpdateIdentifier(CareerSongIdentifier.ShortName);
-                    SaveAndRefresh();
-                });
-            }
-
-            dialog.AddListButton(
-                $"Edit Fallback Description: {(string.IsNullOrEmpty(song.Description) ? "(None)" : song.Description)}",
-                () =>
-                {
-                    DialogManager.Instance.ClearDialog();
-                    DialogManager.Instance.ShowRenameDialog(song.Description ?? string.Empty, newDesc =>
-                    {
-                        song.Description = newDesc?.Trim();
-                        SaveAndRefresh();
-                    });
-                }, closeOnClick: false);
-
-            dialog.AddListButton("Delete Song", () =>
-            {
-                tier.RemoveSongAt(songIndex);
-                SaveAndRefresh();
-            });
+                CareerSongIdentifier.SongId => song.SongId.HasValue && song.SongId.Value != Guid.Empty,
+                CareerSongIdentifier.SongHash => song.SongHash.HasValue,
+                CareerSongIdentifier.ShortName => !string.IsNullOrWhiteSpace(song.ShortName),
+                CareerSongIdentifier.SongTuple => song.SongTuple.HasValue &&
+                    (!string.IsNullOrWhiteSpace(song.SongTuple.Value.Title) ||
+                     !string.IsNullOrWhiteSpace(song.SongTuple.Value.Artist) ||
+                     !string.IsNullOrWhiteSpace(song.SongTuple.Value.Source) ||
+                     !string.IsNullOrWhiteSpace(song.SongTuple.Value.Charter)),
+                _ => false,
+            };
+            bool isClearedSong = song.SongEntry == null && !hasSelectedIdentifier;
+            detailsTitle = isClearedSong ? "..." : songName;
+            return isClearedSong
+                ? Localize.KeyFormat(CAREER_EDITOR_KEY + ".EmptySongSummary", songIndex + 1,
+                    FormatEnumValue(song.Identifier))
+                : Localize.KeyFormat(CAREER_EDITOR_KEY + ".SongSummary", songIndex + 1, artistName,
+                    songName, FormatEnumValue(song.Identifier));
         }
+
+        private void ShowEditTierDialog(CareerTier tier, Action onInputBlur = null)
+        {
+            bool editable = !ReadOnlyFields;
+            bool isFirstTier = _presetRef?.Tiers.Count > 0 && ReferenceEquals(_presetRef.Tiers[0], tier);
+
+            var fields = new List<CareerPresetPreviewBuilder.Field>
+            {
+                new(FieldText("Name"), new StringSetting(tier.Name ?? string.Empty, value =>
+                {
+                    tier.Name = value;
+                    Save();
+                }), editable),
+                new(FieldText("Description"), new StringSetting(tier.Description ?? string.Empty, value =>
+                {
+                    tier.Description = value;
+                    Save();
+                }), editable),
+            };
+
+            fields.AddRange(new CareerPresetPreviewBuilder.Field[]
+            {
+                new(FieldText("UnlockCriteria"), CreateEnumSetting(tier.UnlockType, value => tier.UnlockType = value), editable),
+                new(FieldText("UnlockThreshold"), new IntSetting(tier.UnlockCriteria, min: 0, onChange: value =>
+                {
+                    tier.UnlockCriteria = value;
+                    Save();
+                }), editable, !isFirstTier),
+                new(FieldText("UnlockText"), new StringSetting(tier.CustomUnlockText ?? string.Empty, value =>
+                {
+                    tier.CustomUnlockText = value;
+                    Save();
+                }), editable, !isFirstTier),
+                new(FieldText("IsBonusTier"), new ToggleSetting(tier.IsBonus, value =>
+                {
+                    tier.IsBonus = value;
+                    Save();
+                }), editable),
+                new(FieldText("SessionLength"), CreateEnumSetting(tier.CompletionMode,
+                    value => tier.CompletionMode = value, FormatSessionLength), editable),
+                new(FieldText("VenueSize"), CreateEnumSetting(tier.VenueSize, value => tier.VenueSize = value), editable),
+                new(FieldText("VenueHint"), new StringSetting(tier.VenueHint ?? string.Empty, value =>
+                {
+                    tier.VenueHint = value;
+                    Save();
+                }), editable),
+                new(FieldText("BonusMediaType"), CreateEnumSetting(tier.CompletionBonus, value =>
+                {
+                    tier.CompletionBonus = value;
+                    bool hasBonusMedia = !isFirstTier && value != CompletionBonusType.None;
+                    _careerPreview.SetFieldVisible(FieldText("BonusMediaFile"), hasBonusMedia);
+                    _careerPreview.SetFieldVisible(FieldText("BonusMediaText"), hasBonusMedia);
+                }), editable, !isFirstTier),
+                new(FieldText("BonusMediaFile"), new FileInfoSetting(tier.MediaFilename, _presetRef,
+                    nameof(CareerTier.MediaFilename), value =>
+                    {
+                        tier.MediaFilename = value;
+                        Save();
+                    }), editable, !isFirstTier && tier.CompletionBonus != CompletionBonusType.None),
+                new(FieldText("BonusMediaText"), new StringSetting(tier.CompletionBonusText ?? string.Empty, value =>
+                {
+                    tier.CompletionBonusText = value;
+                    Save();
+                }), editable, !isFirstTier && tier.CompletionBonus != CompletionBonusType.None),
+            });
+
+            _careerPreview.Show(fields, onInputBlur: onInputBlur);
+        }
+
+
+        private void AddEmptySongAndEdit(CareerTier tier)
+        {
+            var song = new CareerSong
+            {
+                Id = Guid.NewGuid(),
+                Identifier = CareerSongIdentifier.SongId,
+                Description = string.Empty,
+            };
+
+            tier.AddSong(song);
+            SaveAndRefresh(song);
+            _careerPreview.FocusFirstDropdownAndOpen();
+        }
+
+        private void AddEmptyTierAndEdit()
+        {
+            var tier = new CareerTier
+            {
+                Id = Guid.NewGuid(),
+                Name = string.Empty,
+                Description = string.Empty,
+                UnlockType = UnlockType.StarCount,
+                UnlockCriteria = 0,
+                VenueSize = VenueSize.NotSpecified,
+                CompletionMode = CareerCompletionMode.SingleSong,
+                Songs = Array.Empty<CareerSong>(),
+            };
+
+            _presetRef.AddTier(tier);
+            SaveAndRefresh(tier);
+            _careerPreview.FocusFirstInput();
+        }
+
+        private void ShowEditSongDialog(CareerSong song, Action onSummaryChanged = null)
+        {
+            if (song.SongId.HasValue || song.SongHash.HasValue || !string.IsNullOrEmpty(song.ShortName) ||
+                song.SongTuple.HasValue)
+            {
+                song.RefreshSongEntry();
+            }
+            if (song.SongEntry != null && song.Identifier == CareerSongIdentifier.SongId &&
+                !HasSongId(song.SongEntry))
+            {
+                song.UpdateIdentifier(CareerSongIdentifier.SongHash, song.SongEntry);
+                Save();
+                onSummaryChanged?.Invoke();
+            }
+            var state = new SongFilterState(song, onSummaryChanged);
+            ShowSongFields(state);
+        }
+
+        private static bool HasSongId(SongEntry song) =>
+            song != null && Guid.TryParse(song.YargGuid, out Guid guid) && guid != Guid.Empty;
+
+        private enum SongFacet
+        {
+            Song,
+            Artist,
+            Source,
+            Charter,
+        }
+
+        /// <summary>
+        /// Tracks which facets the user has deliberately chosen. The displayed values always describe the
+        /// resolved song, while only deliberate choices constrain the option lists. This lets any of the four
+        /// dropdowns be the first filter without the initially displayed song over-constraining the others.
+        /// </summary>
+        private sealed class SongFilterState
+        {
+            public readonly CareerSong CareerSong;
+            public readonly Action SummaryChanged;
+            public readonly HashSet<SongFacet> ActiveFacets = new();
+            public bool LockAllFacets;
+
+            public string Song;
+            public string Artist;
+            public string Source;
+            public string Charter;
+
+            public SongFilterState(CareerSong song, Action summaryChanged)
+            {
+                CareerSong = song;
+                SummaryChanged = summaryChanged;
+                LockAllFacets = song.SongEntry != null;
+                Song = song.SongEntry?.Name.Original ?? song.SongTuple?.Title ?? song.Description ?? string.Empty;
+                Artist = song.SongEntry?.Artist.Original ?? song.SongTuple?.Artist ?? string.Empty;
+                string rawSource = song.SongEntry?.Source.Original ?? song.SongTuple?.Source ?? string.Empty;
+                Source = string.IsNullOrWhiteSpace(rawSource)
+                    ? string.Empty
+                    : SongSources.SourceToGameName(rawSource);
+                Charter = song.SongEntry?.Charter.Original ?? song.SongTuple?.Charter ?? string.Empty;
+            }
+        }
+
+        private void ShowSongFields(SongFilterState state, int? selectedIndex = null)
+        {
+            CareerSong song = state.CareerSong;
+
+            bool editable = !ReadOnlyFields;
+
+            bool songIdAvailable = song.SongEntry == null || HasSongId(song.SongEntry);
+            CareerSongIdentifier displayedIdentifier = song.Identifier == CareerSongIdentifier.ShortName
+                ? CareerSongIdentifier.SongId
+                : song.Identifier;
+            var identifierSetting = new CareerEnumSetting<CareerSongIdentifier>(displayedIdentifier, value =>
+            {
+                song.UpdateIdentifier(value);
+                Save();
+                state.SummaryChanged?.Invoke();
+            });
+
+            if (songIdAvailable)
+            {
+                identifierSetting.Add(CareerSongIdentifier.SongId);
+            }
+            identifierSetting.Add(CareerSongIdentifier.SongHash);
+            identifierSetting.Add(CareerSongIdentifier.SongTuple);
+
+            _careerPreview.Show(new CareerPresetPreviewBuilder.Field[]
+            {
+                new(FieldText("Song"), CreateSongFacetSetting(state, SongFacet.Song), editable),
+                new(FieldText("Artist"), CreateSongFacetSetting(state, SongFacet.Artist), editable),
+                new(FieldText("Source"), CreateSongFacetSetting(state, SongFacet.Source), editable),
+                new(FieldText("Charter"), CreateSongFacetSetting(state, SongFacet.Charter), editable),
+                new(EditorText("Clear"), () => ClearSongFacets(state), MenuData.Colors.CancelButton),
+                new(FieldText("Identifier"), identifierSetting, editable),
+                new(FieldText("FallbackDescription"), new StringSetting(song.Description ?? string.Empty, value =>
+                {
+                    song.Description = value;
+                    Save();
+                }), editable),
+            }, selectedIndex, state.SummaryChanged);
+        }
+
+        private SearchableDropdownSetting<string> CreateSongFacetSetting(SongFilterState state, SongFacet facet)
+        {
+            string currentValue = GetFacetValue(state, facet);
+            var setting = new SearchableDropdownSetting<string>(currentValue,
+                value => SelectSongFacet(state, facet, value), localizable: false);
+
+            // A resolved song, or a facet the user deliberately selected while
+            // resolving one, is immutable until the explicit Clear action.
+            if (state.LockAllFacets || state.ActiveFacets.Contains(facet))
+            {
+                setting.Add(currentValue);
+                return setting;
+            }
+
+            if (string.IsNullOrWhiteSpace(currentValue))
+            {
+                setting.Add(string.Empty);
+            }
+
+            IEnumerable<string> values = SongContainer.Songs
+                .Where(entry => MatchesActiveFacets(entry, state, facet))
+                .Select(entry => GetFacetValue(entry, facet))
+                .Where(value => !string.IsNullOrWhiteSpace(value))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(value => value, StringComparer.OrdinalIgnoreCase);
+
+            foreach (string value in values)
+            {
+                setting.Add(value);
+            }
+
+            // Keep unresolved/custom career entries visible even when their metadata is not in the library.
+            if (!string.IsNullOrWhiteSpace(currentValue) &&
+                !setting.Any(value => string.Equals(value, currentValue, StringComparison.OrdinalIgnoreCase)))
+            {
+                setting.Add(currentValue);
+            }
+
+            return setting;
+        }
+
+        private void SelectSongFacet(SongFilterState state, SongFacet facet, string value)
+        {
+            SetFacetValue(state, facet, value);
+            bool clearingFacet = string.IsNullOrWhiteSpace(value);
+
+            if (clearingFacet)
+            {
+                state.ActiveFacets.Remove(facet);
+            }
+            else
+            {
+                state.ActiveFacets.Add(facet);
+            }
+
+            SongEntry[] matches = SongContainer.Songs
+                .Where(entry => MatchesActiveFacets(entry, state))
+                .OrderBy(entry => entry.Name.Original, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(entry => entry.Artist.Original, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(entry => entry.Source.Original, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(entry => entry.Charter.Original, StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+
+            // A deliberate choice filters the other facets, but must not silently
+            // choose their first value. Fill an unchosen facet only when every
+            // remaining song agrees on its value; otherwise leave it blank so the
+            // user can make the next disambiguating choice.
+            foreach (SongFacet otherFacet in Enum.GetValues(typeof(SongFacet)))
+            {
+                if (state.ActiveFacets.Contains(otherFacet)) continue;
+                if (clearingFacet && otherFacet == facet) continue;
+
+                string[] values = matches
+                    .Select(entry => GetFacetValue(entry, otherFacet))
+                    .Where(candidate => !string.IsNullOrWhiteSpace(candidate))
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .Take(2)
+                    .ToArray();
+
+                SetFacetValue(state, otherFacet, values.Length == 1 ? values[0] : string.Empty);
+            }
+
+            bool allFacetsResolved = Enum.GetValues(typeof(SongFacet))
+                .Cast<SongFacet>()
+                .All(candidate => !string.IsNullOrWhiteSpace(GetFacetValue(state, candidate)));
+
+            if (!allFacetsResolved)
+            {
+                ShowSongFields(state, (int) facet);
+                return;
+            }
+
+            // Multiple library records can share the same four displayed facets.
+            // Prefer the current entry in that case, otherwise use their stable sort.
+            SongEntry selected = state.CareerSong.SongEntry != null &&
+                matches.Contains(state.CareerSong.SongEntry)
+                    ? state.CareerSong.SongEntry
+                    : matches.FirstOrDefault();
+
+            if (selected == null)
+            {
+                ShowSongFields(state, (int) facet);
+                return;
+            }
+
+            state.Song = selected.Name.Original;
+            state.Artist = selected.Artist.Original;
+            state.Source = SongSources.SourceToGameName(selected.Source.Original);
+            state.Charter = selected.Charter.Original;
+
+            CareerSongIdentifier identifier = state.CareerSong.Identifier;
+            if (identifier == CareerSongIdentifier.ShortName &&
+                (selected is not RBCONEntry rbconEntry || string.IsNullOrEmpty(rbconEntry.RBSongId)))
+            {
+                identifier = CareerSongIdentifier.SongId;
+            }
+            if (identifier == CareerSongIdentifier.SongId && !HasSongId(selected))
+            {
+                identifier = CareerSongIdentifier.SongHash;
+            }
+
+            state.CareerSong.UpdateIdentifier(identifier, selected);
+            // Rebuild the career list as well as the editor so the resolved
+            // title/artist replaces the fallback identifier immediately.
+            SaveAndRefresh(state.CareerSong);
+        }
+
+        private void ClearSongFacets(SongFilterState state)
+        {
+            state.Song = string.Empty;
+            state.Artist = string.Empty;
+            state.Source = string.Empty;
+            state.Charter = string.Empty;
+            state.ActiveFacets.Clear();
+            state.LockAllFacets = false;
+
+            state.CareerSong.SongId = null;
+            state.CareerSong.SongHash = null;
+            state.CareerSong.ShortName = null;
+            state.CareerSong.SongTuple = null;
+            state.CareerSong.SongEntry = null;
+
+            SaveAndRefresh(state.CareerSong);
+        }
+
+        private static bool MatchesActiveFacets(SongEntry entry, SongFilterState state,
+            SongFacet? excludedFacet = null)
+        {
+            foreach (SongFacet facet in state.ActiveFacets)
+            {
+                if (facet == excludedFacet)
+                {
+                    continue;
+                }
+
+                if (!string.Equals(GetFacetValue(entry, facet), GetFacetValue(state, facet),
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static string GetFacetValue(SongEntry entry, SongFacet facet)
+        {
+            return facet switch
+            {
+                SongFacet.Song => entry.Name.Original,
+                SongFacet.Artist => entry.Artist.Original,
+                SongFacet.Source => SongSources.SourceToGameName(entry.Source.Original),
+                SongFacet.Charter => entry.Charter.Original,
+                _ => string.Empty,
+            };
+        }
+
+        private static string GetFacetValue(SongFilterState state, SongFacet facet)
+        {
+            return facet switch
+            {
+                SongFacet.Song => state.Song,
+                SongFacet.Artist => state.Artist,
+                SongFacet.Source => state.Source,
+                SongFacet.Charter => state.Charter,
+                _ => string.Empty,
+            };
+        }
+
+        private static void SetFacetValue(SongFilterState state, SongFacet facet, string value)
+        {
+            switch (facet)
+            {
+                case SongFacet.Song: state.Song = value; break;
+                case SongFacet.Artist: state.Artist = value; break;
+                case SongFacet.Source: state.Source = value; break;
+                case SongFacet.Charter: state.Charter = value; break;
+            }
+        }
+
 
         /// <summary>
         /// Spawns a career header into <see cref="container"/>. Caller is responsible for calling Initialize on the returned header.
@@ -552,6 +814,17 @@ namespace YARG.Settings.Metadata
             var go = Object.Instantiate(_careerInfoPrefab, container);
             var header = go.GetComponent<CareerHeader>();
             return header;
+        }
+
+        private CareerHeader SpawnCareerAddRow(Transform container)
+        {
+            if (_careerAddRowPrefab == null)
+            {
+                _careerAddRowPrefab = Addressables.LoadAssetAsync<GameObject>("SettingTab/CareerAddRow")
+                    .WaitForCompletion();
+            }
+
+            return Object.Instantiate(_careerAddRowPrefab, container).GetComponent<CareerHeader>();
         }
 
         /// <summary>
