@@ -12,6 +12,7 @@ namespace YARG.Settings
         private static readonly Color ROW_DARK = new(0f, 0f, 13f / 255f, 1f);
         private static readonly Color ROW_LIGHT = new(1f / 255f, 8f / 255f, 22f / 255f, 1f);
         private static readonly Color HOVER_COLOR = new(0.28f, 0.55f, 0.65f, 0.15f);
+        private static readonly Color SELECTED_COLOR = new(0.035f, 0.3f, 0.42f, 0.9f);
 
         [SerializeField]
         private TextMeshProUGUI _text;
@@ -34,7 +35,10 @@ namespace YARG.Settings
         private Action _onDown;
         private Action _onRemove;
         private TextMarquee _marquee;
+        [SerializeField]
         private GameObject _hoverBackground;
+        [SerializeField]
+        private GameObject _selectedBackground;
         private Action _showDetails;
         public bool IsSongRow { get; private set; }
         public Action MoveUp { get; private set; }
@@ -143,14 +147,9 @@ namespace YARG.Settings
                 background.color = alternate ? ROW_LIGHT : ROW_DARK;
             }
 
-            _hoverBackground = CreateRowOverlay("Hover Background", HOVER_COLOR);
-
-            // RuntimeNavigatable recognizes this name and toggles it as the
-            // row's selection visual. Match the normal settings-row selection
-            // color instead of using the very faint generic fallback overlay.
-            var selectedBackground = CreateRowOverlay("Selected Background",
-                new Color(0.035f, 0.3f, 0.42f, 0.9f));
-            selectedBackground.transform.SetSiblingIndex(1);
+            EnsureRowOverlays();
+            _hoverBackground.SetActive(false);
+            _selectedBackground.SetActive(false);
 
             if (_text != null)
             {
@@ -158,7 +157,23 @@ namespace YARG.Settings
             }
         }
 
-        private GameObject CreateRowOverlay(string objectName, Color color)
+        private void EnsureRowOverlays()
+        {
+            // CareerHeader has multiple prefab families (header, sub-header and
+            // variants). Prefer their authored references, but keep specialized
+            // and older variants safe if they do not define the overlays yet.
+            if (_hoverBackground == null)
+            {
+                _hoverBackground = CreateRowOverlay("Hover Background", HOVER_COLOR, 0);
+            }
+
+            if (_selectedBackground == null)
+            {
+                _selectedBackground = CreateRowOverlay("Selected Background", SELECTED_COLOR, 1);
+            }
+        }
+
+        private GameObject CreateRowOverlay(string objectName, Color color, int siblingIndex)
         {
             var overlay = new GameObject(objectName, typeof(RectTransform), typeof(CanvasRenderer),
                 typeof(Image), typeof(LayoutElement));
@@ -168,7 +183,7 @@ namespace YARG.Settings
             rect.anchorMax = Vector2.one;
             rect.offsetMin = Vector2.zero;
             rect.offsetMax = Vector2.zero;
-            rect.SetSiblingIndex(0);
+            rect.SetSiblingIndex(siblingIndex);
 
             var image = overlay.GetComponent<Image>();
             image.color = color;
@@ -178,9 +193,17 @@ namespace YARG.Settings
             return overlay;
         }
 
-        public void OnPointerEnter(PointerEventData eventData) => _hoverBackground?.SetActive(true);
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            EnsureRowOverlays();
+            _hoverBackground.SetActive(true);
+        }
 
-        public void OnPointerExit(PointerEventData eventData) => _hoverBackground?.SetActive(false);
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            EnsureRowOverlays();
+            _hoverBackground.SetActive(false);
+        }
 
         public void OnPointerDown(PointerEventData eventData) => ShowDetails();
 

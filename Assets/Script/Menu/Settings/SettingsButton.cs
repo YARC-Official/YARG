@@ -52,18 +52,10 @@ namespace YARG.Menu.Settings
                 button.GetComponentInChildren<Button>()
                     .onClick.AddListener(() => InvokeFocusedAction(capture));
 
-                if (backgroundColor.HasValue)
+                if (backgroundColor.HasValue &&
+                    button.TryGetComponent<ColoredButton>(out var coloredButton))
                 {
-                    // RoundButton uses two cyan images for its normal/overlay presentation.
-                    // Recolor the authored cyan layers while leaving selection visuals intact.
-                    foreach (var image in button.GetComponentsInChildren<Image>(true))
-                    {
-                        var color = image.color;
-                        if (color.r < 0.4f && color.g > 0.65f && color.b > 0.75f)
-                        {
-                            image.color = backgroundColor.Value;
-                        }
-                    }
+                    coloredButton.SetBackgroundAndTextColor(backgroundColor.Value);
                 }
 
                 _navGroup.AddNavigatable(button.GetComponentInChildren<NavigatableUnityButton>());
