@@ -63,6 +63,7 @@ namespace YARG.Menu.Settings
         /// sidebar and add controls to its header area.
         /// </summary>
         public Transform PreviewContainerUI => _previewContainerUI;
+        public Scrollbar SettingsScrollbar => _scrollRect.verticalScrollbar;
 
         [Space]
         [SerializeField]
@@ -84,6 +85,7 @@ namespace YARG.Menu.Settings
         private string _pendingTabName;
         private int _previewVersion;
         private readonly List<SettingsSectionView> _sectionViews = new();
+        private CareerHeader _careerActionRow;
 
         public string CurrentSection { get; private set; } = string.Empty;
         private bool IsSearching => SearchQuery.Length > 0;
@@ -91,6 +93,16 @@ namespace YARG.Menu.Settings
         public bool IsNavigationLevelActive(NavigationGroup group)
         {
             var current = NavigationGroup.CurrentNavigationGroup;
+            if (current?.transform.IsChildOf(_previewContainerUI) == true)
+            {
+                // The career editor is one level deeper than the main settings
+                // list. Keep every selected ancestor level highlighted, just as
+                // category -> section -> setting navigation does elsewhere.
+                return group == current ||
+                    group == _settingsNavGroup ||
+                    group == _sectionsNavGroup ||
+                    group == _categorySidebar.NavigationGroup;
+            }
             if (current == _settingsNavGroup || current?.transform.IsChildOf(_settingsContainer) == true)
             {
                 return true;
@@ -374,6 +386,35 @@ namespace YARG.Menu.Settings
             _settingDescription.text = string.Empty;
         }
 
+        public void ShowSettingDetails(string name, string description = "")
+        {
+            _settingName.text = name;
+            _settingDescription.text = description;
+        }
+
+        public void SetPreviewHeaderVisible(bool visible)
+        {
+            var previewHeader = (RectTransform) _previewPanel.transform.Find("Header");
+            previewHeader.gameObject.SetActive(visible);
+
+            if (visible)
+            {
+                var previewRect = (RectTransform) _previewContainerUI;
+                previewRect.anchorMin = Vector2.zero;
+                previewRect.anchorMax = Vector2.one;
+                previewRect.offsetMin = Vector2.zero;
+                previewRect.offsetMax = new Vector2(0f, -125f);
+            }
+            else
+            {
+                var previewRect = (RectTransform) _previewContainerUI;
+                previewRect.anchorMin = Vector2.zero;
+                previewRect.anchorMax = Vector2.one;
+                previewRect.offsetMin = Vector2.zero;
+                previewRect.offsetMax = Vector2.zero;
+            }
+        }
+
         private void Back()
         {
             if (IsSearching)
@@ -396,6 +437,10 @@ namespace YARG.Menu.Settings
             else if (NavigationGroup.CurrentNavigationGroup == _sectionsNavGroup)
             {
                 FocusCategories();
+            }
+            else if (NavigationGroup.CurrentNavigationGroup?.transform.IsChildOf(_previewContainerUI) == true)
+            {
+                FocusNavigation(_settingsNavGroup);
             }
             else
             {
@@ -422,6 +467,18 @@ namespace YARG.Menu.Settings
             if (selected == null || selected.NavigationGroup == null ||
                 !selected.transform.IsChildOf(transform))
             {
+                return;
+            }
+
+            // The career editor is a child/detail navigation level of the selected tier or
+            // song. Keep that parent row selected when mouse focus enters an editor field.
+            // FocusNavigation() normally pops and clears sibling navigation groups, which
+            // erased the parent selection and caused the generic preview header to return.
+            if (selected.transform.IsChildOf(_previewContainerUI) && _careerActionRow != null)
+            {
+                selected.NavigationGroup.PushNavGroupToStack();
+                selected.SetSelected(true, SelectionOrigin.Mouse);
+                SetPreviewHeaderVisible(false);
                 return;
             }
 
@@ -483,6 +540,7 @@ namespace YARG.Menu.Settings
         {
             if (selected == null)
             {
+                SetPreviewHeaderVisible(true);
                 if (!IsSearching)
                 {
                     ClearSettingDetails();
@@ -498,9 +556,42 @@ namespace YARG.Menu.Settings
                 return;
             }
 
+            // Career tier/song controls live in the preview container, but are
+            // presented as a headerless editor. Selecting or editing one must
+            // not restore the normal setting-details header.
+            if (selected.transform.IsChildOf(_previewContainerUI))
+            {
+                SetPreviewHeaderVisible(false);
+                return;
+            }
+
+            SetPreviewHeaderVisible(true);
+
             if (selectionOrigin == SelectionOrigin.Mouse)
             {
                 OnSettingClicked(selected);
+            }
+
+            if (selected.TryGetComponent<CareerHeader>(out var careerRow) &&
+                !string.IsNullOrEmpty(careerRow.DetailsTitle))
+            {
+                SetCareerActionRow(careerRow);
+                SetPreviewHeaderVisible(false);
+                careerRow.ShowDetails();
+                return;
+            }
+
+            if (CurrentTab is PresetsTab presetsTab)
+            {
+                presetsTab.ClearCareerEditor();
+            }
+
+            SetCareerActionRow(null);
+
+            if (careerRow != null && careerRow.IsEditorActionRow)
+            {
+                SetPreviewHeaderVisible(false);
+                return;
             }
 
             if (selected.TryGetComponent<PresetTypeDropdown>(out _))
@@ -611,6 +702,27 @@ namespace YARG.Menu.Settings
             }
         }
 
+        public void RefreshSettingsAndSelectCareerRow(object rowIdentity)
+        {
+            if (!isActiveAndEnabled)
+            {
+                return;
+            }
+
+            UpdateSettings(false);
+
+            for (int i = 0; i < _settingsNavGroup.Navigatables.Count; i++)
+            {
+                var navigatable = _settingsNavGroup.Navigatables[i];
+                if (navigatable.TryGetComponent<CareerHeader>(out var row) &&
+                    ReferenceEquals(row.RowIdentity, rowIdentity))
+                {
+                    _settingsNavGroup.SelectAt(i, SelectionOrigin.Navigation);
+                    return;
+                }
+            }
+        }
+
         private void UpdateSettings(bool resetScroll)
         {
             _settingName.text = IsSearching
@@ -651,12 +763,19 @@ namespace YARG.Menu.Settings
         {
             var hasPreview = !IsSearching && CurrentTab != null && CurrentTab.HasPreview;
             var previewHeader = (RectTransform) _previewPanel.transform.Find("Header");
+            var previewLayout = _previewPanel.GetComponent<LayoutElement>();
+            bool equalCareerSplit = !IsSearching &&
+                CurrentTab is PresetsTab presetsTab && presetsTab.IsCareerPresetSelected;
+            previewHeader.gameObject.SetActive(true);
             _previewPanel.SetActive(true);
-            _previewPanel.GetComponent<LayoutElement>().preferredWidth = CurrentTab is PresetsTab
-                ? 800f
-                : hasPreview
-                    ? 640f
-                    : 440f;
+            previewLayout.preferredWidth = equalCareerSplit
+                ? 0f
+                : CurrentTab is PresetsTab
+                    ? 800f
+                    : hasPreview
+                        ? 640f
+                        : 440f;
+            previewLayout.flexibleWidth = equalCareerSplit ? 1f : 0f;
             _previewContainerUI.gameObject.SetActive(hasPreview);
 
             if (hasPreview)
@@ -745,17 +864,87 @@ namespace YARG.Menu.Settings
             }
         }
 
+        private void SetCareerActionRow(CareerHeader row)
+        {
+            if (_careerActionRow == row)
+            {
+                return;
+            }
+
+            _careerActionRow = row;
+            if (isActiveAndEnabled && Navigator.Instance != null)
+            {
+                Navigator.Instance.PopScheme();
+                PushNavigationScheme();
+            }
+        }
+
         private void PushNavigationScheme()
         {
             var entries = new List<NavigationScheme.Entry>
             {
                 NavigationScheme.Entry.NavigateSelect,
                 new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back),
-                NavigationScheme.Entry.NavigateUp,
-                NavigationScheme.Entry.NavigateDown,
+                new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Up", context =>
+                {
+                    if (_careerActionRow != null &&
+                        Navigator.Instance.IsActionHeld(context.Player, MenuAction.Yellow))
+                    {
+                        Navigator.Instance.CancelHold(context.Player, MenuAction.Yellow);
+                        _careerActionRow.MoveUp?.Invoke();
+                    }
+                    else
+                    {
+                        NavigationGroup.CurrentNavigationGroup.SelectPrevious(context.IsRepeat);
+                    }
+                }),
+                new NavigationScheme.Entry(MenuAction.Down, "Menu.Common.Down", context =>
+                {
+                    if (_careerActionRow != null &&
+                        Navigator.Instance.IsActionHeld(context.Player, MenuAction.Yellow))
+                    {
+                        Navigator.Instance.CancelHold(context.Player, MenuAction.Yellow);
+                        _careerActionRow.MoveDown?.Invoke();
+                    }
+                    else
+                    {
+                        NavigationGroup.CurrentNavigationGroup.SelectNext(context.IsRepeat);
+                    }
+                }),
             };
 
-            _ = Navigator.Instance.PushScheme(new NavigationScheme(entries, true));
+            if (_careerActionRow != null)
+            {
+                string moveKey = _careerActionRow.IsSongRow
+                    ? "Menu.Settings.HoldMoveSong"
+                    : "Menu.Settings.HoldMoveTier";
+                string deleteKey = _careerActionRow.IsSongRow
+                    ? "Menu.Settings.HoldDeleteSong"
+                    : "Menu.Settings.HoldDeleteTier";
+
+                // Register Yellow with the navigation hold tracker so modifier chords can
+                // inspect its physical held state. ShowHeldState gives it a pressed visual
+                // without displaying the timed hold-progress fill or performing an action.
+                entries.Add(new NavigationScheme.Entry(MenuAction.Yellow, moveKey, () => { },
+                    holdSeconds: 1f, onHoldHandler: () => { }, showHeldState: true));
+                entries.Add(new NavigationScheme.Entry(MenuAction.Blue, deleteKey, () => { },
+                    holdSeconds: 1f, onHoldHandler: () => _careerActionRow?.Delete?.Invoke()));
+
+                string directionalMoveKey = _careerActionRow.IsSongRow
+                    ? "Menu.MusicLibrary.MoveInPlaylist"
+                    : "Menu.Settings.MoveTier";
+                entries.Add(new NavigationScheme.Entry(MenuAction.Left, directionalMoveKey,
+                    () => _careerActionRow?.MoveUp?.Invoke()));
+                entries.Add(new NavigationScheme.Entry(MenuAction.Right, directionalMoveKey,
+                    () => _careerActionRow?.MoveDown?.Invoke()));
+            }
+
+            var scheme = new NavigationScheme(entries, true);
+            if (_careerActionRow != null)
+            {
+                scheme.VerticalDirectionsModifier = MenuAction.Yellow;
+            }
+            _ = Navigator.Instance.PushScheme(scheme);
         }
 
         private void OnDisable()
@@ -766,6 +955,7 @@ namespace YARG.Menu.Settings
             }
 
             _previewVersion++;
+            _careerActionRow = null;
             CurrentTab?.OnTabExit();
             CurrentTab = null;
 
