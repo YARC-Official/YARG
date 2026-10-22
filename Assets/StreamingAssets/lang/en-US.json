@@ -612,6 +612,11 @@
         "Settings": {
             "ShowAdvanced": "Show Advanced",
             "HideAdvanced": "Hide Advanced",
+            "HoldMoveTier": "(Hold) Move Tier",
+            "HoldMoveSong": "(Hold) Move Song",
+            "MoveTier": "Move Tier",
+            "HoldDeleteTier": "(Hold) Delete Tier",
+            "HoldDeleteSong": "(Hold) Delete Song",
             "NoFolder": "<i>No Folder</i>",
             "SearchHeader": {
                 "AllCategories": "All Categories",

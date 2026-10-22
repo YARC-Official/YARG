@@ -35,7 +35,8 @@ namespace YARG.Menu.Settings
             }
         }
 
-        public void SetCustomButtons(IEnumerable<CustomButton> buttons, bool localize = false, string localizationKey = "Settings.Button")
+        public void SetCustomButtons(IEnumerable<CustomButton> buttons, bool localize = false,
+            string localizationKey = "Settings.Button", Color? backgroundColor = null)
         {
             foreach (var buttonInfo in buttons)
             {
@@ -50,6 +51,20 @@ namespace YARG.Menu.Settings
                 var capture = buttonInfo.Action;
                 button.GetComponentInChildren<Button>()
                     .onClick.AddListener(() => InvokeFocusedAction(capture));
+
+                if (backgroundColor.HasValue)
+                {
+                    // RoundButton uses two cyan images for its normal/overlay presentation.
+                    // Recolor the authored cyan layers while leaving selection visuals intact.
+                    foreach (var image in button.GetComponentsInChildren<Image>(true))
+                    {
+                        var color = image.color;
+                        if (color.r < 0.4f && color.g > 0.65f && color.b > 0.75f)
+                        {
+                            image.color = backgroundColor.Value;
+                        }
+                    }
+                }
 
                 _navGroup.AddNavigatable(button.GetComponentInChildren<NavigatableUnityButton>());
             }
