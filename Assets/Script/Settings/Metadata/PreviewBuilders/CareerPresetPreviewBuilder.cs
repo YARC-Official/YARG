@@ -59,69 +59,22 @@ namespace YARG.Settings.Metadata
 
         public UniTask BuildPreviewUI(Transform uiContainer)
         {
-            var root = new GameObject("Career Editor", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image),
-                typeof(ScrollRect), typeof(NavigationGroup));
+            var prefab = Addressables.LoadAssetAsync<GameObject>("SettingPreviews/CareerPresetEditor")
+                .WaitForCompletion();
+            var root = Object.Instantiate(prefab, uiContainer);
             var rect = root.GetComponent<RectTransform>();
-            rect.SetParent(uiContainer, false);
             rect.anchorMin = Vector2.zero;
             rect.anchorMax = Vector2.one;
             rect.offsetMin = Vector2.zero;
             rect.offsetMax = Vector2.zero;
-            var background = root.GetComponent<Image>();
-            background.color = new Color(0f, 0f, 13f / 255f, 1f);
-            background.raycastTarget = false;
 
-            var viewportObject = new GameObject("Viewport", typeof(RectTransform), typeof(RectMask2D));
-            var viewportRect = viewportObject.GetComponent<RectTransform>();
-            viewportRect.SetParent(root.transform, false);
-            viewportRect.anchorMin = Vector2.zero;
-            viewportRect.anchorMax = Vector2.one;
-            viewportRect.offsetMin = Vector2.zero;
-            viewportRect.offsetMax = Vector2.zero;
-
-            var contentObject = new GameObject("Settings", typeof(RectTransform), typeof(VerticalLayoutGroup),
-                typeof(ContentSizeFitter));
-            var contentRect = contentObject.GetComponent<RectTransform>();
-            contentRect.SetParent(viewportObject.transform, false);
-            contentRect.anchorMin = new Vector2(0f, 1f);
-            contentRect.anchorMax = Vector2.one;
-            contentRect.pivot = new Vector2(0.5f, 1f);
-            contentRect.offsetMin = Vector2.zero;
-            contentRect.offsetMax = Vector2.zero;
-
-            var layout = contentObject.GetComponent<VerticalLayoutGroup>();
-            layout.childControlWidth = true;
-            // Setting prefabs define their row height on the RectTransform (84px)
-            // rather than through an ILayoutElement preferred height. Controlling
-            // child height would therefore resolve every row to zero and stack
-            // them all at the top.
-            layout.childControlHeight = false;
-            layout.childForceExpandWidth = true;
-            layout.childForceExpandHeight = false;
-            contentObject.GetComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-
+            var contentRect = root.transform.Find("Viewport/Settings") as RectTransform;
             var scrollRect = root.GetComponent<ScrollRect>();
             _scrollRect = scrollRect;
-            scrollRect.viewport = viewportRect;
             scrollRect.content = contentRect;
-            scrollRect.horizontal = false;
-            scrollRect.vertical = true;
-            scrollRect.movementType = ScrollRect.MovementType.Clamped;
-            scrollRect.scrollSensitivity = 10f;
 
-            if (SettingsMenu.Instance?.SettingsScrollbar != null)
-            {
-                var scrollbar = Object.Instantiate(SettingsMenu.Instance.SettingsScrollbar, root.transform);
-                scrollbar.name = "Scrollbar";
-                scrollbar.onValueChanged.RemoveAllListeners();
-                scrollbar.gameObject.SetActive(true);
-                scrollRect.verticalScrollbar = scrollbar;
-                scrollRect.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.AutoHideAndExpandViewport;
-                scrollRect.verticalScrollbarSpacing = -3f;
-            }
-
-            _content = contentObject.transform;
-            _navigationGroup = root.GetComponent<NavigationGroup>();
+            _content = contentRect;
+            _navigationGroup = root.AddComponent<NavigationGroup>();
             root.AddComponent<ScrollViewNavigationUpdater>();
             Render();
             return UniTask.CompletedTask;
@@ -157,6 +110,29 @@ namespace YARG.Settings.Metadata
                         .GetComponentInChildren<TMP_Dropdown>(true);
                     RuntimeNavigatable.OpenDropdownList(dropdown);
                 }
+            }).Forget();
+        }
+
+        public void FocusFirstInput()
+        {
+            FocusSettings();
+            UniTask.NextFrame().ContinueWith(() =>
+            {
+                if (_navigationGroup?.Navigatables.Count <= 0)
+                {
+                    return;
+                }
+
+                var input = _navigationGroup.Navigatables[0]
+                    .GetComponentInChildren<TMP_InputField>(true);
+                if (input == null)
+                {
+                    return;
+                }
+
+                input.Select();
+                input.ActivateInputField();
+                input.MoveTextEnd(false);
             }).Forget();
         }
 
@@ -201,13 +177,6 @@ namespace YARG.Settings.Metadata
                         new SettingsButton.CustomButton(field.Label, field.ButtonAction),
                     }, backgroundColor: field.ButtonColor);
 
-                    if (field.ButtonColor is { } color && color.r > 0.7f && color.g < 0.4f)
-                    {
-                        foreach (var text in buttonObject.GetComponentsInChildren<TMPro.TMP_Text>(true))
-                        {
-                            text.color = Color.white;
-                        }
-                    }
                     _navigationGroup.AddNavigatable(buttonRow);
                     continue;
                 }

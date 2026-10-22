@@ -1868,6 +1868,7 @@ MonoBehaviour:
   _sectionPrefab: {fileID: 6676193465458098378, guid: a2b20cb475f7f73d09c0447112f52891, type: 3}
   _sectionsPanel: {fileID: 5935251663087250623}
   _previewPanel: {fileID: 4272444272040267689}
+  _previewHeader: {fileID: 3290183088993509762}
   _searchBar: {fileID: 578126539714680009}
   _previewContainerWorld: {fileID: 0}
   _previewContainerUI: {fileID: 1125194357925849411}

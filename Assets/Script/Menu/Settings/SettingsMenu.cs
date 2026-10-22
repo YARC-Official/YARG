@@ -47,6 +47,8 @@ namespace YARG.Menu.Settings
         private GameObject _sectionsPanel;
         [SerializeField]
         private GameObject _previewPanel;
+        [SerializeField]
+        private RectTransform _previewHeader;
 
         [Space]
         [SerializeField]
@@ -63,7 +65,6 @@ namespace YARG.Menu.Settings
         /// sidebar and add controls to its header area.
         /// </summary>
         public Transform PreviewContainerUI => _previewContainerUI;
-        public Scrollbar SettingsScrollbar => _scrollRect.verticalScrollbar;
 
         [Space]
         [SerializeField]
@@ -394,25 +395,16 @@ namespace YARG.Menu.Settings
 
         public void SetPreviewHeaderVisible(bool visible)
         {
-            var previewHeader = (RectTransform) _previewPanel.transform.Find("Header");
-            previewHeader.gameObject.SetActive(visible);
+            _previewHeader.gameObject.SetActive(visible);
 
-            if (visible)
-            {
-                var previewRect = (RectTransform) _previewContainerUI;
-                previewRect.anchorMin = Vector2.zero;
-                previewRect.anchorMax = Vector2.one;
-                previewRect.offsetMin = Vector2.zero;
-                previewRect.offsetMax = new Vector2(0f, -125f);
-            }
-            else
-            {
-                var previewRect = (RectTransform) _previewContainerUI;
-                previewRect.anchorMin = Vector2.zero;
-                previewRect.anchorMax = Vector2.one;
-                previewRect.offsetMin = Vector2.zero;
-                previewRect.offsetMax = Vector2.zero;
-            }
+            var previewRect = (RectTransform) _previewContainerUI;
+            previewRect.anchorMin = Vector2.zero;
+            previewRect.anchorMax = Vector2.one;
+            previewRect.offsetMin = Vector2.zero;
+            float headerHeight = visible
+                ? Mathf.Max(LayoutUtility.GetPreferredHeight(_previewHeader), _previewHeader.rect.height)
+                : 0f;
+            previewRect.offsetMax = new Vector2(0f, -headerHeight);
         }
 
         private void Back()
