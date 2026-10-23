@@ -9,6 +9,7 @@ using YARG.Core.Audio;
 using YARG.Core.Logging;
 using YARG.Core.Utility;
 using YARG.Helpers;
+using YARG.Integration;
 using YARG.Menu.Filters;
 using YARG.Settings.Metadata;
 using YARG.Settings.Types;
@@ -297,6 +298,8 @@ namespace YARG.Settings
                 new HeaderMetadata("Other"),
                 nameof(Settings.BandComboTypeSetting),
                 nameof(Settings.DataStreamEnable),
+                new FieldMetadata(nameof(Settings.SetlistServerEnable), visibleWhen: IsSetlistServerSupported),
+                new FieldMetadata(nameof(Settings.SetlistServerPort), visibleWhen: IsSetlistServerSupported),
                 nameof(Settings.SaveScoresWithBots),
                 new HeaderMetadata("Accessibility"),
                 nameof(Settings.FontScaling),
@@ -339,6 +342,8 @@ namespace YARG.Settings
             RuntimePlatform.WindowsEditor;
 
         private static bool IsAsioVisible() => IsWindows() && Settings?.OutputMode.Value == AudioOutputMode.Asio;
+
+        private static bool IsSetlistServerSupported() => SetlistServer.IsSupported;
 
         public static void LoadSettings()
         {

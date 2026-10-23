@@ -1933,6 +1933,14 @@
                 "Name": "Enable UDP data stream",
                 "Description": "Enables sending of UDP information packets over the network, for software such as YALCY."
             },
+            "SetlistServerEnable": {
+                "Name": "Enable setlist socket",
+                "Description": "Lets apps on this computer follow the setlist over a local connection. Other devices can't connect."
+            },
+            "SetlistServerPort": {
+                "Name": "Setlist socket port",
+                "Description": "The port on 127.0.0.1 that setlist apps connect to. Changes apply a second after you stop changing it."
+            },
             "RB3EEnabled": {
                 "Name": "Enable RB3E Stage Kit data stream",
                 "Description": "Enables sending of RB3E style stage kit information packets over the network, for hardware such as StageKitPied."
