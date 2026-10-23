@@ -15,12 +15,20 @@ namespace YARG.Playlists
         public static bool IsPlaying { get; private set; }
 
         /// <summary>
+        /// Whether outside apps may see the setlist: while the music library is the open menu, and through a show.
+        /// Everywhere else YARG is about to clear the setlist before the player sees it again.
+        /// </summary>
+        public static bool IsActive => IsPlaying || _libraryOpen;
+
+        private static bool _libraryOpen;
+
+        /// <summary>
         /// Index into <see cref="ResolveSongs"/> of the song being played. Only meaningful while <see cref="IsPlaying"/>.
         /// </summary>
         public static int Index { get; private set; }
 
         /// <summary>
-        /// Increments on every change to the songs or the playback position. Never persisted.
+        /// Increments on every change to the songs, the playback position or <see cref="IsActive"/>. Never persisted.
         /// </summary>
         public static int Revision { get; private set; }
 
@@ -39,6 +47,25 @@ namespace YARG.Playlists
         /// until a sort rebuilds the playlist from this list and drops them.
         /// </summary>
         public static List<SongEntry> ResolveSongs() => Playlist.ToList();
+
+        /// <summary>
+        /// <see cref="ResolveSongs"/> into a list the caller reuses.
+        /// </summary>
+        public static void ResolveSongsInto(List<SongEntry> songs) => Playlist.ResolveInto(songs);
+
+        /// <summary>
+        /// Called by <c>MenuManager</c> whenever the menu stack changes.
+        /// </summary>
+        public static void SetLibraryOpen(bool open)
+        {
+            if (_libraryOpen == open)
+            {
+                return;
+            }
+
+            _libraryOpen = open;
+            OnChanged();
+        }
 
         /// <summary>
         /// Starts playing from the first song. Returns false, changing nothing, when no song resolves.
