@@ -19,7 +19,7 @@ namespace YARG.Integration
         public const int MAX_SNAPSHOT_BYTES = 64 * 1024;
         public const int MAX_STRING_BYTES = 256;
 
-        private const int SNAPSHOT_HEADER_SIZE = 18;
+        private const int SNAPSHOT_HEADER_SIZE = 22;
         private const int MIN_ENTRY_SIZE = HashWrapper.HASH_SIZE_IN_BYTES + 4 + 3 * 2;
         private const int MAX_ENTRY_SIZE = HashWrapper.HASH_SIZE_IN_BYTES + 4 + 3 * (2 + MAX_STRING_BYTES);
 
@@ -106,15 +106,19 @@ namespace YARG.Integration
             return size;
         }
 
-        public static bool TryReadAck(ReadOnlySpan<byte> payload, out uint revision)
+        /// <summary>
+        /// An Ack echoes the token of the last frame the client read. Tokens are random, so a client can only
+        /// acknowledge a frame it has actually read.
+        /// </summary>
+        public static bool TryReadAck(ReadOnlySpan<byte> payload, out uint token)
         {
             if (payload.Length != 4)
             {
-                revision = 0;
+                token = 0;
                 return false;
             }
 
-            revision = BinaryPrimitives.ReadUInt32LittleEndian(payload);
+            token = BinaryPrimitives.ReadUInt32LittleEndian(payload);
             return true;
         }
 
@@ -122,7 +126,7 @@ namespace YARG.Integration
         /// Encodes a Snapshot frame into <paramref name="buffer"/>, which must hold <see cref="MAX_SNAPSHOT_BYTES"/>.
         /// Entries that don't fit are left out and the truncated flag is set. Returns the frame's size.
         /// </summary>
-        public static int WriteSnapshot(byte[] buffer, SetlistSnapshot snapshot)
+        public static int WriteSnapshot(byte[] buffer, SetlistSnapshot snapshot, uint token)
         {
             var span = buffer.AsSpan(0, MAX_SNAPSHOT_BYTES);
             int offset = FRAME_HEADER_SIZE + SNAPSHOT_HEADER_SIZE;
@@ -164,6 +168,7 @@ namespace YARG.Integration
             BinaryPrimitives.WriteInt32LittleEndian(span[11..], snapshot.ShowInProgress ? snapshot.CurrentIndex : -1);
             BinaryPrimitives.WriteUInt32LittleEndian(span[15..], (uint) snapshot.TotalCount);
             BinaryPrimitives.WriteUInt32LittleEndian(span[19..], (uint) written);
+            BinaryPrimitives.WriteUInt32LittleEndian(span[23..], token);
             return offset;
         }
 

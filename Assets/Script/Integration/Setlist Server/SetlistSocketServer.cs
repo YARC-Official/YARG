@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.Cryptography;
 using System.Threading;
 using YARG.Core.Logging;
 using static YARG.Integration.SetlistProtocol;
@@ -23,6 +24,9 @@ namespace YARG.Integration
         private const int ACCEPTS_PER_SECOND = 4;
         private const int SEND_BUFFER_SIZE   = 256 * 1024;
         private const int WAKE_INTERVAL_MS   = 10;
+
+        // Tokens of the most recent frames sent to a client, which its acks are matched against
+        private const int RECENT_FRAMES = 32;
 
         private static readonly long HandshakeTimeout = Stopwatch.Frequency * 2;
         private static readonly long AckTimeout       = Stopwatch.Frequency * 10;
@@ -51,16 +55,32 @@ namespace YARG.Integration
             public int ReceivedCount;
 
             public uint SentRevision;
-            public bool AwaitingAck;
             public long SentAt;
+
+            // Bytes sent since the server hello, and how far the client has proven it read
+            public long SentBytes;
+            public long AckedBytes;
+            public long SnapshotEnd;
+
+            public readonly uint[] RecentTokens = new uint[RECENT_FRAMES];
+            public readonly long[] RecentEnds   = new long[RECENT_FRAMES];
+            public int RecentNext;
+
+            public bool AwaitingAck => AckedBytes < SnapshotEnd;
         }
 
         public int Port { get; }
+
+        /// <summary>
+        /// Set when the socket thread stopped on an unexpected error, leaving nothing listening.
+        /// </summary>
+        public bool Faulted => _faulted;
 
         private readonly Socket         _listener;
         private readonly Thread         _thread;
         private readonly AutoResetEvent _wake = new(false);
         private volatile bool           _stopping;
+        private volatile bool           _faulted;
 
         private readonly Client[] _clients = new Client[MAX_CLIENTS + MAX_PENDING];
         private readonly ulong    _sessionNonce;
@@ -68,6 +88,11 @@ namespace YARG.Integration
         private readonly byte[]   _snapshotBuffer = new byte[MAX_SNAPSHOT_BYTES];
         private int  _snapshotLength;
         private uint _snapshotRevision;
+        private uint _snapshotToken;
+
+        private readonly RandomNumberGenerator _random      = RandomNumberGenerator.Create();
+        private readonly byte[]                _randomBytes = new byte[256];
+        private int _randomOffset = int.MaxValue;
 
         private long _acceptWindowStart;
         private int  _acceptsInWindow;
@@ -173,7 +198,8 @@ namespace YARG.Integration
 
                     if (TakeLatestSnapshot())
                     {
-                        _snapshotLength = WriteSnapshot(_snapshotBuffer, _reading);
+                        _snapshotToken = NextToken();
+                        _snapshotLength = WriteSnapshot(_snapshotBuffer, _reading, _snapshotToken);
                         _snapshotRevision = _reading.Revision;
                     }
 
@@ -186,10 +212,12 @@ namespace YARG.Integration
             }
             catch (Exception ex)
             {
+                _faulted = true;
                 YargLogger.LogException(ex, "Setlist socket failed");
             }
             finally
             {
+                _listener.Close();
                 foreach (var client in _clients)
                 {
                     if (client.State != ClientState.Free)
@@ -219,27 +247,31 @@ namespace YARG.Integration
                     return;
                 }
 
-                Socket socket;
+                _acceptsInWindow++;
+                Socket socket = null;
                 try
                 {
                     socket = _listener.Accept();
+                    socket.NoDelay = true;
+                    socket.SendBufferSize = SEND_BUFFER_SIZE;
                 }
                 catch (SocketException)
                 {
-                    // The connection was reset before we got to it
+                    // Reset before we got to it; on macOS setting options on a reset socket fails too
+                    socket?.Close();
                     continue;
                 }
-
-                _acceptsInWindow++;
-                socket.NoDelay = true;
-                socket.SendBufferSize = SEND_BUFFER_SIZE;
 
                 client.Socket = socket;
                 client.State = ClientState.Handshake;
                 client.Deadline = now + HandshakeTimeout;
                 client.ReceivedCount = 0;
                 client.SentRevision = 0;
-                client.AwaitingAck = false;
+                client.SentBytes = 0;
+                client.AckedBytes = 0;
+                client.SnapshotEnd = 0;
+                Array.Clear(client.RecentTokens, 0, RECENT_FRAMES);
+                Array.Clear(client.RecentEnds, 0, RECENT_FRAMES);
             }
         }
 
@@ -391,9 +423,9 @@ namespace YARG.Integration
                     break;
                 }
 
-                if (type == FrameType.Ack && TryReadAck(payload, out uint revision) && revision == client.SentRevision)
+                if (type == FrameType.Ack && TryReadAck(payload, out uint token))
                 {
-                    client.AwaitingAck = false;
+                    Acknowledge(client, token);
                 }
 
                 offset += size;
@@ -402,6 +434,22 @@ namespace YARG.Integration
             Buffer.BlockCopy(client.Received, offset, client.Received, 0, client.ReceivedCount - offset);
             client.ReceivedCount -= offset;
             return true;
+        }
+
+        /// <summary>
+        /// Advances how far the client has read to the end of the frame <paramref name="token"/> was sent in. An
+        /// unknown token, one too old or never sent, changes nothing.
+        /// </summary>
+        private static void Acknowledge(Client client, uint token)
+        {
+            for (int i = 0; i < RECENT_FRAMES; i++)
+            {
+                if (client.RecentEnds[i] > 0 && client.RecentTokens[i] == token)
+                {
+                    client.AckedBytes = Math.Max(client.AckedBytes, client.RecentEnds[i]);
+                    return;
+                }
+            }
         }
 
         private bool TakeLatestSnapshot()
@@ -435,19 +483,50 @@ namespace YARG.Integration
                 }
 
                 // Mono's Send doesn't return until every byte is handed to the OS, so a send that doesn't fit would
-                // block this thread for as long as the client stalls. The client has acknowledged everything sent
-                // before, so its send buffer is empty, and a snapshot is well under SEND_BUFFER_SIZE.
-                client.Socket.Send(_snapshotBuffer, 0, _snapshotLength, SocketFlags.None, out var error);
-                if (error != SocketError.Success)
+                // block this thread for as long as the client stalls. The client has proven it read everything sent
+                // before (acks echo a token it can only get by reading), so its send buffer is empty, and a snapshot
+                // is well under SEND_BUFFER_SIZE.
+                if (!Send(client, _snapshotBuffer, _snapshotLength, _snapshotToken))
                 {
                     Drop(client);
                     continue;
                 }
 
                 client.SentRevision = _snapshotRevision;
-                client.AwaitingAck = true;
                 client.SentAt = now;
+                client.SnapshotEnd = client.SentBytes;
             }
+        }
+
+        private static bool Send(Client client, byte[] buffer, int length, uint token)
+        {
+            client.Socket.Send(buffer, 0, length, SocketFlags.None, out var error);
+            if (error != SocketError.Success)
+            {
+                return false;
+            }
+
+            client.SentBytes += length;
+            client.RecentTokens[client.RecentNext] = token;
+            client.RecentEnds[client.RecentNext] = client.SentBytes;
+            client.RecentNext = (client.RecentNext + 1) % RECENT_FRAMES;
+            return true;
+        }
+
+        /// <summary>
+        /// A token a client can't predict without reading the frame that carries it.
+        /// </summary>
+        private uint NextToken()
+        {
+            if (_randomOffset > _randomBytes.Length - 4)
+            {
+                _random.GetBytes(_randomBytes);
+                _randomOffset = 0;
+            }
+
+            uint token = BitConverter.ToUInt32(_randomBytes, _randomOffset);
+            _randomOffset += 4;
+            return token;
         }
 
         private void Drop(Client client)
