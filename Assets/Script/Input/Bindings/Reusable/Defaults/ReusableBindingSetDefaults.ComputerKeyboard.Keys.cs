@@ -229,7 +229,7 @@ namespace YARG.Input.Bindings
                     ReusableBindingSetTemplates.KEYS[ActionStrings.KEYS_FIVE_LANE_OPEN],
                     new List<ReusableSingleButtonBindingConfig>()
                     {
-                        new (ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_BACK_QUOTE), // The left-of-green option for Dedicated Open Lane users
+                        new (ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_BACKQUOTE), // The left-of-green option for Dedicated Open Lane users
                         new (ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_SPACE), // By analogy to the guitar-on-keyboard bindings
                     }
 

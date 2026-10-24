@@ -172,7 +172,7 @@ namespace YARG.Helpers
         public const string COMPUTER_KEYBOARD_MINUS = "minus";
         public const string COMPUTER_KEYBOARD_SEMICOLON = "semicolon";
         public const string COMPUTER_KEYBOARD_QUOTE = "quote";
-        public const string COMPUTER_KEYBOARD_BACK_QUOTE = "backQuote";
+        public const string COMPUTER_KEYBOARD_BACKQUOTE = "backquote";
         public const string COMPUTER_KEYBOARD_LEFT_BRACKET = "leftBracket";
         public const string COMPUTER_KEYBOARD_RIGHT_BRACKET = "rightBracket";
 

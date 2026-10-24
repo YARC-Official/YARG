@@ -43,11 +43,23 @@ namespace YARG.Input.Serialization
 
             foreach (var (gameMode, bindings) in Bindings)
             {
-                converted.ModeMappings[gameMode] = bindings.Deserialize(this, gameMode, Devices, reusableBindingSets, profileName);
+                var deserializedModeMappings = bindings.Deserialize(this, gameMode, Devices, reusableBindingSets, profileName);
+
+                if (deserializedModeMappings.MappingsByControllerFamily.Count > 0)
+                {
+                    converted.ModeMappings[gameMode] = deserializedModeMappings;
+                }
             }
 
             if (MenuBindings is not null)
-                converted.ModeMappings[GameMode.Menu] = MenuBindings.Deserialize(this, GameMode.Menu, Devices, reusableBindingSets, profileName);
+            {
+                var deserializedMenuMappings = MenuBindings.Deserialize(this, GameMode.Menu, Devices, reusableBindingSets, profileName);
+
+                if (deserializedMenuMappings.MappingsByControllerFamily.Count > 0)
+                {
+                    converted.ModeMappings[GameMode.Menu] = deserializedMenuMappings;
+                }
+            }
 
             return converted;
         }

@@ -171,7 +171,7 @@ namespace YARG.Input.Serialization
                 { ActionStrings.KEYS_TOUCH_EFFECTS,     new() { Controls = new() { new(ControlStrings.COMPUTER_KEYBOARD_QUOTE, LayoutStrings.COMPUTER_KEYBOARD) } } },
 
                 { ActionStrings.KEYS_FIVE_LANE_OPEN,    new() { Controls = new() {
-                    new(ControlStrings.COMPUTER_KEYBOARD_BACK_QUOTE,    LayoutStrings.COMPUTER_KEYBOARD),
+                    new(ControlStrings.COMPUTER_KEYBOARD_BACKQUOTE,    LayoutStrings.COMPUTER_KEYBOARD),
                     new(ControlStrings.COMPUTER_KEYBOARD_SPACE,         LayoutStrings.COMPUTER_KEYBOARD),
                 } } },
                 { ActionStrings.KEYS_FIVE_LANE_GREEN,   new() { Controls = new() { new(ControlStrings.COMPUTER_KEYBOARD_DIGIT_1, LayoutStrings.COMPUTER_KEYBOARD) } } },

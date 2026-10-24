@@ -32,10 +32,10 @@ namespace YARG.Input.Serialization
         public SerializedBindings Deserialize()
         {
             var deserialized = new SerializedBindings();
-            foreach (var (id, bind) in Profiles)
+            foreach (var (profileGuid, bindingCollection) in Profiles)
             {
-                var profileName = PlayerContainer.GetProfileById(id)?.Name ?? "Someone";
-                deserialized.Profiles[id] = bind.Deserialize(deserialized.ReusableBindingSets, profileName);
+                var profileName = PlayerContainer.GetProfileById(profileGuid)?.Name ?? "Someone";
+                deserialized.Profiles[profileGuid] = bindingCollection.Deserialize(deserialized.ReusableBindingSets, profileName);
             }
 
             return deserialized;
@@ -69,11 +69,23 @@ namespace YARG.Input.Serialization
 
             foreach (var (gameMode, bindings) in ModeMappings)
             {
-                deserialized.ModeMappings[gameMode] = bindings.Deserialize(this, gameMode, Devices, reusableBindingSets, profileName);
+                var deserializedModeMappings = bindings.Deserialize(this, gameMode, Devices, reusableBindingSets, profileName);
+
+                if (deserializedModeMappings.MappingsByControllerFamily.Count > 0)
+                {
+                    deserialized.ModeMappings[gameMode] = deserializedModeMappings;
+                }
             }
 
             if (MenuMappings is not null)
-                deserialized.ModeMappings[GameMode.Menu] = MenuMappings.Deserialize(this, GameMode.Menu, Devices, reusableBindingSets, profileName);
+            {
+                var deserializedMenuMappings = MenuMappings.Deserialize(this, GameMode.Menu, Devices, reusableBindingSets, profileName);
+
+                if (deserializedMenuMappings.MappingsByControllerFamily.Count > 0)
+                {
+                    deserialized.ModeMappings[GameMode.Menu] = deserializedMenuMappings;
+                }
+            }
 
             return deserialized;
         }

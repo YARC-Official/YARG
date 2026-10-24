@@ -50,6 +50,11 @@ namespace YARG.Input.Serialization
                     return false;
                 }
 
+                if (bindingA.Parameters.Count != bindingB.Parameters.Count)
+                {
+                    return false;
+                }
+
                 foreach (var (parameterKey, parameterA) in bindingA.Parameters)
                 {
                     if (!bindingB.Parameters.TryGetValue(key, out var parameterB))
