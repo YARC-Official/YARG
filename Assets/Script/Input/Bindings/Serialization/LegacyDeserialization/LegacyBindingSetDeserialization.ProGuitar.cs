@@ -23,7 +23,7 @@ namespace YARG.Input.Serialization
                 { ActionStrings.GUITAR_STAR_POWER,  new() { Controls = new() {
                     new(ControlStrings.PLASTICBAND_SELECT, LayoutStrings.PRO_GUITAR),
                     new(ControlStrings.PRO_GUITAR_DIGITAL_PEDAL, LayoutStrings.PRO_GUITAR),
-                    new(ControlStrings.GUITAR_TILT, LayoutStrings.PRO_GUITAR) { Parameters = new() { { "PressPoint", DEFAULT_LEGACY_TILT_PRESS_POINT } } }
+                    new(ControlStrings.GUITAR_TILT, LayoutStrings.PRO_GUITAR),
                 } } },
             }
         };

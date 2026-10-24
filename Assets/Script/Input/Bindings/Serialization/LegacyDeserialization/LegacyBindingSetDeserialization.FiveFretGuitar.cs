@@ -19,14 +19,14 @@ namespace YARG.Input.Serialization
                 { ActionStrings.FIVE_FRET_BLUE,     new() { Controls = new() { new(ControlStrings.GUITAR_5F_BLUE_FRET,    LayoutStrings.FIVE_FRET_GUITAR) } } },
                 { ActionStrings.FIVE_FRET_ORANGE,   new() { Controls = new() { new(ControlStrings.GUITAR_5F_ORANGE_FRET,  LayoutStrings.FIVE_FRET_GUITAR) } } },
 
-                { ActionStrings.GUITAR_STRUM_UP,    new() { Controls = new() { new(ControlStrings.GUITAR_STRUM_UP,   LayoutStrings.FIVE_FRET_GUITAR) } } },
-                { ActionStrings.GUITAR_STRUM_DOWN,  new() { Controls = new() { new(ControlStrings.GUITAR_STRUM_DOWN, LayoutStrings.FIVE_FRET_GUITAR) } } },
+                { ActionStrings.GUITAR_STRUM_UP,    new() { Controls = new() { new(ControlStrings.GAMEPAD_DPAD_UP,   LayoutStrings.FIVE_FRET_GUITAR) } } },
+                { ActionStrings.GUITAR_STRUM_DOWN,  new() { Controls = new() { new(ControlStrings.GAMEPAD_DPAD_DOWN, LayoutStrings.FIVE_FRET_GUITAR) } } },
 
                 { ActionStrings.GUITAR_WHAMMY,      new() { Controls = new() { new(ControlStrings.GUITAR_WHAMMY,     LayoutStrings.FIVE_FRET_GUITAR) } } },
 
                 { ActionStrings.GUITAR_STAR_POWER,  new() { Controls = new() {
                     new(ControlStrings.PLASTICBAND_SELECT, LayoutStrings.FIVE_FRET_GUITAR),
-                    new(ControlStrings.GUITAR_TILT, LayoutStrings.FIVE_FRET_GUITAR) { Parameters = new() { { "PressPoint", DEFAULT_LEGACY_TILT_PRESS_POINT } } },
+                    new(ControlStrings.GUITAR_TILT, LayoutStrings.FIVE_FRET_GUITAR),
                 } } },
             }
         };
@@ -47,14 +47,14 @@ namespace YARG.Input.Serialization
                 { ActionStrings.FIVE_FRET_SOLO_BLUE,     new() { Controls = new() { new(ControlStrings.GUITAR_5F_SOLO_BLUE_FRET,    LayoutStrings.FIVE_FRET_GUITAR) } } },
                 { ActionStrings.FIVE_FRET_SOLO_ORANGE,   new() { Controls = new() { new(ControlStrings.GUITAR_5F_SOLO_ORANGE_FRET,  LayoutStrings.FIVE_FRET_GUITAR) } } },
 
-                { ActionStrings.GUITAR_STRUM_UP,    new() { Controls = new() { new(ControlStrings.GUITAR_STRUM_UP,   LayoutStrings.FIVE_FRET_GUITAR) } } },
-                { ActionStrings.GUITAR_STRUM_DOWN,  new() { Controls = new() { new(ControlStrings.GUITAR_STRUM_DOWN, LayoutStrings.FIVE_FRET_GUITAR) } } },
+                { ActionStrings.GUITAR_STRUM_UP,    new() { Controls = new() { new(ControlStrings.GAMEPAD_DPAD_UP,   LayoutStrings.FIVE_FRET_GUITAR) } } },
+                { ActionStrings.GUITAR_STRUM_DOWN,  new() { Controls = new() { new(ControlStrings.GAMEPAD_DPAD_DOWN, LayoutStrings.FIVE_FRET_GUITAR) } } },
 
                 { ActionStrings.GUITAR_WHAMMY,      new() { Controls = new() { new(ControlStrings.GUITAR_WHAMMY,     LayoutStrings.FIVE_FRET_GUITAR) } } },
 
                 { ActionStrings.GUITAR_STAR_POWER,  new() { Controls = new() {
                     new(ControlStrings.PLASTICBAND_SELECT, LayoutStrings.FIVE_FRET_GUITAR),
-                    new(ControlStrings.GUITAR_TILT, LayoutStrings.FIVE_FRET_GUITAR) { Parameters = new() { { "PressPoint", DEFAULT_LEGACY_TILT_PRESS_POINT } } },
+                    new(ControlStrings.GUITAR_TILT, LayoutStrings.FIVE_FRET_GUITAR),
                 } } },
             }
         };
@@ -75,15 +75,15 @@ namespace YARG.Input.Serialization
                 { ActionStrings.FIVE_FRET_SOLO_BLUE,     new() { Controls = new() { new(ControlStrings.GUITAR_5F_TOUCH_BLUE,    LayoutStrings.FIVE_FRET_GUITAR) } } },
                 { ActionStrings.FIVE_FRET_SOLO_ORANGE,   new() { Controls = new() { new(ControlStrings.GUITAR_5F_TOUCH_ORANGE,  LayoutStrings.FIVE_FRET_GUITAR) } } },
 
-                { ActionStrings.GUITAR_STRUM_UP,    new() { Controls = new() { new(ControlStrings.GUITAR_STRUM_UP,   LayoutStrings.FIVE_FRET_GUITAR) } } },
-                { ActionStrings.GUITAR_STRUM_DOWN,  new() { Controls = new() { new(ControlStrings.GUITAR_STRUM_DOWN, LayoutStrings.FIVE_FRET_GUITAR) } } },
+                { ActionStrings.GUITAR_STRUM_UP,    new() { Controls = new() { new(ControlStrings.GAMEPAD_DPAD_UP,   LayoutStrings.FIVE_FRET_GUITAR) } } },
+                { ActionStrings.GUITAR_STRUM_DOWN,  new() { Controls = new() { new(ControlStrings.GAMEPAD_DPAD_DOWN, LayoutStrings.FIVE_FRET_GUITAR) } } },
 
                 { ActionStrings.GUITAR_WHAMMY,      new() { Controls = new() { new(ControlStrings.GUITAR_WHAMMY,     LayoutStrings.FIVE_FRET_GUITAR) } } },
 
                 { ActionStrings.GUITAR_STAR_POWER,  new() { Controls = new() {
                     new(ControlStrings.PLASTICBAND_SELECT, LayoutStrings.FIVE_FRET_GUITAR),
                     new(ControlStrings.GUITAR_SP_PEDAL, LayoutStrings.FIVE_FRET_GUITAR),
-                    new(ControlStrings.GUITAR_TILT, LayoutStrings.FIVE_FRET_GUITAR) { Parameters = new() { { "PressPoint", DEFAULT_LEGACY_TILT_PRESS_POINT } } },
+                    new(ControlStrings.GUITAR_TILT, LayoutStrings.FIVE_FRET_GUITAR),
                 } } },
             }
         };
@@ -104,8 +104,8 @@ namespace YARG.Input.Serialization
                 { ActionStrings.FIVE_FRET_SOLO_BLUE,     new() { Controls = new() { new(ControlStrings.GUITAR_5F_SOLO_BLUE_FRET,    LayoutStrings.FIVE_FRET_GUITAR) } } },
                 { ActionStrings.FIVE_FRET_SOLO_ORANGE,   new() { Controls = new() { new(ControlStrings.GUITAR_5F_SOLO_ORANGE_FRET,  LayoutStrings.FIVE_FRET_GUITAR) } } },
 
-                { ActionStrings.GUITAR_STRUM_UP,    new() { Controls = new() { new(ControlStrings.GUITAR_STRUM_UP,   LayoutStrings.FIVE_FRET_GUITAR) } } },
-                { ActionStrings.GUITAR_STRUM_DOWN,  new() { Controls = new() { new(ControlStrings.GUITAR_STRUM_DOWN, LayoutStrings.FIVE_FRET_GUITAR) } } },
+                { ActionStrings.GUITAR_STRUM_UP,    new() { Controls = new() { new(ControlStrings.GAMEPAD_DPAD_UP,   LayoutStrings.FIVE_FRET_GUITAR) } } },
+                { ActionStrings.GUITAR_STRUM_DOWN,  new() { Controls = new() { new(ControlStrings.GAMEPAD_DPAD_DOWN, LayoutStrings.FIVE_FRET_GUITAR) } } },
 
                 { ActionStrings.GUITAR_WHAMMY,      new() { Controls = new() { new(ControlStrings.GUITAR_WHAMMY,     LayoutStrings.FIVE_FRET_GUITAR) } } },
 
