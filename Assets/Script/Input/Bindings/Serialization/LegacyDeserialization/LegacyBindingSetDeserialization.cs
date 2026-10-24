@@ -17,6 +17,12 @@ namespace YARG.Input.Serialization
             return candidate is not null && candidate.Bindings.Count is not 0 && !SerializedBindingSetIsOldDefault(candidate);
         }
 
+        public static string IsolateControlName(string controlPath)
+        {
+            var secondSlashIndex = controlPath.IndexOf('/', 1);
+            return controlPath.Substring(secondSlashIndex + 1);
+        }
+
         private static bool SerializedBindingSetIsOldDefault(SerializedReusableBindingSet candidate)
         {
             foreach (var bindingSet in LegacyDefaults.All)

@@ -83,7 +83,8 @@ namespace YARG.Input.Serialization
 
         public SerializedSingleBinding Deserialize()
         {
-            return new(ControlPath, LayoutHelper.LayoutStringToSourceLayout(Device.Layout))
+            var controlName = LegacyBindingSetDeserialization.IsolateControlName(ControlPath);
+            return new(controlName, LayoutHelper.LayoutStringToSourceLayout(Device.Layout))
             {
                 Parameters = Parameters,
             };
