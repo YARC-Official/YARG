@@ -234,11 +234,12 @@ namespace YARG.Input.Bindings
         };
 
 
-
+        public static readonly Guid GUID_GENERAL_MIDI_DRUMS = new("9cf00581-c4cd-4906-9224-e8dde469a3e1");
         public static ReusableBindingSet GeneralMidiDrumkit = MakeHardcodedBindingSet(
             "General MIDI Drums",
             GameMode.EliteDrums,
             ControllerFamily.MidiDevice,
+            GUID_GENERAL_MIDI_DRUMS,
             _generalMidiDrumDefaults
         );
     }

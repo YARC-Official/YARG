@@ -278,10 +278,12 @@ namespace YARG.Input.Bindings
             },
         };
 
+        public static readonly Guid GUID_MIDI_KEYBOARD = new("851e1a72-3ce8-4203-a64e-223f2e7dd4e0");
         public static ReusableBindingSet DefaultMidiKeyboard = MakeHardcodedBindingSet(
             "Default MIDI Keyboard",
             GameMode.ProKeys,
             ControllerFamily.MidiDevice,
+            GUID_MIDI_KEYBOARD,
             _midiKeyboardDefaults
         );
     }

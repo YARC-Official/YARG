@@ -174,17 +174,21 @@ namespace YARG.Input.Bindings
             },
         };
 
+        public static readonly Guid GUID_6F_GUITAR = new("b4c466cd-5370-42a1-9c49-e6ebc570c63e");
         public static ReusableBindingSet DefaultSixFretGuitar = MakeHardcodedBindingSet(
             "Default 6F Guitar",
             GameMode.SixFretGuitar,
             ControllerFamily.SixFretGuitar,
+            GUID_6F_GUITAR,
             _sixFretGuitarDefaults
         );
 
+        public static readonly Guid GUID_6F_GUITAR_MENU = new("fab52dd7-cc26-461b-8a9e-9de10c97eba5");
         public static ReusableBindingSet DefaultSixFretGuitarMenu = MakeHardcodedBindingSet(
             "Default 6F Guitar Menu",
             GameMode.Menu,
             ControllerFamily.SixFretGuitar,
+            GUID_6F_GUITAR_MENU,
             _sixFretGuitarMenuDefaults
         );
     }

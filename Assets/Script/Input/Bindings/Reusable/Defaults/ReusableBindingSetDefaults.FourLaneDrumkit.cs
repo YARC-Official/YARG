@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using YARG.Helpers;
 using YARG.Core;
 using YARG.Menu.ProfileList;
+using System;
 
 namespace YARG.Input.Bindings
 {
@@ -254,24 +255,30 @@ namespace YARG.Input.Bindings
             },
         };
 
+        public static readonly Guid GUID_4L_DRUMKIT = new("f4daaf14-c904-4d22-80a0-85b5b4fb8061");
         public static ReusableBindingSet DefaultFourLaneDrumkit = MakeHardcodedBindingSet(
             "Default 4L Drums",
             GameMode.FourLaneDrums,
             ControllerFamily.FourLaneDrumkit,
+            GUID_4L_DRUMKIT,
             _fourLaneDrumkitDefaults
         );
 
+        public static readonly Guid GUID_4L_DRUMKIT_MENU = new("4ae54bff-2f94-45d6-89fc-03c8dd6e6485");
         public static ReusableBindingSet DefaultFourLaneDrumkitMenu = MakeHardcodedBindingSet(
             "Default 4L Drumkit Menu",
             GameMode.Menu,
             ControllerFamily.FourLaneDrumkit,
+            GUID_4L_DRUMKIT_MENU,
             _fourLaneDrumkitMenuDefaults
         );
 
+        public static readonly Guid GUID_4L_DRUMKIT_MENU_CONTROLLER_ONLY = new("976626c8-135f-4c53-8bf2-3525c631e5da");
         public static ReusableBindingSet FourLaneDrumkitControllerOnlyMenu = MakeHardcodedBindingSet(
             "D-Pad and Face Buttons Only",
             GameMode.Menu,
             ControllerFamily.FourLaneDrumkit,
+            GUID_4L_DRUMKIT_MENU_CONTROLLER_ONLY,
             _fourLaneDrumkitMenuManualOnly
         );
     }

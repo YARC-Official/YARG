@@ -245,10 +245,12 @@ namespace YARG.Input.Bindings
             },
         };
 
+        public static readonly Guid GUID_ALESIS_NITRO = new("6793347b-26d0-484c-aff5-b717c6b2ae04");
         public static ReusableBindingSet AlesisNitroDrumkit = MakeHardcodedBindingSet(
             "Alesis Nitro/Surge",
             GameMode.EliteDrums,
             ControllerFamily.MidiDevice,
+            GUID_ALESIS_NITRO,
             _alesisNitroDefaults
         );
     }

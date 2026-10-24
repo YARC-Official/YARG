@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using YARG.Core;
 using YARG.Helpers;
 using YARG.Menu.ProfileList;
@@ -378,25 +379,30 @@ namespace YARG.Input.Bindings
             },
         };
 
-
+        public static readonly Guid GUID_5F_GUITAR = new("cb50f72b-cfe4-4739-9302-e17b7de4c6e2");
         public static ReusableBindingSet DefaultFiveFretGuitar = MakeHardcodedBindingSet(
             "Default 5F Guitar",
             GameMode.FiveFretGuitar,
             ControllerFamily.FiveFretGuitar,
+            GUID_5F_GUITAR,
             _fiveFretGuitarDefaults
         );
 
+        public static readonly Guid GUID_RIFFMASTER = new("63a52d43-93b8-4583-8844-42c95508c510");
         public static ReusableBindingSet DefaultRiffmasterGuitar = MakeHardcodedBindingSet(
             "Default Riffmaster",
             GameMode.FiveFretGuitar,
             ControllerFamily.FiveFretGuitar,
+            GUID_RIFFMASTER,
             _riffmasterGuitarDefaults
         );
 
+        public static readonly Guid GUID_5F_GUITAR_MENU = new("a924b675-d92b-4601-ada9-6a27386aab1c");
         public static ReusableBindingSet DefaultFiveFretGuitarMenu = MakeHardcodedBindingSet(
             "Default 5F Guitar Menu",
             GameMode.Menu,
             ControllerFamily.FiveFretGuitar,
+            GUID_5F_GUITAR_MENU,
             _fiveFretGuitarMenuDefaults
         );
     }

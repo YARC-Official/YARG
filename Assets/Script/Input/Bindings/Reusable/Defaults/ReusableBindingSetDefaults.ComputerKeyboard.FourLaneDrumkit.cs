@@ -1,4 +1,5 @@
 ﻿using PlasticBand.Devices;
+using System;
 using System.Collections.Generic;
 using YARG.Core;
 using YARG.Helpers;
@@ -73,10 +74,12 @@ namespace YARG.Input.Bindings
             },
         };
 
+        public static readonly Guid GUID_4L_DRUMS_ON_COMPUTER_KEYBOARD = new("251b93eb-b347-4abc-8aa5-27b96b40690f");
         public static ReusableBindingSet DefaultComputerKeyboardFourLaneDrumsGameplay = MakeHardcodedBindingSet(
             "Default 4L Drums on Computer Keyboard",
             GameMode.FourLaneDrums,
             ControllerFamily.ComputerKeyboard,
+            GUID_4L_DRUMS_ON_COMPUTER_KEYBOARD,
             _defaultComputerKeyboardFiveLaneDrumsGameplay
         );
     }

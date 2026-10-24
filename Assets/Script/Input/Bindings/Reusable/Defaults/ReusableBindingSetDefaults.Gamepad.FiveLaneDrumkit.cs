@@ -150,17 +150,21 @@ namespace YARG.Input.Bindings
             },
         };
 
+        public static readonly Guid GUID_GAMEPAD_AS_5L_DRUMKIT = new("65f72a32-9e27-4e8e-a1e1-73d04f28e56a");
         public static ReusableBindingSet DefaultGamepadFiveLaneDrumkitGameplay = MakeHardcodedBindingSet(
             "Default Gamepad as 5L Drumkit",
             GameMode.FiveLaneDrums,
             ControllerFamily.Gamepad,
+            GUID_GAMEPAD_AS_5L_DRUMKIT,
             _defaultGamepadFiveLaneDrumkitGameplay
         );
 
+        public static readonly Guid GUID_GAMEPAD_AS_5L_DRUMKIT_MENU = new("82a22c6f-ab53-4015-a0d6-8653528d777c");
         public static ReusableBindingSet DefaultGamepadFiveLaneDrumkitMenu = MakeHardcodedBindingSet(
             "Default Gamepad as 5L Drumkit Menu",
             GameMode.Menu,
             ControllerFamily.Gamepad,
+            GUID_GAMEPAD_AS_5L_DRUMKIT_MENU,
             _defaultGamepadFiveLaneDrumkitMenu
         );
     }

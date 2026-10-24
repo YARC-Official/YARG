@@ -29,10 +29,12 @@ namespace YARG.Input.Bindings
             },
         };
 
+        public static readonly Guid GUID_VOCALS_WITH_COMPUTER_KEYBOARD = new("137afaa3-c89c-4a89-8cde-515f7bf4e427");
         public static ReusableBindingSet DefaultComputerKeyboardVocalGameplay = MakeHardcodedBindingSet(
             "Default Vocals with Computer Keyboard",
             GameMode.Vocals,
             ControllerFamily.ComputerKeyboard,
+            GUID_VOCALS_WITH_COMPUTER_KEYBOARD,
             _computerKeyboardVocalDefaults
         );
     }

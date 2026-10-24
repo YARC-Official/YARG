@@ -169,17 +169,21 @@ namespace YARG.Input.Bindings
             },
         };
 
+        public static readonly Guid GUID_GAMEPAD_AS_5F_GUITAR = new("95bacc56-60f7-4d6f-826a-726b026847d5");
         public static ReusableBindingSet DefaultGamepadFiveFretGuitarGameplay = MakeHardcodedBindingSet(
             "Default Gamepad as 5F Guitar",
             GameMode.FiveLaneDrums,
             ControllerFamily.Gamepad,
+            GUID_GAMEPAD_AS_5F_GUITAR,
             _gamepadFiveFretGuitarGameplay
         );
 
+        public static readonly Guid GUID_GAMEPAD_AS_5F_GUITAR_MENU = new("a1384e03-b351-48f2-bc6f-6c55db5a82b2");
         public static ReusableBindingSet DefaultGamepadFiveFretGuitarMenu = MakeHardcodedBindingSet(
             "Default Gamepad as 5F Guitar Menu",
             GameMode.Menu,
             ControllerFamily.Gamepad,
+            GUID_GAMEPAD_AS_5F_GUITAR_MENU,
             _gamepadFiveFretGuitarMenu
         );
     }

@@ -11,10 +11,13 @@ namespace YARG.Input.Bindings
 {
     public static partial class ReusableBindingSetDefaults
     {
+        public static readonly Guid GUID_NONE = Guid.Empty;
+
         private static ReusableBindingSet MakeHardcodedBindingSet(
             string name,
             GameMode mode,
             ControllerFamily family,
+            Guid guid,
             Dictionary<string, ReusableControlBinding> bindings
         )
         {
@@ -22,6 +25,7 @@ namespace YARG.Input.Bindings
                 name,
                 mode,
                 family,
+                guid,
                 true
             );
 

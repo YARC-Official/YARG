@@ -2,6 +2,7 @@
 using YARG.Helpers;
 using YARG.Core;
 using YARG.Menu.ProfileList;
+using System;
 
 namespace YARG.Input.Bindings
 {
@@ -9,7 +10,6 @@ namespace YARG.Input.Bindings
     {
         private static Dictionary<string, ReusableControlBinding> _defaultComputerKeyboardFiveFretGuitarGameplay = new()
         {
-
             {
                 ActionStrings.FIVE_FRET_GREEN,
                 new ReusableButtonBinding(
@@ -120,10 +120,13 @@ namespace YARG.Input.Bindings
             },
         };
 
+
+        public static readonly Guid GUID_5F_GUITAR_ON_COMPUTER_KEYBOARD = new("3bb8bff6-580f-449d-9355-d1235e508be4");
         public static ReusableBindingSet DefaultComputerKeyboardFiveFretGuitarGameplay = MakeHardcodedBindingSet(
             "Default 5F Guitar on Computer Keyboard",
             GameMode.FiveFretGuitar,
             ControllerFamily.ComputerKeyboard,
+            GUID_5F_GUITAR_ON_COMPUTER_KEYBOARD,
             _defaultComputerKeyboardFiveFretGuitarGameplay
         );
     }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using YARG.Core;
 using YARG.Helpers;
 using YARG.Menu.ProfileList;
@@ -215,24 +216,30 @@ namespace YARG.Input.Bindings
             },
         };
 
+        public static readonly Guid GUID_GAMEPAD_MENU = new("16162888-ccd1-4bd2-8ca0-0255d3477984");
         public static ReusableBindingSet DefaultGamepadMenu = MakeHardcodedBindingSet(
             "Default Gamepad Menu",
             GameMode.Menu,
             ControllerFamily.Gamepad,
+            GUID_GAMEPAD_MENU,
             _gamepadMenuDefaults
         );
 
+        public static readonly Guid GUID_SWITCH_GAMEPAD_MENU = new("acc65f7a-fe6f-4ab6-958b-143b706dad25");
         public static ReusableBindingSet DefaultSwitchGamepadMenu = MakeHardcodedBindingSet(
             "Default Switch Gamepad Menu",
             GameMode.Menu,
             ControllerFamily.Gamepad,
+            GUID_SWITCH_GAMEPAD_MENU,
             _switchGamepadMenuDefaults
         );
 
+        public static readonly Guid GUID_VOCALS_WITH_GAMEPAD = new("0ac771de-8e77-4895-8f34-00a874f49a47");
         public static ReusableBindingSet DefaultGamepadVocalGameplay = MakeHardcodedBindingSet(
             "Default Vocals with Gamepad",
             GameMode.Vocals,
             ControllerFamily.Gamepad,
+            GUID_VOCALS_WITH_GAMEPAD,
             _gamepadVocalDefaults
         );
     }

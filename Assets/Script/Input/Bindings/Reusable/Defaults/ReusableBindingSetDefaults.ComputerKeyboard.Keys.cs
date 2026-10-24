@@ -1,4 +1,5 @@
 ﻿using PlasticBand.Devices;
+using System;
 using System.Collections.Generic;
 using UnityEngine.InputSystem;
 using YARG.Core;
@@ -287,10 +288,12 @@ namespace YARG.Input.Bindings
             },
         };
 
+        public static readonly Guid GUID_KEYS_ON_COMPUTER_KEYBOARD = new("2122ac77-0b1f-4302-9ef5-34243ec2208c");
         public static ReusableBindingSet DefaultComputerKeyboardKeysGameplay = MakeHardcodedBindingSet(
             "Default Keys on Computer Keyboard",
             GameMode.ProKeys,
             ControllerFamily.ComputerKeyboard,
+            GUID_KEYS_ON_COMPUTER_KEYBOARD,
             _computerKeyboardKeysGameplayDefaults
         );
     }

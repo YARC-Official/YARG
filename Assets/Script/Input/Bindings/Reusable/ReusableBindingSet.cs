@@ -30,16 +30,16 @@ namespace YARG.Input.Bindings
             Changed?.Invoke(this);
         }
 
-        public ReusableBindingSet(string name, GameMode mode, ControllerFamily controllerFamily, bool isHardcoded = false) {
+        public ReusableBindingSet(string name, GameMode mode, ControllerFamily controllerFamily, Guid guid, bool isHardcoded) {
             Name = name;
             Mode = mode;
             ControllerFamily = controllerFamily;
-            Guid = isHardcoded ? Guid.Empty : Guid.NewGuid();
+            Guid = guid;
             IsHardcoded = isHardcoded;
         }
 
         // For making a copy
-        public ReusableBindingSet(ReusableBindingSet original) : this($"Copy of {original.Name}", original.Mode, original.ControllerFamily, isHardcoded: false)
+        public ReusableBindingSet(ReusableBindingSet original) : this($"Copy of {original.Name}", original.Mode, original.ControllerFamily, Guid.NewGuid(), false)
         {
             foreach (var (key, binding) in original.Bindings)
             {

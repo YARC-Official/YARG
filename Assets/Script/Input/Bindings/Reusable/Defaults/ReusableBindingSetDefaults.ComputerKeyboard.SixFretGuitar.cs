@@ -93,10 +93,12 @@ namespace YARG.Input.Bindings
             },
         };
 
+        public static readonly Guid GUID_6F_ON_COMPUTER_KEYBOARD = new("b100bbb0-fa1c-4375-8caa-2986fdd26354");
         public static ReusableBindingSet DefaultComputerKeyboardSixFretGuitarGameplay = MakeHardcodedBindingSet(
             "Default 6F Guitar on Computer Keyboard",
             GameMode.SixFretGuitar,
             ControllerFamily.ComputerKeyboard,
+            GUID_6F_ON_COMPUTER_KEYBOARD,
             _defaultComputerKeyboardSixFretGuitarGameplay
         );
     }

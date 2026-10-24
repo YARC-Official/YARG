@@ -176,17 +176,21 @@ namespace YARG.Input.Bindings
             },
         };
 
+        public static readonly Guid GUID_GAMEPAD_AS_4L_DRUMKIT = new("dcbc2bf5-99d9-4ea2-ba19-fd90621cb349");
         public static ReusableBindingSet DefaultGamepadFourLaneDrumkitGameplay = MakeHardcodedBindingSet(
             "Default Gamepad as 4L Drumkit",
             GameMode.FourLaneDrums,
             ControllerFamily.Gamepad,
+            GUID_GAMEPAD_AS_4L_DRUMKIT,
             _gamepadFourLaneDrumkitGameplay
         );
 
+        public static readonly Guid GUID_GAMEPAD_AS_4L_DRUMKIT_MENU = new("88a2f7f5-a6b0-45cf-812f-0b0cad9fba46");
         public static ReusableBindingSet DefaultGamepadFourLaneDrumkitMenu = MakeHardcodedBindingSet(
             "Default Gamepad as 4L Drumkit Menu",
             GameMode.Menu,
             ControllerFamily.Gamepad,
+            GUID_GAMEPAD_AS_4L_DRUMKIT_MENU,
             _gamepadFourLaneDrumkitMenu
         );
     }
