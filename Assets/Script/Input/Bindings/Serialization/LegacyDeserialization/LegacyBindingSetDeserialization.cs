@@ -68,6 +68,11 @@ namespace YARG.Input.Serialization
                     }
                 }
 
+                if (bindingA.Controls.Count != bindingB.Controls.Count)
+                {
+                    return false;
+                }
+
                 foreach (var singleA in bindingA.Controls)
                 {
                     var singleB = bindingB.Controls.FirstOrDefault(b => singleA.ControlName == b.ControlName);
