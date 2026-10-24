@@ -8,7 +8,7 @@ namespace YARG.Input.Bindings
 {
     public static partial class ReusableBindingSetDefaults
     {
-        private static Dictionary<string, ReusableControlBinding> _defaultFiveFretGuitarOnProGuitar = new()
+        private static readonly Dictionary<string, ReusableControlBinding> _defaultFiveFretGuitarOnProGuitar = new()
         {
             {
                 ActionStrings.FIVE_FRET_GREEN,
@@ -110,7 +110,7 @@ namespace YARG.Input.Bindings
             },
         };
 
-        private static Dictionary<string, ReusableControlBinding> _proGuitarMenuDefaults = new()
+        private static readonly Dictionary<string, ReusableControlBinding> _proGuitarMenuDefaults = new()
         {
             {
                 ActionStrings.MENU_START,
@@ -214,7 +214,7 @@ namespace YARG.Input.Bindings
         };
 
         public static readonly Guid GUID_5F_GUITAR_ON_PRO_GUITAR = new("00938199-778a-4ba6-ae41-6b49d1d935dd");
-        public static ReusableBindingSet DefaultFiveFretGuitarOnProGuitar = MakeHardcodedBindingSet(
+        public static readonly ReusableBindingSet DefaultFiveFretGuitarOnProGuitar = MakeHardcodedBindingSet(
             "Default 5F Guitar on Pro Guitar",
             GameMode.FiveFretGuitar,
             ControllerFamily.ProGuitar,
@@ -223,7 +223,7 @@ namespace YARG.Input.Bindings
         );
 
         private static Guid GUID_PRO_GUITAR_MENU = new("affb53a8-8f5c-4a82-bd58-2b9f6bde0347");
-        public static ReusableBindingSet DefaultProGuitarMenu = MakeHardcodedBindingSet(
+        public static readonly ReusableBindingSet DefaultProGuitarMenu = MakeHardcodedBindingSet(
             "Default Pro Guitar Menu",
             GameMode.Menu,
             ControllerFamily.ProGuitar,

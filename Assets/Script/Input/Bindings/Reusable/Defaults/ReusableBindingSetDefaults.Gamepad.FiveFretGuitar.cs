@@ -10,7 +10,7 @@ namespace YARG.Input.Bindings
 {
     public static partial class ReusableBindingSetDefaults
     {
-        private static Dictionary<string, ReusableControlBinding> _gamepadFiveFretGuitarGameplay = new()
+        private static readonly Dictionary<string, ReusableControlBinding> _gamepadFiveFretGuitarGameplay = new()
         {
             {
                 ActionStrings.FIVE_FRET_GREEN,
@@ -86,7 +86,7 @@ namespace YARG.Input.Bindings
             },
         };
 
-        private static Dictionary<string, ReusableControlBinding> _gamepadFiveFretGuitarMenu = new()
+        private static readonly Dictionary<string, ReusableControlBinding> _gamepadFiveFretGuitarMenu = new()
         {
             {
                 ActionStrings.MENU_START,
@@ -170,7 +170,7 @@ namespace YARG.Input.Bindings
         };
 
         public static readonly Guid GUID_GAMEPAD_AS_5F_GUITAR = new("95bacc56-60f7-4d6f-826a-726b026847d5");
-        public static ReusableBindingSet DefaultGamepadFiveFretGuitarGameplay = MakeHardcodedBindingSet(
+        public static readonly ReusableBindingSet DefaultGamepadFiveFretGuitarGameplay = MakeHardcodedBindingSet(
             "Default Gamepad as 5F Guitar",
             GameMode.FiveLaneDrums,
             ControllerFamily.Gamepad,
@@ -179,7 +179,7 @@ namespace YARG.Input.Bindings
         );
 
         public static readonly Guid GUID_GAMEPAD_AS_5F_GUITAR_MENU = new("a1384e03-b351-48f2-bc6f-6c55db5a82b2");
-        public static ReusableBindingSet DefaultGamepadFiveFretGuitarMenu = MakeHardcodedBindingSet(
+        public static readonly ReusableBindingSet DefaultGamepadFiveFretGuitarMenu = MakeHardcodedBindingSet(
             "Default Gamepad as 5F Guitar Menu",
             GameMode.Menu,
             ControllerFamily.Gamepad,

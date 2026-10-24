@@ -10,7 +10,7 @@ namespace YARG.Input.Bindings
 {
     public static partial class ReusableBindingSetDefaults
     {
-        private static Dictionary<string, ReusableControlBinding> _defaultComputerKeyboardSixFretGuitarGameplay = new()
+        private static readonly Dictionary<string, ReusableControlBinding> _defaultComputerKeyboardSixFretGuitarGameplay = new()
         {
             {
                 ActionStrings.SIX_FRET_BLACK_1,
@@ -94,7 +94,7 @@ namespace YARG.Input.Bindings
         };
 
         public static readonly Guid GUID_6F_ON_COMPUTER_KEYBOARD = new("b100bbb0-fa1c-4375-8caa-2986fdd26354");
-        public static ReusableBindingSet DefaultComputerKeyboardSixFretGuitarGameplay = MakeHardcodedBindingSet(
+        public static readonly ReusableBindingSet DefaultComputerKeyboardSixFretGuitarGameplay = MakeHardcodedBindingSet(
             "Default 6F Guitar on Computer Keyboard",
             GameMode.SixFretGuitar,
             ControllerFamily.ComputerKeyboard,

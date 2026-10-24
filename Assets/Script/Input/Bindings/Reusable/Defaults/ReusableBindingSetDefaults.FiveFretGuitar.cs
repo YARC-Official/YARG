@@ -11,7 +11,7 @@ namespace YARG.Input.Bindings
         private const float DEFAULT_TILT_PRESS_POINT = 1f;
         private const float DEFAULT_RIFFMASTER_TILT_PRESS_POINT = 0.7f;
 
-        private static Dictionary<string, ReusableControlBinding> _fiveFretGuitarDefaults = new()
+        private static readonly Dictionary<string, ReusableControlBinding> _fiveFretGuitarDefaults = new()
         {
             {
                 ActionStrings.FIVE_FRET_GREEN,
@@ -138,7 +138,7 @@ namespace YARG.Input.Bindings
 
         // This differs from the regular default only in its tilt PressPoint calibration parameter
         // TODO: Single-source the shared configurations between these two so they aren't giant copy-pastes of each other
-        private static Dictionary<string, ReusableControlBinding> _riffmasterGuitarDefaults = new()
+        private static readonly Dictionary<string, ReusableControlBinding> _riffmasterGuitarDefaults = new()
                 {
             {
                 ActionStrings.FIVE_FRET_GREEN,
@@ -263,7 +263,7 @@ namespace YARG.Input.Bindings
             },
         };
 
-        private static Dictionary<string, ReusableControlBinding> _fiveFretGuitarMenuDefaults = new()
+        private static readonly Dictionary<string, ReusableControlBinding> _fiveFretGuitarMenuDefaults = new()
         {
             {
                 ActionStrings.MENU_START,
@@ -380,7 +380,7 @@ namespace YARG.Input.Bindings
         };
 
         public static readonly Guid GUID_5F_GUITAR = new("cb50f72b-cfe4-4739-9302-e17b7de4c6e2");
-        public static ReusableBindingSet DefaultFiveFretGuitar = MakeHardcodedBindingSet(
+        public static readonly ReusableBindingSet DefaultFiveFretGuitar = MakeHardcodedBindingSet(
             "Default 5F Guitar",
             GameMode.FiveFretGuitar,
             ControllerFamily.FiveFretGuitar,
@@ -389,7 +389,7 @@ namespace YARG.Input.Bindings
         );
 
         public static readonly Guid GUID_RIFFMASTER = new("63a52d43-93b8-4583-8844-42c95508c510");
-        public static ReusableBindingSet DefaultRiffmasterGuitar = MakeHardcodedBindingSet(
+        public static readonly ReusableBindingSet DefaultRiffmasterGuitar = MakeHardcodedBindingSet(
             "Default Riffmaster",
             GameMode.FiveFretGuitar,
             ControllerFamily.FiveFretGuitar,
@@ -398,7 +398,7 @@ namespace YARG.Input.Bindings
         );
 
         public static readonly Guid GUID_5F_GUITAR_MENU = new("a924b675-d92b-4601-ada9-6a27386aab1c");
-        public static ReusableBindingSet DefaultFiveFretGuitarMenu = MakeHardcodedBindingSet(
+        public static readonly ReusableBindingSet DefaultFiveFretGuitarMenu = MakeHardcodedBindingSet(
             "Default 5F Guitar Menu",
             GameMode.Menu,
             ControllerFamily.FiveFretGuitar,

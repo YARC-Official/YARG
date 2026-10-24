@@ -9,7 +9,7 @@ namespace YARG.Input.Bindings
 {
     public static partial class ReusableBindingSetDefaults
     {
-        private static Dictionary<string, ReusableControlBinding> _defaultComputerKeyboardFiveLaneDrumsGameplay = new()
+        private static readonly Dictionary<string, ReusableControlBinding> _defaultComputerKeyboardFiveLaneDrumsGameplay = new()
         {
             {
                 ActionStrings.DRUMS_KICK,
@@ -75,7 +75,7 @@ namespace YARG.Input.Bindings
         };
 
         public static readonly Guid GUID_4L_DRUMS_ON_COMPUTER_KEYBOARD = new("251b93eb-b347-4abc-8aa5-27b96b40690f");
-        public static ReusableBindingSet DefaultComputerKeyboardFourLaneDrumsGameplay = MakeHardcodedBindingSet(
+        public static readonly ReusableBindingSet DefaultComputerKeyboardFourLaneDrumsGameplay = MakeHardcodedBindingSet(
             "Default 4L Drums on Computer Keyboard",
             GameMode.FourLaneDrums,
             ControllerFamily.ComputerKeyboard,

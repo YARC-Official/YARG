@@ -10,7 +10,7 @@ namespace YARG.Input.Bindings
 {
     public static partial class ReusableBindingSetDefaults
     {
-        private static Dictionary<string, ReusableControlBinding> _computerKeyboardKeysGameplayDefaults = new()
+        private static readonly Dictionary<string, ReusableControlBinding> _computerKeyboardKeysGameplayDefaults = new()
         {
             {
                 ActionStrings.KEYS_PRO_KEY_1,
@@ -289,7 +289,7 @@ namespace YARG.Input.Bindings
         };
 
         public static readonly Guid GUID_KEYS_ON_COMPUTER_KEYBOARD = new("2122ac77-0b1f-4302-9ef5-34243ec2208c");
-        public static ReusableBindingSet DefaultComputerKeyboardKeysGameplay = MakeHardcodedBindingSet(
+        public static readonly ReusableBindingSet DefaultComputerKeyboardKeysGameplay = MakeHardcodedBindingSet(
             "Default Keys on Computer Keyboard",
             GameMode.ProKeys,
             ControllerFamily.ComputerKeyboard,

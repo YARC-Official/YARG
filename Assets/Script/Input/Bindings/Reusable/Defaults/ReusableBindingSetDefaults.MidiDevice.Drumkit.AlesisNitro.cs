@@ -64,7 +64,7 @@ namespace YARG.Input.Bindings
         };
 
 
-        private static Dictionary<string, ReusableControlBinding> _alesisNitroDefaults = new()
+        private static readonly Dictionary<string, ReusableControlBinding> _alesisNitroDefaults = new()
         {
             {
                 ActionStrings.DRUMS_KICK,
@@ -246,7 +246,7 @@ namespace YARG.Input.Bindings
         };
 
         public static readonly Guid GUID_ALESIS_NITRO = new("6793347b-26d0-484c-aff5-b717c6b2ae04");
-        public static ReusableBindingSet AlesisNitroDrumkit = MakeHardcodedBindingSet(
+        public static readonly ReusableBindingSet AlesisNitroDrumkit = MakeHardcodedBindingSet(
             "Alesis Nitro/Surge",
             GameMode.EliteDrums,
             ControllerFamily.MidiDevice,

@@ -11,7 +11,7 @@ namespace YARG.Input.Bindings
 {
     public static partial class ReusableBindingSetDefaults
     {
-        private static Dictionary<string, ReusableControlBinding> _defaultGamepadFiveLaneDrumkitGameplay = new()
+        private static readonly Dictionary<string, ReusableControlBinding> _defaultGamepadFiveLaneDrumkitGameplay = new()
         {
             {
                 ActionStrings.DRUMS_KICK,
@@ -64,7 +64,7 @@ namespace YARG.Input.Bindings
             },
         };
 
-        private static Dictionary<string, ReusableControlBinding> _defaultGamepadFiveLaneDrumkitMenu = new()
+        private static readonly Dictionary<string, ReusableControlBinding> _defaultGamepadFiveLaneDrumkitMenu = new()
         {
             {
                 ActionStrings.MENU_START,
@@ -151,7 +151,7 @@ namespace YARG.Input.Bindings
         };
 
         public static readonly Guid GUID_GAMEPAD_AS_5L_DRUMKIT = new("65f72a32-9e27-4e8e-a1e1-73d04f28e56a");
-        public static ReusableBindingSet DefaultGamepadFiveLaneDrumkitGameplay = MakeHardcodedBindingSet(
+        public static readonly ReusableBindingSet DefaultGamepadFiveLaneDrumkitGameplay = MakeHardcodedBindingSet(
             "Default Gamepad as 5L Drumkit",
             GameMode.FiveLaneDrums,
             ControllerFamily.Gamepad,
@@ -160,7 +160,7 @@ namespace YARG.Input.Bindings
         );
 
         public static readonly Guid GUID_GAMEPAD_AS_5L_DRUMKIT_MENU = new("82a22c6f-ab53-4015-a0d6-8653528d777c");
-        public static ReusableBindingSet DefaultGamepadFiveLaneDrumkitMenu = MakeHardcodedBindingSet(
+        public static readonly ReusableBindingSet DefaultGamepadFiveLaneDrumkitMenu = MakeHardcodedBindingSet(
             "Default Gamepad as 5L Drumkit Menu",
             GameMode.Menu,
             ControllerFamily.Gamepad,

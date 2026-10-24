@@ -48,7 +48,7 @@ namespace YARG.Input.Bindings
         }
 
 
-        private static Dictionary<string, ReusableControlBinding> _midiKeyboardDefaults = new()
+        private static readonly Dictionary<string, ReusableControlBinding> _midiKeyboardDefaults = new()
         {
             {
                 ActionStrings.KEYS_PRO_KEY_1,
@@ -279,7 +279,7 @@ namespace YARG.Input.Bindings
         };
 
         public static readonly Guid GUID_MIDI_KEYBOARD = new("851e1a72-3ce8-4203-a64e-223f2e7dd4e0");
-        public static ReusableBindingSet DefaultMidiKeyboard = MakeHardcodedBindingSet(
+        public static readonly ReusableBindingSet DefaultMidiKeyboard = MakeHardcodedBindingSet(
             "Default MIDI Keyboard",
             GameMode.ProKeys,
             ControllerFamily.MidiDevice,

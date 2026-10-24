@@ -8,7 +8,7 @@ namespace YARG.Input.Bindings
 {
     public static partial class ReusableBindingSetDefaults
     {
-        private static Dictionary<string, ReusableControlBinding> _crkdMode1Gameplay = new()
+        private static readonly Dictionary<string, ReusableControlBinding> _crkdMode1Gameplay = new()
         {
             {
                 ActionStrings.FIVE_FRET_GREEN,
@@ -78,7 +78,7 @@ namespace YARG.Input.Bindings
             },
         };
 
-        private static Dictionary<string, ReusableControlBinding> _crkdMode1Fw30Gameplay = new()
+        private static readonly Dictionary<string, ReusableControlBinding> _crkdMode1Fw30Gameplay = new()
         {
             {
                 ActionStrings.FIVE_FRET_GREEN,
@@ -148,7 +148,7 @@ namespace YARG.Input.Bindings
             },
         };
 
-        private static Dictionary<string, ReusableControlBinding> _crkdMode1Menu = new()
+        private static readonly Dictionary<string, ReusableControlBinding> _crkdMode1Menu = new()
         {
             {
                 ActionStrings.MENU_START,
@@ -244,7 +244,7 @@ namespace YARG.Input.Bindings
         };
 
         public static readonly Guid GUID_CRKD_MODE_1 = new("6a1cc06c-ab9f-4c13-98fd-b1763ec8a977");
-        public static ReusableBindingSet DefaultCrkdMode1Gameplay = MakeHardcodedBindingSet(
+        public static readonly ReusableBindingSet DefaultCrkdMode1Gameplay = MakeHardcodedBindingSet(
             "Default CRKD Guitar (Mode 1)",
             GameMode.FiveFretGuitar,
             ControllerFamily.Gamepad,
@@ -253,7 +253,7 @@ namespace YARG.Input.Bindings
         );
 
         public static readonly Guid GUID_CRKD_MODE_1_FW_300 = new("2e0aed88-542f-49f7-bda6-1401bbba4fa2");
-        public static ReusableBindingSet DefaultCrkdMode1Fw30Gameplay = MakeHardcodedBindingSet(
+        public static readonly ReusableBindingSet DefaultCrkdMode1Fw30Gameplay = MakeHardcodedBindingSet(
             "Default CRKD Guitar (Mode 1, FW3.0+)",
             GameMode.FiveFretGuitar,
             ControllerFamily.Gamepad,
@@ -262,7 +262,7 @@ namespace YARG.Input.Bindings
         );
 
         public static readonly Guid GUID_CRKD_MODE_1_MENU = new("4fa7d4ac-c85b-4c86-b9b0-c36f2c0870a5");
-        public static ReusableBindingSet DefaultCrkdMode1Menu = MakeHardcodedBindingSet(
+        public static readonly ReusableBindingSet DefaultCrkdMode1Menu = MakeHardcodedBindingSet(
             "Default CRKD Guitar (Mode 1) Menu",
             GameMode.FiveFretGuitar,
             ControllerFamily.Gamepad,
