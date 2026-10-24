@@ -1,17 +1,12 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
-using YARG.Core.Game;
 using YARG.Helpers;
 using YARG.Input.Bindings;
 using YARG.Localization;
 using YARG.Menu.Data;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
-using YARG.Player;
 using YARG.Settings.Metadata;
-using static UnityEditor.AddressableAssets.Build.Layout.BuildLayout;
 
 namespace YARG.Menu.ProfileList
 {
