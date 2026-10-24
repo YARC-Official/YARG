@@ -118,19 +118,20 @@ namespace YARG.Input
                 List<GameMode> modesToRemove = new();
                 foreach (var (mode, modeMappings) in serialized.ModeMappings)
                 {
-                    foreach (var (controllerFamily, bindings) in modeMappings.MappingsByControllerFamily)
+                    foreach (var (controllerFamily, bindingSetGuid) in modeMappings.MappingsByControllerFamily)
                     {
-                        if (modeMappings.MappingsByControllerFamily.TryGetValue(controllerFamily, out var bindingSetGuid))
+                        if (bindingSetGuid.Equals(ReusableBindingSetDefaults.GUID_NONE))
                         {
-                            if (BindingsContainer.TryGetBindingCollectionById(bindingSetGuid, out var modeMapping))
-                            {
-                                _preferredBindsByContext[(mode, controllerFamily)] = modeMapping;
-                            }
-                            else
-                            {
-                                YargLogger.LogWarning($"Referenced nonexistent binding collection GUID {bindingSetGuid}; it will be removed");
-                                modesToRemove.Add(mode);
-                            }
+                            _preferredBindsByContext[(mode, controllerFamily)] = null;
+                        }
+                        else if (BindingsContainer.TryGetBindingCollectionById(bindingSetGuid, out var modeMapping))
+                        {
+                            _preferredBindsByContext[(mode, controllerFamily)] = modeMapping;
+                        }
+                        else
+                        {
+                            YargLogger.LogWarning($"Referenced nonexistent binding collection GUID {bindingSetGuid}; it will be removed");
+                            modesToRemove.Add(mode);
                         }
                     }
                 }
@@ -168,16 +169,30 @@ namespace YARG.Input
 
             foreach (var ((mode, controllerFamily), bindingSet) in _preferredBindsByContext)
             {
-                var serializedBinds = bindingSet.Serialize();
-                if (serializedBinds is null)
-                    continue;
-
-                if (!serialized.ModeMappings.ContainsKey(mode))
+                if (bindingSet is null)
                 {
-                    serialized.ModeMappings[mode] = new();
-                }
+                    if (!serialized.ModeMappings.ContainsKey(mode))
+                    {
+                        serialized.ModeMappings[mode] = new();
+                    }
 
-                serialized.ModeMappings[mode].MappingsByControllerFamily[controllerFamily] = bindingSet.Guid;
+                    serialized.ModeMappings[mode].MappingsByControllerFamily[controllerFamily] = ReusableBindingSetDefaults.GUID_NONE;
+                }
+                else
+                {
+                    var serializedBinds = bindingSet.Serialize();
+                    if (serializedBinds is null)
+                    {
+                        continue;
+                    }
+
+                    if (!serialized.ModeMappings.ContainsKey(mode))
+                    {
+                        serialized.ModeMappings[mode] = new();
+                    }
+
+                    serialized.ModeMappings[mode].MappingsByControllerFamily[controllerFamily] = bindingSet.Guid;
+                }
             }
 
             return serialized;
@@ -326,16 +341,8 @@ namespace YARG.Input
 
         public void SetGameplayBindingsForController(InputDevice controller, ReusableBindingSet bindingSet)
         {
-            if (bindingSet is null)
-            {
-                _selectedGameplayBindings.Remove(controller);
-                _preferredBindsByContext.Remove((Profile.GameMode, LayoutHelper.InputDeviceToControllerFamily(controller)));
-            }
-            else
-            {
-                _selectedGameplayBindings[controller] = bindingSet;
-                _preferredBindsByContext[(Profile.GameMode, LayoutHelper.InputDeviceToControllerFamily(controller))] = bindingSet;
-            }            
+            _preferredBindsByContext[(Profile.GameMode, LayoutHelper.InputDeviceToControllerFamily(controller))] = bindingSet;
+            _selectedGameplayBindings[controller] = bindingSet;
         }
 
         private void SetActiveGameplayBindingsForController(InputDevice controller, ReusableBindingSet bindingSet)
@@ -411,7 +418,7 @@ namespace YARG.Input
 
             foreach (var controller in _controllers)
             {
-                if (!_selectedGameplayBindings.TryGetValue(controller, out var bindingSet))
+                if (!_selectedGameplayBindings.TryGetValue(controller, out var bindingSet) || bindingSet is null)
                 {
                     continue;
                 }
@@ -638,16 +645,7 @@ namespace YARG.Input
         public void SetMenuBindingsForController(InputDevice controller, ReusableBindingSet bindingSet)
         {
             var family = LayoutHelper.LayoutStringToControllerFamily(controller.layout);
-
-            if (bindingSet is null)
-            {
-                _preferredBindsByContext.Remove((GameMode.Menu, family));
-            }
-            else
-            {
-                _preferredBindsByContext[(GameMode.Menu, family)] = bindingSet;
-            }
-
+            _preferredBindsByContext[(GameMode.Menu, family)] = bindingSet;
             SetActiveMenuBindingsForController(controller, bindingSet);
         }
 
@@ -798,10 +796,6 @@ namespace YARG.Input
         }
 
 # nullable enable
-        public ReusableBindingSet? GetPreferredBindingSet(GameMode mode, ControllerFamily controllerFamily)
-        {
-            return _preferredBindsByContext.GetValueOrDefault((mode, controllerFamily), null);
-        }
 
         private void OnMenuBindingSetChanged(ReusableBindingSet bindingSet)
         {
