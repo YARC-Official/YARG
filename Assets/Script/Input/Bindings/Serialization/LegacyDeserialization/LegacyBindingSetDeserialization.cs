@@ -82,7 +82,7 @@ namespace YARG.Input.Serialization
                         return false;
                     }
 
-                    if (singleA.Parameters.Count != bindingB.Parameters.Count)
+                    if (singleA.Parameters.Count != singleB.Parameters.Count)
                     {
                         return false;
                     }

@@ -6,7 +6,7 @@ namespace YARG.Input.Serialization
 {
     public static partial class LegacyBindingSetDeserialization
     {
-        private const string DEFAULT_LEGACY_TILT_PRESS_POINT = "1.0";
+        private const string DEFAULT_LEGACY_TILT_PRESS_POINT = "1";
         private const string DEFAULT_LEGACY_RIFFMASTER_TILT_PRESS_POINT = "0.7";
 
         private static SerializedReusableBindingSet LEGACY_5F_GUITAR = new("Legacy Generic 5F Guitar", ControllerFamily.FiveFretGuitar, GameMode.FiveFretGuitar)
@@ -26,7 +26,7 @@ namespace YARG.Input.Serialization
 
                 { ActionStrings.GUITAR_STAR_POWER,  new() { Controls = new() {
                     new(ControlStrings.PLASTICBAND_SELECT, LayoutStrings.FIVE_FRET_GUITAR),
-                    new(ControlStrings.GUITAR_TILT, LayoutStrings.FIVE_FRET_GUITAR),
+                    new(ControlStrings.GUITAR_TILT, LayoutStrings.FIVE_FRET_GUITAR) { Parameters = new() { { "PressPoint", DEFAULT_LEGACY_TILT_PRESS_POINT } } },
                 } } },
             }
         };
@@ -54,7 +54,7 @@ namespace YARG.Input.Serialization
 
                 { ActionStrings.GUITAR_STAR_POWER,  new() { Controls = new() {
                     new(ControlStrings.PLASTICBAND_SELECT, LayoutStrings.FIVE_FRET_GUITAR),
-                    new(ControlStrings.GUITAR_TILT, LayoutStrings.FIVE_FRET_GUITAR),
+                    new(ControlStrings.GUITAR_TILT, LayoutStrings.FIVE_FRET_GUITAR) { Parameters = new() { { "PressPoint", DEFAULT_LEGACY_TILT_PRESS_POINT } } },
                 } } },
             }
         };
@@ -83,7 +83,7 @@ namespace YARG.Input.Serialization
                 { ActionStrings.GUITAR_STAR_POWER,  new() { Controls = new() {
                     new(ControlStrings.PLASTICBAND_SELECT, LayoutStrings.FIVE_FRET_GUITAR),
                     new(ControlStrings.GUITAR_SP_PEDAL, LayoutStrings.FIVE_FRET_GUITAR),
-                    new(ControlStrings.GUITAR_TILT, LayoutStrings.FIVE_FRET_GUITAR),
+                    new(ControlStrings.GUITAR_TILT, LayoutStrings.FIVE_FRET_GUITAR) { Parameters = new() { { "PressPoint", DEFAULT_LEGACY_TILT_PRESS_POINT } } },
                 } } },
             }
         };
