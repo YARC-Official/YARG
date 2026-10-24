@@ -551,7 +551,7 @@ namespace YARG.Input
                 {
                     foreach (var controller in Controllers)
                     {
-                        if (_activeMenuRuntimeBindings[controller].Source == deleted)
+                        if (_activeMenuRuntimeBindings.ContainsKey(controller) && _activeMenuRuntimeBindings[controller].Source == deleted)
                         {
                             var layout = LayoutHelper.LayoutStringToControllerFamily(controller.layout);
                             var newMenuBindings = BindingsContainer.GetBindingSetsForControllerInMode(layout, GameMode.Menu).FirstOrDefault();
@@ -567,7 +567,7 @@ namespace YARG.Input
                 {
                     foreach (var controller in Controllers)
                     {
-                        if (_selectedGameplayBindings[controller] == deleted)
+                        if (_selectedGameplayBindings.ContainsKey(controller) && _selectedGameplayBindings[controller] == deleted)
                         {
                             var layout = LayoutHelper.LayoutStringToControllerFamily(controller.layout);
                             var newGameplayBindings = BindingsContainer.GetBindingSetsForControllerInMode(layout, Profile.GameMode).FirstOrDefault();
