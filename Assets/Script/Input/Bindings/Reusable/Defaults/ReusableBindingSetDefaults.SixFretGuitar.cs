@@ -10,7 +10,7 @@ namespace YARG.Input.Bindings
 {
     public static partial class ReusableBindingSetDefaults
     {
-        private static Dictionary<string, ReusableControlBinding> _sixFretGuitarDefaults = new()
+        private static readonly Dictionary<string, ReusableControlBinding> _sixFretGuitarDefaults = new()
         {
             {
                 ActionStrings.SIX_FRET_BLACK_1,
@@ -90,7 +90,7 @@ namespace YARG.Input.Bindings
             },
         };
 
-        private static Dictionary<string, ReusableControlBinding> _sixFretGuitarMenuDefaults = new()
+        private static readonly Dictionary<string, ReusableControlBinding> _sixFretGuitarMenuDefaults = new()
         {
             {
                 ActionStrings.MENU_START,
@@ -174,17 +174,21 @@ namespace YARG.Input.Bindings
             },
         };
 
-        public static ReusableBindingSet DefaultSixFretGuitar = MakeHardcodedBindingSet(
+        public static readonly Guid GUID_6F_GUITAR = new("b4c466cd-5370-42a1-9c49-e6ebc570c63e");
+        public static readonly ReusableBindingSet DefaultSixFretGuitar = MakeHardcodedBindingSet(
             "Default 6F Guitar",
             GameMode.SixFretGuitar,
             ControllerFamily.SixFretGuitar,
+            GUID_6F_GUITAR,
             _sixFretGuitarDefaults
         );
 
-        public static ReusableBindingSet DefaultSixFretGuitarMenu = MakeHardcodedBindingSet(
+        public static readonly Guid GUID_6F_GUITAR_MENU = new("fab52dd7-cc26-461b-8a9e-9de10c97eba5");
+        public static readonly ReusableBindingSet DefaultSixFretGuitarMenu = MakeHardcodedBindingSet(
             "Default 6F Guitar Menu",
             GameMode.Menu,
             ControllerFamily.SixFretGuitar,
+            GUID_6F_GUITAR_MENU,
             _sixFretGuitarMenuDefaults
         );
     }

@@ -10,7 +10,7 @@ namespace YARG.Input.Bindings
 {
     public static partial class ReusableBindingSetDefaults
     {
-        private static Dictionary<string, ReusableControlBinding> _computerKeyboardMenuDefaults = new()
+        private static readonly Dictionary<string, ReusableControlBinding> _computerKeyboardMenuDefaults = new()
         {
             {
                 ActionStrings.MENU_START,
@@ -122,7 +122,7 @@ namespace YARG.Input.Bindings
             },
         };
 
-        private static Dictionary<string, ReusableControlBinding> _computerKeyboardMenuArrowKeysOnly = new()
+        private static readonly Dictionary<string, ReusableControlBinding> _computerKeyboardMenuArrowKeysOnly = new()
         {
             {
                 ActionStrings.MENU_START,
@@ -222,7 +222,7 @@ namespace YARG.Input.Bindings
             },
         };
 
-        private static Dictionary<string, ReusableControlBinding> _computerKeyboardMenuWASDOnly = new()
+        private static readonly Dictionary<string, ReusableControlBinding> _computerKeyboardMenuWASDOnly = new()
         {
             {
                 ActionStrings.MENU_START,
@@ -322,24 +322,30 @@ namespace YARG.Input.Bindings
             },
         };
 
-        public static ReusableBindingSet DefaultComputerKeyboardMenu = MakeHardcodedBindingSet(
+        public static readonly Guid GUID_COMPUTER_KEYBOARD_MENU = new("0c95fb65-7031-4af7-9ebe-037446da0813");
+        public static readonly ReusableBindingSet DefaultComputerKeyboardMenu = MakeHardcodedBindingSet(
             "Default Computer Keyboard Menu",
             GameMode.Menu,
             ControllerFamily.ComputerKeyboard,
+            GUID_COMPUTER_KEYBOARD_MENU,
             _computerKeyboardMenuDefaults
         );
 
-        public static ReusableBindingSet ComputerKeyboardMenuArrowKeysOnly = MakeHardcodedBindingSet(
+        public static readonly Guid GUID_COMPUTER_KEYBOARD_MENU_ARROW_KEYS_ONLY = new("be5a404d-2665-4bf1-a01c-525d239848b0");
+        public static readonly ReusableBindingSet ComputerKeyboardMenuArrowKeysOnly = MakeHardcodedBindingSet(
             "Arrow Keys Only",
             GameMode.Menu,
             ControllerFamily.ComputerKeyboard,
+            GUID_COMPUTER_KEYBOARD_MENU_ARROW_KEYS_ONLY,
             _computerKeyboardMenuArrowKeysOnly
         );
 
-        public static ReusableBindingSet ComputerKeyboardMenuWASDOnly = MakeHardcodedBindingSet(
+        public static readonly Guid GUID_COMPUTER_KEYBOARD_MENU_WASD_ONLY = new("d8c243b7-ed81-4045-9e4c-7694a3606dc7");
+        public static readonly ReusableBindingSet ComputerKeyboardMenuWASDOnly = MakeHardcodedBindingSet(
             "WASD Only",
             GameMode.Menu,
             ControllerFamily.ComputerKeyboard,
+            GUID_COMPUTER_KEYBOARD_MENU_WASD_ONLY,
             _computerKeyboardMenuWASDOnly
         );
     }

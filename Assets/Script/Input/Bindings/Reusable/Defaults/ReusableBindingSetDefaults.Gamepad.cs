@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using YARG.Core;
 using YARG.Helpers;
 using YARG.Menu.ProfileList;
@@ -7,7 +8,7 @@ namespace YARG.Input.Bindings
 {
     public static partial class ReusableBindingSetDefaults
     {
-        private static Dictionary<string, ReusableControlBinding> _gamepadMenuDefaults = new()
+        private static readonly Dictionary<string, ReusableControlBinding> _gamepadMenuDefaults = new()
         {
             {
                 ActionStrings.MENU_START,
@@ -102,7 +103,7 @@ namespace YARG.Input.Bindings
             },
         };
 
-        private static Dictionary<string, ReusableControlBinding> _switchGamepadMenuDefaults = new()
+        private static readonly Dictionary<string, ReusableControlBinding> _switchGamepadMenuDefaults = new()
         {
             {
                 ActionStrings.MENU_START,
@@ -197,7 +198,7 @@ namespace YARG.Input.Bindings
             },
         };
 
-        private static Dictionary<string, ReusableControlBinding> _gamepadVocalDefaults = new()
+        private static readonly Dictionary<string, ReusableControlBinding> _gamepadVocalDefaults = new()
         {
             {
                 ActionStrings.VOCAL_HIT,
@@ -215,24 +216,30 @@ namespace YARG.Input.Bindings
             },
         };
 
-        public static ReusableBindingSet DefaultGamepadMenu = MakeHardcodedBindingSet(
+        public static readonly Guid GUID_GAMEPAD_MENU = new("16162888-ccd1-4bd2-8ca0-0255d3477984");
+        public static readonly ReusableBindingSet DefaultGamepadMenu = MakeHardcodedBindingSet(
             "Default Gamepad Menu",
             GameMode.Menu,
             ControllerFamily.Gamepad,
+            GUID_GAMEPAD_MENU,
             _gamepadMenuDefaults
         );
 
-        public static ReusableBindingSet DefaultSwitchGamepadMenu = MakeHardcodedBindingSet(
+        public static readonly Guid GUID_SWITCH_GAMEPAD_MENU = new("acc65f7a-fe6f-4ab6-958b-143b706dad25");
+        public static readonly ReusableBindingSet DefaultSwitchGamepadMenu = MakeHardcodedBindingSet(
             "Default Switch Gamepad Menu",
             GameMode.Menu,
             ControllerFamily.Gamepad,
+            GUID_SWITCH_GAMEPAD_MENU,
             _switchGamepadMenuDefaults
         );
 
-        public static ReusableBindingSet DefaultGamepadVocalGameplay = MakeHardcodedBindingSet(
+        public static readonly Guid GUID_VOCALS_WITH_GAMEPAD = new("0ac771de-8e77-4895-8f34-00a874f49a47");
+        public static readonly ReusableBindingSet DefaultGamepadVocalGameplay = MakeHardcodedBindingSet(
             "Default Vocals with Gamepad",
             GameMode.Vocals,
             ControllerFamily.Gamepad,
+            GUID_VOCALS_WITH_GAMEPAD,
             _gamepadVocalDefaults
         );
     }

@@ -1,4 +1,5 @@
 ﻿using PlasticBand.Devices;
+using System;
 using System.Collections.Generic;
 using YARG.Core;
 using YARG.Helpers;
@@ -8,7 +9,7 @@ namespace YARG.Input.Bindings
 {
     public static partial class ReusableBindingSetDefaults
     {
-        private static Dictionary<string, ReusableControlBinding> _proKeyboardDefaults = new()
+        private static readonly Dictionary<string, ReusableControlBinding> _proKeyboardDefaults = new()
         {
             {
                 ActionStrings.KEYS_PRO_KEY_1,
@@ -285,7 +286,7 @@ namespace YARG.Input.Bindings
             },
         };
 
-        private static Dictionary<string, ReusableControlBinding> _proKeyboardDefaultMenu = new()
+        private static readonly Dictionary<string, ReusableControlBinding> _proKeyboardDefaultMenu = new()
         {
             {
                 ActionStrings.MENU_START,
@@ -361,17 +362,21 @@ namespace YARG.Input.Bindings
             },
         };
 
-        public static ReusableBindingSet DefaultProKeyboard = MakeHardcodedBindingSet(
+        public static readonly Guid GUID_PRO_KEYBOARD = new("420f5e05-ed3e-4113-aeff-c75033a6888c");
+        public static readonly ReusableBindingSet DefaultProKeyboard = MakeHardcodedBindingSet(
             "Default Keys",
             GameMode.ProKeys,
             ControllerFamily.ProKeyboard,
+            GUID_PRO_KEYBOARD,
             _proKeyboardDefaults
         );
 
-        public static ReusableBindingSet DefaultProKeyboardMenu = MakeHardcodedBindingSet(
+        public static readonly Guid GUID_PRO_KEYBOARD_MENU = new("a856cc8b-2413-4f9f-8d3a-c02f98768ce8");
+        public static readonly ReusableBindingSet DefaultProKeyboardMenu = MakeHardcodedBindingSet(
             "Default Pro Keyboard Menu",
             GameMode.Menu,
             ControllerFamily.ProKeyboard,
+            GUID_PRO_KEYBOARD_MENU,
             _proKeyboardDefaultMenu
         );
     }

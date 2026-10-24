@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using YARG.Assets.Script.Helpers;
 using YARG.Core;
 using YARG.Helpers;
@@ -8,7 +9,7 @@ namespace YARG.Input.Bindings
 {
     public static partial class ReusableBindingSetDefaults
     {
-        private static Dictionary<string, ReusableControlBinding> _defaultComputerKeyboardDrumsGameplayDefaults = new()
+        private static readonly Dictionary<string, ReusableControlBinding> _defaultComputerKeyboardDrumsGameplayDefaults = new()
         {
             {
                 ActionStrings.DRUMS_KICK,
@@ -193,10 +194,12 @@ namespace YARG.Input.Bindings
             },
         };
 
-        public static ReusableBindingSet DefaultComputerKeyboardDrumsGameplay = MakeHardcodedBindingSet(
+        public static readonly Guid GUID_MIDI_DRUMKIT_ON_COMPUTER_KEYBOARD = new("21a6ec56-1f62-4f7c-8a7e-51f12a96b369");
+        public static readonly ReusableBindingSet DefaultComputerKeyboardDrumsGameplay = MakeHardcodedBindingSet(
             "Default Drums on Computer Keyboard",
             GameMode.EliteDrums,
             ControllerFamily.ComputerKeyboard,
+            GUID_MIDI_DRUMKIT_ON_COMPUTER_KEYBOARD,
             _defaultComputerKeyboardDrumsGameplayDefaults
         );
     }

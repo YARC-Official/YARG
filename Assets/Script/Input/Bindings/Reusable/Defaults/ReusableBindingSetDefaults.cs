@@ -1,20 +1,23 @@
-﻿using Melanchall.DryWetMidi.Common;
-using PlasticBand.Devices;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using YARG.Core;
-using YARG.Input.Serialization;
 using YARG.Menu.ProfileList;
 
 namespace YARG.Input.Bindings
 {
     public static partial class ReusableBindingSetDefaults
     {
+        public static readonly Guid GUID_NONE = Guid.Empty;
+
+        // Voodoo - this makes the static default initializers run early so we don't crunch
+        // later in the menu. I have no idea why lmao
+        public static void InitializeDefaults() {}
+
         private static ReusableBindingSet MakeHardcodedBindingSet(
             string name,
             GameMode mode,
             ControllerFamily family,
+            Guid guid,
             Dictionary<string, ReusableControlBinding> bindings
         )
         {
@@ -22,6 +25,7 @@ namespace YARG.Input.Bindings
                 name,
                 mode,
                 family,
+                guid,
                 true
             );
 
@@ -44,6 +48,8 @@ namespace YARG.Input.Bindings
                     });
                 }
             }
+
+            BindingsContainer.AddBindingSet(bindingSet);
 
             return bindingSet;
         }

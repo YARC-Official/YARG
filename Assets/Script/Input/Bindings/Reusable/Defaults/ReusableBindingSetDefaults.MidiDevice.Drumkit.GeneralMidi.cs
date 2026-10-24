@@ -65,7 +65,7 @@ namespace YARG.Input.Bindings
 
 
 
-        private static Dictionary<string, ReusableControlBinding> _generalMidiDrumDefaults = new()
+        private static readonly Dictionary<string, ReusableControlBinding> _generalMidiDrumDefaults = new()
         {
             {
                 ActionStrings.DRUMS_KICK,
@@ -234,11 +234,12 @@ namespace YARG.Input.Bindings
         };
 
 
-
-        public static ReusableBindingSet GeneralMidiDrumkit = MakeHardcodedBindingSet(
+        public static readonly Guid GUID_GENERAL_MIDI_DRUMS = new("9cf00581-c4cd-4906-9224-e8dde469a3e1");
+        public static readonly ReusableBindingSet GeneralMidiDrumkit = MakeHardcodedBindingSet(
             "General MIDI Drums",
             GameMode.EliteDrums,
             ControllerFamily.MidiDevice,
+            GUID_GENERAL_MIDI_DRUMS,
             _generalMidiDrumDefaults
         );
     }

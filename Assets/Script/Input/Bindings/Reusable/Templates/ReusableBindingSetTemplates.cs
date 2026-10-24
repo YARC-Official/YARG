@@ -60,7 +60,7 @@ namespace YARG.Input.Bindings
         public static ReusableBindingSet MakeBlankBindingSet(GameMode mode, ControllerFamily family)
         {
             var name = GetNameForNewBindingSet(mode, family);
-            var bindingSet = new ReusableBindingSet(name, mode, family);
+            var bindingSet = new ReusableBindingSet(name, mode, family, Guid.NewGuid(), false);
 
             var template = GetTemplate(mode);
 

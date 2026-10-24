@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using YARG.Core;
 using YARG.Helpers;
 using YARG.Menu.ProfileList;
@@ -7,7 +8,7 @@ namespace YARG.Input.Bindings
 {
     public static partial class ReusableBindingSetDefaults
     {
-        private static Dictionary<string, ReusableControlBinding> _computerKeyboardFiveLaneDrumsGameplayDefaults = new()
+        private static readonly Dictionary<string, ReusableControlBinding> _computerKeyboardFiveLaneDrumsGameplayDefaults = new()
         {
             {
                 ActionStrings.DRUMS_KICK,
@@ -61,10 +62,12 @@ namespace YARG.Input.Bindings
             },
         };
 
-        public static ReusableBindingSet DefaultComputerKeyboardFiveLaneDrumsGameplay = MakeHardcodedBindingSet(
+        public static readonly Guid GUID_5L_DRUMS_ON_COMPUTER_KEYBOARD = new("c415895e-b69f-446b-b01b-3160dd41e793");
+        public static readonly ReusableBindingSet DefaultComputerKeyboardFiveLaneDrumsGameplay = MakeHardcodedBindingSet(
             "Default 5L Drums on Computer Keyboard",
             GameMode.FiveLaneDrums,
             ControllerFamily.ComputerKeyboard,
+            GUID_5L_DRUMS_ON_COMPUTER_KEYBOARD,
             _computerKeyboardFiveLaneDrumsGameplayDefaults
         );
     }
