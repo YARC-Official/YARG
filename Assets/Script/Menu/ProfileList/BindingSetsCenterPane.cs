@@ -374,6 +374,8 @@ namespace YARG.Menu.ProfileList
             {
                 foreach (var player in PlayerContainer.Players)
                 {
+                    player.DeviceInfo.UnsuppressDummyControllerMenuInputs();
+
                     if (player.DeviceInfo.ContainsController(_dummyController))
                     {
                         player.DeviceInfo.SuppressDummyControllerMenuInputs(_dummyController);
