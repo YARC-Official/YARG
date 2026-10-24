@@ -8,6 +8,7 @@ using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
 using YARG.Helpers;
+using YARG.Input.Bindings;
 using YARG.Player;
 
 #nullable enable
@@ -145,6 +146,16 @@ namespace YARG.Input.Serialization
                 // We don't want to flood a first-time upgrader with a bazillion redundant copies of the same default binding set
                 if (LegacyBindingSetDeserialization.LegacyBindingSetShouldBeDeserialized(reusableBindingSet))
                 {
+                    // Flesh out any empty bindings from the template so we don't get KeyNotFound exceptions later
+                    var template = ReusableBindingSetTemplates.GetTemplate(mode);
+                    foreach (var templateAction in template.Keys)
+                    {
+                        if (!reusableBindingSet!.Bindings.ContainsKey(templateAction))
+                        {
+                            reusableBindingSet.Bindings.Add(templateAction, new());
+                        }
+                    }
+
                     converted.MappingsByControllerFamily[reusableBindingSet!.Family] = reusableBindingSet.Guid!.Value;
                     reusableBindingSets[reusableBindingSet.Guid!.Value] = reusableBindingSet;
                 }
