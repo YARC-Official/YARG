@@ -112,7 +112,16 @@ namespace YARG.Input.Serialization
                             )
                             { Guid = Guid.NewGuid() };
 
-                            reusableBindingSet.Bindings[actionId] = controlBinding.Deserialize(binds);
+                            if (!reusableBindingSet.Bindings.ContainsKey(actionId))
+                            {
+                                reusableBindingSet.Bindings[actionId] = controlBinding.Deserialize(binds);
+                            }
+
+                            var deserializedSingle = singleBinding.Deserialize(binds);
+                            if (deserializedSingle is not null)
+                            {
+                                reusableBindingSet.Bindings[actionId].Controls.Add(deserializedSingle);
+                            }
                         }
                     }
                 }
@@ -138,17 +147,7 @@ namespace YARG.Input.Serialization
 
         public SerializedReusableControlBinding Deserialize(SerializedProfileBindingsV1 binds)
         {
-            var control = new SerializedReusableControlBinding();
-            foreach (var bind in Controls)
-            {
-                var deserialized = bind.Deserialize(binds);
-                if (deserialized is null)
-                    continue;
-
-                control.Controls.Add(deserialized);
-            }
-
-            return control;
+            return new SerializedReusableControlBinding();
         }
     }
 

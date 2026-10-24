@@ -164,7 +164,16 @@ namespace YARG.Input.Serialization
                             )
                             { Guid = Guid.NewGuid() };
 
-                            reusableBindingSet.Bindings[actionId] = controlBinding.Deserialize();
+                            if (!reusableBindingSet.Bindings.ContainsKey(actionId))
+                            {
+                                reusableBindingSet.Bindings[actionId] = controlBinding.Deserialize();
+                            }
+
+                            var deserializedSingle = singleBinding.Deserialize();
+                            if (deserializedSingle is not null)
+                            {
+                                reusableBindingSet.Bindings[actionId].Controls.Add(deserializedSingle);
+                            }
                         }
                     }
                 }
