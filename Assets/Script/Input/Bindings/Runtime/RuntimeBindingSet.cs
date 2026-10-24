@@ -2,15 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
-using UnityEngine.InputSystem.XR;
 using YARG.Core;
-using YARG.Helpers;
-using YARG.Input.Bindings;
-using YARG.Menu.ProfileList;
-using static UnityEditor.AddressableAssets.Build.Layout.BuildLayout;
 
 namespace YARG.Input.Bindings
 {

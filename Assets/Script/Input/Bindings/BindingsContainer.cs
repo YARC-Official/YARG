@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using UnityEditor.Build.Content;
-using UnityEngine;
 using YARG.Core;
 using YARG.Core.Game;
 using YARG.Core.Logging;
-using YARG.Helpers;
 using YARG.Input.Serialization;
 using YARG.Menu.ProfileList;
 using YARG.Player;
