@@ -88,7 +88,7 @@ namespace YARG.Menu.ProfileInfo
 
                 // Add the binding
                 single.ControlPath = BindingSetHelper.TrimControllerName(_grabbedControl, controller);
-                single.DisplayName = _grabbedControl.displayName;
+                single.DisplayName = _grabbedControl!.displayName;
                 single.SourceLayout = controller.layout;
 
                 return true;

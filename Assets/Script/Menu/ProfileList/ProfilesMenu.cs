@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Core;
@@ -29,6 +28,7 @@ namespace YARG.Menu.ProfileList
 
         private const string PROFILES_TAB = "profiles";
         private const string BINDINGS_TAB = "bindings";
+        public const string YARGBINDS_EXTENSION = "yargbinds";
 
         private enum ProfileMenuTab
         {
@@ -277,7 +277,6 @@ namespace YARG.Menu.ProfileList
             }
         }
 
-        // TODO: Since we're using this outside of ProfileListMenu, we should probably find a better home for it
         public static string GetUniqueProfileName(string profileName)
         {
             var existingNames = PlayerContainer.Profiles.Select(p => p.Name);
@@ -414,7 +413,8 @@ namespace YARG.Menu.ProfileList
             SetOrdering setOrderingInProfile,
             Instrument instrument,
             YargProfile profile
-        ) {
+        )
+        {
             var menu = DrumsHighwayConfigurationMenu.Instance;
             if (menu == null)
                 return;
@@ -521,7 +521,7 @@ namespace YARG.Menu.ProfileList
 
         public void ImportBindingSet()
         {
-            FileExplorerHelper.OpenChooseFile(null, "binds", path =>
+            FileExplorerHelper.OpenChooseFile(null, YARGBINDS_EXTENSION, path =>
             {
                 var import = BindingSerialization.DeserializeImport(path);
 

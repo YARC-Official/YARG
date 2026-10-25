@@ -1,11 +1,8 @@
-﻿using Minis;
-using PlasticBand.Devices;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using YARG.Localization;
+using YARG.Core.Extensions;
 
 namespace YARG.Menu.ProfileList
 {
@@ -16,36 +13,22 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private ProfilesMenu _profilesMenu;
 
-        private static List<ControllerFamily> _controllerFamiliesByIndex = new()
-        {
-            ControllerFamily.FiveFretGuitar,
-            ControllerFamily.SixFretGuitar,
-            ControllerFamily.FourLaneDrumkit,
-            ControllerFamily.FiveLaneDrumkit,
-            ControllerFamily.ProKeyboard,
-            ControllerFamily.MidiDevice,
-            ControllerFamily.ProGuitar,
-            ControllerFamily.Gamepad,
-            ControllerFamily.ComputerKeyboard,
-            ControllerFamily.Mouse,
-            ControllerFamily.Turntable,
-            ControllerFamily.Other
-        };
+        private static ControllerFamily[] _controllerFamilies = EnumExtensions<ControllerFamily>.Values;
 
         public void OnEnable()
         {
             if (_dropdown.options.Count is 0)
             {
-                for (var i = 0; i < _controllerFamiliesByIndex.Count; i++)
+                foreach (var controllerFamily in _controllerFamilies)
                 {
-                    _dropdown.options.Add(new(_controllerFamiliesByIndex[i].ToLocalizedNamePluralTitle()));
+                    _dropdown.options.Add(new(controllerFamily.ToLocalizedNamePluralTitle()));
                 }
             }
         }
 
         public void ChangeFilter()
         {
-            var filter = _controllerFamiliesByIndex[_dropdown.value];
+            var filter = _controllerFamilies[_dropdown.value];
             _profilesMenu.SetCurrentBindingSetFilter(filter);
         }
     }

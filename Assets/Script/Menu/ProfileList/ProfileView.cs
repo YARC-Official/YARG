@@ -5,7 +5,6 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.XInput;
-using UnityEngine.InputSystem.XR;
 using UnityEngine.UI;
 using YARG.Core.Audio;
 using YARG.Core.Game;
@@ -263,7 +262,6 @@ namespace YARG.Menu.ProfileList
 
             bool selectedController = false;
             bool xinputDialogShowing = false;
-            int controllerCount = 0;
 
             // Add InputSystem devices immediately — fast, no probe
             foreach (var controller in InputSystem.devices)
@@ -283,7 +281,6 @@ namespace YARG.Menu.ProfileList
                     controller.displayName :
                     Localize.KeyFormat("Menu.ProfileList.StealDevice", controller.displayName, existingUser.Profile.Name);
 
-                controllerCount++;
                 // Only Windows awaits the XInput mode prompt. Non-Windows omits async to prevent CS1998 warning.
 #if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
                 dialog.AddListButton(text, async () =>
@@ -337,7 +334,6 @@ namespace YARG.Menu.ProfileList
             var player = PlayerContainer.GetPlayerFromProfile(Profile);
 
             bool selectedMicrophone = false;
-            bool xinputDialogShowing = false;
             int inputDeviceCount = 0;
 
             bool TryAddMicrophone(InputDeviceInfo device)
@@ -365,13 +361,6 @@ namespace YARG.Menu.ProfileList
             }).Forget();
 
             await dialog.WaitUntilClosed();
-
-            if (xinputDialogShowing)
-            {
-                await UniTask.Yield();
-                await DialogManager.Instance.WaitUntilCurrentClosed();
-                await UniTask.Yield();
-            }
 
             StatsManager.Instance.UpdateActivePlayers();
 

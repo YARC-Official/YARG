@@ -300,11 +300,6 @@ namespace YARG.Player
             {
                 player.DeviceInfo.OnControllerAdded(device);
             }
-
-            if (!SettingsManager.Settings.AutoCreateProfiles.Value)
-            {
-                return;
-            }
         }
 
         private static void OnDeviceRemoved(InputDevice device)

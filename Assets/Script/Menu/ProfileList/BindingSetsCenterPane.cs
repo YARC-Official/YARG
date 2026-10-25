@@ -3,21 +3,17 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using TMPro;
-using UniGLTF.Extensions.VRMC_vrm;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using YARG.Core;
-using YARG.Core.Input;
 using YARG.Core.Logging;
 using YARG.Helpers;
-using YARG.Helpers.Extensions;
 using YARG.Input;
 using YARG.Input.Bindings;
 using YARG.Menu.Persistent;
 using YARG.Menu.ProfileInfo;
 using YARG.Player;
-using YARG.Scores;
 
 namespace YARG.Menu.ProfileList
 {
@@ -98,6 +94,12 @@ namespace YARG.Menu.ProfileList
 
         public event Action DummyControllerChanged;
         public event Action<bool> HandednessChanged;
+
+        private static readonly JsonSerializerSettings _serializationSettings = new()
+        {
+            Formatting = Formatting.Indented,
+            NullValueHandling = NullValueHandling.Ignore
+        };
 
         public void HideContents()
         {
@@ -337,13 +339,13 @@ namespace YARG.Menu.ProfileList
 
                 // Update the UI
                 _name.text = BindingSet.Name;
-                _profilesMenu.GetSelectedBindingSetView().UpdateDisplay(BindingSet);
+                _profilesMenu.GetSelectedBindingSetView()?.UpdateDisplay(BindingSet);
             }
         }
 
         public void Export()
         {
-            FileExplorerHelper.OpenSaveFile(null, BindingSet.Name, "binds", path =>
+            FileExplorerHelper.OpenSaveFile(null, BindingSet.Name, ProfilesMenu.YARGBINDS_EXTENSION, path =>
             {
                 if (File.Exists(path))
                 {
@@ -355,10 +357,7 @@ namespace YARG.Menu.ProfileList
                     var serializable = BindingSet.Serialize(export: true);
                     var text = JsonConvert.SerializeObject(
                         serializable,
-                        new JsonSerializerSettings() {
-                            Formatting = Formatting.Indented,
-                            NullValueHandling = NullValueHandling.Ignore
-                        }
+                        _serializationSettings
                     );
                     File.WriteAllText(path, text);
                 }
