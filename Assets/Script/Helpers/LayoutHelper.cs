@@ -213,8 +213,7 @@ namespace YARG.Helpers
                         parentPath: parentPath,
                         sourceLayout: sourceLayout,
                         parentLayout: parentLayout,
-                        controlItem: controlItem,
-                        hasChildren: false
+                        controlItem: controlItem
                     );
                     RegisterAliases(controlItem, controlPath);
 
@@ -230,8 +229,7 @@ namespace YARG.Helpers
                         parentPath: parentPath,
                         sourceLayout: sourceLayout,
                         parentLayout: parentLayout,
-                        controlItem: controlItem,
-                        hasChildren: false
+                        controlItem: controlItem
                     );
                     RegisterAliases(controlItem, controlPath);
                     return;
@@ -242,8 +240,7 @@ namespace YARG.Helpers
                     parentPath: parentPath,
                     sourceLayout: sourceLayout,
                     parentLayout: parentLayout,
-                    controlItem: controlItem,
-                    hasChildren: true
+                    controlItem: controlItem
                 );
                 RegisterAliases(controlItem, controlPath);
 
@@ -282,9 +279,7 @@ namespace YARG.Helpers
         public string? ParentPath;
         public string SourceLayout;
         public string? ParentLayout;
-        public ControlItem ControlItem;
         public string Layout;
-        public bool HasChildren;
         public string DisplayName;
 
         public ControlItemInfo(
@@ -292,8 +287,7 @@ namespace YARG.Helpers
             string? parentPath,
             string sourceLayout,
             string? parentLayout,
-            ControlItem controlItem,
-            bool hasChildren
+            ControlItem controlItem
         ) {
             ControlPath = controlPath;
             DisplayName = controlItem.displayName;
@@ -301,8 +295,6 @@ namespace YARG.Helpers
             ParentLayout = parentLayout;
             SourceLayout = sourceLayout;
             ParentPath = parentPath;
-            HasChildren = hasChildren;
-            ControlItem = controlItem;
         }
 
         public void ApplyOverride(ControlItem controlItem)

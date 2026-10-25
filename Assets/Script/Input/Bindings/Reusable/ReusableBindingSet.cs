@@ -11,7 +11,7 @@ using YARG.Menu.ProfileList;
 
 namespace YARG.Input.Bindings
 {
-    public partial class ReusableBindingSet
+    public class ReusableBindingSet
     {
         public Guid Guid { get; private set; }
         public GameMode Mode { get; }

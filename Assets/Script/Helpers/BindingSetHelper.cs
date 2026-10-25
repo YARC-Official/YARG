@@ -1,15 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
-using UnityEngine.InputSystem.XR;
-using YARG.Assets.Script.Helpers;
 using YARG.Core;
 using YARG.Core.Game;
 using YARG.Input.Bindings;
-using YARG.Input.Serialization;
 using YARG.Localization;
 using YARG.Menu.ProfileList;
 using YARG.Player;
@@ -51,7 +47,7 @@ namespace YARG.Helpers
 
                     // Disconnected profiles will always have an empty BindingSetsInUse, so no need
                     // to check IsProfileTaken
-                    activeUsers.Add(deviceInfo.Profile); ;
+                    activeUsers.Add(deviceInfo.Profile);
                 }
             }
 

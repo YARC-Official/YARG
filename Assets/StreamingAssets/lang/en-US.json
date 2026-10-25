@@ -2558,10 +2558,6 @@
                 "Name": "Reconnect Profiles",
                 "Description": "At startup, reconnect previously connected profiles."
             },
-            "AutoCreateProfiles": {
-                "Name": "Create Profiles Automatically",
-                "Description": "Automatically create profile for any newly connected plastic band devices."
-            },
             "DMXDimmerValues": {
                 "Name": "DMX Master Dimmer Values",
                 "Description": "These are the respective values that the Master Dimmer channels will be set to when YARG starts."

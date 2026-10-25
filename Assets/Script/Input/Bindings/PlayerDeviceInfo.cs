@@ -795,8 +795,7 @@ namespace YARG.Input
             ReleaseMicrophones();
         }
 
-# nullable enable
-
+#nullable enable
         private void OnMenuBindingSetChanged(ReusableBindingSet bindingSet)
         {
             foreach (var (controller, runtimeBindings) in _activeMenuRuntimeBindings.ToList())
@@ -809,5 +808,6 @@ namespace YARG.Input
                 SetActiveMenuBindingsForController(controller, bindingSet);
             }
         }
+#nullable disable
     }
 }

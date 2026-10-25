@@ -5,7 +5,6 @@ using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Logging;
@@ -16,7 +15,6 @@ using YARG.Localization;
 using YARG.Menu.Data;
 using YARG.Menu.Persistent;
 using YARG.Menu.ProfileList;
-using YARG.Player;
 
 namespace YARG.Menu.Dialogs
 {
