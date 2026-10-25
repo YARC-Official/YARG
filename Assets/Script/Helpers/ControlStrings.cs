@@ -121,6 +121,18 @@ namespace YARG.Helpers
         public const string PRO_GUITAR_STRUM_6 = "strum6";
         public const string PRO_GUITAR_DIGITAL_PEDAL = "digitalPedal";
 
+        public const string TURNTABLE_LEFT_GREEN = "leftTableGreen";
+        public const string TURNTABLE_LEFT_RED = "leftTableRed";
+        public const string TURNTABLE_LEFT_BLUE = "leftTableBlue";
+        public const string TURNTABLE_RIGHT_GREEN = "rightTableGreen";
+        public const string TURNTABLE_RIGHT_RED = "rightTableRed";
+        public const string TURNTABLE_RIGHT_BLUE = "rightTableBlue";
+        public const string TURNTABLE_EUPHORIA = "euphoria";
+        public const string TURNTABLE_LEFT_VELOCITY = "leftTableVelocity";
+        public const string TURNTABLE_RIGHT_VELOCITY = "rightTableVelocity";
+        public const string TURNTABLE_CROSSFADER = "crossfader";
+        public const string TURNTABLE_EFFECTS_DIAL = "effectsDial";
+
         public const string JOYSTICK_UP = "joystick/up";
         public const string JOYSTICK_DOWN = "joystick/down";
         public const string JOYSTICK_LEFT = "joystick/left";

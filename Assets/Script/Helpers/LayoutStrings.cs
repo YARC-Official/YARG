@@ -79,5 +79,7 @@ namespace YARG.Helpers
         public const string XINPUT_PRO_KEYBOARD = "XInputProKeyboard";
 
         public const string PRO_GUITAR = nameof(ProGuitar);
+
+        public const string TURNTABLE = nameof(Turntable);
     }
 }

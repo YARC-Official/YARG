@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using YARG.Assets.Script.Helpers;
 using YARG.Core;
 using YARG.Menu.ProfileList;
 using YARG.Helpers;
