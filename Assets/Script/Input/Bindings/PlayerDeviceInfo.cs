@@ -80,21 +80,20 @@ namespace YARG.Input
         public PlayerDeviceInfo(YargProfile profile, SerializedPlayerDeviceInfo? serialized) : this(profile)
         {
             if (serialized is null)
-                return;
-
-            if (serialized.Controllers is not null)
             {
-                foreach (var device in serialized.Controllers)
-                {
-                    if (device is null || string.IsNullOrEmpty(device.Layout) || string.IsNullOrEmpty(device.Hash))
-                    {
-                        YargLogger.LogFormatWarning("Encountered invalid device entry in bindings for profile {0}!", profile.Name);
-                        continue;
-                    }
+                return;
+            }
 
-                    // Devices will be resolved later
-                    _unresolvedControllers.Add(device);
+            foreach (var device in serialized.Controllers)
+            {
+                if (device is null || string.IsNullOrEmpty(device.Layout) || string.IsNullOrEmpty(device.Hash))
+                {
+                    YargLogger.LogFormatWarning("Encountered invalid device entry in bindings for profile {0}!", profile.Name);
+                    continue;
                 }
+
+                // Devices will be resolved later
+                _unresolvedControllers.Add(device);
             }
 
             if (serialized.Microphones.Count > 0)
@@ -113,33 +112,30 @@ namespace YARG.Input
                 _unresolvedMics.Add(serialized.Microphone);
             }
 
-            if (serialized.ModeMappings is not null)
+            List<GameMode> modesToRemove = new();
+            foreach (var (mode, modeMappings) in serialized.ModeMappings)
             {
-                List<GameMode> modesToRemove = new();
-                foreach (var (mode, modeMappings) in serialized.ModeMappings)
+                foreach (var (controllerFamily, bindingSetGuid) in modeMappings.MappingsByControllerFamily)
                 {
-                    foreach (var (controllerFamily, bindingSetGuid) in modeMappings.MappingsByControllerFamily)
+                    if (bindingSetGuid.Equals(ReusableBindingSetDefaults.GUID_NONE))
                     {
-                        if (bindingSetGuid.Equals(ReusableBindingSetDefaults.GUID_NONE))
-                        {
-                            _preferredBindsByContext[(mode, controllerFamily)] = null;
-                        }
-                        else if (BindingsContainer.TryGetBindingCollectionById(bindingSetGuid, out var modeMapping))
-                        {
-                            _preferredBindsByContext[(mode, controllerFamily)] = modeMapping;
-                        }
-                        else
-                        {
-                            YargLogger.LogWarning($"Referenced nonexistent binding collection GUID {bindingSetGuid}; it will be removed");
-                            modesToRemove.Add(mode);
-                        }
+                        _preferredBindsByContext[(mode, controllerFamily)] = null;
+                    }
+                    else if (BindingsContainer.TryGetBindingCollectionById(bindingSetGuid, out var modeMapping))
+                    {
+                        _preferredBindsByContext[(mode, controllerFamily)] = modeMapping;
+                    }
+                    else
+                    {
+                        YargLogger.LogWarning($"Referenced nonexistent binding collection GUID {bindingSetGuid}; it will be removed");
+                        modesToRemove.Add(mode);
                     }
                 }
+            }
 
-                foreach (var mode in modesToRemove)
-                {
-                    serialized.ModeMappings.Remove(mode);
-                }
+            foreach (var mode in modesToRemove)
+            {
+                serialized.ModeMappings.Remove(mode);
             }
         }
 
