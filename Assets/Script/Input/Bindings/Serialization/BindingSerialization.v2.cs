@@ -105,9 +105,9 @@ namespace YARG.Input.Serialization
         {
             var converted = new SerializedModeMappingCollection();
 
-            foreach (var controller in controllers)
+            for (var i = 0; i < controllers.Count; i++)
             {
-                var controllerSourceLayout = LayoutHelper.LayoutStringToSourceLayout(controller.Layout);
+                var controller = controllers[i];
 
                 SerializedReusableBindingSet? reusableBindingSet = null;
 
@@ -115,10 +115,7 @@ namespace YARG.Input.Serialization
                 {
                     foreach (var singleBinding in controlBinding.Controls)
                     {
-                        var bindingLayout = InputControlPath.TryGetDeviceLayout(singleBinding.ControlPath);
-                        var bindingSourceLayout = LayoutHelper.LayoutStringToSourceLayout(bindingLayout);
-
-                        if (bindingSourceLayout == controllerSourceLayout)
+                        if (singleBinding.DeviceIndex == i)
                         {
                             reusableBindingSet ??= new SerializedReusableBindingSet(
                                 $"{profileName}'s {controller.Layout} Bindings",
