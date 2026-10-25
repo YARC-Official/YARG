@@ -53,7 +53,7 @@ namespace YARG.Input.Bindings
                 ControllerFamily.MidiDevice => new() { GameMode.ProKeys, GameMode.EliteDrums },
                 ControllerFamily.ProGuitar => new() { GameMode.ProGuitar, GameMode.FiveFretGuitar },
                 ControllerFamily.Turntable => new() { /* GameMode.Dj */ },
-                ControllerFamily.Gamepad => new() { GameMode.Vocals },
+                ControllerFamily.Gamepad => new() { GameMode.Vocals, GameMode.FiveFretGuitar, GameMode.SixFretGuitar, GameMode.FourLaneDrums, GameMode.FiveLaneDrums, GameMode.EliteDrums },
                 ControllerFamily.ComputerKeyboard => new() { GameMode.FiveFretGuitar, GameMode.SixFretGuitar, GameMode.FourLaneDrums, GameMode.FiveLaneDrums, GameMode.EliteDrums, GameMode.ProKeys, GameMode.Vocals },
                 ControllerFamily.Mouse => new() { GameMode.Vocals },
                 _ => new() { }
