@@ -9,10 +9,10 @@ namespace YARG.Input.Bindings
 {
     public class ReusableSingleButtonBinding : ReusableSingleBinding<float>
     {
-        private const long DEBOUNCE_THRESHOLD_DEFAULT = 5;
-        private const DebounceMode DEBOUNCE_MODE_DEFAULT = DebounceMode.Press;
-        private const float PRESS_POINT_DEFAULT = 0.5f;
-        private const bool INVERTED_DEFAULT = false;
+        public const long DEBOUNCE_THRESHOLD_DEFAULT = 5;
+        public const DebounceMode DEBOUNCE_MODE_DEFAULT = DebounceMode.Press;
+        public const float PRESS_POINT_DEFAULT = 0.5f;
+        public const bool INVERTED_DEFAULT = false;
 
         private long _debounceThreshold = DEBOUNCE_THRESHOLD_DEFAULT;
         public long DebounceThreshold {

@@ -28,6 +28,7 @@ namespace YARG.Menu.ProfileList
             ControllerFamily.Gamepad,
             ControllerFamily.ComputerKeyboard,
             ControllerFamily.Mouse,
+            ControllerFamily.Turntable,
             ControllerFamily.Other
         };
 
@@ -58,6 +59,7 @@ namespace YARG.Menu.ProfileList
         ProKeyboard,
         MidiDevice,
         ProGuitar,
+        Turntable,
         Gamepad,
         ComputerKeyboard,
         Mouse,
