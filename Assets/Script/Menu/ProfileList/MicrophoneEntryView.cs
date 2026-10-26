@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using TMPro;
@@ -32,7 +32,7 @@ namespace YARG.Menu.ProfileList
         public void Remove()
         {
             var player = PlayerContainer.GetPlayerFromProfile(_profile);
-            player.DeviceInfo.RemoveMicrophone(Microphone);
+            player.DeviceInfo.RemoveMicrophone(Microphone.Id);
             _profileSidebar.UpdateCenterPane(_profile, _profileView);
         }
     }
