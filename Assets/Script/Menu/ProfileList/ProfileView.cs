@@ -1,4 +1,4 @@
-﻿using Cysharp.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using System;
 using System.Collections.Generic;
 using TMPro;
@@ -334,7 +334,6 @@ namespace YARG.Menu.ProfileList
             var player = PlayerContainer.GetPlayerFromProfile(Profile);
 
             bool selectedMicrophone = false;
-            int inputDeviceCount = 0;
 
             bool TryAddMicrophone(InputDeviceInfo device)
             {
@@ -352,8 +351,14 @@ namespace YARG.Menu.ProfileList
                 return true;
             }
 
-            PopulateMicsAsync(dialog, inputDeviceCount, mic =>
+            PopulateMicsAsync(dialog, player, mic =>
             {
+                var claimant = PlayerContainer.GetMicrophoneUser(mic.Id);
+                if (claimant is not null && claimant != player)
+                {
+                    claimant.DeviceInfo.RemoveMicrophone(mic.Id);
+                }
+
                 if (TryAddMicrophone(mic))
                 {
                     selectedMicrophone = true;
@@ -369,10 +374,10 @@ namespace YARG.Menu.ProfileList
 
         private static async UniTask PopulateMicsAsync(
             ListDialog dialog,
-            int inputDeviceCount,
+            YargPlayer player,
             Action<InputDeviceInfo> onMicSelected)
         {
-            var placeholderButton = dialog.AddListButton("Scanning microphones...", () => { }, false);
+            var placeholderButton = dialog.AddListButton("Scanning microphones...", () => { }, closeOnClick: false);
             placeholderButton.DisableButton();
             var ct = dialog.GetCancellationTokenOnDestroy();
 
@@ -399,15 +404,27 @@ namespace YARG.Menu.ProfileList
                 return;
             }
 
+            int addedCount = 0;
             foreach (var mic in mics)
             {
+                var existingUser = PlayerContainer.GetMicrophoneUser(mic.Id);
+                if (existingUser == player)
+                {
+                    continue;
+                }
+
+                var text = (existingUser is null)
+                    ? mic.DisplayName
+                    : Localize.KeyFormat("Menu.ProfileList.StealDevice", mic.DisplayName, existingUser.Profile.Name);
+
                 var localMic = mic;
-                dialog.AddListButton(localMic.DisplayName, () => onMicSelected(localMic));
+                dialog.AddListButton(text, () => onMicSelected(localMic));
+                addedCount++;
             }
 
-            if (inputDeviceCount == 0 && mics.Count == 0)
+            if (addedCount == 0)
             {
-                var btn = dialog.AddListButton("No devices found", () => { }, false);
+                var btn = dialog.AddListButton("No devices found", () => { }, closeOnClick: false);
                 btn.DisableButton();
             }
         }

@@ -1,10 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine.InputSystem;
+using YARG.Core.Audio;
 using YARG.Core.Game;
 using YARG.Core.IO;
 using YARG.Core.Logging;
@@ -153,13 +154,7 @@ namespace YARG.Player
                 deviceInfo.ResolveDevices();
             }
 
-            foreach (var existingPlayer in _players)
-            {
-                foreach (var claimedController in existingPlayer.DeviceInfo.Controllers)
-                {
-                    deviceInfo.RemoveController(claimedController);
-                }
-            }
+            SurrenderClaimedDevices(deviceInfo);
 
             var player = new YargPlayer(profile, deviceInfo);
             player.EnableInputs();
@@ -204,9 +199,32 @@ namespace YARG.Player
             _playersByProfile.Add(newProfile, player);
 
             var deviceInfo = BindingsContainer.GetDeviceInfoForProfile(newProfile);
+            SurrenderClaimedDevices(deviceInfo, excludePlayer: player);
+
             player.SwapToProfile(newProfile, deviceInfo, true);
             ActiveProfilesChanged();
             return true;
+        }
+
+        private static void SurrenderClaimedDevices(PlayerDeviceInfo deviceInfo, YargPlayer excludePlayer = null)
+        {
+            foreach (var player in _players)
+            {
+                if (player == excludePlayer)
+                {
+                    continue;
+                }
+
+                foreach (var claimedController in player.DeviceInfo.Controllers)
+                {
+                    deviceInfo.RemoveController(claimedController);
+                }
+
+                foreach (var claimedMic in player.DeviceInfo.Microphones)
+                {
+                    deviceInfo.RemoveMicrophone(claimedMic.Id);
+                }
+            }
         }
 
         private static void ActiveProfilesChanged()
@@ -285,6 +303,19 @@ namespace YARG.Player
             foreach (var player in _players)
             {
                 if (player.DeviceInfo.ContainsController(controller))
+                {
+                    return player;
+                }
+            }
+
+            return null;
+        }
+
+        public static YargPlayer? GetMicrophoneUser(MicId id)
+        {
+            foreach (var player in _players)
+            {
+                if (player.DeviceInfo.ContainsMicrophone(id))
                 {
                     return player;
                 }
