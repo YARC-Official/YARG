@@ -278,10 +278,11 @@ namespace YARG.Song
         {
             if (filter.Attribute == SortAttribute.Unspecified)
             {
-                List<SongEntry> entriesToSearch = new();
+                // A song can be listed under several categories (e.g. instrument sorts); search each once
+                var entriesToSearch = new HashSet<SongEntry>();
                 foreach (var entry in searchList)
                 {
-                    entriesToSearch.AddRange(entry.Songs);
+                    entriesToSearch.UnionWith(entry.Songs);
                 }
                 return new SongCategory[] { new("Search Results", UnspecifiedSearch(filter, entriesToSearch), null)};
             }
@@ -500,7 +501,7 @@ namespace YARG.Song
             }
         }
 
-        private static SongEntry[] UnspecifiedSearch(FilterNode filter, List<SongEntry> songs)
+        private static SongEntry[] UnspecifiedSearch(FilterNode filter, IReadOnlyCollection<SongEntry> songs)
         {
             var nodes = new List<UnspecifiedSortNode>(songs.Count);
             Parallel.ForEach(songs, song =>
@@ -510,7 +511,7 @@ namespace YARG.Song
                 {
                     lock (nodes)
                     {
-                        // BinarySearch returns >= 0 for an equal node (the same song listed in several categories)
+                        // Distinct songs can compare equal (identical metadata and location); BinarySearch then returns >= 0
                         int index = nodes.BinarySearch(node);
                         nodes.Insert(index < 0 ? ~index : index, node);
                     }
