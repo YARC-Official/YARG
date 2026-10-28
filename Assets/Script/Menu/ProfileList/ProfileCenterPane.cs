@@ -6,6 +6,7 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YARG.Assets.Script.Helpers;
 using YARG.Core;
 using YARG.Core.Game;
 using YARG.Helpers.Extensions;
@@ -363,6 +364,10 @@ namespace YARG.Menu.ProfileList
                 {
                     child.gameObject.SetActive(false);
                 }
+                else if (Profile.IsBot && ProfileSettingsIrrelevantToBots.Contains(settingInfo.Value.setting))
+                {
+                    child.gameObject.SetActive(false);
+                }
                 else
                 {
                     child.gameObject.SetActive(true);
@@ -627,5 +632,13 @@ namespace YARG.Menu.ProfileList
         {
             Profile.RockMeterPreset = _rockmeterPresetsByIndex[_rockMeterPresetDropdown.value];
         }
+
+        private static HashSet<string> ProfileSettingsIrrelevantToBots = new()
+        {
+            ProfileSettingStrings.CONTROLLERS,
+            ProfileSettingStrings.MICROPHONES,
+            ProfileSettingStrings.ENGINE_PRESET,
+            ProfileSettingStrings.INPUT_CALIBRATION
+        };
     }
 }
