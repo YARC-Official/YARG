@@ -18,6 +18,13 @@ namespace YARG.Gameplay.Player
 {
     public partial class VocalTrack : GameplayBehaviour
     {
+        private enum PartColorAssignment
+        {
+            None,
+            FreeHarmoniesFallback,
+            FixedPart,
+        }
+
         private struct Range
         {
             public float Min;
@@ -53,7 +60,7 @@ namespace YARG.Gameplay.Player
         private static readonly int _laneCount = Shader.PropertyToID("_LaneCount");
 
         public Color[] Colors { get; } = new Color[3];
-        private readonly bool[] _partColorAssigned = new bool[3];
+        private readonly PartColorAssignment[] _partColorAssignments = new PartColorAssignment[3];
         private MaterialPropertyBlock _trackMaterialProperties;
 
         /// <summary>
@@ -360,7 +367,7 @@ namespace YARG.Gameplay.Player
             // with the legacy defaults so unclaimed lanes are not affected by the
             // profile of whichever player initialized the shared vocal track.
             bool isHarmony = vocalsTrack.Instrument is Instrument.Harmony or Instrument.PartyVocals;
-            Array.Clear(_partColorAssigned, 0, _partColorAssigned.Length);
+            Array.Clear(_partColorAssignments, 0, _partColorAssignments.Length);
             for (int i = 0; i < Colors.Length; i++)
             {
                 Colors[i] = ColorProfile.Default.Vocals.GetPartColor(i, isHarmony).ToUnityColor();
@@ -528,31 +535,58 @@ namespace YARG.Gameplay.Player
         }
 
         /// <summary>
-        /// Applies a vocal player's selected color profile only to the part that
-        /// player is singing. A shared part can only have one highway color, so
-        /// the first player assigned to it owns that lane's color.
+        /// Applies a vocal player's selected color profile to the parts that player can sing.
+        /// A fixed-part singer owns their lane's color. Free Harmonies supplies profile colors
+        /// for every otherwise-unclaimed part, regardless of player initialization order.
         /// </summary>
         public void AssignPartColor(YargPlayer player)
         {
             bool isHarmony = _originalVocalsTrack.Instrument is Instrument.Harmony or Instrument.PartyVocals;
-            int partIndex = isHarmony ? player.Profile.HarmonyIndex : 0;
 
-            if (partIndex < 0 || partIndex >= Colors.Length)
+            if (isHarmony && player.Profile.CurrentInstrument == Instrument.PartyVocals)
             {
-                YargLogger.LogFormatWarning("Cannot assign vocal color for out-of-range part {0}.", partIndex);
+                bool changed = false;
+                for (int partIndex = 0; partIndex < Colors.Length; partIndex++)
+                {
+                    changed |= TryAssignPartColor(player, partIndex, isHarmony,
+                        PartColorAssignment.FreeHarmoniesFallback);
+                }
+
+                if (changed)
+                {
+                    RefreshTrackLaneColors();
+                }
                 return;
             }
 
-            if (_partColorAssigned[partIndex])
+            int fixedPartIndex = isHarmony ? player.Profile.HarmonyIndex : 0;
+            if (TryAssignPartColor(player, fixedPartIndex, isHarmony, PartColorAssignment.FixedPart))
             {
-                return;
+                RefreshTrackLaneColors();
+            }
+        }
+
+        private bool TryAssignPartColor(YargPlayer player, int partIndex, bool isHarmony,
+            PartColorAssignment assignment)
+        {
+            if (partIndex < 0 || partIndex >= Colors.Length)
+            {
+                YargLogger.LogFormatWarning("Cannot assign vocal color for out-of-range part {0}.", partIndex);
+                return false;
+            }
+
+            // The first assignment at a given priority wins. A fixed-part singer may replace
+            // an earlier Free Harmonies fallback, but a fallback never replaces a fixed owner.
+            if ((int) _partColorAssignments[partIndex] >= (int) assignment)
+            {
+                return false;
             }
 
             Colors[partIndex] = player.ColorProfile.Vocals
                 .GetPartColor(partIndex, isHarmony)
                 .ToUnityColor();
-            _partColorAssigned[partIndex] = true;
-            RefreshTrackLaneColors();
+            _partColorAssignments[partIndex] = assignment;
+            return true;
         }
 
         private void RefreshTrackLaneColors()
