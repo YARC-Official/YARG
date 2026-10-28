@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem.Layouts;
 using YARG.Core;
-using YARG.Core.Logging;
 using YARG.Helpers;
 using YARG.Input.Bindings;
 using YARG.Menu.ProfileInfo;
-using YARG.Menu.Settings;
 
 namespace YARG.Menu.ProfileList
 {

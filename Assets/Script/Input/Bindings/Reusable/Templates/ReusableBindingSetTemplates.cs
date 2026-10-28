@@ -95,7 +95,7 @@ namespace YARG.Input.Bindings
             if (isTypical)
             {
                 var localized = Localize.KeyFormat("Bindings.Custom", modeText);
-                return GetNameWithNumber(localized, family, mode);
+                return BindingsContainer.GetNameWithNumber(localized, family, mode);
             }
 
             var familyText = family switch
@@ -119,32 +119,12 @@ namespace YARG.Input.Bindings
             {
                 var vocalsWithController = Localize.KeyFormat("Bindings.VocalsWithController", modeText, familyText);
                 var fullVocals = Localize.KeyFormat("Bindings.Custom", vocalsWithController);
-                return GetNameWithNumber(fullVocals, family, mode);
+                return BindingsContainer.GetNameWithNumber(fullVocals, family, mode);
             }
 
             var modeOnController = Localize.KeyFormat("Bindings.ModeOnController", modeText, familyText);
             var full = Localize.KeyFormat("Bindings.Custom", modeOnController);
-            return GetNameWithNumber(full, family, mode);
-        }
-
-        private static string GetNameWithNumber(string name, ControllerFamily family, GameMode mode)
-        {
-            var existing = BindingsContainer.GetBindingSetsForControllerInMode(family, mode);
-
-            if (existing.All(existingBindingSet => existingBindingSet.Name != name))
-            {
-                return name;
-            }
-
-            for (var number = 2; true; number++)
-            {
-                var candidateName = $"{name} #{number}";
-
-                if (existing.All(existingBindingSet => existingBindingSet.Name != candidateName))
-                {
-                    return candidateName;
-                }
-            }
+            return BindingsContainer.GetNameWithNumber(full, family, mode);
         }
     }
 }

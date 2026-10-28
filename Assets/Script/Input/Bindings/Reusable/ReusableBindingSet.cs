@@ -55,7 +55,7 @@ namespace YARG.Input.Bindings
 
         public ReusableBindingSet(SerializedReusableBindingSet serialized)
         {
-            Name = serialized.Name;
+            Name = BindingsContainer.GetNameWithNumber(serialized.Name, serialized.Family, serialized.Mode);
             Guid = serialized.Guid ?? Guid.NewGuid();
             Mode = serialized.Mode;
             ControllerFamily = serialized.Family;

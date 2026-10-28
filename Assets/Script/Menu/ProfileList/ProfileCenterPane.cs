@@ -2,15 +2,12 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Game;
-using YARG.Core.IO;
-using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Localization;
 using YARG.Menu.Data;
@@ -331,6 +328,8 @@ namespace YARG.Menu.ProfileList
             // Enable/disable the avatar delete/edit buttons
             _deleteButton.SetActive(!profile.IsBot && Profile.Avatar != null);
             _editButton.SetActive(!profile.IsBot);
+            _controllersList.SetActive(!profile.IsBot);
+            _microphonesList.SetActive(!profile.IsBot && Profile.GameMode is GameMode.Vocals);
 
             EnableSettingsForGameMode();
         }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using YARG.Core;
 using YARG.Core.Game;
 using YARG.Core.Logging;
@@ -220,6 +221,26 @@ namespace YARG.Input.Bindings
             foreach (var player in PlayerContainer.Players)
             {
                 player.DeviceInfo.ResolveMicrophones();
+            }
+        }
+
+        public static string GetNameWithNumber(string name, ControllerFamily family, GameMode mode)
+        {
+            var existing = GetBindingSetsForControllerInMode(family, mode);
+
+            if (existing.All(existingBindingSet => existingBindingSet.Name != name))
+            {
+                return name;
+            }
+
+            for (var number = 2; true; number++)
+            {
+                var candidateName = $"{name} #{number}";
+
+                if (existing.All(existingBindingSet => existingBindingSet.Name != candidateName))
+                {
+                    return candidateName;
+                }
             }
         }
     }
