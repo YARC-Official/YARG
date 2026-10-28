@@ -2,15 +2,13 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YARG.Assets.Script.Helpers;
 using YARG.Core;
 using YARG.Core.Game;
-using YARG.Core.IO;
-using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Localization;
 using YARG.Menu.Data;
@@ -334,6 +332,8 @@ namespace YARG.Menu.ProfileList
             // Enable/disable the avatar delete/edit buttons
             _deleteButton.SetActive(!profile.IsBot && Profile.Avatar != null);
             _editButton.SetActive(!profile.IsBot);
+            _controllersList.SetActive(!profile.IsBot);
+            _microphonesList.SetActive(!profile.IsBot && Profile.GameMode is GameMode.Vocals);
 
             EnableSettingsForGameMode();
         }
@@ -367,6 +367,10 @@ namespace YARG.Menu.ProfileList
                 {
                     child.gameObject.SetActive(false);
                 }
+                else if (Profile.IsBot && ProfileSettingsIrrelevantToBots.Contains(settingInfo.Value.setting))
+                {
+                    child.gameObject.SetActive(false);
+                }
                 else
                 {
                     child.gameObject.SetActive(true);
@@ -396,7 +400,7 @@ namespace YARG.Menu.ProfileList
             else
             {
                 // Set the name. Make sure to record the name change in the scores.
-                Profile.Name = _nameInput.text;
+                Profile.Name = _nameInput.text.Replace("\r", "").Replace("\n", "");
                 ScoreContainer.RecordPlayerInfo(Profile.Id, Profile.Name);
 
                 // Update the UI
@@ -631,5 +635,12 @@ namespace YARG.Menu.ProfileList
         {
             Profile.RockMeterPreset = _rockmeterPresetsByIndex[_rockMeterPresetDropdown.value];
         }
+
+        private static HashSet<string> ProfileSettingsIrrelevantToBots = new()
+        {
+            ProfileSettingStrings.CONTROLLERS,
+            ProfileSettingStrings.MICROPHONES,
+            ProfileSettingStrings.INPUT_CALIBRATION
+        };
     }
 }

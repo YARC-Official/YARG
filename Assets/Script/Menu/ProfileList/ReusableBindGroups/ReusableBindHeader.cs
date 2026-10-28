@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.InputSystem.Layouts;
 using UnityEngine.UI;
 using YARG.Core.Input;
-using YARG.Helpers;
 using YARG.Input.Bindings;
-using YARG.Localization;
 using YARG.Menu.Data;
 
 namespace YARG.Menu.ProfileList
@@ -69,7 +65,7 @@ namespace YARG.Menu.ProfileList
         public void SetSettingsButtonActive(bool active)
         {
             var colors = _settingsButton.colors;
-            colors.colorMultiplier = active ? 0.75f : 1f;
+            colors.colorMultiplier = active ? 1.5f : 1f;
             _settingsButton.colors = colors;
         }
 

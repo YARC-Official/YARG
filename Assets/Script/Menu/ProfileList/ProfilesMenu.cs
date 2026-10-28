@@ -396,6 +396,7 @@ namespace YARG.Menu.ProfileList
         {
             _headerTabs.SelectTabById(BINDINGS_TAB);
             SetCurrentBindingSetFilter(bindingSet.ControllerFamily);
+            _bindingSetsFilter.UpdateDropdown();
             _bindingSetsCenterPane.JumpTo(bindingSet, dummyController, lefty);
             SetSelectedBindingSet(bindingSet);
         }

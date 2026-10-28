@@ -31,6 +31,11 @@ namespace YARG.Menu.ProfileList
             var filter = _controllerFamilies[_dropdown.value];
             _profilesMenu.SetCurrentBindingSetFilter(filter);
         }
+
+        public void UpdateDropdown()
+        {
+            _dropdown.SetValueWithoutNotify((int) _profilesMenu.CurrentBindingSetFilter);
+        }
     }
 
     public enum ControllerFamily

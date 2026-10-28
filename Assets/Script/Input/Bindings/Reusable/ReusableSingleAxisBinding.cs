@@ -83,7 +83,13 @@ namespace YARG.Input.Bindings
 
         public ReusableSingleAxisBinding() : base(null, null, null) {}
 
-        public ReusableSingleAxisBinding(ReusableSingleAxisBindingConfig control) : base(control.ControlPath, control.DisplayName, control.SourceLayout) { }
+        public ReusableSingleAxisBinding(ReusableSingleAxisBindingConfig config) : base(config.ControlPath, config.DisplayName, config.SourceLayout) {
+            Inverted = config.Inverted ?? INVERTED_DEFAULT;
+            Minimum = config.Minimum ?? MINIMUM_DEFAULT;
+            Maximum = config.Maximum ?? MAXIMUM_DEFAULT;
+            LowerDeadzone = config.LowerDeadzone ?? LOWER_DEADZONE_DEFAULT;
+            UpperDeadzone = config.UpperDeadzone ?? UPPER_DEADZONE_DEFAULT;
+        }
 
         public ReusableSingleAxisBinding(SerializedSingleBinding serialized) : base(serialized)
         {

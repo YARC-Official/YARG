@@ -47,11 +47,13 @@ namespace YARG.Helpers
             // We're about to make a temporary virtual device, which we don't want to toast for
             InputManager.SuppressDeviceToasts = true;
 
-            // Temporarily create virtual device so we can inspect its actual controls
-            var device = InputSystem.AddDevice(layout);
+            InputDevice device = null;
 
             try
             {
+                // Temporarily create virtual device so we can inspect its actual controls
+                device = InputSystem.AddDevice(layout);
+
                 var path = controlPath.TrimStart('/');
 
                 var control = device.allControls.FirstOrDefault(c =>
@@ -66,7 +68,11 @@ namespace YARG.Helpers
             }
             finally
             {
-                InputSystem.RemoveDevice(device);
+                if (device is not null)
+                {
+                    InputSystem.RemoveDevice(device);
+                }
+
                 InputManager.SuppressDeviceToasts = false;
             }
         }
