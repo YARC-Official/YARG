@@ -637,7 +637,6 @@ namespace YARG.Menu.ProfileList
         {
             ProfileSettingStrings.CONTROLLERS,
             ProfileSettingStrings.MICROPHONES,
-            ProfileSettingStrings.ENGINE_PRESET,
             ProfileSettingStrings.INPUT_CALIBRATION
         };
     }
