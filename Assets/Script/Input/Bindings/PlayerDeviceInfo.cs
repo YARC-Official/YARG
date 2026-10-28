@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -216,7 +216,13 @@ namespace YARG.Input
             for (int i = _unresolvedMics.Count - 1; i >= 0; i--)
             {
                 var mic = _unresolvedMics[i];
-                var device = GlobalAudioHandler.GetInputDevice(mic.BaseName, mic.Channel);
+                if (PlayerContainer.GetMicrophoneUser(mic.Id) is not null)
+                {
+                    _unresolvedMics.RemoveAt(i);
+                    continue;
+                }
+
+                var device = GlobalAudioHandler.GetInputDevice(mic.Id);
                 if (device != null)
                 {
                     _unresolvedMics.RemoveAt(i);
@@ -740,24 +746,26 @@ namespace YARG.Input
 
             _microphones.Add(microphone);
 
-            var serialized = microphone.Serialize();
-            for (int i = _unresolvedMics.Count - 1; i >= 0; i--)
-            {
-                if (_unresolvedMics[i].BaseName == serialized.BaseName && _unresolvedMics[i].Channel == serialized.Channel)
-                {
-                    _unresolvedMics.RemoveAt(i);
-                }
-            }
+            _unresolvedMics.RemoveAll(m => m.Id == microphone.Id);
         }
 
-        public void RemoveMicrophone(MicDevice microphone)
+        public bool ContainsMicrophone(MicId id) =>
+            _microphones.Any(m => m.Id == id) ||
+            _unresolvedMics.Any(m => m.Id == id);
+
+        public bool RemoveMicrophone(MicId id)
         {
-            if (!_microphones.Remove(microphone))
+            bool removed = _unresolvedMics.RemoveAll(m => m.Id == id) > 0;
+
+            int index = _microphones.FindIndex(m => m.Id == id);
+            if (index >= 0)
             {
-                return;
+                _microphones[index].Dispose();
+                _microphones.RemoveAt(index);
+                removed = true;
             }
 
-            microphone.Dispose();
+            return removed;
         }
 
         public void RemoveAllMicrophones()
