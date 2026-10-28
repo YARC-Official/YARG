@@ -360,6 +360,8 @@ namespace YARG.Gameplay.Player
         private bool _wasStarPowerActive;
         private bool _didLowerTrack;
 
+        private bool _isSoloActive;
+
         private Queue<TrackEffect> _upcomingEffects = new();
         private List<TrackEffectElement> _currentEffects = new();
         protected List<TrackEffect> _trackEffects = new();
@@ -829,8 +831,13 @@ namespace YARG.Gameplay.Player
             }
         }
 
+        private double _currentUnisonEndTime = double.NaN;
+        private bool _soloHiddenForUnison;
+
         private void UpdateUnisonEvents(double time)
         {
+            HideSoloForUnison(time);
+
             if (_unisonStartIndex < _unisonPhrases.Count && _unisonPhrases[_unisonStartIndex].Time <= time)
             {
                 OnUnisonStart();
@@ -839,9 +846,37 @@ namespace YARG.Gameplay.Player
 
             if (_unisonEndIndex < _unisonPhrases.Count && _unisonPhrases[_unisonEndIndex].TimeEnd <= time)
             {
+                if(_soloHiddenForUnison)
+                {
+                    _currentUnisonEndTime = _unisonPhrases[_unisonEndIndex].TimeEnd;
+                }
                 OnUnisonEnd();
                 _unisonEndIndex++;
             }
+            
+            ShowSoloAfterUnison(time);
+
+        }
+
+        private void HideSoloForUnison(double time)
+        {   
+            var hideBeforeTime = UnisonDisplay.DISPLAY_PRE_TIME + UnisonDisplay.TRANSITION_DURATION;
+            if (_isSoloActive && _unisonStartIndex < _unisonPhrases.Count && _unisonPhrases[_unisonStartIndex].Time - hideBeforeTime <= time)
+            {
+                _soloHiddenForUnison = true;
+                TrackView.HideSoloForUnison();
+            }
+        }
+
+        private void ShowSoloAfterUnison(double time)
+        {
+            var showAfterTime = UnisonDisplay.DISPLAY_HOLD_TIME + UnisonDisplay.TRANSITION_DURATION;
+            if(_soloHiddenForUnison && _isSoloActive && !double.IsNaN(_currentUnisonEndTime) && _currentUnisonEndTime + showAfterTime <= time)
+            {
+                TrackView.ShowSoloAfterUnison();
+            }
+            _soloHiddenForUnison = false;
+            _currentUnisonEndTime = double.NaN;
         }
 
         private void UpdateTrackEffects(double time)
@@ -1347,6 +1382,7 @@ namespace YARG.Gameplay.Player
 
         protected virtual void OnSoloStart(SoloSection solo)
         {
+            _isSoloActive = true;
             TrackView.StartSolo(solo);
 
             foreach (var haptic in SantrollerHaptics)
@@ -1357,6 +1393,7 @@ namespace YARG.Gameplay.Player
 
         protected virtual void OnSoloEnd(SoloSection solo)
         {
+            _isSoloActive = false;
             TrackView.EndSolo(solo.SoloBonus);
 
             foreach (var haptic in SantrollerHaptics)

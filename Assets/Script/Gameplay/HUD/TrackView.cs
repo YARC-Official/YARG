@@ -260,6 +260,16 @@ namespace YARG.Gameplay.HUD
             UpdateTextNotificationStatus();
         }
 
+        public void HideSoloForUnison()
+        {
+            _soloBox.ToggleSoloBoxForUnison(true);
+        }
+
+        public void ShowSoloAfterUnison()
+        {
+            _soloBox.ToggleSoloBoxForUnison(false);
+        }
+
         public void StartCoda()
         {
             _isCodaActive = true;

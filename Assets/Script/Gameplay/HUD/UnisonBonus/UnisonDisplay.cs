@@ -26,9 +26,9 @@ namespace YARG.Gameplay.HUD
 
     public class UnisonDisplay : GameplayBehaviour
     {
-        private const double TRANSITION_DURATION               = 0.2;
-        private const double DISPLAY_HOLD_TIME                 = 1.5;
-        private const double DISPLAY_PRE_TIME                  = 0.2;
+        public const double TRANSITION_DURATION               = 0.2;
+        public const double DISPLAY_HOLD_TIME                 = 1.5;
+        public const double DISPLAY_PRE_TIME                  = 0.2;
         private const int    MAX_PARTICIPANTS_FOR_ICON_DISPLAY = 8;
 
         private readonly List<UnisonPhraseData> _phrases = new();
