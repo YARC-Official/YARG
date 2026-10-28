@@ -45,7 +45,8 @@ namespace YARG.Menu.Career
 
         public override string GetPrimaryText(bool selected)
         {
-            return FormatAs(_tier.Name, TextType.Primary, selected);
+            var name = _tier.IsBonus ? Localize.KeyFormat("Menu.Career.BonusTier", _tier.Name) : _tier.Name;
+            return FormatAs(name, TextType.Primary, selected);
         }
 
         public override string GetSecondaryText(bool selected)

@@ -30,6 +30,8 @@ namespace YARG.Menu.Career
 
         private const float RESET_HOLD_SECONDS = 1f;
 
+        private static int _lastSelectedIndex;
+
         private CareerPreset _career;
         private CareerEvaluation _evaluation;
         private int _careerSaveId;
@@ -57,18 +59,22 @@ namespace YARG.Menu.Career
 
         private UniTaskCompletionSource<bool> _videoStopped;
 
+
         protected override void OnEnable()
         {
             base.OnEnable();
 
             SetMenuNavigation();
 
+            // TODO: Consider whether _career and _sessionCareer should be static
             if (_career is null)
             {
                 if (_sessionCareer != null)
                 {
                     Initialize(_sessionCareer, LoadProgress(_sessionCareer));
                 }
+
+                SelectedIndex = _lastSelectedIndex;
 
                 return;
             }
@@ -82,6 +88,8 @@ namespace YARG.Menu.Career
                 RequestViewListUpdate();
                 CheckUnlocks();
             }
+
+            SelectedIndex = _lastSelectedIndex;
         }
 
         protected override void OnDisable()
@@ -244,6 +252,7 @@ namespace YARG.Menu.Career
 
         private void OnSongPlayed()
         {
+            _lastSelectedIndex = SelectedIndex;
             _progressDirty = true;
         }
 
@@ -263,6 +272,7 @@ namespace YARG.Menu.Career
             ScoreContainer.Careers?.SoftDeleteSave(_careerSaveId);
 
             ApplyProgress(Evaluate(_career, 0));
+            SelectedIndex = 0;
             RequestViewListUpdate();
 
             ToastManager.ToastSuccess(Localize.Key("Menu.Career.ResetDone"));
