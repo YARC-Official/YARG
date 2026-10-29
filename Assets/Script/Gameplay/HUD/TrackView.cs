@@ -272,10 +272,10 @@ namespace YARG.Gameplay.HUD
             _soloBox.ToggleSoloBoxForUnison(false);
         }
 
-        public bool GetUnisonSoloOverlap(RectTransform unisonRect)
+        public bool GetUnisonAndSoloOverlap(RectTransform unisonRect)
         {
             var soloBoxRect = _soloBox.transform as RectTransform;
-            return TransformExtensions.Overlaps(soloBoxRect, unisonRect);
+            return soloBoxRect.Overlaps(unisonRect);
         }
 
         public void StartCoda()

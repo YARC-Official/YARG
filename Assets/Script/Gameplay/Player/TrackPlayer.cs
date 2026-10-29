@@ -846,7 +846,7 @@ namespace YARG.Gameplay.Player
 
             if (_unisonEndIndex < _unisonPhrases.Count && _unisonPhrases[_unisonEndIndex].TimeEnd <= time)
             {
-                if(_soloHiddenForUnison)
+                if (_soloHiddenForUnison)
                 {
                     _currentUnisonEndTime = _unisonPhrases[_unisonEndIndex].TimeEnd;
                 }
@@ -863,20 +863,19 @@ namespace YARG.Gameplay.Player
             var hideBeforeTime = UnisonDisplay.DISPLAY_PRE_TIME + UnisonDisplay.TRANSITION_DURATION;
             if (_isSoloActive && !_soloHiddenForUnison && _unisonStartIndex < _unisonPhrases.Count && _unisonPhrases[_unisonStartIndex].Time - hideBeforeTime <= time)
             {
-                var unisonSoloOverlap = UnisonSoloOverlap();
-                if(unisonSoloOverlap)
+                var unisonAndSoloOverlap = UnisonAndSoloOverlap();
+                if (unisonAndSoloOverlap)
                 {
                     _soloHiddenForUnison = true;
                     TrackView.HideSoloForUnison();
-                }
-                
+                }       
             }
         }
 
         private void ShowSoloAfterUnison(double time)
         {
             var showAfterTime = UnisonDisplay.DISPLAY_HOLD_TIME + UnisonDisplay.TRANSITION_DURATION;
-            if(_soloHiddenForUnison && _isSoloActive && !double.IsNaN(_currentUnisonEndTime) && _currentUnisonEndTime + showAfterTime <= time)
+            if (_soloHiddenForUnison && _isSoloActive && !double.IsNaN(_currentUnisonEndTime) && _currentUnisonEndTime + showAfterTime <= time)
             {
                 _soloHiddenForUnison = false;
                 _currentUnisonEndTime = double.NaN;
@@ -884,10 +883,10 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        private bool UnisonSoloOverlap()
+        private bool UnisonAndSoloOverlap()
         {
             var unisonRect = GameManager.UnisonDisplayObj.transform as RectTransform;
-            return TrackView.GetUnisonSoloOverlap(unisonRect);
+            return TrackView.GetUnisonAndSoloOverlap(unisonRect);
         }
 
         private void UpdateTrackEffects(double time)

@@ -116,7 +116,7 @@ namespace YARG.Helpers.Extensions
         /// <summary>
         /// Returns True when rt1 and rt2 are overlaping.
         /// </summary>
-        public static bool Overlaps(RectTransform rt1, RectTransform rt2)
+        public static bool Overlaps(this RectTransform rt1, RectTransform rt2)
         {
             var r1 = rt1.ToScreenSpace();
             var r2 = rt2.ToScreenSpace();
