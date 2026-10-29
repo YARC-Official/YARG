@@ -861,10 +861,15 @@ namespace YARG.Gameplay.Player
         private void HideSoloForUnison(double time)
         {   
             var hideBeforeTime = UnisonDisplay.DISPLAY_PRE_TIME + UnisonDisplay.TRANSITION_DURATION;
-            if (_isSoloActive && _unisonStartIndex < _unisonPhrases.Count && _unisonPhrases[_unisonStartIndex].Time - hideBeforeTime <= time)
+            if (_isSoloActive && !_soloHiddenForUnison && _unisonStartIndex < _unisonPhrases.Count && _unisonPhrases[_unisonStartIndex].Time - hideBeforeTime <= time)
             {
-                _soloHiddenForUnison = true;
-                TrackView.HideSoloForUnison();
+                var unisonSoloOverlap = UnisonSoloOverlap();
+                if(unisonSoloOverlap)
+                {
+                    _soloHiddenForUnison = true;
+                    TrackView.HideSoloForUnison();
+                }
+                
             }
         }
 
@@ -877,6 +882,12 @@ namespace YARG.Gameplay.Player
                 _currentUnisonEndTime = double.NaN;
                 TrackView.ShowSoloAfterUnison();
             }
+        }
+
+        private bool UnisonSoloOverlap()
+        {
+            var unisonRect = GameManager.UnisonDisplayObj.transform as RectTransform;
+            return TrackView.GetUnisonSoloOverlap(unisonRect);
         }
 
         private void UpdateTrackEffects(double time)
