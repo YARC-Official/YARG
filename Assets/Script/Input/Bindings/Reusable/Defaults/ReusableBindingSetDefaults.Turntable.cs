@@ -86,11 +86,11 @@ namespace YARG.Input.Bindings
                         new(ControllerFamily.Turntable, ControlStrings.GAMEPAD_DPAD_DOWN),
                         new(ControllerFamily.Turntable, ControlStrings.TURNTABLE_LEFT_VELOCITY)
                         {
-                            PressPoint = -ReusableSingleButtonBinding.PRESS_POINT_DEFAULT
+                            Inverted = !ReusableSingleButtonBinding.INVERTED_DEFAULT
                         },
                         new(ControllerFamily.Turntable, ControlStrings.TURNTABLE_RIGHT_VELOCITY)
                         {
-                            PressPoint = -ReusableSingleButtonBinding.PRESS_POINT_DEFAULT
+                            Inverted = !ReusableSingleButtonBinding.INVERTED_DEFAULT
                         }
                     }
                 )

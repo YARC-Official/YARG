@@ -214,9 +214,7 @@ namespace YARG.Input.Serialization
 
         public static SerializedReusableControlBinding Deserialize(this SerializedControlBindingV0 serialized)
         {
-            var control = new SerializedReusableControlBinding();
-            control.Controls.AddRange(serialized.Select((bind) => bind.Deserialize()));
-            return control;
+            return new SerializedReusableControlBinding();
         }
     }
 }

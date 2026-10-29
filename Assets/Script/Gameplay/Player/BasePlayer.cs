@@ -152,7 +152,7 @@ namespace YARG.Gameplay.Player
 
             if (!Player.IsReplay)
             {
-                Player.DeviceInfo.ActivateGameplayBindings();
+                Player.DeviceInfo?.ActivateGameplayBindings();
                 SubscribeToInputEvents();
             }
         }

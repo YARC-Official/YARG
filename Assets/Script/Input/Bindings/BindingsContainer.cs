@@ -72,15 +72,14 @@ namespace YARG.Input.Bindings
         }
 
 
-        public static bool TryGetBindingCollectionById(Guid guid, out ReusableBindingSet bindingCollection)
+        public static bool TryGetBindingSetById(Guid guid, out ReusableBindingSet bindingSet)
         {
-            if (_allReusableBindingSetsByGuid.ContainsKey(guid))
+            if (_allReusableBindingSetsByGuid.TryGetValue(guid, out bindingSet))
             {
-                bindingCollection = _allReusableBindingSetsByGuid[guid];
                 return true;
             }
 
-            bindingCollection = null;
+            bindingSet = null;
             return false;
         }
 

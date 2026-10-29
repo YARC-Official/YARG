@@ -209,12 +209,11 @@ namespace YARG.Menu.ProfileList
             var controllerIdx = _availableDummyControllers.IndexOf(dummyController);
             if (controllerIdx > 0)
             {
-                _dummyControllerDropdown.value = controllerIdx + 1;
                 DummyController = dummyController;
             }
 
             SelectBindingSet(bindingSet);
-            _showLeftyNames = lefty;
+            ShowLeftyNames = lefty;
         }
 
         private void DestroyBindsList()

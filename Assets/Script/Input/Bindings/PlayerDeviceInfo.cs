@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -121,7 +121,7 @@ namespace YARG.Input
                     {
                         _preferredBindsByContext[(mode, controllerFamily)] = null;
                     }
-                    else if (BindingsContainer.TryGetBindingCollectionById(bindingSetGuid, out var modeMapping))
+                    else if (BindingsContainer.TryGetBindingSetById(bindingSetGuid, out var modeMapping))
                     {
                         _preferredBindsByContext[(mode, controllerFamily)] = modeMapping;
                     }

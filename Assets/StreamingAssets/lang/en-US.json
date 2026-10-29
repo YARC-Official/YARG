@@ -955,7 +955,7 @@
                         },
                         "Export": {
                             "Title": "Export Binding Set",
-                            "Text": "Export this binding set as a JSON file that you can transfer to other <i>YARG</i> setups.\n\nNot applicable to built-in binding sets."
+                            "Text": "Export this binding set as a file that you can transfer to other <i>YARG</i> setups.\n\nNot applicable to built-in binding sets."
                         },
                         "QuickBind": {
                             "Title": "Quick Bind",
