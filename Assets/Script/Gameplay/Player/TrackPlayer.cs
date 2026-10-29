@@ -873,10 +873,10 @@ namespace YARG.Gameplay.Player
             var showAfterTime = UnisonDisplay.DISPLAY_HOLD_TIME + UnisonDisplay.TRANSITION_DURATION;
             if(_soloHiddenForUnison && _isSoloActive && !double.IsNaN(_currentUnisonEndTime) && _currentUnisonEndTime + showAfterTime <= time)
             {
+                _soloHiddenForUnison = false;
+                _currentUnisonEndTime = double.NaN;
                 TrackView.ShowSoloAfterUnison();
             }
-            _soloHiddenForUnison = false;
-            _currentUnisonEndTime = double.NaN;
         }
 
         private void UpdateTrackEffects(double time)
