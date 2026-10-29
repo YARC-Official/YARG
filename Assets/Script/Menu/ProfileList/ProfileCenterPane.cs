@@ -397,7 +397,7 @@ namespace YARG.Menu.ProfileList
             else
             {
                 // Set the name. Make sure to record the name change in the scores.
-                Profile.Name = _nameInput.text;
+                Profile.Name = _nameInput.text.Replace("\r", "").Replace("\n", "");
                 ScoreContainer.RecordPlayerInfo(Profile.Id, Profile.Name);
 
                 // Update the UI
