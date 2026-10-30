@@ -114,7 +114,7 @@ namespace YARG.Helpers.Extensions
         }
 
         /// <summary>
-        /// Returns True when rt1 and rt2 are overlaping.
+        /// Returns True when rt1 and rt2 are overlapping.
         /// </summary>
         public static bool Overlaps(this RectTransform rt1, RectTransform rt2)
         {

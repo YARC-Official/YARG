@@ -360,7 +360,8 @@ namespace YARG.Gameplay.Player
         private bool _wasStarPowerActive;
         private bool _didLowerTrack;
 
-        private bool _isSoloActive;
+        private double _currentUnisonEndTime = double.NaN;
+        private bool _soloHiddenForUnison;
 
         private Queue<TrackEffect> _upcomingEffects = new();
         private List<TrackEffectElement> _currentEffects = new();
@@ -831,9 +832,6 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        private double _currentUnisonEndTime = double.NaN;
-        private bool _soloHiddenForUnison;
-
         private void UpdateUnisonEvents(double time)
         {
             HideSoloForUnison(time);
@@ -857,17 +855,14 @@ namespace YARG.Gameplay.Player
 
         private void HideSoloForUnison(double time)
         {   
-            var hideTime = GameManager.UnisonDisplay.GetTransitionInTime();
-            if (_isSoloActive && !_soloHiddenForUnison && _unisonStartIndex < _unisonPhrases.Count && hideTime <= time)
+            var hideTime = GameManager.UnisonDisplay.Phrases[GameManager.UnisonDisplay.CurrentPhraseIndex].TransitionIn.Time;
+            if (Engine.IsSoloActive && !_soloHiddenForUnison && _unisonStartIndex < _unisonPhrases.Count && hideTime <= time)
             {
-                var isUnisonAlways = SettingsManager.Settings.UnisonDisplay.Value == UnisonDisplaySetting.Always;
-                var isUnisonMuliplayer = SettingsManager.Settings.UnisonDisplay.Value == UnisonDisplaySetting.MultiplayerOnly;
-                var unisonPartCount = GameManager.UnisonDisplay.GetUnisonEventPartCount();
                 var unisonAndSoloOverlap = UnisonAndSoloOverlap();
 
-                if (unisonAndSoloOverlap && (isUnisonAlways || (isUnisonMuliplayer && unisonPartCount >= 2)))
+                if (unisonAndSoloOverlap)
                 {
-                    _currentUnisonEndTime = GameManager.UnisonDisplay.GetTransitionOutTime();
+                    _currentUnisonEndTime = GameManager.UnisonDisplay.Phrases[GameManager.UnisonDisplay.CurrentPhraseIndex].TransitionOut.Time;
                     _soloHiddenForUnison = true;
                     TrackView.HideSoloForUnison();
                 }       
@@ -876,7 +871,7 @@ namespace YARG.Gameplay.Player
 
         private void ShowSoloAfterUnison(double time)
         {
-            if (_soloHiddenForUnison && _isSoloActive && !double.IsNaN(_currentUnisonEndTime) && _currentUnisonEndTime <= time)
+            if (_soloHiddenForUnison && Engine.IsSoloActive && !double.IsNaN(_currentUnisonEndTime) && _currentUnisonEndTime <= time)
             {
                 _soloHiddenForUnison = false;
                 _currentUnisonEndTime = double.NaN;
@@ -1393,7 +1388,6 @@ namespace YARG.Gameplay.Player
 
         protected virtual void OnSoloStart(SoloSection solo)
         {
-            _isSoloActive = true;
             TrackView.StartSolo(solo);
 
             foreach (var haptic in SantrollerHaptics)
@@ -1404,7 +1398,6 @@ namespace YARG.Gameplay.Player
 
         protected virtual void OnSoloEnd(SoloSection solo)
         {
-            _isSoloActive = false;
             TrackView.EndSolo(solo.SoloBonus);
 
             foreach (var haptic in SantrollerHaptics)

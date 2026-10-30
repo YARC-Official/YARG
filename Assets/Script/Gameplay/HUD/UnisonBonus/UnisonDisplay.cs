@@ -33,6 +33,8 @@ namespace YARG.Gameplay.HUD
 
         private readonly List<UnisonPhraseData> _phrases = new();
 
+        public List<UnisonPhraseData> Phrases => _phrases;
+
         private readonly Dictionary<int, EngineUnisonState> _unisonState        = new();
         private readonly List<Action>                       _unsubscribeActions = new();
         private          BaseUnisonObject                   _activeUnisonObject;
@@ -40,6 +42,8 @@ namespace YARG.Gameplay.HUD
         private          int                                _currentPhraseIndex;
         private          bool                               _isEditMode;
         private          double                             _lastVisualTime;
+
+        public int CurrentPhraseIndex => _currentPhraseIndex;
 
         [SerializeField]
         private Image _backgroundImage;
@@ -612,7 +616,7 @@ namespace YARG.Gameplay.HUD
             _unsubscribeActions.Clear();
         }
 
-        private readonly struct TransitionTiming
+        public readonly struct TransitionTiming
         {
             public readonly double Time;
             public readonly double TimeEnd;
@@ -635,7 +639,7 @@ namespace YARG.Gameplay.HUD
             }
         }
 
-        private class UnisonPhraseData
+        public class UnisonPhraseData
         {
             public EngineManager.UnisonEvent Event;
             public TransitionTiming          TransitionIn;
@@ -646,30 +650,6 @@ namespace YARG.Gameplay.HUD
         {
             public bool HasFailedCurrentPhrase;
             public int  NotesHitInCurrentPhrase;
-        }
-    public int GetUnisonEventPartCount()
-        {
-            if (_currentPhraseIndex >= _phrases.Count)
-            {
-                return 0;
-            }
-            return _phrases[_currentPhraseIndex].Event.PartCount;
-        }
-    public double GetTransitionInTime()
-        {
-            if (_currentPhraseIndex >= _phrases.Count)
-            {
-                return 0;
-            }
-            return _phrases[_currentPhraseIndex].TransitionIn.Time;
-        }
-        public double GetTransitionOutTime()
-        {
-            if (_currentPhraseIndex >= _phrases.Count)
-            {
-                return 0;
-            }
-            return _phrases[_currentPhraseIndex].TransitionOut.Time;
         }
     }
 
