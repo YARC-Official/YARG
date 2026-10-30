@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
+using YARG.Audio;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Game;
@@ -170,6 +170,8 @@ namespace YARG.Menu.MusicLibrary
         private PreviewContext _previewContext;
         private double _previewDelay;
 
+        private readonly PreviewPlayer _previewPlayer = new();
+
         private SongEntry _currentSong;
         public List<(string, int)> Shortcuts { get; private set; } = new();
 
@@ -251,6 +253,8 @@ namespace YARG.Menu.MusicLibrary
             }
             else if (_reloadState == MusicLibraryReloadState.Partial)
             {
+                SetRecommendedSongs();
+
                 // Note that the order matters here: SelectedPlaylist must be set before calling UpdateSearch,
                 // but SelectedIndex must be set _after_ calling UpdateSearch
                 SelectedPlaylist = _savedPlaylist;
@@ -523,8 +527,7 @@ namespace YARG.Menu.MusicLibrary
             }
 
             StopPreview();
-            _previewCanceller = new CancellationTokenSource();
-            StartPreview(_previewDelay, _previewCanceller);
+            StartPreview(_previewDelay);
 
             _previewDelay = PREVIEW_SCROLL_DELAY;
         }
@@ -736,7 +739,11 @@ namespace YARG.Menu.MusicLibrary
                 }
 
                 var secondaryAlbumSort = SettingsManager.Settings.SecondaryAlbumSort.Value;
-                if (includeSongs && SettingsManager.Settings.LibrarySort == SortAttribute.Source &&
+                // Qualified filters preserve the configured sort hierarchy, just like primary
+                // headers do. Unrestricted text searches flatten results by relevance instead.
+                bool includeSecondaryGroups = includeSongs &&
+                    (!_searchField.IsSearching || !_searchField.IsUnspecified);
+                if (includeSecondaryGroups && SettingsManager.Settings.LibrarySort == SortAttribute.Source &&
                     SettingsManager.Settings.SecondarySourceSort.Value == SecondarySourceSortMode.Intensity)
                 {
                     var players = PlayerContainer.Players
@@ -784,7 +791,7 @@ namespace YARG.Menu.MusicLibrary
                         intensityHeader.HasGoldStars = !intensityHasNonGoldSong;
                     }
                 }
-                else if (includeSongs && SettingsManager.Settings.LibrarySort >= SortAttribute.Instrument &&
+                else if (includeSecondaryGroups && SettingsManager.Settings.LibrarySort >= SortAttribute.Instrument &&
                     SettingsManager.Settings.SecondaryIntensitySort.Value == SecondaryIntensitySortMode.Source)
                 {
                     var sourceGroups = displayedSongs
@@ -825,7 +832,8 @@ namespace YARG.Menu.MusicLibrary
                         sourceHeader.HasGoldStars = !sourceHasNonGoldSong;
                     }
                 }
-                else if (includeSongs && SettingsManager.Settings.LibrarySort == SortAttribute.Artist &&
+                else if (includeSecondaryGroups &&
+                    SettingsManager.Settings.LibrarySort == SortAttribute.Artist &&
                     secondaryAlbumSort != SecondaryAlbumSortMode.Off)
                 {
                     IEnumerable<IGrouping<SortString, SongEntry>> albumGroups = displayedSongs
@@ -902,9 +910,7 @@ namespace YARG.Menu.MusicLibrary
         private void ExitLibrary()
         {
             ShowPlaylist.Clear();
-            _previewCanceller?.Cancel();
-            _previewContext?.Dispose();
-            _previewContext = null;
+            _ = _previewPlayer.StopPreview();
             StemSettings.ApplySettings = true;
             MenuManager.Instance.PopMenu();
         }
@@ -963,45 +969,12 @@ namespace YARG.Menu.MusicLibrary
 
         private void StopPreview(bool clearCurrentSong = false)
         {
-            _ = StopPreviewAsync(clearCurrentSong);
-        }
-
-        private async Task StopPreviewAsync(bool clearCurrentSong = false)
-        {
             if (clearCurrentSong)
             {
                 _currentSong = null;
             }
 
-            // Snapshot the current preview before awaiting so a newer preview started in the meantime
-            // cannot be canceled, disposed, or cleared by this older shutdown path.
-            var previewCanceller = _previewCanceller;
-            var previewContext = _previewContext;
-
-            _previewCanceller = null;
-            _previewContext = null;
-
-            previewCanceller?.Cancel();
-            if (previewContext != null)
-            {
-                await previewContext.WaitForCompletionAsync();
-            }
-
-            previewCanceller?.Dispose();
-        }
-
-        private void DisposePreview()
-        {
-            var previewCanceller = _previewCanceller;
-            var previewContext = _previewContext;
-
-            _previewCanceller = null;
-            _previewContext = null;
-            _currentSong = null;
-
-            previewCanceller?.Cancel();
-            previewContext?.Dispose();
-            previewCanceller?.Dispose();
+            _ = _previewPlayer.StopPreview();
         }
 
         private void EnterPlaylistSelectFromLibrary()
@@ -1030,7 +1003,7 @@ namespace YARG.Menu.MusicLibrary
             }
         }
 
-        private async void StartPreview(double delay, CancellationTokenSource canceller)
+        private void StartPreview(double delay)
         {
             if (_currentSong == null)
             {
@@ -1049,31 +1022,25 @@ namespace YARG.Menu.MusicLibrary
                 return;
             }
 
-            var context = await PreviewContext.Create(
+            _ = _previewPlayer.StartPreview(
                 _currentSong,
                 previewVolume,
                 GlobalVariables.State.SongSpeed,
                 delay,
                 FADE_DURATION,
-                SettingsManager.Settings.CensorMatureContent.Value,
-                canceller.Token);
-            if (context != null)
-            {
-                if (_previewCanceller == canceller && !canceller.IsCancellationRequested)
-                {
-                    _previewContext = context;
-                }
-                else
-                {
-                    context.Dispose();
-                }
-            }
+                SettingsManager.Settings.CensorMatureContent.Value);
         }
 
         protected override void OnDisable()
         {
             base.OnDisable();
             SetSidebarDifficultiesVisible(false);
+
+            // Unsubscribe before the early-out below, or the static player events keep calling into a
+            // destroyed menu when the Navigator is already gone at shutdown.
+            _searchField.OnSearchQueryUpdated -= UpdateSearch;
+            PlayerContainer.PlayerAdded -= OnPlayerAdded;
+            PlayerContainer.PlayerRemoved -= OnPlayerRemoved;
 
             if (Navigator.Instance == null) return;
 
@@ -1094,15 +1061,11 @@ namespace YARG.Menu.MusicLibrary
             Navigator.Instance.PopScheme();
 
             StopPreview();
-            _searchField.OnSearchQueryUpdated -= UpdateSearch;
-
-            PlayerContainer.PlayerAdded -= OnPlayerAdded;
-            PlayerContainer.PlayerRemoved -= OnPlayerRemoved;
         }
 
         private void OnDestroy()
         {
-            DisposePreview();
+            _previewPlayer.Dispose();
             _reloadState = MusicLibraryReloadState.Partial;
             StemSettings.ApplySettings = true;
         }
@@ -1586,7 +1549,7 @@ namespace YARG.Menu.MusicLibrary
             using var context = new LoadingContext();
 
             // Stop any library preview audio so the loading screen doesn't inherit it
-            await StopPreviewAsync();
+            await _previewPlayer.StopPreview();
 
             SetSidebarDifficultiesVisible(false);
             _sidebar.gameObject.SetActive(false);

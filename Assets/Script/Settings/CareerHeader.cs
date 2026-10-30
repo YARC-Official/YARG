@@ -2,6 +2,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YARG.Menu;
 
 namespace YARG.Settings
 {
@@ -27,12 +28,23 @@ namespace YARG.Settings
         private Action _onUp;
         private Action _onDown;
         private Action _onRemove;
+        private TextMarquee _marquee;
 
-        public void Initialize(string text, Action onAdd, Action onEdit, Action onUp, Action onDown, Action onRemove)
+        public void Initialize(string text, Action onAdd, Action onEdit, Action onUp, Action onDown, Action onRemove,
+            bool marquee = false)
         {
             if (_text != null)
             {
                 _text.text = text;
+                if (marquee)
+                {
+                    _marquee ??= new TextMarquee(_text);
+                    _marquee.SetActive(true);
+                }
+                else
+                {
+                    _marquee?.SetActive(false);
+                }
             }
 
             _onAdd = onAdd;
@@ -46,6 +58,11 @@ namespace YARG.Settings
             SetupButton(_upButton, _onUp);
             SetupButton(_downButton, _onDown);
             SetupButton(_removeButton, _onRemove);
+        }
+
+        private void LateUpdate()
+        {
+            _marquee?.Update();
         }
 
         private static void SetupButton(Button button, Action action)

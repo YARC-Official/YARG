@@ -51,6 +51,12 @@ namespace YARG.Menu
             set => _slider.maxValue = value;
         }
 
+        public bool WholeNumbers
+        {
+            get => _slider.wholeNumbers;
+            set => _slider.wholeNumbers = value;
+        }
+
         private string _beforeEditText;
         private float _beforeEditValue;
 
@@ -147,10 +153,10 @@ namespace YARG.Menu
             if (setText)
                 _inputField.SetTextWithoutNotify(value.ToString(_formatString));
 
+            _isSettingValue = false;
+
             if (notify)
                 ValueChanged.Invoke(value);
-
-            _isSettingValue = false;
         }
 
         public void SetValueWithoutNotify(float value)

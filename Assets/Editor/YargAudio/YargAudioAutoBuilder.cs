@@ -45,23 +45,12 @@ namespace YARG.Editor.YargAudio
         {
             if (!EnsureUpToDate(isExplicit: false))
             {
-                throw new BuildFailedException("[YargAudio AutoBuilder] Native audio build failed. See console for details.");
+                throw new BuildFailedException("[YargAudio Builder] Native audio build failed. See console for details.");
             }
         }
 
         private static void OnPlayModeStateChanged(PlayModeStateChange state)
         {
-            if (state == PlayModeStateChange.EnteredPlayMode)
-            {
-                var failure = SessionState.GetString(NATIVE_BUILD_FAILURE, string.Empty);
-                SessionState.EraseString(NATIVE_BUILD_FAILURE);
-                if (failure.Length > 0)
-                {
-                    Debug.LogError(failure);
-                }
-                return;
-            }
-
             if (state == PlayModeStateChange.EnteredEditMode)
             {
                 if (YargAudioBindings.HasPendingUpdate)
@@ -130,6 +119,7 @@ namespace YARG.Editor.YargAudio
 
             if (!isExplicit && !HasNewerSourcesThan(nativeDir, pluginInfo.Value.DestinationBinaryPath))
             {
+                SessionState.EraseString(NATIVE_BUILD_FAILURE);
                 return true;
             }
 
@@ -140,6 +130,22 @@ namespace YARG.Editor.YargAudio
         {
             try
             {
+                if (isExplicit || SessionState.GetString(NATIVE_BUILD_FAILURE, string.Empty).Length == 0)
+                {
+                    if (isExplicit)
+                    {
+                        Debug.Log("[YargAudio Builder] Rebuilding the native audio library.");
+                    }
+                    else if (File.Exists(pluginInfo.DestinationBinaryPath))
+                    {
+                        Debug.Log("[YargAudio Builder] Native audio files are newer than the audio plugin. Rebuilding it now.");
+                    }
+                    else
+                    {
+                        Debug.Log("[YargAudio Builder] The native audio plugin is missing. Building it now.");
+                    }
+                }
+
                 var buildDir = Path.Combine(nativeDir, "build", pluginInfo.ConfigurePreset);
                 var outcome = TryRunBuild(nativeDir, pluginInfo, out string builtPath, out string buildError);
                 if (outcome == BuildOutcome.BuildFailed && Directory.Exists(buildDir))
@@ -157,8 +163,8 @@ namespace YARG.Editor.YargAudio
                 File.Copy(builtPath, pluginInfo.DestinationBinaryPath, overwrite: true);
                 SessionState.EraseString(NATIVE_BUILD_FAILURE);
 
-                Debug.Log($"[YargAudio AutoBuilder] Successfully rebuilt and updated {pluginInfo.BinaryName}. " +
-                    "The current Play session keeps its loaded version; the next Play session uses the update.");
+                Debug.Log($"[YargAudio Builder] Rebuilt and updated {pluginInfo.BinaryName}. " +
+                    "If audio is already loaded, the update takes effect after the scripts reload.");
                 return true;
             }
             catch (Exception ex)
@@ -202,9 +208,9 @@ namespace YARG.Editor.YargAudio
             {
                 exitCode = RunCmake(arguments, nativeDir, out output, out error);
             }
-            catch (Win32Exception)
+            catch (Win32Exception ex)
             {
-                errorMessage = "CMake executable not found in PATH; please install CMake 3.25+.";
+                errorMessage = $"Could not start CMake: {ex.Message}";
                 return false;
             }
 
@@ -227,7 +233,7 @@ namespace YARG.Editor.YargAudio
             }
             catch (Exception ex)
             {
-                Debug.LogWarning($"[YargAudio AutoBuilder] Failed to delete stale build directory '{buildDir}': {ex.Message}");
+                Debug.LogWarning($"[YargAudio Builder] Failed to delete stale build directory '{buildDir}': {ex.Message}");
             }
         }
 
@@ -235,19 +241,29 @@ namespace YARG.Editor.YargAudio
         {
             var logPath = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "Library", "YargAudioBuild.log"));
             File.WriteAllText(logPath, errorMessage);
-            var summary = SummarizeBuildFailure(errorMessage) + $"\nFull build output: {logPath}";
-            bool useExistingBinary = !isExplicit && File.Exists(pluginInfo.DestinationBinaryPath);
+            bool pluginExists = File.Exists(pluginInfo.DestinationBinaryPath);
+            var summary = "Couldn't rebuild the native audio library. " +
+                "Building it requires CMake 3.25 or newer and a C++ compiler.\n" +
+                SummarizeBuildFailure(errorMessage) + $"\nFull build log: {logPath}" +
+                "\nTo try again, select YARG > Audio > Rebuild Native Audio (This Platform).";
+            bool useExistingBinary = !isExplicit && pluginExists;
             if (useExistingBinary)
             {
-                summary += "\nPlay will use the existing binary. The latest native changes are unavailable.";
-                SessionState.SetString(NATIVE_BUILD_FAILURE, summary);
+                summary += "\nThe native audio files are newer than the existing plugin. " +
+                    "YARG will use that plugin, so recent native audio changes may be missing.";
+                if (SessionState.GetString(NATIVE_BUILD_FAILURE, string.Empty) != errorMessage)
+                {
+                    Debug.LogWarning(summary);
+                    SessionState.SetString(NATIVE_BUILD_FAILURE, errorMessage);
+                }
             }
-
-            Debug.LogError(summary);
-            if (!Application.isBatchMode &&
-                EditorUtility.DisplayDialog("Native audio rebuild failed", summary, "Open Build Log", "OK"))
+            else
             {
-                EditorUtility.OpenWithDefaultApp(logPath);
+                if (!pluginExists)
+                {
+                    summary += "\nThe audio plugin is missing. Play and game builds need it to continue.";
+                }
+                Debug.LogError(summary);
             }
             return useExistingBinary;
         }
@@ -255,7 +271,7 @@ namespace YARG.Editor.YargAudio
         private static string SummarizeBuildFailure(string errorMessage)
         {
             using var reader = new StringReader(errorMessage);
-            var summary = new StringBuilder($"[YargAudio AutoBuilder] {reader.ReadLine()}");
+            var summary = new StringBuilder($"[YargAudio Builder] {reader.ReadLine()}");
             int errorCount = 0;
             string? line;
             while ((line = reader.ReadLine()) != null)

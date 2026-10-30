@@ -53,7 +53,8 @@ namespace YARG.Gameplay.HUD
             }
 
             // If the cursor moves, then set the timer
-            if (Mouse.current.delta.magnitude > 3f)
+            var mouse = Mouse.current;
+            if (mouse != null && mouse.delta.magnitude > 3f)
             {
                 _cursorHideTimer = showCursorSetting;
             }

@@ -207,7 +207,7 @@ namespace YARG.Gameplay
 
                 if (await LoadAddressableYarground(hint, vocalGender))
                 {
-                    GameManager.CrowdEventHandler.Start();
+                    GameManager.CrowdEventHandler?.Start();
                     return;
                 }
             }
@@ -220,14 +220,14 @@ namespace YARG.Gameplay
             // TODO: Figure out how to decouple this
             if (_type != BackgroundType.Yarground)
             {
-                GameManager.CrowdEventHandler.Start();
+                GameManager.CrowdEventHandler?.Start();
             }
 
             switch (_type)
             {
                 case BackgroundType.Yarground:
                     await LoadYarground(result);
-                    GameManager.CrowdEventHandler.Start();
+                    GameManager.CrowdEventHandler?.Start();
                     break;
                 case BackgroundType.Video:
                     LoadVideoBackground(result);
