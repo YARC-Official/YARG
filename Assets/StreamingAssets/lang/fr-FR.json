@@ -65,7 +65,8 @@
             "NoDynamics": "Sans dynamiques",
             "NoVocalPercussion": "Sans percussion",
             "RangeCompress": "Sans gamme",
-            "OpensToGreens": "Toutes Notes ouvertes"
+            "OpensToGreens": "Toutes Notes ouvertes",
+            "RandomColors": "Couleurs aléatoires"
         },
         "SortAttribute": {
             "Album": "Album",

@@ -137,6 +137,10 @@ namespace YARG.Gameplay.Player
         protected SongStem _stem;
         private double _practiceSectionStartTime;
 
+        // Only ever used when RandomColors is active, which is only selectable for
+        // GameMode.FiveFretGuitar (see Modifier.AllModifiers in YARG.Core).
+        private readonly System.Random _colorRandom = new System.Random();
+
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, StemMixer mixer, int? currentHighScore)
         {
             _stem = player.Profile.CurrentInstrument.ToSongStems().First();
@@ -482,7 +486,18 @@ namespace YARG.Gameplay.Player
 
         protected override void InitializeSpawnedNote(IPoolable poolable, GuitarNote note)
         {
-            ((FiveFretGuitarNoteElement) poolable).NoteRef = note;
+            var element = (FiveFretGuitarNoteElement) poolable;
+            element.NoteRef = note;
+
+            if (Player.Profile.IsModifierActive(Modifier.RandomColors))
+            {
+                var slots = ColorProfile.FiveFretGuitarColors.RandomColorSlots;
+                element.ColorSlot = slots[_colorRandom.Next(slots.Length)];
+            }
+            else
+            {
+                element.ColorSlot = note.Fret;
+            }
         }
 
         protected override void InitializeSpawnedLane(LaneElement lane, GuitarNote note)
@@ -596,9 +611,12 @@ namespace YARG.Gameplay.Player
 
             if (GameManager.Paused) return;
 
+            bool randomColors = Player.Profile.IsModifierActive(Modifier.RandomColors);
+
             foreach (var note in chordParent.AllNotes)
             {
-                (NotePool.GetByKey(note) as FiveFretGuitarNoteElement)?.HitNote();
+                var element = NotePool.GetByKey(note) as FiveFretGuitarNoteElement;
+                element?.HitNote();
 
                 if (NoteIsFullWidth(note))
                 {
@@ -609,6 +627,11 @@ namespace YARG.Gameplay.Player
                     if (note.Fret is (int) FiveFretGuitarFret.Open)
                     {
                         FretToMostRecentTime[(int)FiveFretGuitarFret.Open] = GameManager.VisualTime;
+                    }
+
+                    if (randomColors && element != null)
+                    {
+                        _fretArray.RecolorFret(note.Fret, Player.ColorProfile.FiveFretGuitar, element.ColorSlot);
                     }
 
                     _fretArray.PlayHitAnimation(note.Fret);

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Core.Engine.Guitar;
 using YARG.Gameplay.Player;
@@ -32,6 +33,11 @@ namespace YARG.Gameplay.Visuals
         private SustainLine _wildcardSustainLine;
 
         private SustainLine _sustainLine;
+
+        // Set once per spawned note in FiveFretGuitarPlayer.InitializeSpawnedNote: NoteRef.Fret
+        // normally, or a random slot from ColorProfile.FiveFretGuitarColors.RandomColorSlots
+        // when the RandomColors modifier is active.
+        public int ColorSlot { get; set; }
 
         // Make sure the remove it later if it has a sustain
         protected override float RemovePointOffset => (float) NoteRef.TimeLength * Player.NoteSpeed;
@@ -208,8 +214,10 @@ namespace YARG.Gameplay.Visuals
             System.Drawing.Color color;
 
             // Fullwidth Open HOPO/Tap notes use a dedicated color (the prefab's
-            // EmissionAddition: 1 washes to white by default)
-            if (!Player.UsingOpenLane &&
+            // EmissionAddition: 1 washes to white by default), unless Random Colors is
+            // active, in which case they use their random slot like every other note.
+            if (!Player.Player.Profile.IsModifierActive(Modifier.RandomColors) &&
+                !Player.UsingOpenLane &&
                 NoteRef.Fret is (int) FiveFretGuitarFret.Open &&
                 NoteRef.Type is GuitarNoteType.Hopo or GuitarNoteType.Tap)
             {
@@ -218,9 +226,9 @@ namespace YARG.Gameplay.Visuals
             }
             else
             {
-                colorNoStarPower = colors.GetNoteColor(NoteRef.Fret);
+                colorNoStarPower = colors.GetNoteColor(ColorSlot);
                 color = IsStarPowerVisible
-                    ? colors.GetNoteStarPowerColor(NoteRef.Fret)
+                    ? colors.GetNoteStarPowerColor(ColorSlot)
                     : colorNoStarPower;
             }
 
