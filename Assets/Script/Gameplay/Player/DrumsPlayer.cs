@@ -46,6 +46,9 @@ namespace YARG.Gameplay.Player
         // Engine.BaseStats.GetOffsetSamples -- see the remarks on GetOffsetSampleFilterCategory.
         private readonly List<bool> _liveOffsetSampleFilterCategory = new();
 
+        // Indices of samples recorded for auto-hit star power activators (no OnNoteHit fired).
+        private readonly HashSet<int> _autoHitSampleIndices = new();
+
         private bool _yellowCymbalHasLane = false;
         private bool _blueCymbalHasLane = false;
         private bool _greenCymbalHasLane = false;
@@ -208,19 +211,35 @@ namespace YARG.Gameplay.Player
         {
             // Auto-hit star power activators can trail the last real hit
             PadOffsetSampleFilterCategory(BaseStats.GetOffsetSamples().Count);
-            return _liveOffsetSampleFilterCategory;
+
+            if (_autoHitSampleIndices.Count == 0)
+            {
+                return _liveOffsetSampleFilterCategory;
+            }
+
+            // Auto-hit samples aren't real player hits, so give them the category the active
+            // filter *rejects*: non-kick for OnlySelected, kick for ExcludeSelected.
+            var result = new List<bool>(_liveOffsetSampleFilterCategory);
+            bool rejected = OffsetSampleFilterMode == OffsetCalibrationFilter.ExcludeSelected;
+            foreach (int index in _autoHitSampleIndices)
+            {
+                result[index] = rejected;
+            }
+
+            return result;
         }
 
         /// <summary>
         /// Skipped star power activation notes are auto-hit by the engine: it records an offset
         /// sample for them but never fires <see cref="OnNoteHit"/>, which left the category list
-        /// shorter than the sample list and made every consumer fall back to "all hits". Pad with
-        /// <c>false</c> (non-kick) so the two lists stay 1:1.
+        /// shorter than the sample list and made every consumer fall back to "all hits". Pad with a
+        /// placeholder (resolved in <see cref="GetOffsetSampleFilterCategory"/>) so the lists stay 1:1.
         /// </summary>
         private void PadOffsetSampleFilterCategory(int targetCount)
         {
             while (_liveOffsetSampleFilterCategory.Count < targetCount)
             {
+                _autoHitSampleIndices.Add(_liveOffsetSampleFilterCategory.Count);
                 _liveOffsetSampleFilterCategory.Add(false);
             }
         }
@@ -365,6 +384,7 @@ namespace YARG.Gameplay.Player
             base.ResetPracticeSection();
             _fretArray.ResetAll();
             _liveOffsetSampleFilterCategory.Clear();
+            _autoHitSampleIndices.Clear();
         }
 
         protected override void ResetLastHitTimes()
