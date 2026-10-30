@@ -152,7 +152,8 @@ namespace YARG.Menu.MusicLibrary
 
         private void Update()
         {
-            if (Keyboard.current.escapeKey.wasPressedThisFrame)
+            var keyboard = Keyboard.current;
+            if (keyboard != null && keyboard.escapeKey.wasPressedThisFrame)
             {
                 ClearFilterQueries();
             }
