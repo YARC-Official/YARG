@@ -411,7 +411,7 @@ namespace YARG.Menu.MusicLibrary
             {
                 foreach (var entry in list.Value)
                 {
-                    if (DisallowedByRating(entry.GetSongRating(SettingsManager.Settings.CensorMatureContent.Value)))
+                    if (DisallowedByRating(entry))
                     {
                         continue;
                     }

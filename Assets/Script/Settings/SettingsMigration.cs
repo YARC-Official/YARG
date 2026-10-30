@@ -15,8 +15,6 @@ namespace YARG.Settings
         private const string CROWD_IDLE_SETTING = nameof(SettingsManager.SettingContainer.UseCrowdIdle);
         private const string STAR_POWER_CLAPS_SETTING = nameof(SettingsManager.SettingContainer.UseStarPowerClaps);
         private const string PERFORMANCE_CLAPS_SETTING = nameof(SettingsManager.SettingContainer.UsePerformanceClaps);
-        private const string REVERB_IMPLEMENTATION_SETTING =
-            nameof(SettingsManager.SettingContainer.ReverbImplementation);
         private const string LIBRARY_SORT_SETTING = nameof(SettingsManager.SettingContainer.LibrarySort);
         private const string PREVIOUS_LIBRARY_SORT_SETTING =
             nameof(SettingsManager.SettingContainer.PreviousLibrarySort);
