@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Core.Engine.Guitar;
 using YARG.Gameplay.Player;
@@ -213,8 +214,10 @@ namespace YARG.Gameplay.Visuals
             System.Drawing.Color color;
 
             // Fullwidth Open HOPO/Tap notes use a dedicated color (the prefab's
-            // EmissionAddition: 1 washes to white by default)
-            if (!Player.UsingOpenLane &&
+            // EmissionAddition: 1 washes to white by default), unless Random Colors is
+            // active, in which case they use their random slot like every other note.
+            if (!Player.Player.Profile.IsModifierActive(Modifier.RandomColors) &&
+                !Player.UsingOpenLane &&
                 NoteRef.Fret is (int) FiveFretGuitarFret.Open &&
                 NoteRef.Type is GuitarNoteType.Hopo or GuitarNoteType.Tap)
             {
