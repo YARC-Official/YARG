@@ -56,7 +56,9 @@ public class YargVideoPlayer : MonoBehaviour
             }
 #endif
             // Always set on the built-in player too, so we can fall back to it.
-            YargLogger.LogFormatDebug("[YargVideoPlayer/UnityPlayer] targetTexture set to {0}", value);
+            // Log items are formatted on the logger thread, where Object.ToString() throws.
+            YargLogger.LogFormatDebug("[YargVideoPlayer/UnityPlayer] targetTexture set to {0}",
+                value != null ? value.ToString() : "null");
             _unityVideoPlayer.targetTexture = value;
         }
     }
@@ -197,8 +199,10 @@ public class YargVideoPlayer : MonoBehaviour
         // after the first fire; seekCompleted stays attached for every seek.
         _unityVideoPlayer.prepareCompleted -= OnUnityVideoPrepared;
         _unityVideoPlayer.seekCompleted -= OnUnitySeekCompleted;
+        _unityVideoPlayer.errorReceived -= OnUnityVideoError;
         _unityVideoPlayer.prepareCompleted += OnUnityVideoPrepared;
         _unityVideoPlayer.seekCompleted += OnUnitySeekCompleted;
+        _unityVideoPlayer.errorReceived += OnUnityVideoError;
         _unityVideoPlayer.Prepare();
     }
 
@@ -343,5 +347,10 @@ public class YargVideoPlayer : MonoBehaviour
     private void OnUnitySeekCompleted(VideoPlayer vp)
     {
         seekCompleted?.Invoke(this);
+    }
+
+    private void OnUnityVideoError(VideoPlayer vp, string message)
+    {
+        YargLogger.LogError(message);
     }
 }

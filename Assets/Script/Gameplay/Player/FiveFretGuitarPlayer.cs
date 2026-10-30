@@ -52,7 +52,7 @@ namespace YARG.Gameplay.Player
         protected Dictionary<int, int> HighwayOrdering;
 
         // Used to control fret brightness for the dedicated open lane
-        private bool _openSustaining = false;
+        protected bool _openSustaining = false;
 
         protected virtual int GetFretIndex(int action)
         {

@@ -43,10 +43,12 @@ Shader "HighwaysAlphaMask"
                 int index = WorldPosToIndex(IN.positionWS);
                 float fadeStartPos = _YargFadeParams[index * 2];
                 float fadeEndPos   = _YargFadeParams[index * 2 + 1];
-                // Euclidean distance from camera to this fragment
-                float3 camPos = YargWorldSpaceCameraPos(IN.positionWS);
-                // float dist = distance(camPos, IN.positionWS);
-                float dist = IN.positionWS.z - camPos.z;
+                // public const float STRIKE_LINE_POS       = -2f;
+                // the above in TrackPlayer needs to be kept in sync
+                // for the fade to stay the same
+                // ie the `dist` below relies on highways placed
+                // at z = -2 and aligned with Z axis
+                float dist = IN.positionWS.z;
                 float alpha = 0.0;
 
                 if (dist < fadeStartPos)

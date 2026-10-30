@@ -205,6 +205,94 @@ namespace YARG.Gameplay.Player
         /// </summary>
         public VocalsTrack OriginalVocalsTrack => _originalVocalsTrack;
 
+        /// <summary>
+        /// How far unselected harmony parts' note colors are pulled toward grey when the
+        /// practice guide pitch is enabled (0 = unchanged, 1 = fully grey).
+        /// </summary>
+        private const float UNSELECTED_DESATURATION = 1.0f;
+
+        /// <summary>
+        /// How much alpha unselected harmony parts' note colors keep when the practice guide
+        /// pitch is enabled (1 = fully opaque, 0 = invisible). Unselected elements stay faintly
+        /// visible: the talkie shaders (VocalsTalkieFade shadergraph, via VocalTalkieElement)
+        /// consume alpha and apply their own 0.2 fade, so 0.5 here renders unselected talkies
+        /// at half their normal opacity (0.5 × the talkie shader's 0.2 fade = ~10%),
+        /// still greyscale. The note
+        /// lines and glow (VocalsColorFade / VocalsGlow shadergraphs) use alpha-ignoring
+        /// shaders, so they remain visible greyscale.
+        /// </summary>
+        private const float UNSELECTED_ALPHA = 0.5f;
+
+        /// <summary>
+        /// The harmony part currently targeted by the practice-mode guide pitch, or -1 when
+        /// guide pitch is off (the default outside practice mode). While set, note visuals of
+        /// the other harmony parts render desaturated. Kept in sync by
+        /// <see cref="Gameplay.Player.GuidePitchManager"/>.
+        /// </summary>
+        public int GuidePitchPart { get; private set; } = -1;
+
+        /// <summary>
+        /// Returns the display color for a harmony part's note visuals. When the practice
+        /// guide pitch is enabled, parts other than the guide-selected part are desaturated
+        /// and dimmed so the sung part stays visually dominant: unselected talkies render
+        /// at half their normal opacity (0.5 × the talkie shader's 0.2 fade = ~10%, see
+        /// <see cref="UNSELECTED_ALPHA"/>) and stay greyscale. (The alpha only applies to
+        /// elements whose shaders use the color's alpha — currently talkies; note tubes
+        /// and glow use alpha-ignoring shaders and remain visible greyscale.)
+        /// </summary>
+        public Color GetPartColor(int harmonyPart)
+        {
+            var color = Colors[harmonyPart];
+            if (GuidePitchPart >= 0 && harmonyPart != GuidePitchPart)
+            {
+                color = Color.Lerp(color, Desaturated(color), UNSELECTED_DESATURATION);
+                color.a *= UNSELECTED_ALPHA;
+            }
+
+            return color;
+        }
+
+        private static Color Desaturated(Color color)
+        {
+            float gray = color.grayscale;
+            return new Color(gray, gray, gray, color.a);
+        }
+
+        /// <summary>
+        /// Called by <see cref="Gameplay.Player.GuidePitchManager"/> whenever the guide pitch
+        /// state changes. Re-tints note elements already on screen; elements spawned
+        /// afterwards pick the state up in their color initialization.
+        /// </summary>
+        public void SetGuidePitchPart(int part)
+        {
+            if (GuidePitchPart == part)
+            {
+                return;
+            }
+
+            GuidePitchPart = part;
+
+            foreach (var pool in _notePools)
+            {
+                foreach (var pooled in pool.AllSpawned)
+                {
+                    if (pooled is not VocalNoteElement note)
+                        continue;
+
+                    note.RefreshColor();
+                    note.UpdateLinePoints();
+                }
+            }
+
+            foreach (var pooled in _talkiePool.AllSpawned)
+            {
+                if (pooled is VocalTalkieElement talkie)
+                {
+                    talkie.RefreshColor();
+                }
+            }
+        }
+
         public float CurrentNoteWidth =>
             ((_currentTrackTop - TRACK_BOTTOM) / (_viewRange.Max - _viewRange.Min)) * NOTE_WIDTH_MULTIPLIER;
 
@@ -312,7 +400,7 @@ namespace YARG.Gameplay.Player
 
             // Choose the correct amount of lanes
             LyricLaneCount = 1;
-            if (vocalsTrack.Instrument == Instrument.Harmony)
+            if (vocalsTrack.Instrument == Instrument.Harmony || vocalsTrack.Instrument == Instrument.PartyVocals)
             {
                 LyricLaneCount = _totalHarms switch
                 {

@@ -41,9 +41,13 @@ namespace YARG.Menu.MusicLibrary
             _searchField.onSelect.AddListener(OnSearchFieldSelected);
             _searchField.onDeselect.AddListener(OnSearchFieldDeselected);
             _searchField.onSubmit.AddListener(_ => ClearSearchFocus());
+            _searchField.onValueChanged.AddListener(OnSearchFieldValueChanged);
 
             _focusBorder.SetActive(_searchField.isFocused);
-            _focusBackground.enabled = _searchField.isFocused;
+            if (_focusBackground != null)
+            {
+                _focusBackground.enabled = _searchField.isFocused;
+            }
         }
 
         public void Focus()
@@ -148,7 +152,8 @@ namespace YARG.Menu.MusicLibrary
 
         private void Update()
         {
-            if (Keyboard.current.escapeKey.wasPressedThisFrame)
+            var keyboard = Keyboard.current;
+            if (keyboard != null && keyboard.escapeKey.wasPressedThisFrame)
             {
                 ClearFilterQueries();
             }
@@ -162,10 +167,19 @@ namespace YARG.Menu.MusicLibrary
             DisableSearchNavigation();
         }
 
+        private void OnSearchFieldValueChanged(string _)
+        {
+            OnSearchQueryUpdated?.Invoke(false);
+        }
+
         private void OnSearchFieldSelected(string _)
         {
             _focusBorder.SetActive(true);
-            _focusBackground.enabled = true;
+
+            if (_focusBackground != null)
+            {
+                _focusBackground.enabled = true;
+            }
 
             if (_searchNavigationActive)
             {
@@ -185,7 +199,12 @@ namespace YARG.Menu.MusicLibrary
         private void OnSearchFieldDeselected(string _)
         {
             _focusBorder.SetActive(false);
-            _focusBackground.enabled = false;
+
+            if (_focusBackground != null)
+            {
+                _focusBackground.enabled = false;
+            }
+
             DisableSearchNavigation();
         }
 
@@ -201,7 +220,12 @@ namespace YARG.Menu.MusicLibrary
                 return;
             }
 
-            Navigator.Instance.PopScheme();
+            // The Navigator is already destroyed when this runs from OnDisable at shutdown.
+            if (Navigator.Instance != null)
+            {
+                Navigator.Instance.PopScheme();
+            }
+
             _searchNavigationActive = false;
         }
 

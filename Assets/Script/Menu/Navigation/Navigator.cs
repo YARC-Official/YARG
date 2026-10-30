@@ -68,12 +68,12 @@ namespace YARG.Menu.Navigation
         private class RepeatContext
         {
             public readonly NavigationContext Context;
-            public float Timer;
+            public double NextRepeatTime;
 
             public RepeatContext(NavigationContext context)
             {
                 Context = context;
-                Timer = INPUT_REPEAT_COOLDOWN;
+                NextRepeatTime = Time.realtimeSinceStartupAsDouble + INPUT_REPEAT_COOLDOWN;
             }
         }
 
@@ -193,13 +193,12 @@ namespace YARG.Menu.Navigation
                 hold.Tracker.Tick();
             }
 
+            var time = Time.realtimeSinceStartupAsDouble;
             foreach (var repeat in _repeatInputs)
             {
-                repeat.Timer -= Time.unscaledDeltaTime;
-
-                if (repeat.Timer <= 0f)
+                if (time >= repeat.NextRepeatTime)
                 {
-                    repeat.Timer = INPUT_REPEAT_TIME;
+                    repeat.NextRepeatTime = time + INPUT_REPEAT_TIME;
                     InvokeNavigationEvent(repeat.Context.AsRepeat());
                 }
             }
@@ -304,12 +303,31 @@ namespace YARG.Menu.Navigation
             float progress = -1f;
             foreach (var hold in _holdInputs)
             {
-                if (hold.Context.Action == action)
+                if (hold.Context.Action == action && hold.Tracker.IsPressed)
                 {
                     progress = Mathf.Max(progress, hold.Tracker.HoldProgress);
                 }
             }
             return progress;
+        }
+
+        public bool IsActionHeld(YargPlayer player, MenuAction action)
+        {
+            return _holdInputs.Any(i => i.Context.Player == player && i.Context.Action == action);
+        }
+
+        public bool IsActionHeld(MenuAction action)
+        {
+            return _holdInputs.Any(i => i.Context.Action == action);
+        }
+
+        public void CancelHold(YargPlayer player, MenuAction action)
+        {
+            foreach (var hold in _holdInputs.Where(i =>
+                         i.Context.Player == player && i.Context.Action == action))
+            {
+                hold.Tracker.Cancel();
+            }
         }
 
         private void InvokeNavigationEvent(NavigationContext ctx)

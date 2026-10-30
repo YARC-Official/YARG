@@ -21,20 +21,23 @@ namespace YARG.Menu.Main
             _cameraContainer.transform.position = Vector3.Lerp(_cameraContainer.transform.position,
                 new Vector3(0, 0.5f, 0), Time.deltaTime * 1.5f);
 
+            var mouse = Mouse.current;
+
             // Get the mouse position
-            var mousePos = Mouse.current.position.ReadValue();
+            var mousePos = mouse?.position.ReadValue() ?? Vector2.zero;
             mousePos = _camera.ScreenToViewportPoint(mousePos);
 
             // Clamp
             mousePos.x = Mathf.Clamp(mousePos.x, 0f, 1f);
             mousePos.y = Mathf.Clamp(mousePos.y, 0f, 1f);
 
-            // Move camera with the cursor
+            // Move camera with the cursor, or hold it in place when there is no mouse
+            var followRate = mouse != null ? Time.deltaTime * 8f : 0f;
             var transformCache = _camera.transform;
             var initialPos = transformCache.localPosition;
             transformCache.localPosition = initialPos
-                .WithX(Mathf.Lerp(initialPos.x, mousePos.x / 4f, Time.deltaTime * 8f))
-                .WithY(Mathf.Lerp(initialPos.y, mousePos.y / 3f - 0.25f, Time.deltaTime * 8f));
+                .WithX(Mathf.Lerp(initialPos.x, mousePos.x / 4f, followRate))
+                .WithY(Mathf.Lerp(initialPos.y, mousePos.y / 3f - 0.25f, followRate));
         }
     }
 }

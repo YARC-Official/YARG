@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using DG.Tweening;
 using YARG.Core;
 
 namespace YARG.Gameplay.HUD
@@ -20,6 +18,11 @@ namespace YARG.Gameplay.HUD
             ParticipantFailState = new bool[playerCount];
             ParticipantTotalNotes = new int[playerCount];
             ParticipantNotesHit = new int[playerCount];
+        }
+
+        public void SetTotalNotes(int engineId, int totalNotes)
+        {
+            ParticipantTotalNotes[engineId] = totalNotes;
         }
 
         public virtual void ResetState()

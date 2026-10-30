@@ -940,7 +940,7 @@ Transform:
   m_GameObject: {fileID: 5801866609797806283}
   serializedVersion: 2
   m_LocalRotation: {x: 0.70710677, y: -0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 5, z: 0}
+  m_LocalPosition: {x: 0, y: 4.29, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1332,6 +1332,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac0dfb757e714fe78df8cb113995c2cb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _staticLyricHoldText:
+  - {fileID: 7637164470296446743}
+  - {fileID: 4412227699501653748}
+  - {fileID: 4501719976259915394}
   _vocalPlayerPrefab: {fileID: 6598301681565966518, guid: 5a7016f19e8745444809c16b7ca55fe6, type: 3}
   _percussionTrackPrefab: {fileID: 3867995854415630723, guid: d5d6f807910836d4682b18bfaa00a257, type: 3}
   _trackRenderer: {fileID: 5801866609487356704}
@@ -1357,10 +1361,6 @@ MonoBehaviour:
   _talkiePool: {fileID: 5801866611165735087}
   _phraseLinePool: {fileID: 5801866609474630583}
   AllowStarPower: 0
-  _staticLyricHoldText:
-  - {fileID: 7637164470296446743}
-  - {fileID: 4412227699501653748}
-  - {fileID: 4501719976259915394}
 --- !u!1 &5801866611287065174
 GameObject:
   m_ObjectHideFlags: 0

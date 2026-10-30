@@ -10,6 +10,7 @@ using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Player;
 using YARG.Settings;
+using YARG.Settings.Customization;
 using YARG.Song;
 
 namespace YARG.Scores
@@ -24,10 +25,11 @@ namespace YARG.Scores
         HighestScoreCurrentDifficulty = 5,
     }
 
-    public static partial class ScoreContainer
+    public static class ScoreContainer
     {
         public static string ScoreDirectory { get; private set; }
         public static string ScoreReplayDirectory { get; private set; }
+        public static CareerDatabase Careers { get; private set; }
 
         private static string _scoreDatabaseFile;
 
@@ -75,6 +77,7 @@ namespace YARG.Scores
                 Directory.CreateDirectory(ScoreReplayDirectory);
 
                 _db = new ScoreDatabase(_scoreDatabaseFile);
+                Careers = _db.Careers;
                 FetchBandHighScores();
             }
             catch (Exception e)
@@ -154,11 +157,80 @@ namespace YARG.Scores
 
                 SongContainer.InvalidateStarsCache();
                 YargLogger.LogInfo("Recorded score for song.");
+
+                try
+                {
+                    CommitCareerCompletion(gameRecord, playerEntries);
+                }
+                catch (Exception ce)
+                {
+                    YargLogger.LogException(ce, "Failed to commit career completion.");
+                }
             }
             catch (Exception e)
             {
                 YargLogger.LogException(e, "Failed to add score into database.");
             }
+        }
+
+        /// <summary>
+        /// Link a freshly recorded score to the active career, if any: commit the song completion
+        /// (one row per player) and fire the progress sync. A score counts toward career only if it
+        /// is linked by this committed completion row.
+        /// </summary>
+        private static void CommitCareerCompletion(GameRecord gameRecord, List<PlayerScoreRecord> playerEntries)
+        {
+            var context = GlobalVariables.State.CurrentCareer;
+            if (context is null)
+            {
+                return;
+            }
+
+            // Careers cannot be played with replays or bots.
+            if (gameRecord.PlayedWithReplay || gameRecord.HasBots || playerEntries.Any(entry => entry.IsReplay))
+            {
+                YargLogger.LogInfo("Career: skipping completion, replay or bot play is not allowed for careers.");
+                return;
+            }
+
+            var participants = playerEntries.Select(entry => entry.PlayerId).Distinct().ToList();
+            if (participants.Count == 0 ||
+                participants.Any(id => PlayerContainer.GetProfileById(id)?.IsBot == true))
+            {
+                YargLogger.LogInfo("Career: skipping completion, no valid human players.");
+                return;
+            }
+
+            var career = CustomContentManager.Careers.DefaultPresets
+                .Concat(CustomContentManager.Careers.CustomPresets)
+                .FirstOrDefault(c => c.Id == context.CareerId);
+            if (career is null)
+            {
+                YargLogger.LogFormatError("Career: cannot find career content for ID {0}, skipping completion.", context.CareerId);
+                return;
+            }
+
+            // The save belongs to the set of players who actually played this song.
+            var saveId = Careers.GetOrCreateSave(career.Id, career.Version, participants);
+
+            var commit = new CareerSongCompletionCommit
+            {
+                CareerSaveId = saveId,
+                CareerId = career.Id,
+                TierId = context.TierId,
+                TierIndex = context.TierIndex,
+                CareerSongId = context.CareerSongId,
+                SongIndex = context.SongIndex,
+                SongChecksum = gameRecord.SongChecksum,
+                GameRecordId = gameRecord.Id,
+                BandStars = gameRecord.BandStars.GetStarCount(),
+                BandScore = gameRecord.BandScore,
+                CompletedAt = DateTime.Now,
+                Source = CareerCompletionSource.SingleSong,
+            };
+
+            Careers.CommitSongCompletion(commit);
+            career.SyncProgress(Careers, saveId);
         }
 
         private static void UpdateBandHighScore(HashWrapper songChecksum)
@@ -276,16 +348,17 @@ namespace YARG.Scores
             playerScoreRecord = null;
             bandScoreRecord = null;
 
-            if (UseBandHighScoresForCurrentPlayers)
+            var player = PlayerContainer.Players.FirstOrDefault(entry => !entry.Profile.IsBot);
+            if (player is null || UseBandHighScoresForCurrentPlayers)
             {
                 bandScoreRecord = GetBandHighScore(songChecksum);
                 return;
             }
 
-            var player = PlayerContainer.Players.First(entry => !entry.Profile.IsBot);
-            playerScoreRecord = player.Profile.GameMode == GameMode.EliteDrums
+            var drumInstruments = MidiDrumkitHelper.GetInstruments(player.Profile.GameMode);
+            playerScoreRecord = drumInstruments != null
                 ? GetPreferredHighScoreForInstruments(
-                    songChecksum, player.Profile.Id, MidiDrumkitHelper.Instruments)
+                    songChecksum, player.Profile.Id, drumInstruments)
                 : GetPreferredHighScore(
                     songChecksum, player.Profile.Id, player.Profile.CurrentInstrument);
         }
@@ -457,6 +530,9 @@ namespace YARG.Scores
             if (candidatePercent != currentPercent)
                 return candidatePercent > currentPercent;
 
+            if (candidate.Score != current.Score)
+                return candidate.Score > current.Score;
+
             return candidate.IsFc && !current.IsFc;
         }
 
@@ -515,6 +591,45 @@ namespace YARG.Scores
             }
         }
 
+        public static List<SongEntry> GetMostPlayedSongs(int maxCount, Func<SongEntry, bool> predicate)
+        {
+            try
+            {
+                var results = new List<SongEntry>();
+
+                // Filtering after a limited query could exclude eligible songs ranked below the limit.
+                // Query the full play-count ordering and stop once enough eligible songs are found.
+                var mostPlayed = _db.QueryMostPlayedSongs(int.MaxValue);
+                foreach (var record in mostPlayed)
+                {
+                    var hash = HashWrapper.Create(record.SongChecksum);
+                    if (!SongContainer.SongsByHash.TryGetValue(hash, out var songs))
+                    {
+                        continue;
+                    }
+
+                    var eligibleSongs = songs.Where(predicate).ToList();
+                    if (eligibleSongs.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    results.Add(eligibleSongs.Pick());
+                    if (results.Count >= maxCount)
+                    {
+                        break;
+                    }
+                }
+
+                return results;
+            }
+            catch (Exception e)
+            {
+                YargLogger.LogException(e, "Failed to load most played songs from database.");
+                return new List<SongEntry>();
+            }
+        }
+
         // this is the same as GetMostPlayedSongs, but is limited to the one profile and returns the entire list
         public static Dictionary<SongEntry,int> GetPlayedSongsForUserByPlaycount(YargProfile profile, SortOrdering ordering)
         {
@@ -549,9 +664,10 @@ namespace YARG.Scores
         {
             try
             {
-                List<PlayerScoreWithChecksum> records = profile.GameMode == GameMode.EliteDrums
+                var drumInstruments = MidiDrumkitHelper.GetInstruments(profile.GameMode);
+                List<PlayerScoreWithChecksum> records = drumInstruments != null
                     ? _db.QueryPlayerBestStarsForInstruments(
-                        profile, MidiDrumkitHelper.Instruments, SettingsManager.Settings.HighScoreHistory.Value,
+                        profile, drumInstruments, SettingsManager.Settings.HighScoreHistory.Value,
                         SongContainer.SongsByHash.Keys, SongContainer.LibraryRevision)
                     : _db.QueryPlayerBestStars(
                         profile, SettingsManager.Settings.HighScoreHistory.Value, SongContainer.SongsByHash.Keys,

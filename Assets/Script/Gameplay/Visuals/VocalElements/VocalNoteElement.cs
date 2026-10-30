@@ -35,9 +35,27 @@ namespace YARG.Gameplay.Visuals
 
         private readonly List<Vector3> _points = new();
 
+        private bool _isSpGlow;
+
         protected override void InitializeElement()
         {
-            var color = Player.VocalTrack.Colors[NoteRef.HarmonyPart];
+            YargLogger.Assert(_lineRenderers.Length == _lineWidthMultipliers.Length,
+                "Line renderer count does not match width multiplier count!");
+            YargLogger.Assert(_glowLineRenderer, "Glow line renderer is null!");
+
+            RefreshColor();
+            UpdateLinePoints();
+        }
+
+        /// <summary>
+        /// Re-applies this note's colors: the part color on the note lines and the glow color
+        /// on the glow line. Called on spawn and when the practice guide pitch part changes,
+        /// so notes already on screen re-tint. Follow with <see cref="UpdateLinePoints"/> to
+        /// restore the glow line's dimensions property.
+        /// </summary>
+        public void RefreshColor()
+        {
+            var color = VocalTrack.GetPartColor(NoteRef.HarmonyPart);
             MaterialPropertyInstance.Instance.Clear();
             MaterialPropertyInstance.Instance.SetColor(BaseColor, color);
 
@@ -47,16 +65,14 @@ namespace YARG.Gameplay.Visuals
                 line.SetPropertyBlock(MaterialPropertyInstance.Instance);
             }
 
-            YargLogger.Assert(_lineRenderers.Length == _lineWidthMultipliers.Length,
-                "Line renderer count does not match width multiplier count!");
-            YargLogger.Assert(_glowLineRenderer, "Glow line renderer is null!");
-            UpdateLinePoints();
+            ApplyGlowColor(color);
         }
 
-        public void SetSpGlow(bool isSp)
+        private void ApplyGlowColor(Color color)
         {
-            var color = Player.VocalTrack.Colors[NoteRef.HarmonyPart];
-            if (isSp)
+            _glowLineRenderer.GetPropertyBlock(MaterialPropertyInstance.Instance);
+
+            if (_isSpGlow)
             {
                 MaterialPropertyInstance.Instance.SetColor(GlowColor, Color.lightGoldenRod);
                 MaterialPropertyInstance.Instance.SetFloat(GlowIntensity, SP_GLOW_INTENSITY);
@@ -67,6 +83,12 @@ namespace YARG.Gameplay.Visuals
                 MaterialPropertyInstance.Instance.SetFloat(GlowIntensity, NORMAL_GLOW_INTENSITY);
             }
             _glowLineRenderer.SetPropertyBlock(MaterialPropertyInstance.Instance);
+        }
+
+        public void SetSpGlow(bool isSp)
+        {
+            _isSpGlow = isSp;
+            ApplyGlowColor(VocalTrack.GetPartColor(NoteRef.HarmonyPart));
         }
 
         public void UpdateLinePoints()

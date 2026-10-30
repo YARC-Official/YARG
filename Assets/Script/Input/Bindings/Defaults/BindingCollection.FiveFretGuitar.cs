@@ -73,11 +73,11 @@ namespace YARG.Input
 
             if (guitar is RockBandGuitar rb)
             {
-                AddBinding(GuitarAction.GreenFret, rb.soloGreen);
-                AddBinding(GuitarAction.RedFret, rb.soloRed);
-                AddBinding(GuitarAction.YellowFret, rb.soloYellow);
-                AddBinding(GuitarAction.BlueFret, rb.soloBlue);
-                AddBinding(GuitarAction.OrangeFret, rb.soloOrange);
+                AddBinding(MenuAction.Green, rb.soloGreen);
+                AddBinding(MenuAction.Red, rb.soloRed);
+                AddBinding(MenuAction.Yellow, rb.soloYellow);
+                AddBinding(MenuAction.Blue, rb.soloBlue);
+                AddBinding(MenuAction.Orange, rb.soloOrange);
 
                 if (guitar is RiffmasterGuitar riff)
                 {

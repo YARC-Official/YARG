@@ -14,9 +14,13 @@ namespace YARG.Audio.BASS
     /// </summary>
     internal sealed class BassAudioRouter : IDisposable
     {
-        private readonly HashSet<BassMonitor> _monitors = new();
-        private readonly HashSet<BassSong>    _songs    = new();
-        private          bool                 _disposed;
+        private readonly HashSet<BassMonitor>  _monitors = new();
+        private readonly HashSet<BassSong>     _songs    = new();
+        private readonly List<BassPushStream>  _pushStreams = new();
+        // Songs are added and removed from song-scan worker threads (length probing loads audio)
+        // while the main thread enumerates them. Guards _songs and _finishedReadAheadStats.
+        private readonly object                _songsLock = new();
+        private          bool                  _disposed;
         private          ReadAheadStats       _finishedReadAheadStats;
         private          ulong                _observedUnderrunEvents;
         private          BassOutput?          _output;
@@ -34,30 +38,40 @@ namespace YARG.Audio.BASS
 
             _disposed = true;
             Disconnect();
-            foreach (var song in _songs)
+            foreach (var song in SnapshotSongs(clear: true))
             {
                 song.Disposing -= RemoveSong;
             }
 
-            _songs.Clear();
             foreach (var monitor in _monitors)
             {
                 monitor.InvalidateOwner();
             }
 
             _monitors.Clear();
+            foreach (var stream in _pushStreams)
+            {
+                stream.Disposed -= OnPushStreamDisposed;
+            }
+
+            _pushStreams.Clear();
         }
 
         public bool Connect(BassOutput output, int deviceId)
         {
-            _finishedReadAheadStats = default;
+            lock (_songsLock)
+            {
+                _finishedReadAheadStats = default;
+            }
+
             _observedUnderrunEvents = 0;
             _output = output;
             _outputDeviceId = deviceId;
             output.SetVolume(_volume);
 
-            if (!AttachSongs(output) || !AttachMonitors(deviceId))
+            if (!AttachSongs(output) || !AttachPushStreams(output) || !AttachMonitors(deviceId))
             {
+                DetachPushStreams();
                 DetachSongs();
                 _output = null;
                 _outputDeviceId = -1;
@@ -76,9 +90,92 @@ namespace YARG.Audio.BASS
             }
 
             DetachMonitors();
+            DetachPushStreams();
             DetachSongs();
             _output = null;
             _outputDeviceId = -1;
+        }
+
+        internal void AddPushStream(BassPushStream stream, OutputChannel? outputChannel)
+        {
+            if (_pushStreams.Contains(stream))
+            {
+                YargLogger.LogFormatError("Push stream {0} is already registered", stream.Handle);
+                return;
+            }
+
+            if (_output != null && !AttachPushStream(stream, outputChannel))
+            {
+                stream.Dispose();
+                return;
+            }
+
+            _pushStreams.Add(stream);
+            stream.Disposed += OnPushStreamDisposed;
+        }
+
+        internal void RemovePushStream(BassPushStream stream)
+        {
+            if (!_pushStreams.Remove(stream))
+            {
+                return;
+            }
+
+            stream.Disposed -= OnPushStreamDisposed;
+            if (_output != null)
+            {
+                _output.DetachPushStream(stream);
+            }
+        }
+
+        private void OnPushStreamDisposed(BassPushStream stream)
+        {
+            if (!_pushStreams.Remove(stream))
+            {
+                return;
+            }
+
+            stream.Disposed -= OnPushStreamDisposed;
+            if (_output != null)
+            {
+                _output.DetachPushStream(stream);
+            }
+        }
+
+        private bool AttachPushStream(BassPushStream stream, OutputChannel? outputChannel)
+        {
+            return _output!.AttachPushStream(stream, outputChannel);
+        }
+
+        private bool AttachPushStreams(BassOutput output)
+        {
+            if (_pushStreams.Count == 0)
+            {
+                return true;
+            }
+
+            foreach (var stream in _pushStreams)
+            {
+                if (!AttachPushStream(stream, null))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private void DetachPushStreams()
+        {
+            if (_output == null)
+            {
+                return;
+            }
+
+            foreach (var stream in _pushStreams)
+            {
+                _output.DetachPushStream(stream);
+            }
         }
 
         internal bool AddSong(BassSong song)
@@ -88,8 +185,12 @@ namespace YARG.Audio.BASS
                 return false;
             }
 
-            _songs.Add(song);
-            song.Disposing += RemoveSong;
+            lock (_songsLock)
+            {
+                _songs.Add(song);
+                song.Disposing += RemoveSong;
+            }
+
             song.ActivateOutput();
             return true;
         }
@@ -97,9 +198,12 @@ namespace YARG.Audio.BASS
         private void RemoveSong(BassSong song)
         {
             song.Disposing -= RemoveSong;
-            if (_songs.Remove(song))
+            lock (_songsLock)
             {
-                SaveReadAheadStats(song);
+                if (_songs.Remove(song))
+                {
+                    SaveReadAheadStats(song);
+                }
             }
         }
 
@@ -167,13 +271,18 @@ namespace YARG.Audio.BASS
 
         internal ReadAheadStats GetReadAheadStats()
         {
-            var total = _finishedReadAheadStats;
-            foreach (var song in _songs)
+            // Held across the song reads: a song leaves _songs (via Disposing) before its read-ahead
+            // stream is disposed, so no song in the set can be torn down mid-read.
+            lock (_songsLock)
             {
-                total = AddReadAheadStats(total, song.GetReadAheadStats());
-            }
+                var total = _finishedReadAheadStats;
+                foreach (var song in _songs)
+                {
+                    total = AddReadAheadStats(total, song.GetReadAheadStats());
+                }
 
-            return total;
+                return total;
+            }
         }
 
         internal ulong TakeReadAheadUnderruns()
@@ -186,7 +295,7 @@ namespace YARG.Audio.BASS
 
         private bool AttachSongs(BassOutput output)
         {
-            foreach (var song in _songs)
+            foreach (var song in SnapshotSongs())
             {
                 if (!song.TryAttachOutput(output))
                 {
@@ -199,7 +308,7 @@ namespace YARG.Audio.BASS
 
         private void ActivateSongs()
         {
-            foreach (var song in _songs)
+            foreach (var song in SnapshotSongs())
             {
                 song.ActivateOutput();
             }
@@ -207,10 +316,27 @@ namespace YARG.Audio.BASS
 
         private void DetachSongs()
         {
-            foreach (var song in _songs)
+            foreach (var song in SnapshotSongs())
             {
                 SaveReadAheadStats(song);
                 song.DetachOutput();
+            }
+        }
+
+        // Release the lock before calling into songs; their disposal calls RemoveSong while holding
+        // the mixer lock.
+        private BassSong[] SnapshotSongs(bool clear = false)
+        {
+            lock (_songsLock)
+            {
+                var songs = new BassSong[_songs.Count];
+                _songs.CopyTo(songs);
+                if (clear)
+                {
+                    _songs.Clear();
+                }
+
+                return songs;
             }
         }
 
@@ -351,7 +477,10 @@ namespace YARG.Audio.BASS
             var stats = song.GetReadAheadStats();
             if (stats.Size != 0)
             {
-                _finishedReadAheadStats = AddFinishedReadAheadStats(_finishedReadAheadStats, stats);
+                lock (_songsLock)
+                {
+                    _finishedReadAheadStats = AddFinishedReadAheadStats(_finishedReadAheadStats, stats);
+                }
             }
         }
 

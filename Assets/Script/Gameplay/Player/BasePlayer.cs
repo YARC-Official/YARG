@@ -116,7 +116,7 @@ namespace YARG.Gameplay.Player
 
         private float _noteSpeedDifficultyScale;
 
-        protected EngineManager.EngineContainer EngineContainer;
+        public EngineManager.EngineContainer EngineContainer;
 
         protected bool PlayerHasFailed;
 

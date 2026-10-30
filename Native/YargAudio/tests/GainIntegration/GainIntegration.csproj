@@ -26,6 +26,7 @@
     <NativeDependency Include="../../../../Assets/Plugins/BassNative/Mac/libbassmix.dylib" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="../../../../Assets/Script/Audio/Bass/BassReadAheadStream.cs" Link="BassReadAheadStream.cs" />
     <NativeDependency Include="$(YargAudioLibraryPath)" />
   </ItemGroup>
 

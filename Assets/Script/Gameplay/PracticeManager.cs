@@ -138,7 +138,7 @@ namespace YARG.Gameplay
                     break;
                 // Guide pitch toggle (Vocalist only)
                 case MenuAction.Orange:
-                    if (ctx.Player?.Profile.CurrentInstrument is Instrument.Vocals or Instrument.Harmony)
+                    if (ctx.Player?.Profile.CurrentInstrument is Instrument.Vocals or Instrument.Harmony or Instrument.PartyVocals)
                     {
                         _guidePitchManager?.ToggleGuidePitch();
                     }

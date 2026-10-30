@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using YARG.Core.Input;
+using YARG.Menu.Settings;
 
 namespace YARG.Menu.Navigation
 {
@@ -172,6 +173,12 @@ namespace YARG.Menu.Navigation
         {
             var nav = go.AddComponent<RuntimeNavigatable>();
             nav.ConfirmCallback = confirm;
+
+            if (go.TryGetComponent<SettingsItemVisual>(out var visual))
+            {
+                visual.BindNavigatable(nav);
+                return nav;
+            }
 
             var authored = FindDeepChild(go.transform, "Selected Background")
                 ?? FindDeepChild(go.transform, "Selection Outline");

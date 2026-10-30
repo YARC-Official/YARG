@@ -26,6 +26,8 @@ namespace YARG.Gameplay.Player
 {
     public abstract class TrackPlayer : BasePlayer
     {
+        // Fading in shaders relies on this value so
+        // if ever changing need to keep in sync
         public const float STRIKE_LINE_POS       = -2f;
         public const float DEFAULT_ZERO_FADE_POS = 3f;
         public const float NOTE_SPAWN_OFFSET     = 5f;
@@ -550,10 +552,11 @@ namespace YARG.Gameplay.Player
             // TODO: Calculate this properly rather than assuming a static window
             var hitWindow = HitWindow.MaxWindow;
             var spliceTime = GameManager.SongTime + hitWindow;
+            var spliceTick = SyncTrack.TimeToTick(spliceTime);
+            var oldNotes = Notes;
 
             Player.Profile.CurrentDifficulty = difficulty;
             var targetInstrumentDifficulty = GetNotes(Chart);
-
             Player.Profile.ApplyModifiers(targetInstrumentDifficulty, SyncTrack);
 
             var newInstrumentDifficulty = NoteTrack.Splice(targetInstrumentDifficulty, spliceTime);
@@ -567,6 +570,7 @@ namespace YARG.Gameplay.Player
             GameManager.ReplaySaveInhibited = true;
 
             EngineContainer.ResetHappiness();
+            EngineContainer.UnisonPhrases.UpdateNoteCount(oldNotes, Notes, newInstrumentDifficulty is InstrumentDifficulty<DrumNote>, spliceTick);
 
             ResetDifficulty(GameManager.VisualTime);
 
@@ -599,7 +603,7 @@ namespace YARG.Gameplay.Player
 
             UpdateVisuals(GameManager.VisualTime);
 
-            GameManager.DifficultyChanged();
+            GameManager.DifficultyChanged(this);
         }
 
         protected void ResetNoteCounters()

@@ -12,6 +12,11 @@ namespace YARG.Menu.MusicLibrary
 {
     public class SongView : ViewObject<ViewType>
     {
+        private static readonly Type[] MarqueeScrollTypes = { typeof(SongViewType) };
+
+        protected override bool AllowMarqueeScroll => true;
+        protected override Type[] AllowedMarqueeScrollTypes => MarqueeScrollTypes;
+
         [SerializeField]
         private GameObject _songNameContainer;
         [SerializeField]
@@ -40,6 +45,8 @@ namespace YARG.Menu.MusicLibrary
         private Sprite _favoriteUnfilled;
         [SerializeField]
         private Sprite _favouriteFilled;
+        [SerializeField]
+        private Sprite _secondaryHeaderIcon;
 
         [Space]
         [SerializeField]
@@ -51,6 +58,8 @@ namespace YARG.Menu.MusicLibrary
         [SerializeField]
         private TextMeshProUGUI _starsObtainedText;
         [SerializeField]
+        private Image _starsObtainedIcon;
+        [SerializeField]
         private TextMeshProUGUI _scoreText;
         [SerializeField]
         private TextMeshProUGUI _buttonHelpText;
@@ -60,6 +69,8 @@ namespace YARG.Menu.MusicLibrary
         private Image _trackGradient;
         [SerializeField]
         private Image _normalCategoryHeaderGradient;
+        [SerializeField]
+        private Image _secondaryHeaderBackground;
         [SerializeField]
         private GameObject _buttonHeaderBackground;
 
@@ -79,6 +90,11 @@ namespace YARG.Menu.MusicLibrary
         public override void Show(bool selected, ViewType viewType)
         {
             base.Show(selected, viewType);
+
+            if (viewType is SecondaryHeaderViewType && viewType.GetIcon() == null)
+            {
+                SetIcon(_secondaryHeaderIcon);
+            }
 
             var scoreInfoMode = SettingsManager.Settings.HighScoreInfo.Value;
 
@@ -120,10 +136,17 @@ namespace YARG.Menu.MusicLibrary
             }
 
             // Set stars obtained view
-            _starsObtainedView.gameObject.SetActive(viewType is SortHeaderViewType);
-            if (viewType is SortHeaderViewType)
+            _starsObtainedView.gameObject.SetActive(viewType is SortHeaderViewType or SecondaryHeaderViewType);
+            if (viewType is SortHeaderViewType or SecondaryHeaderViewType)
             {
                 _starsObtainedText.text = viewType.GetSideText(selected);
+                bool hasGoldStars = viewType switch
+                {
+                    SortHeaderViewType sortHeader => sortHeader.HasGoldStars,
+                    SecondaryHeaderViewType secondaryHeader => secondaryHeader.HasGoldStars,
+                    _ => false,
+                };
+                _starsObtainedIcon.sprite = hasGoldStars ? _starGoldSprite : _starWhiteSprite;
             }
 
             // Set help text for button views
@@ -158,6 +181,10 @@ namespace YARG.Menu.MusicLibrary
             if (viewType is SortHeaderViewType)
             {
                 gameObject.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 60);
+            }
+            else if (viewType is SecondaryHeaderViewType)
+            {
+                gameObject.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 50);
             }
             else
             {
@@ -209,6 +236,9 @@ namespace YARG.Menu.MusicLibrary
         {
             _trackGradient.gameObject.SetActive(selected);
 
+            bool showSecondaryHeaderBackground = type == BaseViewType.BackgroundType.SecondaryHeader;
+            _secondaryHeaderBackground.gameObject.SetActive(showSecondaryHeaderBackground);
+
             NormalBackground.SetActive(false);
             SelectedBackground.SetActive(false);
             CategoryBackground.SetActive(false);
@@ -226,6 +256,8 @@ namespace YARG.Menu.MusicLibrary
                         NormalBackground.SetActive(true);
                     }
 
+                    break;
+                case BaseViewType.BackgroundType.SecondaryHeader:
                     break;
                 case BaseViewType.BackgroundType.Category:
                     if (selected)
