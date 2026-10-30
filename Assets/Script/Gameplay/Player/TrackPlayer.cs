@@ -846,10 +846,7 @@ namespace YARG.Gameplay.Player
 
             if (_unisonEndIndex < _unisonPhrases.Count && _unisonPhrases[_unisonEndIndex].TimeEnd <= time)
             {
-                if (_soloHiddenForUnison)
-                {
-                    _currentUnisonEndTime = _unisonPhrases[_unisonEndIndex].TimeEnd;
-                }
+
                 OnUnisonEnd();
                 _unisonEndIndex++;
             }
@@ -860,12 +857,17 @@ namespace YARG.Gameplay.Player
 
         private void HideSoloForUnison(double time)
         {   
-            var hideBeforeTime = UnisonDisplay.DISPLAY_PRE_TIME + UnisonDisplay.TRANSITION_DURATION;
-            if (_isSoloActive && !_soloHiddenForUnison && _unisonStartIndex < _unisonPhrases.Count && _unisonPhrases[_unisonStartIndex].Time - hideBeforeTime <= time)
+            var hideTime = GameManager.UnisonDisplay.GetTransitionInTime();
+            if (_isSoloActive && !_soloHiddenForUnison && _unisonStartIndex < _unisonPhrases.Count && hideTime <= time)
             {
+                var isUnisonAlways = SettingsManager.Settings.UnisonDisplay.Value == UnisonDisplaySetting.Always;
+                var isUnisonMuliplayer = SettingsManager.Settings.UnisonDisplay.Value == UnisonDisplaySetting.MultiplayerOnly;
+                var unisonPartCount = GameManager.UnisonDisplay.GetUnisonEventPartCount();
                 var unisonAndSoloOverlap = UnisonAndSoloOverlap();
-                if (unisonAndSoloOverlap)
+
+                if (unisonAndSoloOverlap && (isUnisonAlways || (isUnisonMuliplayer && unisonPartCount >= 2)))
                 {
+                    _currentUnisonEndTime = GameManager.UnisonDisplay.GetTransitionOutTime();
                     _soloHiddenForUnison = true;
                     TrackView.HideSoloForUnison();
                 }       
@@ -874,8 +876,7 @@ namespace YARG.Gameplay.Player
 
         private void ShowSoloAfterUnison(double time)
         {
-            var showAfterTime = UnisonDisplay.DISPLAY_HOLD_TIME + UnisonDisplay.TRANSITION_DURATION;
-            if (_soloHiddenForUnison && _isSoloActive && !double.IsNaN(_currentUnisonEndTime) && _currentUnisonEndTime + showAfterTime <= time)
+            if (_soloHiddenForUnison && _isSoloActive && !double.IsNaN(_currentUnisonEndTime) && _currentUnisonEndTime <= time)
             {
                 _soloHiddenForUnison = false;
                 _currentUnisonEndTime = double.NaN;
@@ -885,7 +886,7 @@ namespace YARG.Gameplay.Player
 
         private bool UnisonAndSoloOverlap()
         {
-            var unisonRect = GameManager.UnisonDisplayObj.transform as RectTransform;
+            var unisonRect = GameManager.UnisonDisplay.gameObject.transform as RectTransform;
             return TrackView.GetUnisonAndSoloOverlap(unisonRect);
         }
 

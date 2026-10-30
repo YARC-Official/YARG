@@ -647,5 +647,30 @@ namespace YARG.Gameplay.HUD
             public bool HasFailedCurrentPhrase;
             public int  NotesHitInCurrentPhrase;
         }
+    public int GetUnisonEventPartCount()
+        {
+            if (_currentPhraseIndex >= _phrases.Count)
+            {
+                return 0;
+            }
+            return _phrases[_currentPhraseIndex].Event.PartCount;
+        }
+    public double GetTransitionInTime()
+        {
+            if (_currentPhraseIndex >= _phrases.Count)
+            {
+                return 0;
+            }
+            return _phrases[_currentPhraseIndex].TransitionIn.Time;
+        }
+        public double GetTransitionOutTime()
+        {
+            if (_currentPhraseIndex >= _phrases.Count)
+            {
+                return 0;
+            }
+            return _phrases[_currentPhraseIndex].TransitionOut.Time;
+        }
     }
+
 }
