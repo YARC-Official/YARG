@@ -254,7 +254,8 @@ namespace YARG.Gameplay.HUD
                 return;
             }
 
-            var delta = Mouse.current.scroll.ReadValue().y * Time.unscaledDeltaTime;
+            var scroll = Mouse.current?.scroll.ReadValue().y ?? 0f;
+            var delta = scroll * Time.unscaledDeltaTime;
 
             if (delta > 0f)
             {
