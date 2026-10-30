@@ -44,50 +44,15 @@ namespace YARG.Settings.Types
             _possibleValues.Add(string.Empty);
 
             var folder = CustomCharacterPath;
-            string[] files = Directory.Exists(folder) ? Directory.GetFiles(folder, "*.yargchar") : Array.Empty<string>();
-
-            // Load the AssetBundles and pull the character names from the VrmInstance (and use the filename as a fallback for the display name)
-            foreach (var file in files)
+            if (!Directory.Exists(folder))
             {
-                var bundle = AssetBundle.LoadFromFile(file);
-                if (bundle == null)
-                {
-                    continue;
-                }
+                return;
+            }
 
-                var character = bundle.LoadAsset<GameObject>(BackgroundHelper.CHARACTER_PREFAB_PATH.ToLowerInvariant());
-                if (character == null)
-                {
-                    bundle.Unload(true);
-                    continue;
-                }
-
-                var vrmInstance = character.GetComponent<Vrm10Instance>();
-                if (vrmInstance == null)
-                {
-                    bundle.Unload(true);
-                    continue;
-                }
-
-                string name;
-
-                if (vrmInstance.Vrm != null && vrmInstance.Vrm.Meta != null && string.IsNullOrEmpty(vrmInstance.Vrm.Meta.Name))
-                {
-                    name = vrmInstance.Vrm.Meta.Name;
-                }
-                else
-                {
-                    name = Path.GetFileNameWithoutExtension(file);
-                }
-
-                var venueCharacter = character.GetComponent<VenueCharacter>();
-                if (venueCharacter != null && venueCharacter.Type != _characterType)
-                {
-                    _possibleValues.Add(file);
-                    _fileToName[file] = name;
-                }
-
-                bundle.Unload(true);
+            foreach (var file in Directory.GetFiles(folder, "*.yargchar"))
+            {
+                _possibleValues.Add(file);
+                _fileToName[file] = Path.GetFileNameWithoutExtension(file);
             }
         }
 

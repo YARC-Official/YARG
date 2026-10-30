@@ -24,6 +24,18 @@ PrefabInstance:
       propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
       value: YARG.Menu.Settings.Visuals.DropdownSettingVisual, Assembly-CSharp
       objectReference: {fileID: 0}
+    - target: {fileID: 7421987709479303017, guid: 5f7c905be0699a94b8dc56fc6105c02d, type: 3}
+      propertyPath: m_fontSizeMax
+      value: 28
+      objectReference: {fileID: 0}
+    - target: {fileID: 7421987709479303017, guid: 5f7c905be0699a94b8dc56fc6105c02d, type: 3}
+      propertyPath: m_overflowMode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7421987709479303017, guid: 5f7c905be0699a94b8dc56fc6105c02d, type: 3}
+      propertyPath: m_enableAutoSizing
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7665614177142481491, guid: 5f7c905be0699a94b8dc56fc6105c02d, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -141,89 +153,13 @@ PrefabInstance:
       propertyPath: m_Name
       value: DropdownSetting
       objectReference: {fileID: 0}
-    - target: {fileID: 4420504316707193967, guid: 6f46741e648c07044852bd3391146600, type: 3}
-      propertyPath: m_Pivot.x
-      value: 0.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 4420504316707193967, guid: 6f46741e648c07044852bd3391146600, type: 3}
-      propertyPath: m_Pivot.y
-      value: 0.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 4420504316707193967, guid: 6f46741e648c07044852bd3391146600, type: 3}
-      propertyPath: m_RootOrder
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4420504316707193967, guid: 6f46741e648c07044852bd3391146600, type: 3}
+    - target: {fileID: 4519988491260517421, guid: 6f46741e648c07044852bd3391146600, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 0
+      value: 0.5
       objectReference: {fileID: 0}
-    - target: {fileID: 4420504316707193967, guid: 6f46741e648c07044852bd3391146600, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4420504316707193967, guid: 6f46741e648c07044852bd3391146600, type: 3}
+    - target: {fileID: 8331225728328382101, guid: 6f46741e648c07044852bd3391146600, type: 3}
       propertyPath: m_AnchorMin.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4420504316707193967, guid: 6f46741e648c07044852bd3391146600, type: 3}
-      propertyPath: m_AnchorMin.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4420504316707193967, guid: 6f46741e648c07044852bd3391146600, type: 3}
-      propertyPath: m_SizeDelta.x
-      value: 1500
-      objectReference: {fileID: 0}
-    - target: {fileID: 4420504316707193967, guid: 6f46741e648c07044852bd3391146600, type: 3}
-      propertyPath: m_SizeDelta.y
-      value: 100
-      objectReference: {fileID: 0}
-    - target: {fileID: 4420504316707193967, guid: 6f46741e648c07044852bd3391146600, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4420504316707193967, guid: 6f46741e648c07044852bd3391146600, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4420504316707193967, guid: 6f46741e648c07044852bd3391146600, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4420504316707193967, guid: 6f46741e648c07044852bd3391146600, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4420504316707193967, guid: 6f46741e648c07044852bd3391146600, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4420504316707193967, guid: 6f46741e648c07044852bd3391146600, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4420504316707193967, guid: 6f46741e648c07044852bd3391146600, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4420504316707193967, guid: 6f46741e648c07044852bd3391146600, type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4420504316707193967, guid: 6f46741e648c07044852bd3391146600, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4420504316707193967, guid: 6f46741e648c07044852bd3391146600, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4420504316707193967, guid: 6f46741e648c07044852bd3391146600, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4420504316707193967, guid: 6f46741e648c07044852bd3391146600, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
+      value: 0.5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -276,10 +212,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _settingLabel: {fileID: 3424729177075475668}
   _evenBackground: {fileID: 3786693973871400430}
-  _advancedMarker: {fileID: 9042856458688905155}
   _dropdown: {fileID: 6853562808553770875}
---- !u!1 &9042856458688905155 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 948307881895838089, guid: 6f46741e648c07044852bd3391146600, type: 3}
-  m_PrefabInstance: {fileID: 8095148824242519626}
-  m_PrefabAsset: {fileID: 0}

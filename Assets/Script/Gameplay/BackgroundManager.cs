@@ -192,22 +192,27 @@ namespace YARG.Gameplay
 
             _backgroundDimmer.color = colorDim;
 
-            // If we have a venue hint for the song and we can load the hinted yarground, prefer that
-            var hint = GameManager.Song.VenueHint;
-            if (!string.IsNullOrWhiteSpace(hint))
+            // Prefer the career tier's venue hint, then fall back to the song's hint.
+            var hints = new[]
             {
-                if (await AddressableVenueExists(hint))
+                GlobalVariables.State.CurrentCareer?.VenueHint,
+                GameManager.Song.VenueHint,
+            };
+            foreach (var hint in hints.Distinct())
+            {
+                if (string.IsNullOrWhiteSpace(hint) || !await AddressableVenueExists(hint))
                 {
-                    var loaded = await LoadAddressableYarground(hint, vocalGender);
-                    if (loaded)
-                    {
-                        GameManager.CrowdEventHandler.Start();
-                        return;
-                    }
+                    continue;
+                }
+
+                if (await LoadAddressableYarground(hint, vocalGender))
+                {
+                    GameManager.CrowdEventHandler?.Start();
+                    return;
                 }
             }
 
-            // Hint didn't resolve or failed to load, so pretend it didn't exist
+            // No hint resolved or loaded, so use the default venue
 
             _type = result.Type;
 
@@ -215,14 +220,14 @@ namespace YARG.Gameplay
             // TODO: Figure out how to decouple this
             if (_type != BackgroundType.Yarground)
             {
-                GameManager.CrowdEventHandler.Start();
+                GameManager.CrowdEventHandler?.Start();
             }
 
             switch (_type)
             {
                 case BackgroundType.Yarground:
                     await LoadYarground(result);
-                    GameManager.CrowdEventHandler.Start();
+                    GameManager.CrowdEventHandler?.Start();
                     break;
                 case BackgroundType.Video:
                     LoadVideoBackground(result);

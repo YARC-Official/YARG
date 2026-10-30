@@ -69,8 +69,8 @@ namespace YARG.Menu.MusicLibrary
             }
         }
 
-        private SongCategory[] _sortedSongs;
-        private static readonly Dictionary<SortAttribute, HashSet<SongCategory>> _collapsedHeaders = new();
+        protected SongCategory[] _sortedSongs;
+        protected static readonly Dictionary<SortAttribute, HashSet<SongCategory>> _collapsedHeaders = new();
 
         private List<int> _sectionHeaderIndices = new();
         private int _primaryHeaderIndex;
@@ -115,16 +115,16 @@ namespace YARG.Menu.MusicLibrary
                 return;
             }
 
-            if (SongContainer.Count > RecommendedSongs.RECOMMEND_SONGS_COUNT)
-            {
-                var recommendations = RecommendedSongs.GetRecommendedSongs(
-                    YARG.Menu.Filters.FiltersMenu.ActiveFilterPredicate);
-                _recommendedSongs = recommendations.Length > 0 ? recommendations : null;
-            }
-            else
-            {
-                _recommendedSongs = null;
-            }
+            var recommendationSetting = SettingsManager.Settings.NumberOfRecommendations;
+            int maximumRecommendationCount = Mathf.Max(0, SongContainer.Count - 1);
+            int recommendationCount = recommendationSetting.Value >= maximumRecommendationCount
+                ? maximumRecommendationCount
+                : (int) recommendationSetting.Value;
+            recommendationSetting.SetValueWithoutNotify(recommendationCount);
+
+            var recommendations = RecommendedSongs.GetRecommendedSongs(
+                YARG.Menu.Filters.FiltersMenu.ActiveFilterPredicate, recommendationCount);
+            _recommendedSongs = recommendations.Length > 0 ? recommendations : null;
         }
 
         private void UpdateSearch(bool force)
@@ -230,11 +230,13 @@ namespace YARG.Menu.MusicLibrary
                 }
             }
 
-            // keep selection stable when the search text changes
+            // Keep selection stable when the search text changes. Only text entered directly into
+            // the search field should jump to the top; clickable shortcuts use a forced update and
+            // always include the song they were invoked from.
             if (!PlaylistMode && searchChanged)
             {
                 // jump to top when tightening search (adding characters)
-                if (searchExpanded)
+                if (searchExpanded && !force)
                 {
                     _currentSong = null;
                     int targetIndex = 0;
@@ -256,7 +258,7 @@ namespace YARG.Menu.MusicLibrary
                         OnSelectedIndexChanged();
                     }
                 }
-                // jump to most recent song when widening search (removing characters)
+                // Keep the current song selected when widening search or applying a clickable shortcut.
                 else if (previousSelectedSong != null)
                 {
                     if (!SetIndexTo(i => i is SongViewType view && view.SongEntry == previousSelectedSong, _primaryHeaderIndex))
@@ -529,7 +531,7 @@ namespace YARG.Menu.MusicLibrary
             // Stop any library preview audio so the Filters menu doesn't inherit it
             StopPreview();
 
-            var menu = YARG.Menu.Filters.FiltersMenu.Instance;
+            var menu = Filters.FiltersMenu.Instance;
             if (menu == null)
                 return;
 
@@ -539,7 +541,7 @@ namespace YARG.Menu.MusicLibrary
 
         private static bool IsFiltersMenuOpen()
         {
-            var menu = YARG.Menu.Filters.FiltersMenu.Instance;
+            var menu = Filters.FiltersMenu.Instance;
             return menu != null && menu.gameObject.activeInHierarchy;
         }
 

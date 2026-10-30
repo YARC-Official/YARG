@@ -8,6 +8,7 @@ using Discord;
 using UnityEngine;
 using YARG.Core.Logging;
 using YARG.Core.Song;
+using YARG.Core.Utility;
 using YARG.Localization;
 using YARG.Settings;
 
@@ -161,8 +162,10 @@ namespace YARG.Integration
             }
 
             // Localize Discord Rich Presence
+            // Discord shows text as written, so the song's style tags are stripped
 
-            var discordDetails = Localize.KeyFormat("Discord.Song.Name", song.Name, song.Artist);
+            var discordDetails = Localize.KeyFormat("Discord.Song.Name",
+                RichTextUtils.StripRichTextTags(song.Name), RichTextUtils.StripRichTextTags(song.Artist));
 
             string discordState;
             if (state.Paused)
@@ -171,7 +174,7 @@ namespace YARG.Integration
             }
             else
             {
-                discordState = Localize.KeyFormat("Discord.Song.Album", song.Album);
+                discordState = Localize.KeyFormat("Discord.Song.Album", RichTextUtils.StripRichTextTags(song.Album));
             }
 
             // Get activity

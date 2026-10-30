@@ -8,13 +8,15 @@ using YARG.Core.Utility;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Settings;
+using YARG.Song;
 using static YARG.Core.Song.SongEntrySorting;
 
 namespace YARG.Menu.MusicLibrary
 {
     public static class SongSorting
     {
-        private static bool DisallowedByRating(SongRating rating) => rating > SettingsManager.Settings.MaxSongRating.Value;
+        private static bool DisallowedByRating(SongEntry song) =>
+            SongContainer.GetEffectiveSongRating(song) > SettingsManager.Settings.MaxSongRating.Value;
 
         private readonly struct ArtistComparer : IComparer<SongEntry>
         {
@@ -200,7 +202,7 @@ namespace YARG.Menu.MusicLibrary
             {
                 foreach (var entry in list.Value)
                 {
-                    if (DisallowedByRating(entry.GetSongRating(SettingsManager.Settings.CensorMatureContent.Value)))
+                    if (DisallowedByRating(entry))
                     {
                         continue;
                     }
@@ -230,7 +232,7 @@ namespace YARG.Menu.MusicLibrary
             {
                 foreach (var entry in list.Value)
                 {
-                    if (DisallowedByRating(entry.GetSongRating(SettingsManager.Settings.CensorMatureContent.Value)))
+                    if (DisallowedByRating(entry))
                     {
                         continue;
                     }
@@ -253,7 +255,7 @@ namespace YARG.Menu.MusicLibrary
             {
                 foreach (var entry in list.Value)
                 {
-                    if (DisallowedByRating(entry.GetSongRating(SettingsManager.Settings.CensorMatureContent.Value)))
+                    if (DisallowedByRating(entry))
                     {
                         continue;
                     }
@@ -276,7 +278,7 @@ namespace YARG.Menu.MusicLibrary
             {
                 foreach (var entry in list.Value)
                 {
-                    if (DisallowedByRating(entry.GetSongRating(SettingsManager.Settings.CensorMatureContent.Value)))
+                    if (DisallowedByRating(entry))
                     {
                         continue;
                     }
@@ -299,7 +301,7 @@ namespace YARG.Menu.MusicLibrary
             {
                 foreach (var entry in list.Value)
                 {
-                    if (DisallowedByRating(entry.GetSongRating(SettingsManager.Settings.CensorMatureContent.Value)))
+                    if (DisallowedByRating(entry))
                     {
                         continue;
                     }
@@ -323,7 +325,7 @@ namespace YARG.Menu.MusicLibrary
             {
                 foreach (var entry in list.Value)
                 {
-                    if (DisallowedByRating(entry.GetSongRating(SettingsManager.Settings.CensorMatureContent.Value)))
+                    if (DisallowedByRating(entry))
                     {
                         continue;
                     }
@@ -346,7 +348,7 @@ namespace YARG.Menu.MusicLibrary
             {
                 foreach (var entry in list.Value)
                 {
-                    if (DisallowedByRating(entry.GetSongRating(SettingsManager.Settings.CensorMatureContent.Value)))
+                    if (DisallowedByRating(entry))
                     {
                         continue;
                     }
@@ -369,7 +371,7 @@ namespace YARG.Menu.MusicLibrary
             {
                 foreach (var entry in list.Value)
                 {
-                    if (DisallowedByRating(entry.GetSongRating(SettingsManager.Settings.CensorMatureContent.Value)))
+                    if (DisallowedByRating(entry))
                     {
                         continue;
                     }
@@ -432,7 +434,7 @@ namespace YARG.Menu.MusicLibrary
             {
                 foreach (var entry in list.Value)
                 {
-                    if (DisallowedByRating(entry.GetSongRating(SettingsManager.Settings.CensorMatureContent.Value)))
+                    if (DisallowedByRating(entry))
                     {
                         continue;
                     }
@@ -455,7 +457,7 @@ namespace YARG.Menu.MusicLibrary
             {
                 foreach (var entry in list.Value)
                 {
-                    if (DisallowedByRating(entry.GetSongRating(SettingsManager.Settings.CensorMatureContent.Value)))
+                    if (DisallowedByRating(entry))
                     {
                         continue;
                     }
@@ -488,7 +490,7 @@ namespace YARG.Menu.MusicLibrary
             {
                 foreach (var entry in list.Value)
                 {
-                    if (DisallowedByRating(entry.GetSongRating(SettingsManager.Settings.CensorMatureContent.Value)))
+                    if (DisallowedByRating(entry))
                     {
                         continue;
                     }
@@ -511,7 +513,7 @@ namespace YARG.Menu.MusicLibrary
             {
                 foreach (var entry in list.Value)
                 {
-                    if (DisallowedByRating(entry.GetSongRating(SettingsManager.Settings.CensorMatureContent.Value)))
+                    if (DisallowedByRating(entry))
                     {
                         continue;
                     }
@@ -544,7 +546,7 @@ namespace YARG.Menu.MusicLibrary
                 {
                     foreach (var entry in list.Value)
                     {
-                        if (DisallowedByRating(entry.GetSongRating(SettingsManager.Settings.CensorMatureContent.Value)))
+                        if (DisallowedByRating(entry))
                         {
                             continue;
                         }
@@ -585,7 +587,7 @@ namespace YARG.Menu.MusicLibrary
             {
                 foreach (var entry in list.Value)
                 {
-                    if (DisallowedByRating(entry.GetSongRating(SettingsManager.Settings.CensorMatureContent.Value)))
+                    if (DisallowedByRating(entry))
                     {
                         continue;
                     }

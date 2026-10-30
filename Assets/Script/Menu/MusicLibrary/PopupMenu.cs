@@ -249,15 +249,6 @@ namespace YARG.Menu.MusicLibrary
                 gameObject.SetActive(false);
             });
 
-            if (_musicLibrary.MenuState != MenuState.PlaylistSelect)
-            {
-                CreateItem("SortBy", () =>
-                {
-                    _menuState = State.SortSelect;
-                    UpdateForState();
-                });
-            }
-
             if (_musicLibrary.MenuState != MenuState.Playlist &&
                 _musicLibrary.MenuState != MenuState.Show &&
                 _musicLibrary.MenuState != MenuState.PlaylistSelect &&

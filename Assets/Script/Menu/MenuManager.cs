@@ -18,6 +18,9 @@ namespace YARG.Menu
             ProfileInfo,
             History,
             Content,
+            CareerList,
+            Career,
+            GameModes,
         }
 
         /// <summary>
@@ -28,7 +31,8 @@ namespace YARG.Menu
         {
             Menu.MusicLibrary,
             Menu.History,
-            Menu.Content
+            Menu.Content,
+            Menu.Career,
         };
 
         /// <summary>

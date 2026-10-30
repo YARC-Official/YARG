@@ -271,7 +271,12 @@ namespace YARG.Menu.ProfileList
                 if (PlayerContainer.IsDeviceTaken(device)) continue;
 
                 inputDeviceCount++;
+                // Only Windows awaits the XInput mode prompt. Non-Windows omits async to prevent CS1998 warning.
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
                 dialog.AddListButton(device.displayName, async () =>
+#else
+                dialog.AddListButton(device.displayName, () =>
+#endif
                 {
                     player.Bindings.AddDevice(device);
                     if (!player.Bindings.ContainsBindingsForDevice(device))

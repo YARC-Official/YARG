@@ -68,12 +68,12 @@ namespace YARG.Menu.Navigation
         private class RepeatContext
         {
             public readonly NavigationContext Context;
-            public float Timer;
+            public double NextRepeatTime;
 
             public RepeatContext(NavigationContext context)
             {
                 Context = context;
-                Timer = INPUT_REPEAT_COOLDOWN;
+                NextRepeatTime = Time.realtimeSinceStartupAsDouble + INPUT_REPEAT_COOLDOWN;
             }
         }
 
@@ -193,13 +193,12 @@ namespace YARG.Menu.Navigation
                 hold.Tracker.Tick();
             }
 
+            var time = Time.realtimeSinceStartupAsDouble;
             foreach (var repeat in _repeatInputs)
             {
-                repeat.Timer -= Time.unscaledDeltaTime;
-
-                if (repeat.Timer <= 0f)
+                if (time >= repeat.NextRepeatTime)
                 {
-                    repeat.Timer = INPUT_REPEAT_TIME;
+                    repeat.NextRepeatTime = time + INPUT_REPEAT_TIME;
                     InvokeNavigationEvent(repeat.Context.AsRepeat());
                 }
             }

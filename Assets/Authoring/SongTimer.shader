@@ -13,7 +13,8 @@ Shader "YARG/SongTimer"
 {
     Properties
     {
-        _GlyphColor ("Current Time Color", Color) = (1.0, 0.35, 0.1, 1.0)
+        _CurColor ("Current Time Color", Color) = (1.0, 0.35, 0.1, 1.0)
+        _GlyphColor ("Separator Color", Color) = (1.0, 0.35, 0.1, 1.0)
         _TotalColor ("Total Time Color", Color) = (0.75, 0.75, 0.75, 1.0)
     }
 
@@ -38,6 +39,7 @@ Shader "YARG/SongTimer"
             #include "Assets/Art/Shaders/gamestate.hlsl"
 
             fixed4 _GlyphColor;
+            fixed4 _CurColor;
             fixed4 _TotalColor;
 
             struct appdata_t
@@ -79,8 +81,7 @@ Shader "YARG/SongTimer"
             static const float STROKE        = 0.05;
             static const float HALO          = 0.55;
             static const float HALO_FALLOFF  = 7.0;
-            // How much the hot filament core shifts toward white
-            static const float CORE_HOTNESS  = 0.65;
+
 
             // GLSL mod (result takes sign of divisor), unlike HLSL fmod
             #define glslMod(x, y) ((x) - (y) * floor((x) / (y)))
@@ -271,7 +272,7 @@ Shader "YARG/SongTimer"
                 // Hot whitish filament core over the saturated base color,
                 // like a real nixie tube
                 float3 color = float3(0, 0, 0);
-                color += (lerp(_GlyphColor.rgb, float3(1, 1, 1), CORE_HOTNESS) * cur);
+                color += (_CurColor.rgb * cur);
                 color += (_GlyphColor.rgb * sep);
                 color += (_TotalColor.rgb * tot);
 

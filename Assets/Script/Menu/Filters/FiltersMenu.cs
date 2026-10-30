@@ -108,7 +108,7 @@ namespace YARG.Menu.Filters
         [SerializeField]
         private RectTransform _rightContainer;
         [SerializeField]
-        private FilterEntryRow _filterEntryRowPrefab;
+        private GameObject _filterEntryRowPrefab;
 
         [Space]
         [SerializeField]
@@ -130,6 +130,8 @@ namespace YARG.Menu.Filters
             new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, bool> _vocalPartsEnabled =
             new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, bool> _vocalistGenderEnabled =
+            new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, bool> _sourceEnabled =
             new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, bool> _playlistEnabled =
@@ -145,6 +147,7 @@ namespace YARG.Menu.Filters
         private static IReadOnlyList<string> _cachedSubgenres;
         private static IReadOnlyList<string> _cachedDecades;
         private static IReadOnlyList<string> _cachedVocalParts;
+        private static IReadOnlyList<string> _cachedVocalistGenders;
         private static IReadOnlyList<string> _cachedSources;
         private static IReadOnlyList<string> _cachedPlaylists;
         private static Dictionary<string, int> _cachedPlaylistCounts;
@@ -156,6 +159,7 @@ namespace YARG.Menu.Filters
         private static int _cachedSubgenreSongCount = -1;
         private static int _cachedDecadeSongCount = -1;
         private static int _cachedVocalPartsSongCount = -1;
+        private static int _cachedVocalistGenderSongCount = -1;
         private static int _cachedSourceSongCount = -1;
         private static int _cachedPlaylistSignature = -1;
         private static int _cachedPlaylistCountsSignature = -1;
@@ -180,6 +184,7 @@ namespace YARG.Menu.Filters
         private int? _lastRightIndex;
 
         private FocusSide _focusSide = FocusSide.Left;
+        private FilterKey? _displayedFilterKey;
 
         public static Func<SongEntry, bool> ActiveFilterPredicate { get; private set; }
 
@@ -427,13 +432,33 @@ namespace YARG.Menu.Filters
                 {
                     _rightNavGroup.ClearNavigatables();
                     _rightContainer.DestroyChildren();
+                    _displayedFilterKey = null;
                 }
                 return;
             }
 
+            ShowCategory(row);
+        }
+
+        private void OnCategoryClicked(FilterCategoryRow row)
+        {
+            if (row == null || !row.transform.IsChildOf(transform))
+                return;
+
+            ShowCategory(row);
+        }
+
+        private void ShowCategory(FilterCategoryRow row)
+        {
+            if (_rightContainer == null || row == null)
+                return;
+
+            if (_displayedFilterKey == row.Key && _rightContainer.childCount > 0)
+                return;
+
+            _displayedFilterKey = row.Key;
             _rightNavGroup.ClearNavigatables();
             _rightContainer.DestroyChildren();
-
             BuildOptionsFor(row.Key);
         }
 
@@ -478,6 +503,7 @@ namespace YARG.Menu.Filters
             }
 
             AddGroup(container, navGroup, new FilterKey(FilterGroup.Length), Localize.Key("Menu.Filters.Length.Name"))?.AssignIndex(rowIndex++);
+            AddGroup(container, navGroup, new FilterKey(FilterGroup.VocalistGender), Localize.Key("Menu.Filters.VocalistGender.Name"))?.AssignIndex(rowIndex++);
 
             AddHeader(container, Localize.Key("Menu.Filters.ShowAnyOfHeader"));
             rowIndex = 0;
@@ -505,6 +531,7 @@ namespace YARG.Menu.Filters
             string secondary = key.Group == FilterGroup.Genre ? Localize.Key("Menu.Filters.All") : string.Empty;
 
             row.Init(key, label, secondary);
+            row.Clicked += OnCategoryClicked;
             navGroup.AddNavigatable(row);
             return row;
         }
@@ -688,6 +715,7 @@ namespace YARG.Menu.Filters
         }
 
         private void BuildOptions(
+            FilterKey key,
             IReadOnlyList<string> values,
             Dictionary<string, bool> enabled,
             Dictionary<string, int> counts,
@@ -702,13 +730,19 @@ namespace YARG.Menu.Filters
 
             if (values.Count > 0)
                 AddSelectDeselectButtons(
-                    () => ApplyRightToggleState(enabled, true, updateSummary),
-                    () => ApplyRightToggleState(enabled, false, updateSummary));
+                    () => ApplyRightToggleState(key, enabled, true, updateSummary),
+                    () => ApplyRightToggleState(key, enabled, false, updateSummary));
 
             int rowIndex = 0;
             foreach (string value in values)
             {
-                var row = Instantiate(_filterEntryRowPrefab, _rightContainer);
+                var rowObject = Instantiate(_filterEntryRowPrefab, _rightContainer);
+                var row = rowObject.GetComponent<FilterEntryRow>();
+                if (row == null)
+                {
+                    Destroy(rowObject);
+                    continue;
+                }
                 _rightNavGroup.AddNavigatable(row.gameObject);
 
                 row.AssignIndex(rowIndex++);
@@ -726,7 +760,9 @@ namespace YARG.Menu.Filters
                 row.ToggleChanged += toggleValue =>
                 {
                     enabled[value] = toggleValue;
+                    SyncInstrumentalFilters(key, value, toggleValue);
                     updateSummary?.Invoke();
+                    UpdateSyncedInstrumentalSummary(key);
                 };
             }
         }
@@ -812,6 +848,7 @@ namespace YARG.Menu.Filters
                     continue;
 
                 tmp.text = label;
+                NormalizeSettingLabelIndent(tmp);
                 break;
             }
         }
@@ -823,7 +860,23 @@ namespace YARG.Menu.Filters
 
             var tmp = row.GetComponentInChildren<TextMeshProUGUI>(true);
             if (tmp != null)
+            {
                 tmp.text = label;
+                NormalizeSettingLabelIndent(tmp);
+            }
+        }
+
+        private static void NormalizeSettingLabelIndent(TMP_Text label)
+        {
+            // Use the same inset mechanism as FilterCategoryRow so dropdown,
+            // toggle, and category labels share an exact left edge.
+            var margin = label.margin;
+            margin.x = 25f;
+            label.margin = margin;
+
+            var position = label.rectTransform.anchoredPosition;
+            position.x = 0f;
+            label.rectTransform.anchoredPosition = position;
         }
 
         private static int FindSortIndex(IReadOnlyList<SortAttribute> values, SortAttribute sort)
@@ -953,7 +1006,7 @@ namespace YARG.Menu.Filters
                     RichTextUtils.StripRichTextTags(text)));
         }
         
-        private const int FilterLabelWrapLimit = 30;
+        private const int FilterLabelWrapLimit = 40;
 
         private static string WrapFilterLabel(string text)
         {
@@ -962,23 +1015,35 @@ namespace YARG.Menu.Filters
             string plain = RichTextUtils.StripRichTextTags(text);
             if (plain.Length <= FilterLabelWrapLimit) return text;
 
-            int breakVisibleIndex = FindLastWhitespaceIndex(plain, FilterLabelWrapLimit);
+            int breakVisibleIndex = FindBalancedWhitespaceIndex(plain, FilterLabelWrapLimit);
             if (breakVisibleIndex < 0)
                 breakVisibleIndex = FilterLabelWrapLimit;
 
             return InsertLineBreakAtVisibleIndex(text, breakVisibleIndex);
         }
 
-        private static int FindLastWhitespaceIndex(string text, int maxIndex)
+        private static int FindBalancedWhitespaceIndex(string text, int lineLimit)
         {
-            int last = -1;
-            int limit = Math.Min(text.Length - 1, maxIndex);
-            for (int i = 0; i <= limit; i++)
+            int minimum = Math.Max(1, text.Length - lineLimit);
+            int maximum = Math.Min(text.Length - 1, lineLimit);
+            int target = text.Length / 2;
+            int closest = -1;
+            int closestDistance = int.MaxValue;
+
+            for (int i = minimum; i <= maximum; i++)
             {
                 if (char.IsWhiteSpace(text[i]))
-                    last = i;
+                {
+                    int distance = Math.Abs(i - target);
+                    if (distance < closestDistance)
+                    {
+                        closest = i;
+                        closestDistance = distance;
+                    }
+                }
             }
-            return last;
+
+            return closest;
         }
 
         private static string InsertLineBreakAtVisibleIndex(string text, int visibleIndex)
@@ -1037,6 +1102,12 @@ namespace YARG.Menu.Filters
                 GetAllVocalPartsCached,
                 GetVocalPartsCounts,
                 _vocalPartsEnabled);
+
+            yield return new FilterDef(
+                new FilterKey(FilterGroup.VocalistGender),
+                GetAllVocalistGendersCached,
+                GetVocalistGenderCounts,
+                _vocalistGenderEnabled);
 
             yield return new FilterDef(
                 new FilterKey(FilterGroup.Source),
@@ -1124,6 +1195,12 @@ namespace YARG.Menu.Filters
                 foreach (var kvp in saved)
                     def.Enabled[kvp.Key] = kvp.Value;
             }
+
+            // Vocal Parts predates Vocalist Gender, so it is authoritative when
+            // migrating remembered filters that may not contain the new group.
+            var instrumental = GetInstrumentalLabel();
+            if (_vocalPartsEnabled.TryGetValue(instrumental, out bool instrumentalEnabled))
+                _vocalistGenderEnabled[instrumental] = instrumentalEnabled;
         }
 
         private void SaveFilters()
@@ -1156,6 +1233,7 @@ namespace YARG.Menu.Filters
             if (!useDefaults)
                 EnsureDefaults(def.Enabled, values, defaultValue: false);
             BuildOptions(
+                def.Key,
                 values,
                 def.Enabled,
                 counts,
@@ -1339,6 +1417,13 @@ namespace YARG.Menu.Filters
                     return label != null && vocalParts.Contains(NormalizeFilterKey(label));
                 });
 
+            if (TryGetSelectedSet(_vocalistGenderEnabled, GetAllVocalistGendersCached(), NormalizeFilterKey, out var vocalistGenders))
+                predicates.Add(entry =>
+                {
+                    var label = GetVocalistGenderLabel(entry);
+                    return label != null && vocalistGenders.Contains(NormalizeFilterKey(label));
+                });
+
             if (TryGetSelectedSet(_lengthEnabled, GetAllLengthsCached(), NormalizeFilterKey, out var lengths))
                 predicates.Add(entry =>
                 {
@@ -1416,15 +1501,44 @@ namespace YARG.Menu.Filters
             return group == FilterGroup.Playlist;
         }
 
-        private void ApplyRightToggleState(Dictionary<string, bool> dict, bool value, Action updateSummary)
+        private void ApplyRightToggleState(FilterKey key, Dictionary<string, bool> dict, bool value, Action updateSummary)
         {
             SetAll(dict, value);
+            SyncInstrumentalFilters(key, GetInstrumentalLabel(), value);
             updateSummary?.Invoke();
+            UpdateSyncedInstrumentalSummary(key);
 
             if (_rightContainer == null) return;
 
             foreach (var row in _rightContainer.GetComponentsInChildren<FilterEntryRow>(true))
                 row.SetToggleIsOn(value);
+        }
+
+        private static string GetInstrumentalLabel() =>
+            Localize.Key("Menu.Filters.VocalParts.Instrumental");
+
+        private void SyncInstrumentalFilters(FilterKey sourceKey, string value, bool enabled)
+        {
+            if (!string.Equals(value, GetInstrumentalLabel(), StringComparison.OrdinalIgnoreCase))
+                return;
+
+            var target = sourceKey.Group switch
+            {
+                FilterGroup.VocalParts => _vocalistGenderEnabled,
+                FilterGroup.VocalistGender => _vocalPartsEnabled,
+                _ => null
+            };
+
+            if (target != null)
+                target[GetInstrumentalLabel()] = enabled;
+        }
+
+        private void UpdateSyncedInstrumentalSummary(FilterKey sourceKey)
+        {
+            if (sourceKey.Group == FilterGroup.VocalParts)
+                UpdateSummary(new FilterKey(FilterGroup.VocalistGender), _vocalistGenderEnabled, GetAllVocalistGendersCached());
+            else if (sourceKey.Group == FilterGroup.VocalistGender)
+                UpdateSummary(new FilterKey(FilterGroup.VocalParts), _vocalPartsEnabled, GetAllVocalPartsCached());
         }
 
 #endregion
@@ -1545,6 +1659,61 @@ namespace YARG.Menu.Filters
                 2 => Localize.Key("Menu.Filters.VocalParts.Duet"),
                 1 => Localize.Key("Menu.Filters.VocalParts.Solo"),
                 0 => Localize.Key("Menu.Filters.VocalParts.Instrumental"),
+                _ => null
+            };
+        }
+#endregion
+
+#region Vocalist Gender
+        private static IReadOnlyList<string> GetAllVocalistGendersCached()
+        {
+            return GetAllCached(ref _cachedVocalistGenders, ref _cachedVocalistGenderSongCount, () =>
+            {
+                var counts = GetVocalistGenderCounts();
+                return VocalistGenderLabels
+                    .Where(label => counts.TryGetValue(label, out int count) && count > 0)
+                    .ToArray();
+            });
+        }
+
+        private static Dictionary<string, int> GetVocalistGenderCounts()
+        {
+            var dict = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            foreach (var song in SongContainer.Songs)
+            {
+                var label = GetVocalistGenderLabel(song);
+                if (label == null)
+                    continue;
+
+                dict.TryGetValue(label, out int count);
+                dict[label] = count + 1;
+            }
+
+            return dict;
+        }
+
+        private static IReadOnlyList<string> VocalistGenderLabels => new[]
+        {
+            Localize.Key("Menu.Filters.VocalistGender.Woman"),
+            Localize.Key("Menu.Filters.VocalistGender.Man"),
+            Localize.Key("Menu.Filters.VocalistGender.NonBinary"),
+            Localize.Key("Menu.Filters.VocalistGender.Other"),
+            Localize.Key("Menu.Filters.VocalistGender.Unspecified"),
+            GetInstrumentalLabel(),
+        };
+
+        private static string GetVocalistGenderLabel(SongEntry song)
+        {
+            if (song.VocalsCount == 0)
+                return GetInstrumentalLabel();
+
+            return song.VocalGender switch
+            {
+                VocalGender.Female => Localize.Key("Menu.Filters.VocalistGender.Woman"),
+                VocalGender.Male => Localize.Key("Menu.Filters.VocalistGender.Man"),
+                VocalGender.Nonbinary => Localize.Key("Menu.Filters.VocalistGender.NonBinary"),
+                VocalGender.Other => Localize.Key("Menu.Filters.VocalistGender.Other"),
+                VocalGender.Unspecified => Localize.Key("Menu.Filters.VocalistGender.Unspecified"),
                 _ => null
             };
         }
