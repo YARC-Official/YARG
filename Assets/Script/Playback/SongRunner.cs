@@ -428,6 +428,15 @@ namespace YARG.Playback
         }
 
         /// <summary>
+        /// Converts a song time to the visual time paired with it: the two differ only by
+        /// calibration.
+        /// </summary>
+        public double GetVisualTime(double songTime)
+        {
+            return songTime + (VideoCalibration - AudioCalibration) * SongSpeed;
+        }
+
+        /// <summary>
         /// Converts gameplay song time to a position in the audio file.
         /// </summary>
         public double GetAudioPlaybackTime(double songTime)
@@ -748,7 +757,7 @@ namespace YARG.Playback
             var token = _rewindSource.Token;
 
             var targetRewindTime = SongTime - seconds;
-            var targetVisualTime = targetRewindTime + (VideoCalibration - AudioCalibration) * SongSpeed;
+            var targetVisualTime = GetVisualTime(targetRewindTime);
             var targetResumeTime = overrideTargetTime ?? SongTime;
 
             _rewindTween = DOTween.To(() => VisualTime, x => VisualTime = x, targetVisualTime, 0.5f);
