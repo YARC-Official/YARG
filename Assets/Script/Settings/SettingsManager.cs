@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -85,7 +85,6 @@ namespace YARG.Settings
 
                 new HeaderMetadata("Other"),
                 nameof(Settings.ReconnectProfiles),
-                nameof(Settings.AutoCreateProfiles),
                 nameof(Settings.ShowCursorTimer),
                 nameof(Settings.PauseOnDeviceDisconnect),
                 nameof(Settings.PauseOnFocusLoss),
