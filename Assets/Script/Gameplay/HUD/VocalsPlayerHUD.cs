@@ -1,4 +1,7 @@
+// pattern: Imperative Shell
 using System.Collections;
+using System.Collections.Generic;
+using YARG.Core.Engine.Vocals;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
@@ -42,6 +45,12 @@ namespace YARG.Gameplay.HUD
         private Image _grooveRim;
         [SerializeField]
         private Image _starPowerRim;
+
+        [SerializeField]
+        private HarmonyMeterGroup _harmonyMeters;
+        [SerializeField]
+        private RectTransform _harmonyNotificationContainer;
+        private Vector3? _originalNotificationPosition;
 
         private Sequence _multiplierIncreaseSequence;
         private bool     _isSp;
@@ -209,17 +218,51 @@ namespace YARG.Gameplay.HUD
             _hudCoroutine = null;
         }
 
-        public void ShowPlayerName(YargPlayer player, int needleId)
+        public void ShowPlayerName(YargPlayer player, IReadOnlyList<int> needleIds, IReadOnlyList<bool> connectedSlots = null)
         {
-            _playerNameDisplay.ShowPlayer(player, needleId);
+            _playerNameDisplay.ShowPlayer(player, needleIds, connectedSlots);
         }
 
-        public void ShowPhraseHit(double hitPercent, int combo)
+        public void InitializeHarmonyMeters(IReadOnlyList<bool> availableParts, IReadOnlyList<Color> colors)
+        {
+            _harmonyMeters.gameObject.SetActive(true);
+            _harmonyMeters.Initialize(availableParts, colors);
+            _originalNotificationPosition ??= _harmonyNotificationContainer.localPosition;
+            _harmonyMeters.PositionFeedbackBelow(_harmonyNotificationContainer, _originalNotificationPosition.Value);
+            _playerNameDisplay.AlignNameAndNeedleWith(_harmonyNotificationContainer);
+        }
+
+        public void UpdateHarmonyMeter(int partIndex, HarmonyMeterState state, bool fullCombo)
+        {
+            _harmonyMeters.RenderPart(partIndex, state, fullCombo, Time.deltaTime);
+        }
+
+        public void ResetHarmonyMeters()
+        {
+            _harmonyMeters.ResetVisuals();
+        }
+
+        public void ShowPartyVocalsGrade(PhraseGrade grade, int combo)
+        {
+            string key = grade switch
+            {
+                PhraseGrade.Awesome => "Awesome",
+                PhraseGrade.DoubleAwesome => "DoubleAwesome",
+                PhraseGrade.TripleAwesome => "TripleAwesome",
+                _ => null
+            };
+            if (key != null)
+                _textNotifications.ShowVocalPhraseResult(Localize.Key("Gameplay.Vocals.Performance", key), combo);
+        }
+
+        public void ShowPhraseHit(double hitPercent, int combo, bool showResult = true)
         {
             if (!SettingsManager.Settings.DisableTextNotifications.Value)
             {
                 _textNotifications.UpdateNoteStreak(combo);
             }
+            if (!showResult) return;
+
             var resultText = GetVocalPerformanceText(hitPercent);
             _textNotifications.ShowVocalPhraseResult(resultText, combo);
         }

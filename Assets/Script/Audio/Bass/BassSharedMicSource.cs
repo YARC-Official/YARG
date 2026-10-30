@@ -40,6 +40,8 @@ namespace YARG.Audio.BASS
 
         protected override bool GetIsValidCore() => _signal.IsValid;
 
+        protected override bool GetIsConnectedCore() => _capture.IsConnected(BaseName);
+
         protected override int ReadCore(Span<float> destination) => _signal.Read(destination);
 
         protected override int GetBacklogBytesCore() => _signal.GetBacklogBytes();

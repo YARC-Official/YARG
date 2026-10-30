@@ -9,6 +9,7 @@ using YARG.Core.Chart;
 using YARG.Core.Engine;
 using YARG.Core.Logging;
 using YARG.Core.Replays;
+using YARG.Input.Bindings;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Player;
 using YARG.Menu;
@@ -447,9 +448,11 @@ namespace YARG.Gameplay
         {
             try
             {
+                BindingsContainer.RefreshMicrophones();
                 _players = new List<BasePlayer>();
 
                 bool vocalTrackInitialized = false;
+                Instrument? partyChartSource = null;
 
                 int index = -1;
                 int highwayIndex = -1;
@@ -483,11 +486,16 @@ namespace YARG.Gameplay
                         player.RefreshPresets();
                     }
 
-                    var lastHighScore = ScoreContainer.GetHighScore(Song.Hash, player.Profile.Id, player.Profile.CurrentInstrument, false)?.Score;
+                    var vocalSource = player.Profile.GameMode == GameMode.PartyVocals
+                        ? (partyChartSource ??= VocalsPlayer.ResolveChartSource(player, Chart))
+                        : player.Profile.CurrentInstrument;
+                    var lastHighScore = ScoreContainer.GetHighScore(Song.Hash, player.Profile.Id,
+                        player.Profile.CurrentInstrument, false,
+                        vocalChartSource: player.Profile.GameMode == GameMode.PartyVocals ? vocalSource : null)?.Score;
                     YargLogger.LogFormatInfo("Current high score for player {0} on {1}: {2}",
                         player.Profile.Name, player.Profile.CurrentInstrument, lastHighScore ?? 0);
 
-                    if (player.Profile.GameMode != GameMode.Vocals)
+                    if (player.Profile.GameMode is not (GameMode.Vocals or GameMode.PartyVocals))
                     {
                         highwayIndex++;
                         var prefab = player.Profile.GameMode switch
@@ -527,10 +535,8 @@ namespace YARG.Gameplay
                             VocalTrack.transform.position = new Vector3(highwayIndex * TRACK_SPACING_X, 100, 0);
                             _trackViewManager.CreateVocalTrackView(highwayIndex);
 
-                            // Use GetVocalsTrack so PartyVocals gets the correct track
-                            // (harmony when available, solo vocals fallback for songs
-                            // with no harmony parts).
-                            var chart = Chart.GetVocalsTrack(player.Profile.CurrentInstrument);
+                            // Visual modifiers must not mutate the chart used for scoring or fallback selection.
+                            var chart = Chart.GetVocalsTrack(vocalSource).Clone();
                             VocalTrack.Initialize(chart, player, Song.VocalScrollSpeedScalingFactor);
 
                             if (SettingsManager.Settings.KeepLyricBar.Value &&
@@ -553,7 +559,7 @@ namespace YARG.Gameplay
 
                         var percussionTrack = VocalTrack.CreatePercussionTrack();
                         percussionTrack.TrackSpeed = VocalTrack.TrackSpeed;
-                        vocalsPlayer.Initialize(index, vocalIndex, player, Chart, playerHud, percussionTrack, lastHighScore, VocalTrack.TrackSpeed);
+                        vocalsPlayer.Initialize(index, vocalIndex, player, Chart, playerHud, percussionTrack, lastHighScore, VocalTrack.TrackSpeed, vocalSource);
 
                         _players.Add(vocalsPlayer);
                     }

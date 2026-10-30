@@ -340,7 +340,7 @@ namespace YARG.Settings.Metadata
                     GameMode.FiveFretGuitar => nameof(EnginePreset.FiveFretGuitar),
                     GameMode.SixFretGuitar => nameof(EnginePreset.SixFretGuitar),
                     GameMode.FourLaneDrums or GameMode.FiveLaneDrums => nameof(EnginePreset.Drums),
-                    GameMode.Vocals => nameof(EnginePreset.Vocals),
+                    GameMode.Vocals or GameMode.PartyVocals => nameof(EnginePreset.Vocals),
                     GameMode.ProKeys => nameof(EnginePreset.ProKeys),
                     _ => null,
                 };
