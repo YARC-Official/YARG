@@ -18,6 +18,8 @@ namespace YARG.Editor.YargAudio
     {
         private const string NATIVE_RELOAD_STATE = "YargAudio.ReloadState";
         private const string NATIVE_BUILD_FAILURE = "YargAudio.BuildFailure";
+        private const string AUTO_REBUILD_KEY = "YargAudio.AutoRebuild";
+        private const string AUTO_REBUILD_MENU = "YARG/Audio/Auto Rebuild Native Audio";
         private const int MAX_ERROR_LINES = 6;
         private const int MAX_ERROR_LINE_LENGTH = 1000;
 
@@ -102,8 +104,26 @@ namespace YARG.Editor.YargAudio
         public static void RebuildManual() =>
             EnsureUpToDate(isExplicit: true);
 
+        [MenuItem(AUTO_REBUILD_MENU)]
+        private static void ToggleAutoRebuild()
+        {
+            EditorPrefs.SetBool(AUTO_REBUILD_KEY, !EditorPrefs.GetBool(AUTO_REBUILD_KEY, false));
+        }
+
+        [MenuItem(AUTO_REBUILD_MENU, true)]
+        private static bool ValidateAutoRebuild()
+        {
+            UnityEditor.Menu.SetChecked(AUTO_REBUILD_MENU, EditorPrefs.GetBool(AUTO_REBUILD_KEY, false));
+            return true;
+        }
+
         public static bool EnsureUpToDate(bool isExplicit = false)
         {
+            if (!isExplicit && !EditorPrefs.GetBool(AUTO_REBUILD_KEY, false))
+            {
+                return true;
+            }
+
             var projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
             var nativeDir = Path.Combine(projectRoot, "Native", "YargAudio");
             if (!Directory.Exists(nativeDir))
