@@ -204,7 +204,26 @@ namespace YARG.Gameplay.Player
         /// which fires once per pad from the same engine event that records each offset sample, so
         /// it always lines up 1:1 regardless of hit order.
         /// </remarks>
-        public override IReadOnlyList<bool> GetOffsetSampleFilterCategory() => _liveOffsetSampleFilterCategory;
+        public override IReadOnlyList<bool> GetOffsetSampleFilterCategory()
+        {
+            // Auto-hit star power activators can trail the last real hit
+            PadOffsetSampleFilterCategory(BaseStats.GetOffsetSamples().Count);
+            return _liveOffsetSampleFilterCategory;
+        }
+
+        /// <summary>
+        /// Skipped star power activation notes are auto-hit by the engine: it records an offset
+        /// sample for them but never fires <see cref="OnNoteHit"/>, which left the category list
+        /// shorter than the sample list and made every consumer fall back to "all hits". Pad with
+        /// <c>false</c> (non-kick) so the two lists stay 1:1.
+        /// </summary>
+        private void PadOffsetSampleFilterCategory(int targetCount)
+        {
+            while (_liveOffsetSampleFilterCategory.Count < targetCount)
+            {
+                _liveOffsetSampleFilterCategory.Add(false);
+            }
+        }
 
         private static SongStem GetLastAvailableDrumStem(StemMixer mixer)
         {
@@ -684,6 +703,9 @@ namespace YARG.Gameplay.Player
 
             if (!note.IsAnyLane && !note.IsBigRockEnding)
             {
+                // The engine has already recorded this note's sample; anything before it that
+                // was recorded without a callback (auto-hit activators) needs a placeholder.
+                PadOffsetSampleFilterCategory(BaseStats.GetOffsetSamples().Count - 1);
                 _liveOffsetSampleFilterCategory.Add(note.Pad == _kick);
             }
 

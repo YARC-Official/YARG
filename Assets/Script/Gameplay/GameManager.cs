@@ -682,6 +682,9 @@ namespace YARG.Gameplay
                 BandScore = BandScore,
                 BandStars = (int) BandStars,
 
+                // Players who dropped out mid-song (IsActive == false) are excluded from both fields
+                // below, since their partial run shouldn't shift the band's song offset.
+                //
                 // TODO: When online comes out, change
                 // .Where(player => !player.Player.Profile.IsBot)
                 // to:
@@ -695,12 +698,12 @@ namespace YARG.Gameplay
                 // UseMedianForEndOfSongCalibration is set to true, in
                 // which case it's the median, see GetWeightedOffset.
                 MeanAverageOffset = GetWeightedOffset(_players
-                    .Where(player => !player.Player.Profile.IsBot)
+                    .Where(player => player.IsActive && !player.Player.Profile.IsBot)
                     .SelectMany(player => player.BaseStats.GetOffsetSamples())
                     .ToList()) ?? 0,
 
                 MeanAverageOffsetFilterCategoryOnly = GetWeightedOffset(GetWeightedFilterCategorySamples(_players
-                    .Where(player => !player.Player.Profile.IsBot))),
+                    .Where(player => player.IsActive && !player.Player.Profile.IsBot))),
 
                 ReplayInfo = replayInfo,
             };
