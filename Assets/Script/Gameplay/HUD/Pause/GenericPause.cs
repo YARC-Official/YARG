@@ -98,6 +98,11 @@ namespace YARG.Gameplay.HUD
             PauseMenuManager.Quit();
         }
 
+        public void SkipToScoreScreen()
+        {
+            GameManager.SkipToScoreScreen();
+        }
+
         public void OpenQuickSettings()
         {
             PauseMenuManager.PushMenu(PauseMenuManager.Menu.QuickSettings);
