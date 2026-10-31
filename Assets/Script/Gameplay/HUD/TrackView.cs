@@ -24,6 +24,7 @@ namespace YARG.Gameplay.HUD
         [Space]
         [SerializeField]
         private SoloBox _soloBox;
+        
         [SerializeField]
         private TextNotifications _textNotifications;
         [SerializeField]
@@ -51,6 +52,7 @@ namespace YARG.Gameplay.HUD
         private RectTransform _highwayEditParentRect;
         private bool _defaultsInitialized;
         private int _highwayIndex;
+        private GameManager _gameManager;
 
         private bool _isSoloActive;
         private bool _isUnisonActive;
@@ -258,6 +260,22 @@ namespace YARG.Gameplay.HUD
         {
             _isUnisonActive = false;
             UpdateTextNotificationStatus();
+        }
+
+        public void HideSoloForUnison()
+        {
+            _soloBox.ToggleSoloBoxForUnison(true);
+        }
+
+        public void ShowSoloAfterUnison()
+        {
+            _soloBox.ToggleSoloBoxForUnison(false);
+        }
+
+        public bool GetUnisonAndSoloOverlap(RectTransform unisonRect)
+        {
+            var soloBoxRect = _soloBox.transform as RectTransform;
+            return soloBoxRect.Overlaps(unisonRect);
         }
 
         public void StartCoda()

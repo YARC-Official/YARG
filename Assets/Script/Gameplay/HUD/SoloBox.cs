@@ -216,5 +216,11 @@ namespace YARG.Gameplay.HUD
                 _showingForPreview = false;
             }
         }
+
+        public void ToggleSoloBoxForUnison(bool hide)
+        {
+            var alpha = hide ? 0f : 1f;
+            _soloBoxCanvasGroup.DOFade(alpha, 0.25f);
+        }
     }
 }
