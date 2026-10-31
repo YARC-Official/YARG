@@ -14,8 +14,7 @@ namespace YARG.Menu.Settings.Visuals
 
         public override void RefreshVisual()
         {
-            // Add the options (in order)
-            _dropdown.options.Clear();
+            var labels = new string[Setting.Count];
             for (int i = 0; i < Setting.Count; i++)
             {
                 string valueString = Setting.IndexToString(i);
@@ -26,11 +25,36 @@ namespace YARG.Menu.Settings.Visuals
                         : Localize.Key("Settings.PresetSetting", UnlocalizedName, "Dropdown", valueString);
                 }
 
-                _dropdown.options.Add(new(valueString));
+                labels[i] = valueString;
             }
 
-            // Select the right option
-            _dropdown.SetValueWithoutNotify(Setting.CurrentIndex);
+            if (Setting is ISearchableDropdownSetting)
+            {
+                if (!_dropdown.TryGetComponent(out SearchableDropdownMarker marker))
+                {
+                    marker = _dropdown.gameObject.AddComponent<SearchableDropdownMarker>();
+                }
+
+                marker.Initialize(_dropdown, labels, Setting.CurrentIndex, Setting.SelectIndex);
+            }
+            else
+            {
+                _dropdown.options.Clear();
+                foreach (string label in labels)
+                {
+                    _dropdown.options.Add(new(label));
+                }
+
+                _dropdown.SetValueWithoutNotify(Setting.CurrentIndex);
+            }
+
+            bool hasMultipleOptions = Setting.Count > 1;
+            _dropdown.interactable = hasMultipleOptions;
+            var arrow = _dropdown.transform.Find("Arrow");
+            if (arrow != null)
+            {
+                arrow.gameObject.SetActive(hasMultipleOptions);
+            }
         }
 
         public override NavigationScheme GetNavigationScheme()
@@ -63,7 +87,14 @@ namespace YARG.Menu.Settings.Visuals
 
         public void OnDropdownChange()
         {
-            Setting.SelectIndex(_dropdown.value);
+            if (_dropdown.TryGetComponent(out SearchableDropdownMarker marker) && marker.IsConfigured)
+            {
+                marker.SelectVisibleIndex(_dropdown.value);
+            }
+            else
+            {
+                Setting.SelectIndex(_dropdown.value);
+            }
             RefreshVisual();
         }
     }
