@@ -285,11 +285,21 @@ namespace YARG.Gameplay.Player
             _kickFretFlash.Initialize(colors.GetParticleColor(0).ToUnityColor());
 
             // Initialize drum activation notes
-            NoteTrack.SetDrumActivationFlags(Player.Profile.StarPowerActivationType);
+            if (EngineParams.StarPowerEnabled)
+            {
+                NoteTrack.SetDrumActivationFlags(Player.Profile.StarPowerActivationType);
+            }
+            else
+            {
+                NoteTrack.ClearDrumActivationFlags();
+            }
             Notes = NoteTrack.Notes;
 
             // Set up drum fill lead-ups
-            SetDrumFillEffects();
+            if (EngineParams.StarPowerEnabled)
+            {
+                SetDrumFillEffects();
+            }
 
             // Initialize hit timestamps
             InitializeHitTimes();

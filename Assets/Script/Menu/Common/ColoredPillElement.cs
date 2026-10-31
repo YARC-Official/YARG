@@ -11,6 +11,7 @@ namespace YARG.Menu
             Default,
             CasualEngine,
             PrecisionEngine,
+            TournamentEngine,
             CustomEngine,
             EasierModifier,
             HarderModifier,
