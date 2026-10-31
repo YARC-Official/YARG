@@ -111,9 +111,6 @@ namespace YARG.Menu.Career
             }
 
             GlobalVariables.State.CurrentSong = _songEntry;
-            GlobalVariables.State.ShowSongs.Clear();
-            GlobalVariables.State.ShowSongs.Add(_songEntry);
-            GlobalVariables.State.PlayingAShow = false;
             GlobalVariables.State.CurrentCareer = new CareerContext
             {
                 CareerId = _careerId,
