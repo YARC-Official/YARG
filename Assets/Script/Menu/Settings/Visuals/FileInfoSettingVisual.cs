@@ -46,7 +46,7 @@ namespace YARG.Menu.Settings.Visuals
 
         public void Browse()
         {
-            FileExplorerHelper.OpenChooseFile("", "png", file =>
+            FileExplorerHelper.OpenChooseFile("", "", file =>
             {
                 Setting.Value = new FileInfo(file);
                 RefreshVisual();

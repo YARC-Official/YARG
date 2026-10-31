@@ -93,15 +93,28 @@ namespace YARG.Settings.Customization
         {
             base.AddAdditionalFilesToExport(preset, archive);
             var highwayPreset = (HighwayPreset) preset;
-            var backgroundImage = highwayPreset.BackgroundImage;
-            var sideImage = highwayPreset.SideImage;
-            if (backgroundImage is { Exists: true })
+            var contentFolder = preset.GetExtraContentFolder();
+            if (contentFolder == null)
             {
-                archive.CreateEntryFromFile(backgroundImage.FullName, "background.png");
+                return;
             }
-            if (sideImage is { Exists: true })
+
+            if (highwayPreset.BackgroundImage != null)
             {
-                archive.CreateEntryFromFile(sideImage.FullName, "side.png");
+                var backgroundPath = Path.Combine(contentFolder, "background.png");
+                if (File.Exists(backgroundPath))
+                {
+                    archive.CreateEntryFromFile(backgroundPath, "background.png");
+                }
+            }
+
+            if (highwayPreset.SideImage != null)
+            {
+                var sidePath = Path.Combine(contentFolder, "side.png");
+                if (File.Exists(sidePath))
+                {
+                    archive.CreateEntryFromFile(sidePath, "side.png");
+                }
             }
         }
 
@@ -148,26 +161,6 @@ namespace YARG.Settings.Customization
             // Rewrite paths to the images
             preset.BackgroundImage = new FileInfo(Path.Join(imagePath, "background.png"));
             preset.SideImage = new FileInfo(Path.Join(imagePath, "side.png"));
-        }
-
-        private static void CopyAdditionalFiles(string source, string destination)
-        {
-            if (source == null || destination == null)
-            {
-                return;
-            }
-
-            if (!Directory.Exists(source))
-            {
-                YargLogger.LogFormatError("Source directory does not exist: {0}", source);
-            }
-
-            Directory.CreateDirectory(destination);
-
-            foreach (var file in Directory.GetFiles(source))
-            {
-                File.Copy(file, Path.Join(destination, Path.GetFileName(file)));
-            }
         }
     }
 }

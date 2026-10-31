@@ -67,8 +67,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Setting Label
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 69b34e9e884c55947b52d9bbbd4258d7, type: 2}
-  m_sharedMaterial: {fileID: 4264900350419322127, guid: 69b34e9e884c55947b52d9bbbd4258d7, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: ae170e91fd29a90479e906ddffb1d8ee, type: 2}
+  m_sharedMaterial: {fileID: -5480317595949376055, guid: ae170e91fd29a90479e906ddffb1d8ee, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -92,12 +92,12 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 20
-  m_fontSizeBase: 20
+  m_fontSize: 24
+  m_fontSizeBase: 24
   m_fontWeight: 400
   m_enableAutoSizing: 0
-  m_fontSizeMin: 10
-  m_fontSizeMax: 28
+  m_fontSizeMin: 18
+  m_fontSizeMax: 24
   m_fontStyle: 16
   m_HorizontalAlignment: 1
   m_VerticalAlignment: 512
@@ -170,8 +170,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: -25, y: -50}
-  m_SizeDelta: {x: 600, y: 100}
+  m_AnchoredPosition: {x: -25, y: -42}
+  m_SizeDelta: {x: 600, y: 84}
   m_Pivot: {x: 1, y: 0}
 --- !u!222 &2033604424617470971
 CanvasRenderer:
@@ -203,8 +203,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Setting Label
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 69b34e9e884c55947b52d9bbbd4258d7, type: 2}
-  m_sharedMaterial: {fileID: 4264900350419322127, guid: 69b34e9e884c55947b52d9bbbd4258d7, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: ae170e91fd29a90479e906ddffb1d8ee, type: 2}
+  m_sharedMaterial: {fileID: -5480317595949376055, guid: ae170e91fd29a90479e906ddffb1d8ee, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -228,12 +228,12 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 20
-  m_fontSizeBase: 20
+  m_fontSize: 24
+  m_fontSizeBase: 24
   m_fontWeight: 400
   m_enableAutoSizing: 0
-  m_fontSizeMin: 10
-  m_fontSizeMax: 28
+  m_fontSizeMin: 18
+  m_fontSizeMax: 24
   m_fontStyle: 16
   m_HorizontalAlignment: 4
   m_VerticalAlignment: 512
@@ -326,7 +326,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5753369685943773596, guid: 9e8d8e31702f842419d7f9fad6c4bbb8, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 100
+      value: 84
       objectReference: {fileID: 0}
     - target: {fileID: 5753369685943773596, guid: 9e8d8e31702f842419d7f9fad6c4bbb8, type: 3}
       propertyPath: m_LocalPosition.x

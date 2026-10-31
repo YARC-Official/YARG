@@ -44,7 +44,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d28e186375864caea5493965bbe56975, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  FretCount: 6
   DontFlipColorsLeftyFlip: 0
   UseKickFrets: 0
   _trackWidth: 2
@@ -264,6 +263,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 96bcf9b96b014fb2b4973640b487a73d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &201883546710317618 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7341756095759376306, guid: 5800c42510b55c549be95ec3ecd75e1c, type: 3}
+  m_PrefabInstance: {fileID: 7434902305530561920}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9c3ed2ef465f43efac61ee559c9312cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Gameplay.Visuals.StrikelineAnimator
 --- !u!4 &1059056642713352937 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7610118164488372073, guid: 5800c42510b55c549be95ec3ecd75e1c, type: 3}
@@ -414,6 +424,7 @@ MonoBehaviour:
   CameraPositioner: {fileID: 2948926500384017858}
   HighwayCameraRendering: {fileID: 0}
   TrackMaterial: {fileID: 4842075834887986663}
+  StrikelineAnimator: {fileID: 201883546710317618}
   ComboMeter: {fileID: 5015223353156281294}
   StarpowerBar: {fileID: 3700759359327549745}
   SunburstEffects: {fileID: 1442216845985701587}

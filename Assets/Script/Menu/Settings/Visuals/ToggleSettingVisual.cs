@@ -6,7 +6,7 @@ using YARG.Settings.Types;
 
 namespace YARG.Menu.Settings.Visuals
 {
-    public class ToggleSettingVisual : BaseSettingVisual<ToggleSetting>
+    public class ToggleSettingVisual : BaseSettingVisual<IToggleSetting>
     {
         [SerializeField]
         private Toggle _toggle;
@@ -55,6 +55,8 @@ namespace YARG.Menu.Settings.Visuals
                 })
             }, true);
         }
+
+        public void ToggleValue() => _toggle.isOn = !_toggle.isOn;
 
         public void OnToggleChange()
         {

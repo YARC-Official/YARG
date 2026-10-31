@@ -33,6 +33,13 @@ namespace YARG.Menu.Navigation
 
             Canvas.ForceUpdateCanvases();
 
+            // Reveal a non-selectable heading above the first row when navigation wraps.
+            if (_navigationGroup.SelectedIndex == 0)
+            {
+                _scrollRect.verticalNormalizedPosition = 1f;
+                return;
+            }
+
             if (_scrollRect.ScrollableHeight() <= 0f)
             {
                 _scrollRect.verticalNormalizedPosition = 1f;

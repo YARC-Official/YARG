@@ -227,7 +227,7 @@ namespace YARG.Gameplay
             _crowdClapScheduler = new CrowdClapScheduler(_mixer);
             _crowdClapScheduler.Schedule(_songRunner, Chart.SyncTrack, Chart.CrowdEvents,
                 FirstNoteTime, LastNoteTime, SongLength);
-            CrowdEventHandler.SetClapScheduler(_crowdClapScheduler);
+            CrowdEventHandler?.SetClapScheduler(_crowdClapScheduler);
 
             // Spawn players
             CreatePlayers();
@@ -292,7 +292,7 @@ namespace YARG.Gameplay
 
             var noFail = ReplayData?.NoFail ?? SettingsManager.Settings.NoFail.Value != NoFailMode.Off;
             EngineManager.InitializeHappiness(noFail);
-            CrowdEventHandler.UpdateCrowdMuteState(force: true);
+            CrowdEventHandler?.UpdateCrowdMuteState(force: true);
 
             EngineManager.OnCodaStart += StartCoda;
             EngineManager.OnCodaEnd += EndCoda;
@@ -432,7 +432,11 @@ namespace YARG.Gameplay
             Chart.SyncTrack.GenerateBeatlines(SongLength + SONG_END_DELAY, true);
 
             BeatEventHandler = new BeatEventHandler(Chart.SyncTrack);
-            CrowdEventHandler = new CrowdEventHandler(Chart, this);
+
+            if (!IsPractice)
+            {
+                CrowdEventHandler = new CrowdEventHandler(Chart, this);
+            }
 
             _chartLoaded?.Invoke(Chart);
 
@@ -523,11 +527,10 @@ namespace YARG.Gameplay
                             VocalTrack.transform.position = new Vector3(highwayIndex * TRACK_SPACING_X, 100, 0);
                             _trackViewManager.CreateVocalTrackView(highwayIndex);
 
-                            // Since all players have to select the same vocals
-                            // type (solo/harmony) this works no problem.
-                            var chart = player.Profile.CurrentInstrument == Instrument.Vocals
-                                ? Chart.Vocals
-                                : Chart.Harmony;
+                            // Use GetVocalsTrack so PartyVocals gets the correct track
+                            // (harmony when available, solo vocals fallback for songs
+                            // with no harmony parts).
+                            var chart = Chart.GetVocalsTrack(player.Profile.CurrentInstrument);
                             VocalTrack.Initialize(chart, player, Song.VocalScrollSpeedScalingFactor);
 
                             if (SettingsManager.Settings.KeepLyricBar.Value &&

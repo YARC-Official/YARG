@@ -34,6 +34,7 @@ namespace YARG.Helpers.Extensions
                 Instrument.ProKeys            => SortAttribute.ProKeys,
                 Instrument.Vocals             => SortAttribute.Vocals,
                 Instrument.Harmony            => SortAttribute.Harmony,
+                Instrument.PartyVocals        => SortAttribute.FreeHarmony,
                 Instrument.Band               => SortAttribute.Band,
                 _ => throw new InvalidOperationException("Invalid instrument value")
             };
@@ -63,6 +64,7 @@ namespace YARG.Helpers.Extensions
                 SortAttribute.ProKeys        => Instrument.ProKeys,
                 SortAttribute.Vocals         => Instrument.Vocals,
                 SortAttribute.Harmony        => Instrument.Harmony,
+                SortAttribute.FreeHarmony    => Instrument.PartyVocals,
                 SortAttribute.Band           => Instrument.Band,
                 _ => throw new NotImplementedException("SortAttribute was not an instrument type")
             };
@@ -94,6 +96,7 @@ namespace YARG.Helpers.Extensions
 
                 Instrument.Vocals  => "vocals",
                 Instrument.Harmony => "harmVocals",
+                Instrument.PartyVocals => "harmVocals",
 
                 _ => null,
             };

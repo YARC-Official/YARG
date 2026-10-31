@@ -3,10 +3,12 @@ using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
+using YARG.Audio.BASS.Native;
 using Debug = UnityEngine.Debug;
 
 namespace YARG.Editor.YargAudio
@@ -14,23 +16,52 @@ namespace YARG.Editor.YargAudio
     [InitializeOnLoad]
     public sealed class YargAudioAutoBuilder : IPreprocessBuildWithReport
     {
+        private const string NATIVE_RELOAD_STATE = "YargAudio.ReloadState";
+        private const string NATIVE_BUILD_FAILURE = "YargAudio.BuildFailure";
+        private const string AUTO_REBUILD_KEY = "YargAudio.AutoRebuild";
+        private const string AUTO_REBUILD_MENU = "YARG/Audio/Auto Rebuild Native Audio";
+        private const int MAX_ERROR_LINES = 6;
+        private const int MAX_ERROR_LINE_LENGTH = 1000;
+
+        private enum ReloadState
+        {
+            None,
+            Reload,
+            EnterPlay
+        }
+
         public int callbackOrder => 0;
 
         static YargAudioAutoBuilder()
         {
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+            var state = (ReloadState) SessionState.GetInt(NATIVE_RELOAD_STATE, 0);
+            SessionState.EraseInt(NATIVE_RELOAD_STATE);
+            if (state == ReloadState.EnterPlay)
+            {
+                EditorApplication.delayCall += EditorApplication.EnterPlaymode;
+            }
         }
 
         public void OnPreprocessBuild(BuildReport report)
         {
             if (!EnsureUpToDate(isExplicit: false))
             {
-                throw new BuildFailedException("[YargAudio AutoBuilder] Native audio build failed. See console for details.");
+                throw new BuildFailedException("[YargAudio Builder] Native audio build failed. See console for details.");
             }
         }
 
         private static void OnPlayModeStateChanged(PlayModeStateChange state)
         {
+            if (state == PlayModeStateChange.EnteredEditMode)
+            {
+                if (YargAudioBindings.HasPendingUpdate)
+                {
+                    RequestReload(enterPlay: false);
+                }
+                return;
+            }
+
             if (state != PlayModeStateChange.ExitingEditMode)
             {
                 return;
@@ -39,6 +70,33 @@ namespace YARG.Editor.YargAudio
             if (!EnsureUpToDate(isExplicit: false))
             {
                 EditorApplication.isPlaying = false;
+                return;
+            }
+
+            bool reloadDomain = !EditorSettings.enterPlayModeOptionsEnabled ||
+                (EditorSettings.enterPlayModeOptions & EnterPlayModeOptions.DisableDomainReload) == 0;
+            if (!reloadDomain && YargAudioBindings.HasPendingUpdate)
+            {
+                RequestReload(enterPlay: true);
+                EditorApplication.isPlaying = false;
+            }
+        }
+
+        private static void RequestReload(bool enterPlay)
+        {
+            var state = (ReloadState) SessionState.GetInt(NATIVE_RELOAD_STATE, 0);
+            if (enterPlay)
+            {
+                SessionState.SetInt(NATIVE_RELOAD_STATE, (int) ReloadState.EnterPlay);
+            }
+            else if (state == ReloadState.None)
+            {
+                SessionState.SetInt(NATIVE_RELOAD_STATE, (int) ReloadState.Reload);
+            }
+
+            if (state == ReloadState.None)
+            {
+                EditorUtility.RequestScriptReload();
             }
         }
 
@@ -46,8 +104,26 @@ namespace YARG.Editor.YargAudio
         public static void RebuildManual() =>
             EnsureUpToDate(isExplicit: true);
 
+        [MenuItem(AUTO_REBUILD_MENU)]
+        private static void ToggleAutoRebuild()
+        {
+            EditorPrefs.SetBool(AUTO_REBUILD_KEY, !EditorPrefs.GetBool(AUTO_REBUILD_KEY, false));
+        }
+
+        [MenuItem(AUTO_REBUILD_MENU, true)]
+        private static bool ValidateAutoRebuild()
+        {
+            UnityEditor.Menu.SetChecked(AUTO_REBUILD_MENU, EditorPrefs.GetBool(AUTO_REBUILD_KEY, false));
+            return true;
+        }
+
         public static bool EnsureUpToDate(bool isExplicit = false)
         {
+            if (!isExplicit && !EditorPrefs.GetBool(AUTO_REBUILD_KEY, false))
+            {
+                return true;
+            }
+
             var projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
             var nativeDir = Path.Combine(projectRoot, "Native", "YargAudio");
             if (!Directory.Exists(nativeDir))
@@ -63,6 +139,7 @@ namespace YARG.Editor.YargAudio
 
             if (!isExplicit && !HasNewerSourcesThan(nativeDir, pluginInfo.Value.DestinationBinaryPath))
             {
+                SessionState.EraseString(NATIVE_BUILD_FAILURE);
                 return true;
             }
 
@@ -73,6 +150,22 @@ namespace YARG.Editor.YargAudio
         {
             try
             {
+                if (isExplicit || SessionState.GetString(NATIVE_BUILD_FAILURE, string.Empty).Length == 0)
+                {
+                    if (isExplicit)
+                    {
+                        Debug.Log("[YargAudio Builder] Rebuilding the native audio library.");
+                    }
+                    else if (File.Exists(pluginInfo.DestinationBinaryPath))
+                    {
+                        Debug.Log("[YargAudio Builder] Native audio files are newer than the audio plugin. Rebuilding it now.");
+                    }
+                    else
+                    {
+                        Debug.Log("[YargAudio Builder] The native audio plugin is missing. Building it now.");
+                    }
+                }
+
                 var buildDir = Path.Combine(nativeDir, "build", pluginInfo.ConfigurePreset);
                 var outcome = TryRunBuild(nativeDir, pluginInfo, out string builtPath, out string buildError);
                 if (outcome == BuildOutcome.BuildFailed && Directory.Exists(buildDir))
@@ -88,15 +181,10 @@ namespace YARG.Editor.YargAudio
 
                 Directory.CreateDirectory(pluginInfo.DestinationDirectory);
                 File.Copy(builtPath, pluginInfo.DestinationBinaryPath, overwrite: true);
+                SessionState.EraseString(NATIVE_BUILD_FAILURE);
 
-                if (!YARG.Audio.BASS.Native.YargAudioBindings.Reload())
-                {
-                    Debug.LogError($"[YargAudio AutoBuilder] Rebuilt {pluginInfo.BinaryName}, " +
-                        "but the native library failed to load. Native audio is unavailable until it loads.");
-                    return false;
-                }
-
-                Debug.Log($"[YargAudio AutoBuilder] Successfully rebuilt and updated {pluginInfo.BinaryName}");
+                Debug.Log($"[YargAudio Builder] Rebuilt and updated {pluginInfo.BinaryName}. " +
+                    "If audio is already loaded, the update takes effect after the scripts reload.");
                 return true;
             }
             catch (Exception ex)
@@ -140,9 +228,9 @@ namespace YARG.Editor.YargAudio
             {
                 exitCode = RunCmake(arguments, nativeDir, out output, out error);
             }
-            catch (Win32Exception)
+            catch (Win32Exception ex)
             {
-                errorMessage = "CMake executable not found in PATH; please install CMake 3.25+.";
+                errorMessage = $"Could not start CMake: {ex.Message}";
                 return false;
             }
 
@@ -152,7 +240,7 @@ namespace YARG.Editor.YargAudio
                 return true;
             }
 
-            var details = string.IsNullOrWhiteSpace(error) ? output : error;
+            var details = error.Trim() + "\n" + output.Trim();
             errorMessage = $"CMake {step} failed (exit {exitCode}):\n{details.Trim()}";
             return false;
         }
@@ -165,20 +253,65 @@ namespace YARG.Editor.YargAudio
             }
             catch (Exception ex)
             {
-                Debug.LogWarning($"[YargAudio AutoBuilder] Failed to delete stale build directory '{buildDir}': {ex.Message}");
+                Debug.LogWarning($"[YargAudio Builder] Failed to delete stale build directory '{buildDir}': {ex.Message}");
             }
         }
 
         private static bool HandleBuildFailure(string errorMessage, PluginInfo pluginInfo, bool isExplicit)
         {
-            if (!isExplicit && File.Exists(pluginInfo.DestinationBinaryPath))
+            var logPath = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "Library", "YargAudioBuild.log"));
+            File.WriteAllText(logPath, errorMessage);
+            bool pluginExists = File.Exists(pluginInfo.DestinationBinaryPath);
+            var summary = "Couldn't rebuild the native audio library. " +
+                "Building it requires CMake 3.25 or newer and a C++ compiler.\n" +
+                SummarizeBuildFailure(errorMessage) + $"\nFull build log: {logPath}" +
+                "\nTo try again, select YARG > Audio > Rebuild Native Audio (This Platform).";
+            bool useExistingBinary = !isExplicit && pluginExists;
+            if (useExistingBinary)
             {
-                Debug.LogWarning($"[YargAudio AutoBuilder] {errorMessage}\nFalling back to existing pre-built binary.");
-                return true;
+                summary += "\nThe native audio files are newer than the existing plugin. " +
+                    "YARG will use that plugin, so recent native audio changes may be missing.";
+                if (SessionState.GetString(NATIVE_BUILD_FAILURE, string.Empty) != errorMessage)
+                {
+                    Debug.LogWarning(summary);
+                    SessionState.SetString(NATIVE_BUILD_FAILURE, errorMessage);
+                }
             }
+            else
+            {
+                if (!pluginExists)
+                {
+                    summary += "\nThe audio plugin is missing. Play and game builds need it to continue.";
+                }
+                Debug.LogError(summary);
+            }
+            return useExistingBinary;
+        }
 
-            Debug.LogError($"[YargAudio AutoBuilder] {errorMessage}");
-            return false;
+        private static string SummarizeBuildFailure(string errorMessage)
+        {
+            using var reader = new StringReader(errorMessage);
+            var summary = new StringBuilder($"[YargAudio Builder] {reader.ReadLine()}");
+            int errorCount = 0;
+            string? line;
+            while ((line = reader.ReadLine()) != null)
+            {
+                if (line.IndexOf("error:", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    line.IndexOf(": error ", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    line.IndexOf("error LNK", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    line.IndexOf("undefined reference", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    line.IndexOf("undefined symbols", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    line.IndexOf("CMake Error", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    summary.AppendLine();
+                    summary.Append(line, 0, Math.Min(line.Length, MAX_ERROR_LINE_LENGTH));
+                    if (++errorCount == MAX_ERROR_LINES)
+                    {
+                        break;
+                    }
+                }
+            }
+            return summary.ToString();
         }
 
         private static string ResolveBuiltBinaryPath(string nativeDir, PluginInfo info)
@@ -257,16 +390,13 @@ namespace YARG.Editor.YargAudio
 
             var destinationWriteTime = File.GetLastWriteTimeUtc(destinationBinaryPath);
 
-            var srcDir = Path.Combine(nativeDir, "src");
-            if (Directory.Exists(srcDir) && HasFilesNewerThan(srcDir, destinationWriteTime))
+            foreach (var dir in new[] { "src", "include", "third_party" })
             {
-                return true;
-            }
-
-            var includeDir = Path.Combine(nativeDir, "include");
-            if (Directory.Exists(includeDir) && HasFilesNewerThan(includeDir, destinationWriteTime))
-            {
-                return true;
+                var path = Path.Combine(nativeDir, dir);
+                if (Directory.Exists(path) && HasFilesNewerThan(path, destinationWriteTime))
+                {
+                    return true;
+                }
             }
 
             var cmakeLists = Path.Combine(nativeDir, "CMakeLists.txt");

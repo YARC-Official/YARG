@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading;
 using YARG.Audio.BASS.Effects;
 using YARG.Helpers;
 
@@ -14,8 +15,16 @@ namespace YARG.Audio.BASS.Native
         private const int RTLD_GLOBAL = 8;
 #endif
 
+        private static readonly object _loadLock = new();
         private static IntPtr _libraryHandle = IntPtr.Zero;
         private static string? _loadedPath;
+
+        private static StretchStreamCreateDelegate? _stretchStreamCreate;
+        private static StretchStreamSetSpeedDelegate? _stretchStreamSetSpeed;
+        private static StretchStreamFlushDelegate? _stretchStreamFlush;
+        private static StretchStreamGetLatencyDelegate? _stretchStreamGetLatency;
+        private static StretchStreamGetPositionDelegate? _stretchStreamGetPosition;
+        private static StretchStreamDestroyDelegate? _stretchStreamDestroy;
 
         private static GetAbiVersionDelegate? _getAbiVersion;
         private static GainDspAttachDelegate? _gainDspAttach;
@@ -52,7 +61,6 @@ namespace YARG.Audio.BASS.Native
         private static ReadAheadStreamPrefillDelegate? _readAheadStreamPrefill;
         private static ReadAheadStreamFlushDelegate? _readAheadStreamFlush;
         private static ReadAheadStreamSetBufferLengthDelegate? _readAheadStreamSetBufferLength;
-        private static ReadAheadStreamGetSourcePositionDelegate? _readAheadStreamGetSourcePosition;
         private static ReadAheadStreamGetPositionSnapshotDelegate? _readAheadStreamGetPositionSnapshot;
         private static ReadAheadStreamGetStatsDelegate? _readAheadStreamGetStats;
         private static ReadAheadStreamDestroyDelegate? _readAheadStreamDestroy;
@@ -62,38 +70,71 @@ namespace YARG.Audio.BASS.Native
             EnsureLoaded();
         }
 
-        public static bool Reload()
+        public static bool HasPendingUpdate
         {
-            BindAll(IntPtr.Zero);
-            _libraryHandle = IntPtr.Zero;
-            _loadedPath = null;
-            return EnsureLoaded();
+            get
+            {
+                lock (_loadLock)
+                {
+                    return _libraryHandle != IntPtr.Zero &&
+                        !string.Equals(_loadedPath, GetLibraryPath(), StringComparison.OrdinalIgnoreCase);
+                }
+            }
         }
 
         public static bool EnsureLoaded()
         {
-            var libraryPath = GetLibraryPath();
-            if (_libraryHandle != IntPtr.Zero && string.Equals(_loadedPath, libraryPath, StringComparison.OrdinalIgnoreCase))
+            lock (_loadLock)
             {
+                if (_libraryHandle != IntPtr.Zero)
+                {
+                    return true;
+                }
+
+                var libraryPath = GetLibraryPath();
+#if UNITY_EDITOR
+                var sourcePath = GetSourcePluginPath(Directory.GetCurrentDirectory());
+                if (libraryPath != sourcePath && !File.Exists(libraryPath))
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(libraryPath));
+                    File.Copy(sourcePath, libraryPath, overwrite: true);
+                }
+#endif
+                var handle = LoadNativeLibrary(libraryPath);
+                if (handle == IntPtr.Zero)
+                {
+                    return false;
+                }
+
+                BindAll(handle);
+                _loadedPath = libraryPath;
+                Volatile.Write(ref _libraryHandle, handle);
                 return true;
             }
-
-            var handle = LoadNativeLibrary(libraryPath);
-            if (handle == IntPtr.Zero)
-            {
-                return false;
-            }
-
-            _libraryHandle = handle;
-            _loadedPath = libraryPath;
-            BindAll(handle);
-            return true;
         }
+
+        internal static int StretchStreamCreate(int source, out BassStretchStream stream, out int streamHandle, out int bassError) =>
+            EnsureBound(ref _stretchStreamCreate, "yarg_stretch_stream_create")(source, out stream, out streamHandle, out bassError);
+
+        internal static int StretchStreamSetSpeed(BassStretchStream stream, float speed, float pitch) =>
+            EnsureBound(ref _stretchStreamSetSpeed, "yarg_stretch_stream_set_speed")(stream, speed, pitch);
+
+        internal static int StretchStreamFlush(BassStretchStream stream) =>
+            EnsureBound(ref _stretchStreamFlush, "yarg_stretch_stream_flush")(stream);
+
+        internal static int StretchStreamGetLatency(BassStretchStream stream, out double seconds) =>
+            EnsureBound(ref _stretchStreamGetLatency, "yarg_stretch_stream_get_latency")(stream, out seconds);
+
+        internal static int StretchStreamGetPosition(BassStretchStream stream, long bytes, out double seconds) =>
+            EnsureBound(ref _stretchStreamGetPosition, "yarg_stretch_stream_get_position")(stream, bytes, out seconds);
+
+        internal static int StretchStreamDestroy(IntPtr stream) =>
+            EnsureBound(ref _stretchStreamDestroy, "yarg_stretch_stream_destroy")(stream);
 
         internal static uint GetAbiVersion() =>
             EnsureBound(ref _getAbiVersion, "yarg_audio_get_abi_version")();
 
-        internal static int GainDspAttach(uint channel, float gain, int priority, out BassGainDsp dsp, out int bassError) =>
+        internal static int GainDspAttach(int channel, float gain, int priority, out BassGainDsp dsp, out int bassError) =>
             EnsureBound(ref _gainDspAttach, "yarg_gain_dsp_attach")(channel, gain, priority, out dsp, out bassError);
 
         internal static int GainDspSetGain(BassGainDsp dsp, float gain) =>
@@ -102,7 +143,7 @@ namespace YARG.Audio.BASS.Native
         internal static void GainDspDestroy(IntPtr dsp) =>
             EnsureBound(ref _gainDspDestroy, "yarg_gain_dsp_destroy")(dsp);
 
-        internal static int FreeverbDspAttach(uint channel, float dryMix, float wetMix, float roomSize, float damp, float width, int priority, out BassFreeverbDsp dsp, out int bassError) =>
+        internal static int FreeverbDspAttach(int channel, float dryMix, float wetMix, float roomSize, float damp, float width, int priority, out BassFreeverbDsp dsp, out int bassError) =>
             EnsureBound(ref _freeverbDspAttach, "yarg_freeverb_dsp_attach")(channel, dryMix, wetMix, roomSize, damp, width, priority, out dsp, out bassError);
 
         internal static int FreeverbDspReset(BassFreeverbDsp dsp) =>
@@ -114,7 +155,7 @@ namespace YARG.Audio.BASS.Native
         internal static void FreeverbDspDestroy(IntPtr dsp) =>
             EnsureBound(ref _freeverbDspDestroy, "yarg_freeverb_dsp_destroy")(dsp);
 
-        internal static int DattorroReverbDspAttach(uint channel, float dryMix, float wetMix, float roomSize, float damp, float width, int priority, out BassDattorroReverbDsp dsp, out int bassError) =>
+        internal static int DattorroReverbDspAttach(int channel, float dryMix, float wetMix, float roomSize, float damp, float width, int priority, out BassDattorroReverbDsp dsp, out int bassError) =>
             EnsureBound(ref _dattorroReverbDspAttach, "yarg_dattorro_reverb_dsp_attach")(channel, dryMix, wetMix, roomSize, damp, width, priority, out dsp, out bassError);
 
         internal static int DattorroReverbDspReset(BassDattorroReverbDsp dsp) =>
@@ -126,7 +167,7 @@ namespace YARG.Audio.BASS.Native
         internal static void DattorroReverbDspDestroy(IntPtr dsp) =>
             EnsureBound(ref _dattorroReverbDspDestroy, "yarg_dattorro_reverb_dsp_destroy")(dsp);
 
-        internal static int NoiseGateDspAttach(uint channel, float threshold, float floorGain, float attackMs, float holdMs, float releaseMs, int priority, out BassNoiseGateDsp dsp, out int bassError) =>
+        internal static int NoiseGateDspAttach(int channel, float threshold, float floorGain, float attackMs, float holdMs, float releaseMs, int priority, out BassNoiseGateDsp dsp, out int bassError) =>
             EnsureBound(ref _noiseGateDspAttach, "yarg_noise_gate_dsp_attach")(channel, threshold, floorGain, attackMs, holdMs, releaseMs, priority, out dsp, out bassError);
 
         internal static int NoiseGateDspReset(BassNoiseGateDsp dsp) =>
@@ -141,13 +182,13 @@ namespace YARG.Audio.BASS.Native
         internal static int OneShotStreamCreate(in BassNativeOneShotStream.NativeConfig config, IntPtr pcm, ulong pcmSampleCount, IntPtr schedule, ulong scheduleCount, out BassNativeOneShotStream stream, out int bassError) =>
             EnsureBound(ref _oneShotStreamCreate, "yarg_one_shot_stream_create")(in config, pcm, pcmSampleCount, schedule, scheduleCount, out stream, out bassError);
 
-        internal static int OneShotStreamAttach(BassNativeOneShotStream stream, uint mixer, double anchorSongPosition, float playbackSpeed, int paused, out int bassError) =>
+        internal static int OneShotStreamAttach(BassNativeOneShotStream stream, int mixer, double anchorSongPosition, float playbackSpeed, int paused, out int bassError) =>
             EnsureBound(ref _oneShotStreamAttach, "yarg_one_shot_stream_attach")(stream, mixer, anchorSongPosition, playbackSpeed, paused, out bassError);
 
-        internal static int OneShotStreamResync(BassNativeOneShotStream stream, uint mixer, double anchorSongPosition, float playbackSpeed, int clearActiveVoices, out int bassError) =>
+        internal static int OneShotStreamResync(BassNativeOneShotStream stream, int mixer, double anchorSongPosition, float playbackSpeed, int clearActiveVoices, out int bassError) =>
             EnsureBound(ref _oneShotStreamResync, "yarg_one_shot_stream_resync_ex")(stream, mixer, anchorSongPosition, playbackSpeed, clearActiveVoices, out bassError);
 
-        internal static int OneShotStreamSetPaused(BassNativeOneShotStream stream, uint mixer, int paused, out int bassError) =>
+        internal static int OneShotStreamSetPaused(BassNativeOneShotStream stream, int mixer, int paused, out int bassError) =>
             EnsureBound(ref _oneShotStreamSetPaused, "yarg_one_shot_stream_set_paused")(stream, mixer, paused, out bassError);
 
         internal static int OneShotStreamSetGain(BassNativeOneShotStream stream, float gain) =>
@@ -162,7 +203,7 @@ namespace YARG.Audio.BASS.Native
         internal static int SineSynthDspCreate(in BassSineSynthDsp.NativeConfig config, out BassSineSynthDsp dsp) =>
             EnsureBound(ref _sineSynthDspCreate, "yarg_sine_synth_dsp_create")(in config, out dsp);
 
-        internal static int SineSynthDspAttach(BassSineSynthDsp dsp, uint channel, int priority, out int bassError) =>
+        internal static int SineSynthDspAttach(BassSineSynthDsp dsp, int channel, int priority, out int bassError) =>
             EnsureBound(ref _sineSynthDspAttach, "yarg_sine_synth_dsp_attach")(dsp, channel, priority, out bassError);
 
         internal static int SineSynthDspDetach(BassSineSynthDsp dsp, out int bassError) =>
@@ -180,25 +221,22 @@ namespace YARG.Audio.BASS.Native
         internal static int SineSynthDspDestroy(IntPtr dsp) =>
             EnsureBound(ref _sineSynthDspDestroy, "yarg_sine_synth_dsp_destroy")(dsp);
 
-        internal static int ReadAheadStreamCreate(in ReadAheadConfig config, out BassReadAheadStream stream, out uint streamHandle, out int bassError) =>
+        internal static int ReadAheadStreamCreate(in ReadAheadConfig config, out BassReadAheadStream stream, out int streamHandle, out int bassError) =>
             EnsureBound(ref _readAheadStreamCreate, "yarg_read_ahead_stream_create")(in config, out stream, out streamHandle, out bassError);
 
         internal static int ReadAheadStreamSetCallbackClock(BassReadAheadStream stream, int enabled) =>
             EnsureBound(ref _readAheadStreamSetCallbackClock, "yarg_read_ahead_stream_set_callback_clock")(stream, enabled);
 
-        internal static int ReadAheadStreamPrefill(BassReadAheadStream stream, uint timeoutMilliseconds) =>
+        internal static int ReadAheadStreamPrefill(BassReadAheadStream stream, int timeoutMilliseconds) =>
             EnsureBound(ref _readAheadStreamPrefill, "yarg_read_ahead_stream_prefill")(stream, timeoutMilliseconds);
 
         internal static int ReadAheadStreamFlush(BassReadAheadStream stream) =>
             EnsureBound(ref _readAheadStreamFlush, "yarg_read_ahead_stream_flush")(stream);
 
-        internal static int ReadAheadStreamSetBufferLength(BassReadAheadStream stream, uint bufferMilliseconds) =>
+        internal static int ReadAheadStreamSetBufferLength(BassReadAheadStream stream, int bufferMilliseconds) =>
             EnsureBound(ref _readAheadStreamSetBufferLength, "yarg_read_ahead_stream_set_buffer_length")(stream, bufferMilliseconds);
 
-        internal static long ReadAheadStreamGetSourcePosition(BassReadAheadStream stream, uint sourceHandle, uint endpointDelayFrames, out int error) =>
-            EnsureBound(ref _readAheadStreamGetSourcePosition, "yarg_read_ahead_stream_get_source_position")(stream, sourceHandle, endpointDelayFrames, out error);
-
-        internal static int ReadAheadStreamGetPositionSnapshot(BassReadAheadStream stream, uint sourceHandle, uint endpointDelayFrames, ref ReadAheadPositionSnapshot snapshot) =>
+        internal static int ReadAheadStreamGetPositionSnapshot(BassReadAheadStream stream, int sourceHandle, int endpointDelayFrames, ref ReadAheadPositionSnapshot snapshot) =>
             EnsureBound(ref _readAheadStreamGetPositionSnapshot, "yarg_read_ahead_stream_get_position_snapshot")(stream, sourceHandle, endpointDelayFrames, ref snapshot);
 
         internal static int ReadAheadStreamGetStats(BassReadAheadStream stream, ref ReadAheadStats stats) =>
@@ -209,16 +247,15 @@ namespace YARG.Audio.BASS.Native
 
         private static T EnsureBound<T>(ref T? delegateField, string entryPoint) where T : Delegate
         {
-            if (delegateField != null)
-            {
-                return delegateField;
-            }
-
-            EnsureLoaded();
-            if (_libraryHandle == IntPtr.Zero)
+            if (Volatile.Read(ref _libraryHandle) == IntPtr.Zero && !EnsureLoaded())
             {
                 throw new DllNotFoundException(
                     $"Unable to load the YargAudio native library from '{GetLibraryPath()}' for {entryPoint}.");
+            }
+
+            if (delegateField != null)
+            {
+                return delegateField;
             }
 
             delegateField = GetFunction<T>(_libraryHandle, entryPoint);
@@ -232,6 +269,12 @@ namespace YARG.Audio.BASS.Native
 
         private static void BindAll(IntPtr handle)
         {
+            _stretchStreamCreate = GetFunction<StretchStreamCreateDelegate>(handle, "yarg_stretch_stream_create");
+            _stretchStreamSetSpeed = GetFunction<StretchStreamSetSpeedDelegate>(handle, "yarg_stretch_stream_set_speed");
+            _stretchStreamFlush = GetFunction<StretchStreamFlushDelegate>(handle, "yarg_stretch_stream_flush");
+            _stretchStreamGetLatency = GetFunction<StretchStreamGetLatencyDelegate>(handle, "yarg_stretch_stream_get_latency");
+            _stretchStreamGetPosition = GetFunction<StretchStreamGetPositionDelegate>(handle, "yarg_stretch_stream_get_position");
+            _stretchStreamDestroy = GetFunction<StretchStreamDestroyDelegate>(handle, "yarg_stretch_stream_destroy");
             _getAbiVersion = GetFunction<GetAbiVersionDelegate>(handle, "yarg_audio_get_abi_version");
             _gainDspAttach = GetFunction<GainDspAttachDelegate>(handle, "yarg_gain_dsp_attach");
             _gainDspSetGain = GetFunction<GainDspSetGainDelegate>(handle, "yarg_gain_dsp_set_gain");
@@ -267,7 +310,6 @@ namespace YARG.Audio.BASS.Native
             _readAheadStreamPrefill = GetFunction<ReadAheadStreamPrefillDelegate>(handle, "yarg_read_ahead_stream_prefill");
             _readAheadStreamFlush = GetFunction<ReadAheadStreamFlushDelegate>(handle, "yarg_read_ahead_stream_flush");
             _readAheadStreamSetBufferLength = GetFunction<ReadAheadStreamSetBufferLengthDelegate>(handle, "yarg_read_ahead_stream_set_buffer_length");
-            _readAheadStreamGetSourcePosition = GetFunction<ReadAheadStreamGetSourcePositionDelegate>(handle, "yarg_read_ahead_stream_get_source_position");
             _readAheadStreamGetPositionSnapshot = GetFunction<ReadAheadStreamGetPositionSnapshotDelegate>(handle, "yarg_read_ahead_stream_get_position_snapshot");
             _readAheadStreamGetStats = GetFunction<ReadAheadStreamGetStatsDelegate>(handle, "yarg_read_ahead_stream_get_stats");
             _readAheadStreamDestroy = GetFunction<ReadAheadStreamDestroyDelegate>(handle, "yarg_read_ahead_stream_destroy");
@@ -300,19 +342,11 @@ namespace YARG.Audio.BASS.Native
             }
 
             var tempDir = Path.Combine(Path.GetTempPath(), "YargAudioShadow");
-            Directory.CreateDirectory(tempDir);
 
             var ext = Path.GetExtension(sourcePath);
             var baseName = Path.GetFileNameWithoutExtension(sourcePath);
             var writeTime = File.GetLastWriteTimeUtc(sourcePath).Ticks;
-            var shadowPath = Path.Combine(tempDir, $"{baseName}_{writeTime}{ext}");
-
-            if (!File.Exists(shadowPath))
-            {
-                File.Copy(sourcePath, shadowPath, overwrite: true);
-            }
-
-            return shadowPath;
+            return Path.Combine(tempDir, $"{baseName}_{writeTime}{ext}");
         }
 
         private static string GetSourcePluginPath(string projectRoot)
@@ -368,10 +402,28 @@ namespace YARG.Audio.BASS.Native
         }
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate int StretchStreamCreateDelegate(int source, out BassStretchStream stream, out int streamHandle, out int bassError);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate int StretchStreamSetSpeedDelegate(BassStretchStream stream, float speed, float pitch);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate int StretchStreamFlushDelegate(BassStretchStream stream);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate int StretchStreamGetLatencyDelegate(BassStretchStream stream, out double seconds);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate int StretchStreamGetPositionDelegate(BassStretchStream stream, long bytes, out double seconds);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate int StretchStreamDestroyDelegate(IntPtr stream);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate uint GetAbiVersionDelegate();
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate int GainDspAttachDelegate(uint channel, float gain, int priority, out BassGainDsp dsp, out int bassError);
+        private delegate int GainDspAttachDelegate(int channel, float gain, int priority, out BassGainDsp dsp, out int bassError);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate int GainDspSetGainDelegate(BassGainDsp dsp, float gain);
@@ -380,7 +432,7 @@ namespace YARG.Audio.BASS.Native
         private delegate void GainDspDestroyDelegate(IntPtr dsp);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate int FreeverbDspAttachDelegate(uint channel, float dryMix, float wetMix, float roomSize, float damp, float width, int priority, out BassFreeverbDsp dsp, out int bassError);
+        private delegate int FreeverbDspAttachDelegate(int channel, float dryMix, float wetMix, float roomSize, float damp, float width, int priority, out BassFreeverbDsp dsp, out int bassError);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate int FreeverbDspResetDelegate(BassFreeverbDsp dsp);
@@ -392,7 +444,7 @@ namespace YARG.Audio.BASS.Native
         private delegate void FreeverbDspDestroyDelegate(IntPtr dsp);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate int DattorroReverbDspAttachDelegate(uint channel, float dryMix, float wetMix, float roomSize, float damp, float width, int priority, out BassDattorroReverbDsp dsp, out int bassError);
+        private delegate int DattorroReverbDspAttachDelegate(int channel, float dryMix, float wetMix, float roomSize, float damp, float width, int priority, out BassDattorroReverbDsp dsp, out int bassError);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate int DattorroReverbDspResetDelegate(BassDattorroReverbDsp dsp);
@@ -404,7 +456,7 @@ namespace YARG.Audio.BASS.Native
         private delegate void DattorroReverbDspDestroyDelegate(IntPtr dsp);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate int NoiseGateDspAttachDelegate(uint channel, float threshold, float floorGain, float attackMs, float holdMs, float releaseMs, int priority, out BassNoiseGateDsp dsp, out int bassError);
+        private delegate int NoiseGateDspAttachDelegate(int channel, float threshold, float floorGain, float attackMs, float holdMs, float releaseMs, int priority, out BassNoiseGateDsp dsp, out int bassError);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate int NoiseGateDspResetDelegate(BassNoiseGateDsp dsp);
@@ -419,13 +471,13 @@ namespace YARG.Audio.BASS.Native
         private delegate int OneShotStreamCreateDelegate(in BassNativeOneShotStream.NativeConfig config, IntPtr pcm, ulong pcmSampleCount, IntPtr schedule, ulong scheduleCount, out BassNativeOneShotStream stream, out int bassError);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate int OneShotStreamAttachDelegate(BassNativeOneShotStream stream, uint mixer, double anchorSongPosition, float playbackSpeed, int paused, out int bassError);
+        private delegate int OneShotStreamAttachDelegate(BassNativeOneShotStream stream, int mixer, double anchorSongPosition, float playbackSpeed, int paused, out int bassError);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate int OneShotStreamResyncDelegate(BassNativeOneShotStream stream, uint mixer, double anchorSongPosition, float playbackSpeed, int clearActiveVoices, out int bassError);
+        private delegate int OneShotStreamResyncDelegate(BassNativeOneShotStream stream, int mixer, double anchorSongPosition, float playbackSpeed, int clearActiveVoices, out int bassError);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate int OneShotStreamSetPausedDelegate(BassNativeOneShotStream stream, uint mixer, int paused, out int bassError);
+        private delegate int OneShotStreamSetPausedDelegate(BassNativeOneShotStream stream, int mixer, int paused, out int bassError);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate int OneShotStreamSetGainDelegate(BassNativeOneShotStream stream, float gain);
@@ -440,7 +492,7 @@ namespace YARG.Audio.BASS.Native
         private delegate int SineSynthDspCreateDelegate(in BassSineSynthDsp.NativeConfig config, out BassSineSynthDsp dsp);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate int SineSynthDspAttachDelegate(BassSineSynthDsp dsp, uint channel, int priority, out int bassError);
+        private delegate int SineSynthDspAttachDelegate(BassSineSynthDsp dsp, int channel, int priority, out int bassError);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate int SineSynthDspDetachDelegate(BassSineSynthDsp dsp, out int bassError);
@@ -458,25 +510,22 @@ namespace YARG.Audio.BASS.Native
         private delegate int SineSynthDspDestroyDelegate(IntPtr dsp);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate int ReadAheadStreamCreateDelegate(in ReadAheadConfig config, out BassReadAheadStream stream, out uint streamHandle, out int bassError);
+        private delegate int ReadAheadStreamCreateDelegate(in ReadAheadConfig config, out BassReadAheadStream stream, out int streamHandle, out int bassError);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate int ReadAheadStreamSetCallbackClockDelegate(BassReadAheadStream stream, int enabled);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate int ReadAheadStreamPrefillDelegate(BassReadAheadStream stream, uint timeoutMilliseconds);
+        private delegate int ReadAheadStreamPrefillDelegate(BassReadAheadStream stream, int timeoutMilliseconds);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate int ReadAheadStreamFlushDelegate(BassReadAheadStream stream);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate int ReadAheadStreamSetBufferLengthDelegate(BassReadAheadStream stream, uint bufferMilliseconds);
+        private delegate int ReadAheadStreamSetBufferLengthDelegate(BassReadAheadStream stream, int bufferMilliseconds);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate long ReadAheadStreamGetSourcePositionDelegate(BassReadAheadStream stream, uint sourceHandle, uint endpointDelayFrames, out int error);
-
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate int ReadAheadStreamGetPositionSnapshotDelegate(BassReadAheadStream stream, uint sourceHandle, uint endpointDelayFrames, ref ReadAheadPositionSnapshot snapshot);
+        private delegate int ReadAheadStreamGetPositionSnapshotDelegate(BassReadAheadStream stream, int sourceHandle, int endpointDelayFrames, ref ReadAheadPositionSnapshot snapshot);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate int ReadAheadStreamGetStatsDelegate(BassReadAheadStream stream, ref ReadAheadStats stats);

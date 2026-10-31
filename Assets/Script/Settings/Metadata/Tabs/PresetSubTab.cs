@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using TMPro;
@@ -14,6 +14,7 @@ using YARG.Menu.Data;
 using YARG.Menu.Dialogs;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
+using YARG.Menu.Settings.Visuals;
 using YARG.Settings.Customization;
 
 // pattern: Imperative Shell
@@ -42,18 +43,14 @@ namespace YARG.Settings.Metadata
 
         protected static readonly PreviewOptionsState PreviewOptions = new();
 
-        // Single shared container for the preview-header controls (instrument
-        // dropdown). Static so all preset sub-tabs reuse one container — with
-        // per-tab containers, every visited tab left its own live dropdown
-        // stacked at the same sidebar rect, and clicks landed on the most
-        // recently created one instead of the current tab's.
-        protected static Transform PreviewControlsContainer;
+        private static ColorPresetHeader _colorGroupHeader;
+        private static ColorPresetHeader _colorSubHeader;
 
         // Prefabs needed for this tab type
         private static GameObject _headerPrefab;
         private static GameObject _smallRoundButtonPrefab;
 
-        protected static GameObject GetSmallRoundButtonPrefab()
+        public static GameObject GetSmallRoundButtonPrefab()
         {
             if (_smallRoundButtonPrefab == null)
             {
@@ -64,7 +61,20 @@ namespace YARG.Settings.Metadata
             return _smallRoundButtonPrefab;
         }
 
-        protected static GameObject GetHeaderPrefab()
+        protected static ColorPresetHeader SpawnColorHeader(Transform container, bool subHeader)
+        {
+            ref var prefab = ref (subHeader ? ref _colorSubHeader : ref _colorGroupHeader);
+            if (prefab == null)
+            {
+                string address = subHeader ? "SettingTab/ColorSubHeader" : "SettingTab/ColorGroupHeader";
+                prefab = Addressables.LoadAssetAsync<GameObject>(address)
+                    .WaitForCompletion().GetComponent<ColorPresetHeader>();
+            }
+
+            return Object.Instantiate(prefab, container);
+        }
+
+        public static GameObject GetHeaderPrefab()
         {
             if (_headerPrefab == null)
             {
@@ -84,17 +94,18 @@ namespace YARG.Settings.Metadata
 
         public abstract void SetPresetReference(object preset);
 
-        protected static void SpawnHeader(Transform container, string unlocalizedText)
+        protected static GameObject SpawnHeader(Transform container, string unlocalizedText)
         {
-            SpawnRawHeader(container, Localize.Key("Settings.Header", unlocalizedText));
+            return SpawnRawHeader(container, Localize.Key("Settings.Header", unlocalizedText));
         }
 
         // Like SpawnHeader but sets the text directly without localization key lookup.
         // Used for group/sub-group labels in the color profile editor.
-        protected static void SpawnRawHeader(Transform container, string text)
+        public static GameObject SpawnRawHeader(Transform container, string text)
         {
             var go = Object.Instantiate(GetHeaderPrefab(), container);
             go.GetComponentInChildren<TextMeshProUGUI>().text = text;
+            return go;
         }
 
         /// <summary>
@@ -235,30 +246,6 @@ namespace YARG.Settings.Metadata
             onArmed?.Invoke();
         }
 
-        // Smaller, dimmer header for sub-sections (Notes, Fret, etc.) within an
-        // expanded group. Uses the same prefab but reduces font size, height,
-        // and background opacity to visually distinguish from top-level headers.
-        protected static void SpawnSubHeader(Transform container, string text)
-        {
-            var go = Object.Instantiate(GetHeaderPrefab(), container);
 
-            // Shrink the root height (48 leaves breathing room for the
-            // "Copy from note" button on Fret sub-headers)
-            var rect = go.GetComponent<RectTransform>();
-            rect.sizeDelta = new Vector2(rect.sizeDelta.x, 48f);
-
-            // Smaller font for the label
-            var label = go.GetComponentInChildren<TextMeshProUGUI>();
-            label.text = text;
-            label.fontSize = 20f;
-
-            // Dim the background
-            var image = go.GetComponent<UnityEngine.UI.Image>();
-            if (image != null)
-            {
-                var c = image.color;
-                image.color = new Color(c.r, c.g, c.b, c.a * 0.5f);
-            }
-        }
     }
 }

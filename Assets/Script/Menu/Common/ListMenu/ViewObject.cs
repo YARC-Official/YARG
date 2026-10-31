@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -10,6 +11,9 @@ namespace YARG.Menu.ListMenu
     public class ViewObject<TViewType> : MonoBehaviour
         where TViewType : BaseViewType
     {
+        protected virtual bool AllowMarqueeScroll => false;
+        protected virtual Type[] AllowedMarqueeScrollTypes => Array.Empty<Type>();
+
         [SerializeField]
         private CanvasGroup _canvasGroup;
 
@@ -29,6 +33,10 @@ namespace YARG.Menu.ListMenu
         [SerializeField]
         private List<TextMeshProUGUI> _secondaryText;
 
+        private bool _marqueeActive;
+        private TextMarquee _primaryMarquee;
+        private TextMarquee _secondaryMarquee;
+
         protected bool Showing { get; private set; }
 
         protected TViewType ViewType;
@@ -40,6 +48,7 @@ namespace YARG.Menu.ListMenu
 
             // Set background
             _canvasGroup.alpha = 1f;
+            _canvasGroup.blocksRaycasts = true;
             SetBackground(selected, viewType.Background);
 
             // Set text
@@ -53,12 +62,50 @@ namespace YARG.Menu.ListMenu
             }
 
             SetIcon(viewType.GetIcon());
+            if (AllowMarqueeScroll)
+                SetMarqueeActive(selected && IsMarqueeScrollTypeAllowed(viewType));
         }
 
         public virtual void Hide()
         {
+            if (_marqueeActive)
+                SetMarqueeActive(false);
+
             Showing = false;
             _canvasGroup.alpha = 0f;
+            _canvasGroup.blocksRaycasts = false;
+        }
+
+        private void LateUpdate()
+        {
+            if (!_marqueeActive) return;
+
+            _primaryMarquee.Update();
+            _secondaryMarquee.Update();
+        }
+
+        private bool IsMarqueeScrollTypeAllowed(TViewType viewType)
+        {
+            Type viewTypeType = viewType.GetType();
+            foreach (Type allowedType in AllowedMarqueeScrollTypes)
+            {
+                if (viewTypeType == allowedType)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private void SetMarqueeActive(bool active)
+        {
+            _marqueeActive = active;
+
+            _primaryMarquee ??= new TextMarquee(_primaryText[0]);
+            _secondaryMarquee ??= new TextMarquee(_secondaryText[0]);
+            _primaryMarquee.SetActive(active);
+            _secondaryMarquee.SetActive(active);
         }
 
         protected virtual void SetBackground(bool selected, BaseViewType.BackgroundType type)

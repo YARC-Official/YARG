@@ -5,6 +5,7 @@ using YARG.Menu.Navigation;
 
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -58,6 +59,11 @@ namespace YARG.Helpers
 
         public static void OpenChooseFile(string startingDir, string extension, Action<string> callback)
         {
+            OpenChooseFile(startingDir, new[] { extension }, callback);
+        }
+
+        public static void OpenChooseFile(string startingDir, string[] extensions, Action<string> callback)
+        {
             if (_fileBrowser == null)
             {
                 _fileBrowser = Object.FindFirstObjectByType<FileBrowser>(FindObjectsInactive.Include);
@@ -65,13 +71,19 @@ namespace YARG.Helpers
 
             _fileBrowser.gameObject.SetActive(true);
 
-            if (string.IsNullOrEmpty(extension))
+            if (extensions.Length == 0 || extensions.All(string.IsNullOrEmpty))
             {
                 FileBrowser.SetFilters(true);
             }
             else
             {
-                FileBrowser.SetFilters(false, $".{extension}");
+                var exts = new string[extensions.Length];
+                for (var i = 0; i < extensions.Length; i++)
+                {
+                    exts[i] = $".{extensions[i]}";
+                }
+
+                FileBrowser.SetFilters(false, exts);
             }
 
             var inputBlocker = Navigator.Instance?.PushInputBlocker();

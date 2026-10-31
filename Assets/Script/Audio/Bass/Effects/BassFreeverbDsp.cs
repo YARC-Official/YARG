@@ -41,7 +41,7 @@ namespace YARG.Audio.BASS.Effects
 
             return YargAudioNative.Attach(EFFECT_NAME, streamHandle,
                 (out BassFreeverbDsp handle, out int bassError) =>
-                    YargAudioBindings.FreeverbDspAttach(unchecked((uint) streamHandle), dryMix, wetMix,
+                    YargAudioBindings.FreeverbDspAttach(streamHandle, dryMix, wetMix,
                         roomSize, damp, width, priority, out handle, out bassError));
         }
 

@@ -44,6 +44,8 @@ namespace YARG.Audio.BASS
         // instead of BASS's software mixer timeline.
         internal virtual bool UsesIndependentClock => false;
 
+        internal virtual int GetQueuedFrames() => EndpointDelayFrames;
+
         public void Dispose()
         {
             if (IsDisposed)
@@ -164,6 +166,23 @@ namespace YARG.Audio.BASS
             if (!BassMix.MixerRemoveChannel(sourceHandle) && Bass.LastError != Errors.Handle)
             {
                 YargLogger.LogFormatError("Failed to remove source from output mixer: {0}", Bass.LastError);
+            }
+        }
+
+        /// <summary>
+        ///     Attaches a decode push stream to the output mixer. The stream's volume already lives on its
+        ///     channel handle, so it survives the re-attach across output device changes.
+        /// </summary>
+        public bool AttachPushStream(BassPushStream stream, OutputChannel? outputChannel)
+        {
+            return AddToOutputMixer(stream.Handle, outputChannel);
+        }
+
+        public void DetachPushStream(BassPushStream stream)
+        {
+            if (!BassMix.MixerRemoveChannel(stream.Handle) && Bass.LastError != Errors.Handle)
+            {
+                YargLogger.LogFormatError("Failed to remove push stream from output mixer: {0}", Bass.LastError);
             }
         }
 

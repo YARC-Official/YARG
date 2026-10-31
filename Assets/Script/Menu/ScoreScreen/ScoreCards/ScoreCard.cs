@@ -261,6 +261,18 @@ namespace YARG.Menu.ScoreScreen
                 nonEngineModifiersUsed = true;
             }
 
+            // Set player/instrument sprite
+            if (Player.Profile.Avatar == null)
+            {
+                _instrumentIcon.sprite = GetInstrumentSprite();
+                _instrumentIcon.transform.localScale = Vector3.one;
+            }
+            else
+            {
+                _instrumentIcon.sprite = Player.Profile.Avatar.ToSprite();
+                _instrumentIcon.transform.localScale = new Vector3(1f, -1f);
+            }
+
             bool anyModifiersUsed = _modifierIconContainer.childCount > 0;
             _modifiersUsedTag.gameObject.SetActive(nonEngineModifiersUsed);
             _modifiersUsedContainer.gameObject.SetActive(anyModifiersUsed);
@@ -620,6 +632,8 @@ namespace YARG.Menu.ScoreScreen
             _basicStatsRect.gameObject.SetActive(!showAdvanced);
             ScrollStatsToTop();
         }
+
+        public abstract Sprite GetInstrumentSprite();
     }
 
     public interface IScoreCard<out T> where T : BaseStats
@@ -628,5 +642,6 @@ namespace YARG.Menu.ScoreScreen
         void ScrollStats(float delta);
         void SetCardContents();
         void SetAdvancedStatsShown(bool showAdvanced);
+        Sprite GetInstrumentSprite();
     }
 }

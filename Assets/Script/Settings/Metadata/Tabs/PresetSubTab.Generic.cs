@@ -1,22 +1,22 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YARG.Career;
 using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Core.Game;
 using YARG.Core.Game.Settings;
-using YARG.Core.Input;
 using YARG.Core.Logging;
 using YARG.Helpers.Extensions;
 using YARG.Helpers.UI;
 using YARG.Localization;
 using YARG.Menu;
 using YARG.Menu.Data;
-using YARG.Menu.Dialogs;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Menu.Settings;
@@ -33,7 +33,7 @@ namespace YARG.Settings.Metadata
 {
     public class PresetSubTab<T> : PresetSubTab where T : BasePreset
     {
-        private int _fieldIndex;
+        protected int _fieldIndex;
 
         private struct FieldSettingInfo
         {
@@ -88,12 +88,12 @@ namespace YARG.Settings.Metadata
         // These are used in (almost) every engine preset and are a special setting type
         private static readonly List<FieldSettingInfo> _hitWindowFields = new();
 
-        private readonly CustomContent<T> _customContent;
+        protected readonly CustomContent<T> _customContent;
         public override CustomContent CustomContent => _customContent;
 
-        private readonly bool _hasDescriptions;
+        protected readonly bool _hasDescriptions;
 
-        private T _presetRef;
+        protected T _presetRef;
 
         private readonly List<FieldSettingInfo> _fields = new();
         private readonly List<string> _subSections = new();
@@ -115,6 +115,7 @@ namespace YARG.Settings.Metadata
         // instead of guessing its position (Count - 2). -1 is the invalid sentinel
         // set at the start of each BuildSettingTab; a stale value never selects.
         private int _instrumentRowIndex = -1;
+        private NavigationGroup _settingsNavGroup;
 
         static PresetSubTab()
         {
@@ -283,6 +284,16 @@ namespace YARG.Settings.Metadata
             (nameof(ColorProfile.ProKeys),        "Pro Keys",         GameMode.ProKeys),
         };
 
+        private static readonly (string SubSection, string Label, GameMode Mode)[] EngineInstrumentModes =
+        {
+            (nameof(ColorProfile.FiveFretGuitar), "Five Fret Guitar", GameMode.FiveFretGuitar),
+            (nameof(ColorProfile.SixFretGuitar),  "Six Fret Guitar",  GameMode.SixFretGuitar),
+            (nameof(ColorProfile.FourLaneDrums),  "Four Lane Drums",  GameMode.FourLaneDrums),
+            (nameof(ColorProfile.FiveLaneDrums),  "Five Lane Drums", GameMode.FiveLaneDrums),
+            (nameof(ColorProfile.ProKeys),        "Pro Keys",         GameMode.ProKeys),
+            (nameof(EnginePreset.Vocals),         "Vocals",            GameMode.Vocals),
+        };
+
         private static bool TryGetModeForSubSection(string subSection, out GameMode mode)
         {
             foreach (var row in InstrumentModes)
@@ -336,6 +347,22 @@ namespace YARG.Settings.Metadata
             }
 
             return ModeToSubSection(mode);
+        }
+
+        private void SyncPreviewGameModeToTabSource()
+        {
+            var instrumentModes = typeof(T) == typeof(EnginePreset)
+                ? EngineInstrumentModes
+                : InstrumentModes;
+            foreach (var (_, _, mode) in instrumentModes)
+            {
+                if (mode == PreviewOptions.GameMode)
+                {
+                    return;
+                }
+            }
+
+            PreviewOptions.GameMode = instrumentModes[0].Mode;
         }
 
         #endregion
@@ -434,6 +461,7 @@ namespace YARG.Settings.Metadata
             // prior build can never select a wrong row if preview controls aren't
             // rebuilt below. BuildPreviewControls repopulates it if it runs.
             _instrumentRowIndex = -1;
+            _settingsNavGroup = navGroup;
 
             // Drop stale swatch-tint closures on every rebuild — including
             // non-grouped sub-sections (e.g. Pro Keys) that bypass
@@ -453,6 +481,10 @@ namespace YARG.Settings.Metadata
             {
                 _subSection = null;
             }
+
+            // Keep the shared preview mode valid for this tab before any preview
+            // builder or field construction consumes it.
+            SyncPreviewGameModeToTabSource();
 
             // Sync engine fields to the selected preview instrument.
             if (typeof(T) == typeof(EnginePreset))
@@ -534,6 +566,13 @@ namespace YARG.Settings.Metadata
             // of them lurking invisibly above the first field (which read as the
             // list "wrapping to nowhere").
             BuildPreviewControls(navGroup);
+        }
+
+        public override UniTask BuildPreviewUI(Transform uiContainer)
+        {
+            var build = base.BuildPreviewUI(uiContainer);
+            BuildPreviewControls(_settingsNavGroup);
+            return build;
         }
 
         private const string PV_HEADER = "Preview Options";
@@ -631,14 +670,21 @@ namespace YARG.Settings.Metadata
         /// </summary>
         private class InstrumentDropdownSetting : DropdownSetting<string>
         {
-            public InstrumentDropdownSetting(string currentLabel, Action<string> onChange)
-                : base(currentLabel, onChange, localizable: false) { }
+            private readonly (string SubSection, string Label, GameMode Mode)[] _instrumentModes;
+
+            public InstrumentDropdownSetting(string currentLabel,
+                (string SubSection, string Label, GameMode Mode)[] instrumentModes,
+                Action<string> onChange)
+                : base(currentLabel, onChange, localizable: false)
+            {
+                _instrumentModes = instrumentModes;
+            }
 
             public override string ValueToString(string value)
             {
                 // value is the unlocalized label; find its sub-section so we can
                 // resolve the matching Enum.Instrument localization key.
-                foreach (var (subSection, label, _) in InstrumentModes)
+                foreach (var (subSection, label, _) in _instrumentModes)
                 {
                     if (label == value)
                     {
@@ -659,53 +705,20 @@ namespace YARG.Settings.Metadata
         /// </summary>
         private void BuildPreviewControls(NavigationGroup navGroup)
         {
-            if (PreviewBuilder is not TrackPreviewBuilder tpb) return;
-            if (SettingsMenu.Instance?.PreviewContainerUI == null) return;
-
-            // The preview container's parent is the Sidebar. The Header is a
-            // child of the Sidebar that contains Setting Name / Description text.
-            // We add our controls container as a child of the Sidebar, positioned
-            // just below the Header and above the Preview Container.
-            var sidebar = SettingsMenu.Instance.PreviewContainerUI.parent;
-            if (sidebar == null) return;
-
-            // Clear any previous controls (avoids duplicates on rebuild, and
-            // removes the previous tab's dropdown when switching preset types)
-            if (PreviewControlsContainer != null)
+            if (PreviewBuilder is not TrackPreviewBuilder tpb || tpb.UI == null)
             {
-                PreviewControlsContainer.DestroyChildren();
+                return;
             }
-            else
-            {
-                var go = new GameObject("PreviewControls");
-                go.transform.SetParent(sidebar, false);
-                var rect = go.AddComponent<RectTransform>();
 
-                // The sidebar's Header (Setting Name/Description) is a fixed
-                // 125px strip at the top. Anchor this row to the header's
-                // bottom edge in pixels (not sidebar fractions, which land
-                // inside the header at some resolutions), overlaying the top
-                // of the preview area.
-                rect.anchorMin = new Vector2(0f, 1f);
-                rect.anchorMax = new Vector2(1f, 1f);
-                rect.pivot = new Vector2(0.5f, 1f);
-                rect.offsetMin = new Vector2(20f, -199f);
-                rect.offsetMax = new Vector2(-20f, -135f);
-
-                var layout = go.AddComponent<HorizontalLayoutGroup>();
-                layout.spacing = 6;
-                layout.childAlignment = TextAnchor.MiddleCenter;
-                layout.childControlWidth = true;
-                layout.childControlHeight = true;
-                layout.childForceExpandWidth = true;
-                layout.childForceExpandHeight = false;
-
-                PreviewControlsContainer = go.transform;
-            }
+            var ui = tpb.UI;
+            ui.Bind(navGroup, Localize.Key(PV_KEY_VISUALS));
 
             // --- Instrument selector dropdown ---
-            string currentLabel = InstrumentModes[0].Label;
-            foreach (var (_, label, mode) in InstrumentModes)
+            var instrumentModes = typeof(T) == typeof(EnginePreset)
+                ? EngineInstrumentModes
+                : InstrumentModes;
+            string currentLabel = instrumentModes[0].Label;
+            foreach (var (_, label, mode) in instrumentModes)
             {
                 if (mode == PreviewOptions.GameMode)
                 {
@@ -720,9 +733,9 @@ namespace YARG.Settings.Metadata
                 currentLabel = SubSectionToLabel(_subSection) ?? currentLabel;
             }
 
-            var modeDropdown = new InstrumentDropdownSetting(currentLabel, selected =>
+            var modeDropdown = new InstrumentDropdownSetting(currentLabel, instrumentModes, selected =>
             {
-                foreach (var (_, label, gameMode) in InstrumentModes)
+                foreach (var (_, label, gameMode) in instrumentModes)
                 {
                     if (label == selected)
                     {
@@ -755,12 +768,13 @@ namespace YARG.Settings.Metadata
                 }
             });
 
-            foreach (var (_, label, _) in InstrumentModes)
+            foreach (var (_, label, _) in instrumentModes)
+            {
                 modeDropdown.Add(label);
+            }
 
-            var instrumentVisual = CreateField(PreviewControlsContainer, navGroup,
-                "PreviewVisuals", "Instrument", modeDropdown, false);
-            instrumentVisual?.HideLabel();
+            var instrumentVisual = ui.Instrument;
+            instrumentVisual.AssignPresetSetting("PreviewVisuals.Instrument", hasDescription: false, modeDropdown);
             UseDropdownListNavigation(instrumentVisual, navGroup);
 
             // Record the instrument row's index in the nav group right after it is
@@ -806,27 +820,11 @@ namespace YARG.Settings.Metadata
                 visualsDropdown.SetValueWithoutNotify(PV_HEADER);
             };
 
-            var visualsVisual = CreateField(PreviewControlsContainer, navGroup, "PreviewVisuals", "Visuals",
-                visualsDropdown, false);
-            if (visualsVisual != null)
-            {
-                visualsVisual.HideLabel();
-
-                // Fixed caption via TMP's placeholder, which is shown while the
-                // dropdown's value is -1 (our sentinel value is not in the option
-                // list, so the index is always -1 at rest).
-                var tmpDropdown = visualsVisual.GetComponentInChildren<TMP_Dropdown>(true);
-                if (tmpDropdown != null && tmpDropdown.captionText != null)
-                {
-                    var placeholder = UnityEngine.Object.Instantiate(
-                        tmpDropdown.captionText, tmpDropdown.captionText.transform.parent);
-                    placeholder.name = "Placeholder";
-                    placeholder.text = Localize.Key(PV_KEY_VISUALS);
-                    tmpDropdown.placeholder = placeholder;
-                    tmpDropdown.SetValueWithoutNotify(-1);
-                    tmpDropdown.RefreshShownValue();
-                }
-            }
+            var visualsVisual = ui.Options;
+            visualsVisual.AssignPresetSetting("PreviewVisuals.Visuals", hasDescription: false, visualsDropdown);
+            // Fixed caption via TMP's placeholder, which is shown while the
+            // dropdown's value is -1 (our sentinel value is not in the option
+            // list, so the index is always -1 at rest).
             // After the placeholder setup so the selection highlight can tint it
             UseDropdownListNavigation(visualsVisual, navGroup);
         }
@@ -840,79 +838,22 @@ namespace YARG.Settings.Metadata
         /// </summary>
         private static void UseDropdownListNavigation(BaseSettingVisual visual, NavigationGroup navGroup)
         {
-            if (visual == null)
-            {
-                return;
-            }
             var dropdown = visual.GetComponentInChildren<TMP_Dropdown>(true);
-            if (dropdown == null)
-            {
-                return;
-            }
-
-            var standardNav = visual.GetComponent<BaseSettingNavigatable>();
-            if (standardNav != null)
-            {
-                navGroup.RemoveNavigatable(standardNav);
-                UnityEngine.Object.Destroy(standardNav);
-            }
+            var nav = visual.GetComponent<RuntimeNavigatable>();
 
             // These rows have no row label (HideLabel) and their dropdown box
             // fills the row, so selection tints the visible caption text yellow
             // instead. Template item labels are deliberately excluded — TMP
             // clones them into the list when it opens.
-            var captionTargets = new List<TMP_Text>();
-            if (dropdown.captionText != null)
-            {
-                captionTargets.Add(dropdown.captionText);
-            }
-            if (dropdown.placeholder is TextMeshProUGUI placeholderText)
-            {
-                captionTargets.Add(placeholderText);
-            }
-
-            if (captionTargets.Count > 0)
-            {
-                var nav = RuntimeNavigatable.AttachTextHighlight(visual.gameObject,
-                    () => RuntimeNavigatable.OpenDropdownList(dropdown), captionTargets.ToArray());
-                navGroup.AddNavigatable(nav);
-
-                // The authored dropdown background does not provide the desired
-                // focused fill, so add a pure-color rounded overlay behind it.
-                var overlay = new GameObject("DropdownFocusFill", typeof(RectTransform));
-                var overlayRect = overlay.GetComponent<RectTransform>();
-                overlayRect.SetParent(dropdown.transform, false);
-                overlayRect.anchorMin = Vector2.zero;
-                overlayRect.anchorMax = Vector2.one;
-                overlayRect.offsetMin = new Vector2(3f, 3f);
-                overlayRect.offsetMax = new Vector2(-3f, -3f);
-
-                var overlayImage = overlay.AddComponent<Image>();
-                overlayImage.sprite = SpriteHelper.GetRoundedRect(10);
-                overlayImage.type = Image.Type.Sliced;
-                overlayImage.color = new Color(0.1f, 0.1f, 0f, 1f); // #1a1a00
-                overlayImage.raycastTarget = false;
-
-                overlayRect.SetSiblingIndex(0);
-
-                overlay.SetActive(false);
-                nav.SelectionStateChanged += (_, selected, _) =>
-                {
-                    if (overlay != null) overlay.SetActive(selected);
-                };
-            }
-            else
-            {
-                navGroup.AddNavigatable(RuntimeNavigatable.Attach(visual.gameObject,
-                    () => RuntimeNavigatable.OpenDropdownList(dropdown)));
-            }
+            nav.ConfirmCallback = () => RuntimeNavigatable.OpenDropdownList(dropdown);
+            navGroup.AddNavigatable(nav);
         }
 
         /// <summary>
         /// Tints a setting row's label yellow while the row is selected
         /// (main-menu selection color), in addition to the row's own highlight.
         /// </summary>
-        private static void AddRowLabelHighlight(NavigatableBehaviour nav, TextMeshProUGUI label)
+        protected static void AddRowLabelHighlight(NavigatableBehaviour nav, TextMeshProUGUI label)
         {
             if (nav == null || label == null)
             {
@@ -1025,7 +966,9 @@ namespace YARG.Settings.Metadata
                 foreach (var group in groups)
                 {
                     if (group.CollapsedByDefault)
+                    {
                         _collapsedGroups.Add(group.Name);
+                    }
                 }
             }
 
@@ -1037,7 +980,9 @@ namespace YARG.Settings.Metadata
             foreach (var field in _fields)
             {
                 if (_subSection is not null && field.ParentField.Name != _subSection)
+                {
                     continue;
+                }
                 fieldLookup[field.Field.Name] = field;
             }
             foreach (var group in groups)
@@ -1045,7 +990,9 @@ namespace YARG.Settings.Metadata
                 foreach (var subGroup in group.SubGroups)
                 {
                     foreach (var fn in subGroup.FieldNames)
+                    {
                         groupedFieldNames.Add(fn);
+                    }
                 }
             }
 
@@ -1058,55 +1005,62 @@ namespace YARG.Settings.Metadata
                 // colors; expanded groups show the real color rows instead, and a
                 // collapsed group's fields can't be edited, so the swatches can
                 // never go stale between rebuilds.
-                SpawnRawHeader(container, isCollapsed
+                var header = SpawnColorHeader(container, subHeader: false);
+                header.Label.text = isCollapsed
                     ? $"\u25B6 {LocalizeGroupName(group.Name)}"
-                    : $"\u25BC {LocalizeGroupName(group.Name)}");
+                    : $"\u25BC {LocalizeGroupName(group.Name)}";
 
                 // Make the header clickable to toggle this group
-                var headerGo = container.GetChild(container.childCount - 1).gameObject;
+                var headerGo = header.gameObject;
 
                 if (isCollapsed)
                 {
-                    AddHeaderSwatches(headerGo, group, fieldLookup, preset);
+                    AddHeaderSwatches(header, group, fieldLookup, preset);
                 }
 
-                if (headerGo.GetComponent<Button>() == null)
-                    headerGo.AddComponent<Button>();
                 var groupName = group.Name;
 
                 void ToggleGroup()
                 {
                     if (_collapsedGroups.Contains(groupName))
+                    {
                         _collapsedGroups.Remove(groupName);
+                    }
                     else
+                    {
                         _collapsedGroups.Add(groupName);
+                    }
                     SettingsMenu.Instance.RefreshSettingsKeepPosition();
                 }
 
-                headerGo.GetComponent<Button>().onClick.AddListener(ToggleGroup);
+                header.Toggle.onClick.AddListener(ToggleGroup);
 
                 // Controller navigation: the header joins the nav order at its
                 // visual position and confirm toggles the group — without this,
                 // the collapsed-by-default groups are unreachable without a mouse.
                 // Selection tints the triangle+label yellow (main-menu style)
                 // rather than drawing a highlight rectangle.
-                navGroup.AddNavigatable(RuntimeNavigatable.AttachTextHighlight(headerGo, ToggleGroup));
+                var headerNav = headerGo.GetComponent<RuntimeNavigatable>();
+                headerNav.ConfirmCallback = ToggleGroup;
+                navGroup.AddNavigatable(headerNav);
 
                 if (isCollapsed)
+                {
                     continue;
+                }
 
                 // Render sub-groups and their fields
                 foreach (var subGroup in group.SubGroups)
                 {
                     if (subGroup.Name != null)
                     {
-                        SpawnSubHeader(container, $"  {LocalizeGroupName(subGroup.Name)}");
+                        var subHeader = SpawnColorHeader(container, subHeader: true);
+                        subHeader.Label.text = $"  {LocalizeGroupName(subGroup.Name)}";
                         _fieldIndex++;
 
                         if (subGroup.Name == FretSub)
                         {
-                            var subHeaderGo = container.GetChild(container.childCount - 1).gameObject;
-                            AddCopyFromNoteButton(subHeaderGo, group, subGroup, fieldLookup, preset, navGroup);
+                            AddCopyFromNoteButton(subHeader, group, subGroup, fieldLookup, preset, navGroup);
                         }
                     }
 
@@ -1124,7 +1078,9 @@ namespace YARG.Settings.Metadata
             foreach (var field in _fields)
             {
                 if (_subSection is not null && field.ParentField.Name != _subSection)
+                {
                     continue;
+                }
                 if (!groupedFieldNames.Contains(field.Field.Name))
                 {
                     BuildField(field, container, navGroup, preset);
@@ -1135,11 +1091,6 @@ namespace YARG.Settings.Metadata
         // Collapsed-header swatch layout. Swatches are 2:1 rounded rects anchored
         // at a fixed fraction of the header width so the runs line up across rows
         // (matching the old <pos=45%> glyph column).
-        private const float SWATCH_ANCHOR_X = 0.45f;
-        private const float SWATCH_WIDTH = 56f;
-        private const float SWATCH_HEIGHT = 28f;
-        private const float SWATCH_GAP = 10f;
-        private const float SWATCH_BASE_GAP = 22f;
 
         /// <summary>
         /// Adds rounded-rect swatches to a collapsed group header: one rect per
@@ -1153,7 +1104,7 @@ namespace YARG.Settings.Metadata
         /// as the strokes everywhere else).
         /// Alpha is deliberately dropped from both tints.
         /// </summary>
-        private void AddHeaderSwatches(GameObject headerGo, FieldGroup group,
+        private void AddHeaderSwatches(ColorPresetHeader header, FieldGroup group,
             Dictionary<string, FieldSettingInfo> fieldLookup, T preset)
         {
             if (group.Name == "General")
@@ -1166,7 +1117,7 @@ namespace YARG.Settings.Metadata
                 if (fieldLookup.TryGetValue("Miss", out var missField)
                     && missField.Field.FieldType == typeof(SystemColor))
                 {
-                    AddSwatchRect(headerGo.transform, 0f,
+                    AddSwatchRect(header, index: 0,
                         () => ToOpaqueUnityColor(missField.GetValue<SystemColor>(preset)),
                         () => DimStroke(ToOpaqueUnityColor(
                             GetFieldColor(fieldLookup, preset, "Metal", SystemColor.Gray))));
@@ -1228,8 +1179,7 @@ namespace YARG.Settings.Metadata
             SystemColor Metal() => GetFieldColor(fieldLookup, preset, "Metal", SystemColor.Gray);
             SystemColor MetalStarPower() => GetFieldColor(fieldLookup, preset, "MetalStarPower", Metal());
 
-            float x = 0f;
-            string previousBase = null;
+            int swatchIndex = 0;
             foreach (var baseKey in baseOrder)
             {
                 foreach (var entry in entries)
@@ -1239,18 +1189,12 @@ namespace YARG.Settings.Metadata
                         continue;
                     }
 
-                    if (previousBase != null)
-                    {
-                        x += previousBase == baseKey ? SWATCH_GAP : SWATCH_BASE_GAP;
-                    }
-                    previousBase = baseKey;
-
                     var fillField = entry.Field;
                     bool starPower = entry.StarPower;
-                    AddSwatchRect(headerGo.transform, x,
+                    AddSwatchRect(header, swatchIndex,
                         () => ToOpaqueUnityColor(fillField.GetValue<SystemColor>(preset)),
                         () => DimStroke(ToOpaqueUnityColor(starPower ? MetalStarPower() : Metal())));
-                    x += SWATCH_WIDTH;
+                    swatchIndex++;
                 }
             }
         }
@@ -1298,7 +1242,7 @@ namespace YARG.Settings.Metadata
         /// overwrites all of them. Kick's double-kick fret fields copy from
         /// DoubleKickNote instead, so the two kick variants stay independent.
         /// </summary>
-        private void AddCopyFromNoteButton(GameObject subHeaderGo, FieldGroup group,
+        private void AddCopyFromNoteButton(ColorPresetHeader subHeader, FieldGroup group,
             FieldSubGroup fretSub, Dictionary<string, FieldSettingInfo> fieldLookup, T preset,
             NavigationGroup navGroup)
         {
@@ -1320,23 +1264,15 @@ namespace YARG.Settings.Metadata
             }
 
             // Grab the sub-header's own label before the button adds its own TMP
-            var subHeaderLabel = subHeaderGo.GetComponentInChildren<TextMeshProUGUI>();
-
-            var buttonGo = UnityEngine.Object.Instantiate(
-                GetSmallRoundButtonPrefab(), subHeaderGo.transform);
-            var rect = buttonGo.GetComponent<RectTransform>();
-            rect.anchorMin = new Vector2(1f, 0.5f);
-            rect.anchorMax = new Vector2(1f, 0.5f);
-            rect.pivot = new Vector2(1f, 0.5f);
+            var subHeaderLabel = subHeader.Label;
+            var subHeaderGo = subHeader.gameObject;
+            var button = subHeader.CopyButton;
+            button.gameObject.SetActive(true);
             // Match the "Color Picker" buttons in the rows below: those get 175
             // wide from a LayoutElement in the ColorSetting row (not the prefab's
             // native 150), and the rows' right edge sits ~24.75 units inside the
             // header's (screenshot-measured to sub-pixel), so offset to line the
             // right edges up.
-            rect.sizeDelta = new Vector2(175f, 30f);
-            rect.anchoredPosition = new Vector2(-24.75f, 0f);
-
-            var button = buttonGo.GetComponent<ColoredButton>();
             button.Text.text = Localize.Key("Settings.PresetSetting.Dialog.CopyFromNote.Button");
             button.SetBackgroundAndTextColor(COPY_BUTTON_ORANGE);
 
@@ -1350,6 +1286,7 @@ namespace YARG.Settings.Metadata
                     // Rebuild so the visible color rows re-read the preset values
                     // (the shared ColorSetting cache is cleared on rebuild).
                     SettingsMenu.Instance.RefreshSettingsKeepPosition();
+                    SettingsMenu.Instance.OnSettingChanged();
                 }
 
                 ShowCompactConfirmation(
@@ -1366,10 +1303,9 @@ namespace YARG.Settings.Metadata
             // button's text, which must stay readable on the orange background —
             // and outlines the button in the same yellow as the color rows'
             // picker-button outline.
-            var copyNav = RuntimeNavigatable.AttachTextHighlight(
-                subHeaderGo, OpenConfirmDialog, subHeaderLabel);
-            AddFocusOutline(copyNav, RuntimeNavigatable.GetButtonOutlineTarget(button),
-                RuntimeNavigatable.SelectedTextColor);
+            var copyNav = subHeaderGo.GetComponent<RuntimeNavigatable>();
+            copyNav.ConfirmCallback = OpenConfirmDialog;
+            copyNav.SelectionVisual = subHeader.CopyOutline.SetActive;
             navGroup.AddNavigatable(copyNav);
         }
 
@@ -1407,40 +1343,16 @@ namespace YARG.Settings.Metadata
         /// layout group only manages the header root, so these don't disturb layout.
         /// Raycasts are disabled so the header's collapse Button still gets clicks.
         /// </summary>
-        private void AddSwatchRect(Transform header, float xOffset, Func<Color> fill, Func<Color> stroke)
+        private void AddSwatchRect(ColorPresetHeader header, int index, Func<Color> fill, Func<Color> stroke)
         {
-            var go = new GameObject("Swatch", typeof(RectTransform));
-            var rect = go.GetComponent<RectTransform>();
-            rect.SetParent(header, false);
-            rect.anchorMin = new Vector2(SWATCH_ANCHOR_X, 0.5f);
-            rect.anchorMax = new Vector2(SWATCH_ANCHOR_X, 0.5f);
-            rect.pivot = new Vector2(0f, 0.5f);
-            rect.sizeDelta = new Vector2(SWATCH_WIDTH, SWATCH_HEIGHT);
-            rect.anchoredPosition = new Vector2(xOffset, 0f);
-
-            var fillImage = go.AddComponent<Image>();
-            fillImage.sprite = GetSwatchSprite(stroke: false);
-            fillImage.raycastTarget = false;
-
-            var strokeGo = new GameObject("Stroke", typeof(RectTransform));
-            var strokeRect = strokeGo.GetComponent<RectTransform>();
-            strokeRect.SetParent(rect, false);
-            strokeRect.anchorMin = Vector2.zero;
-            strokeRect.anchorMax = Vector2.one;
-            strokeRect.offsetMin = Vector2.zero;
-            strokeRect.offsetMax = Vector2.zero;
-
-            var strokeImage = strokeGo.AddComponent<Image>();
-            strokeImage.sprite = GetSwatchSprite(stroke: true);
-            strokeImage.raycastTarget = false;
+            header.ShowSwatch(index, GetSwatchSprite(stroke: false), GetSwatchSprite(stroke: true));
 
             // Colors are pulled through delegates so the swatch can re-read the
             // preset when a color changes (e.g. Metal edited while other groups
             // sit collapsed) instead of waiting for the next rebuild.
             void Refresh()
             {
-                if (fillImage != null) fillImage.color = fill();
-                if (strokeImage != null) strokeImage.color = stroke();
+                header.TintSwatch(index, fill(), stroke());
             }
 
             Refresh();
@@ -1611,6 +1523,14 @@ namespace YARG.Settings.Metadata
                 {
                     var settingName = field.Field.Name;
                     setting = new FileInfoSetting(field.GetValue<FileInfo>(preset), preset, settingName, (value) =>
+                    {
+                        field.SetValue(preset, value);
+                    });
+                    break;
+                }
+                case SettingType.String:
+                {
+                    setting = new StringSetting(field.GetValue<string>(preset), (value) =>
                     {
                         field.SetValue(preset, value);
                     });
@@ -1886,9 +1806,13 @@ namespace YARG.Settings.Metadata
                     CreateField(container, navGroup, typeof(T).Name, windowField.Field.Name, setting);
                 }
             }
+            else if (field.Field.FieldType == typeof(CareerTier))
+            {
+
+            }
         }
 
-        private BaseSettingVisual CreateField(Transform container, NavigationGroup navGroup, string presetName, string name,
+        protected BaseSettingVisual CreateField(Transform container, NavigationGroup navGroup, string presetName, string name,
             ISettingType settingType, bool hasDescription)
         {
             var visual = SpawnSettingVisual(settingType, container);
@@ -1900,13 +1824,13 @@ namespace YARG.Settings.Metadata
             return visual;
         }
 
-        private void CreateField(Transform container, NavigationGroup navGroup, string presetName, string name,
+        protected void CreateField(Transform container, NavigationGroup navGroup, string presetName, string name,
             ISettingType settingType)
         {
             CreateField(container, navGroup, presetName, name, settingType, _hasDescriptions);
         }
 
-        private void CreateFields(Transform container, NavigationGroup navGroup, string presetName,
+        protected void CreateFields(Transform container, NavigationGroup navGroup, string presetName,
             List<(string Name, ISettingType SettingType)> settings)
         {
             foreach (var (name, setting) in settings)

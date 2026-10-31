@@ -143,7 +143,7 @@ namespace YARG.Audio.BASS
                         return;
                     }
 
-                    _reverbDsp = BassHelpers.CreateReverb(SettingsManager.Settings.ReverbImplementation.Value,
+                    _reverbDsp = BassHelpers.CreateReverb(SettingsManager.Settings.CurrentReverbMode,
                         _reverbHandles.Stream,
                         dryMix: 0.0f,
                         wetMix: 1.0f,

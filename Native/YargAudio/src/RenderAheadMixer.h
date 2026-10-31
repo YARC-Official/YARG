@@ -33,6 +33,8 @@ struct SourcePositionSnapshot {
 class RenderAheadMixer {
 public:
     static constexpr std::size_t RenderChunkFrames = 128;
+    static std::size_t bufferFrames(std::uint32_t sampleRate,
+        std::uint32_t callbackFrames, std::uint32_t milliseconds);
 
     RenderAheadMixer(std::unique_ptr<IAudioSource> source, std::uint32_t sampleRate,
         std::uint32_t channels, std::uint32_t callbackFrames,
@@ -45,6 +47,7 @@ public:
     bool prefill(std::chrono::milliseconds timeout);
     void stop() noexcept;
     bool clear();
+    bool setTargetFrames(std::size_t frames) noexcept;
     std::size_t consume(float* samples, std::size_t frames) noexcept;
     std::int64_t bufferedSourcePosition(std::uint32_t sourceHandle,
         std::uint32_t endpointDelayFrames) noexcept;
@@ -58,11 +61,15 @@ public:
     bool sourcePositionSnapshotAfterLock(std::uint32_t sourceHandle,
         SourcePositionSnapshot& snapshot, DelayProvider delayProvider) noexcept {
         std::lock_guard lock(sourceMutex_);
-        return sourcePositionSnapshotLocked(sourceHandle, delayProvider(), snapshot);
+        std::uint32_t delayFrames;
+        if (!delayProvider(delayFrames)) {
+            return false;
+        }
+        return sourcePositionSnapshotLocked(sourceHandle, delayFrames, snapshot);
     }
 
     std::size_t queuedFrames() const noexcept { return ring_.available(); }
-    std::size_t targetFrames() const noexcept { return targetFrames_; }
+    std::size_t targetFrames() const noexcept { return targetFrames_.load(std::memory_order_acquire); }
     bool failed() const noexcept { return failed_.load(std::memory_order_acquire); }
     int lastError() const noexcept { return lastError_.load(std::memory_order_relaxed); }
     std::uint64_t producedFrames() const noexcept { return producedFrames_.load(); }
@@ -76,11 +83,11 @@ private:
         std::uint32_t endpointDelayFrames, SourcePositionSnapshot& snapshot) noexcept;
     void run() noexcept;
     void updateMaximum(std::uint64_t nanoseconds) noexcept;
+    std::size_t lowWatermarkFrames() const noexcept;
 
     std::unique_ptr<IAudioSource> source_;
     const std::uint32_t channels_;
-    const std::size_t targetFrames_;
-    const std::size_t lowWatermarkFrames_;
+    std::atomic<std::size_t> targetFrames_;
     AudioRingBuffer ring_;
     std::vector<float> scratch_;
     std::mutex mutex_;
