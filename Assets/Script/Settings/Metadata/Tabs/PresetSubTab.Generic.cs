@@ -273,18 +273,19 @@ namespace YARG.Settings.Metadata
 
         // Single source of truth linking a ColorProfile sub-section (its identity
         // name), the preview GameMode it drives, and the human label shown in the
-        // instrument dropdown. Adding an instrument (e.g. Pro Guitar, Elite Drums)
-        // means adding one row here instead of touching several parallel switches.
-        private static readonly (string SubSection, string Label, GameMode Mode)[] InstrumentModes =
+        // instrument dropdown. A null preview mode means the colors are editable
+        // without using the lane-based track preview.
+        private static readonly (string SubSection, string Label, GameMode? PreviewMode)[] InstrumentModes =
         {
             (nameof(ColorProfile.FiveFretGuitar), "Five Fret Guitar", GameMode.FiveFretGuitar),
             (nameof(ColorProfile.SixFretGuitar),  "Six Fret Guitar",  GameMode.SixFretGuitar),
             (nameof(ColorProfile.FourLaneDrums),  "Four Lane Drums",  GameMode.FourLaneDrums),
             (nameof(ColorProfile.FiveLaneDrums),  "Five Lane Drums",  GameMode.FiveLaneDrums),
             (nameof(ColorProfile.ProKeys),        "Pro Keys",         GameMode.ProKeys),
+            (nameof(ColorProfile.Vocals),         "Vocals",          null),
         };
 
-        private static readonly (string SubSection, string Label, GameMode Mode)[] EngineInstrumentModes =
+        private static readonly (string SubSection, string Label, GameMode? PreviewMode)[] EngineInstrumentModes =
         {
             (nameof(ColorProfile.FiveFretGuitar), "Five Fret Guitar", GameMode.FiveFretGuitar),
             (nameof(ColorProfile.SixFretGuitar),  "Six Fret Guitar",  GameMode.SixFretGuitar),
@@ -298,9 +299,9 @@ namespace YARG.Settings.Metadata
         {
             foreach (var row in InstrumentModes)
             {
-                if (row.SubSection == subSection)
+                if (row.SubSection == subSection && row.PreviewMode is { } previewMode)
                 {
-                    mode = row.Mode;
+                    mode = previewMode;
                     return true;
                 }
             }
@@ -324,7 +325,7 @@ namespace YARG.Settings.Metadata
         {
             foreach (var row in InstrumentModes)
             {
-                if (row.Mode == mode)
+                if (row.PreviewMode == mode)
                     return row.SubSection;
             }
 
@@ -348,21 +349,20 @@ namespace YARG.Settings.Metadata
 
             return ModeToSubSection(mode);
         }
-
         private void SyncPreviewGameModeToTabSource()
         {
             var instrumentModes = typeof(T) == typeof(EnginePreset)
                 ? EngineInstrumentModes
                 : InstrumentModes;
-            foreach (var (_, _, mode) in instrumentModes)
+            foreach (var (_, _, previewMode) in instrumentModes)
             {
-                if (mode == PreviewOptions.GameMode)
+                if (previewMode == PreviewOptions.GameMode)
                 {
                     return;
                 }
             }
 
-            PreviewOptions.GameMode = instrumentModes[0].Mode;
+            PreviewOptions.GameMode = instrumentModes[0].PreviewMode!.Value;
         }
 
         #endregion
@@ -514,10 +514,10 @@ namespace YARG.Settings.Metadata
                 {
                     if (PreviewBuilder is TrackPreviewBuilder trackPreviewBuilder)
                     {
-                        trackPreviewBuilder.StartingGameMode =
-                            TryGetModeForSubSection(_subSection, out var subSectionMode)
-                                ? subSectionMode
-                                : throw new Exception("Unreachable.");
+                        if (TryGetModeForSubSection(_subSection, out var subSectionMode))
+                        {
+                            trackPreviewBuilder.StartingGameMode = subSectionMode;
+                        }
                     }
                     else
                     {
@@ -670,10 +670,10 @@ namespace YARG.Settings.Metadata
         /// </summary>
         private class InstrumentDropdownSetting : DropdownSetting<string>
         {
-            private readonly (string SubSection, string Label, GameMode Mode)[] _instrumentModes;
+            private readonly (string SubSection, string Label, GameMode? PreviewMode)[] _instrumentModes;
 
             public InstrumentDropdownSetting(string currentLabel,
-                (string SubSection, string Label, GameMode Mode)[] instrumentModes,
+                (string SubSection, string Label, GameMode? PreviewMode)[] instrumentModes,
                 Action<string> onChange)
                 : base(currentLabel, onChange, localizable: false)
             {
@@ -718,9 +718,9 @@ namespace YARG.Settings.Metadata
                 ? EngineInstrumentModes
                 : InstrumentModes;
             string currentLabel = instrumentModes[0].Label;
-            foreach (var (_, label, mode) in instrumentModes)
+            foreach (var (_, label, previewMode) in instrumentModes)
             {
-                if (mode == PreviewOptions.GameMode)
+                if (previewMode == PreviewOptions.GameMode)
                 {
                     currentLabel = label;
                     break;
@@ -735,16 +735,23 @@ namespace YARG.Settings.Metadata
 
             var modeDropdown = new InstrumentDropdownSetting(currentLabel, instrumentModes, selected =>
             {
-                foreach (var (_, label, gameMode) in instrumentModes)
+                foreach (var (subSection, label, previewMode) in instrumentModes)
                 {
                     if (label == selected)
                     {
-                        PreviewOptions.GameMode = gameMode;
-                        tpb.StartingGameMode = gameMode;
+                        if (previewMode is { } gameMode)
+                        {
+                            PreviewOptions.GameMode = gameMode;
+                            tpb.StartingGameMode = gameMode;
+                        }
 
                         if (typeof(T) == typeof(ColorProfile) || typeof(T) == typeof(EnginePreset))
                         {
-                            string newSub = GetSubSectionForMode(gameMode);
+                            string newSub = typeof(T) == typeof(ColorProfile)
+                                ? subSection
+                                : previewMode is { } selectedMode
+                                    ? GetSubSectionForMode(selectedMode)
+                                    : null;
                             if (newSub != null && newSub != _subSection)
                             {
                                 RefreshForSubSection(newSub);
@@ -768,9 +775,12 @@ namespace YARG.Settings.Metadata
                 }
             });
 
-            foreach (var (_, label, _) in instrumentModes)
+            foreach (var (_, label, previewMode) in instrumentModes)
             {
-                modeDropdown.Add(label);
+                if (previewMode is not null || typeof(T) == typeof(ColorProfile))
+                {
+                    modeDropdown.Add(label);
+                }
             }
 
             var instrumentVisual = ui.Instrument;

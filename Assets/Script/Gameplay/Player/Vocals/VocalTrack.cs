@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.Assertions;
 using YARG.Core;
 using YARG.Core.Chart;
+using YARG.Core.Game;
 using YARG.Core.Logging;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
@@ -17,6 +18,13 @@ namespace YARG.Gameplay.Player
 {
     public partial class VocalTrack : GameplayBehaviour
     {
+        private enum PartColorAssignment
+        {
+            None,
+            FreeHarmoniesFallback,
+            FixedPart,
+        }
+
         private struct Range
         {
             public float Min;
@@ -46,14 +54,14 @@ namespace YARG.Gameplay.Player
         }
 
         private static readonly int _alphaMultiplier = Shader.PropertyToID("AlphaMultiplier");
+        private static readonly int _laneColor1 = Shader.PropertyToID("_LaneColor1");
+        private static readonly int _laneColor2 = Shader.PropertyToID("_LaneColor2");
+        private static readonly int _laneColor3 = Shader.PropertyToID("_LaneColor3");
+        private static readonly int _laneCount = Shader.PropertyToID("_LaneCount");
 
-        // TODO: Temporary until color profiles for vocals
-        public static readonly Color[] Colors =
-        {
-            new(0f, 0.800f, 1f, 1f),
-            new(1f, 0.522f, 0f, 1f),
-            new(1f, 0.859f, 0f, 1f)
-        };
+        public Color[] Colors { get; } = new Color[3];
+        private readonly PartColorAssignment[] _partColorAssignments = new PartColorAssignment[3];
+        private MaterialPropertyBlock _trackMaterialProperties;
 
         /// <summary>
         /// Time offset relative to 1.0 note speed
@@ -296,6 +304,11 @@ namespace YARG.Gameplay.Player
         public float CurrentNoteWidth =>
             ((_currentTrackTop - TRACK_BOTTOM) / (_viewRange.Max - _viewRange.Min)) * NOTE_WIDTH_MULTIPLIER;
 
+        protected override void GameplayAwake()
+        {
+            _trackMaterialProperties = new MaterialPropertyBlock();
+        }
+
         private void Start()
         {
             Assert.AreEqual(_notePools.Length, 3,
@@ -349,6 +362,16 @@ namespace YARG.Gameplay.Player
         public void Initialize(VocalsTrack vocalsTrack, YargPlayer primaryPlayer, float? trackSpeed)
         {
             _originalVocalsTrack = vocalsTrack;
+
+            // Each lane is assigned later by the player singing that part. Start
+            // with the legacy defaults so unclaimed lanes are not affected by the
+            // profile of whichever player initialized the shared vocal track.
+            bool isHarmony = vocalsTrack.Instrument is Instrument.Harmony or Instrument.PartyVocals;
+            Array.Clear(_partColorAssignments, 0, _partColorAssignments.Length);
+            for (int i = 0; i < Colors.Length; i++)
+            {
+                Colors[i] = ColorProfile.Default.Vocals.GetPartColor(i, isHarmony).ToUnityColor();
+            }
 
             // Apply the modifiers of the primary player. All players should have the
             // same modifier(s) chosen.
@@ -431,6 +454,7 @@ namespace YARG.Gameplay.Player
 
             // Set the correct track material and track top constant
             _trackRenderer.material = _trackMaterials[LyricLaneCount - 1];
+            RefreshTrackLaneColors();
             _currentTrackTop = LyricLaneCount switch
             {
                 1 => TRACK_TOP_ONE_LANE,
@@ -508,6 +532,71 @@ namespace YARG.Gameplay.Player
             PrewarmVocalPools();
 
             AllowStarPower = true;
+        }
+
+        /// <summary>
+        /// Applies a vocal player's selected color profile to the parts that player can sing.
+        /// A fixed-part singer owns their lane's color. Free Harmonies supplies profile colors
+        /// for every otherwise-unclaimed part, regardless of player initialization order.
+        /// </summary>
+        public void AssignPartColor(YargPlayer player)
+        {
+            bool isHarmony = _originalVocalsTrack.Instrument is Instrument.Harmony or Instrument.PartyVocals;
+
+            if (isHarmony && player.Profile.CurrentInstrument == Instrument.PartyVocals)
+            {
+                bool changed = false;
+                for (int partIndex = 0; partIndex < Colors.Length; partIndex++)
+                {
+                    changed |= TryAssignPartColor(player, partIndex, isHarmony,
+                        PartColorAssignment.FreeHarmoniesFallback);
+                }
+
+                if (changed)
+                {
+                    RefreshTrackLaneColors();
+                }
+                return;
+            }
+
+            int fixedPartIndex = isHarmony ? player.Profile.HarmonyIndex : 0;
+            if (TryAssignPartColor(player, fixedPartIndex, isHarmony, PartColorAssignment.FixedPart))
+            {
+                RefreshTrackLaneColors();
+            }
+        }
+
+        private bool TryAssignPartColor(YargPlayer player, int partIndex, bool isHarmony,
+            PartColorAssignment assignment)
+        {
+            if (partIndex < 0 || partIndex >= Colors.Length)
+            {
+                YargLogger.LogFormatWarning("Cannot assign vocal color for out-of-range part {0}.", partIndex);
+                return false;
+            }
+
+            // The first assignment at a given priority wins. A fixed-part singer may replace
+            // an earlier Free Harmonies fallback, but a fallback never replaces a fixed owner.
+            if ((int) _partColorAssignments[partIndex] >= (int) assignment)
+            {
+                return false;
+            }
+
+            Colors[partIndex] = player.ColorProfile.Vocals
+                .GetPartColor(partIndex, isHarmony)
+                .ToUnityColor();
+            _partColorAssignments[partIndex] = assignment;
+            return true;
+        }
+
+        private void RefreshTrackLaneColors()
+        {
+            _trackRenderer.GetPropertyBlock(_trackMaterialProperties);
+            _trackMaterialProperties.SetColor(_laneColor1, Colors[0]);
+            _trackMaterialProperties.SetColor(_laneColor2, Colors[1]);
+            _trackMaterialProperties.SetColor(_laneColor3, Colors[2]);
+            _trackMaterialProperties.SetFloat(_laneCount, LyricLaneCount);
+            _trackRenderer.SetPropertyBlock(_trackMaterialProperties);
         }
 
         public VocalsPlayer CreatePlayer()
