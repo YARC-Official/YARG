@@ -1093,7 +1093,7 @@ namespace YARG.Gameplay
             // Rewind players
             foreach (var player in _players)
             {
-                player.Rewind(VisualTime - seconds);
+                player.Rewind(player.VisualTime - seconds);
             }
 
             double? targetTime = null;
@@ -1111,7 +1111,7 @@ namespace YARG.Gameplay
 
             foreach (var player in _players)
             {
-                player.PostRewind(VisualTime - seconds);
+                player.PostRewind(player.VisualTime - seconds);
             }
 
             CheckForRewindInvalidation();
