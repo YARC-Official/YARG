@@ -69,8 +69,6 @@ namespace YARG.Integration
             public bool AwaitingAck => AckedBytes < SnapshotEnd;
         }
 
-        public int Port { get; }
-
         /// <summary>
         /// Set when the socket thread stopped on an unexpected error, leaving nothing listening.
         /// </summary>
@@ -125,15 +123,14 @@ namespace YARG.Integration
                 throw;
             }
 
-            var server = new SetlistSocketServer(listener, port);
+            var server = new SetlistSocketServer(listener);
             server._thread.Start();
             return server;
         }
 
-        private SetlistSocketServer(Socket listener, int port)
+        private SetlistSocketServer(Socket listener)
         {
             _listener = listener;
-            Port = port;
             _sessionNonce = BitConverter.ToUInt64(Guid.NewGuid().ToByteArray(), 0);
 
             for (int i = 0; i < _clients.Length; i++)

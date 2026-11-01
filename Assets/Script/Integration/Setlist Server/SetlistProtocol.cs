@@ -33,7 +33,6 @@ namespace YARG.Integration
         {
             Snapshot = 0x01,
             Ack      = 0x02,
-            Error    = 0x7F,
         }
 
         public enum HelloStatus : byte

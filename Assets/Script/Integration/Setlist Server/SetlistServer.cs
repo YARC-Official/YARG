@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using UnityEngine;
 using YARG.Core.Logging;
 using YARG.Core.Song;
+using YARG.Localization;
 using YARG.Menu.Persistent;
 using YARG.Playlists;
 using YARG.Settings;
@@ -16,17 +17,15 @@ namespace YARG.Integration
     /// </summary>
     public class SetlistServer : MonoSingleton<SetlistServer>
     {
-        // Up/Down on the port setting moves one port per press, and rebinding on each would churn the listener
-        private const float PORT_SETTLE_SECONDS = 1f;
+        // Next to the Data Stream's 36107
+        public const int PORT = 36108;
 
         // A port another app holds, or a server that failed, is tried again this often, without another toast
         private const float RETRY_SECONDS = 10f;
 
         private SetlistSocketServer _server;
-        private int   _wantedPort = -1;
-        private float _wantedPortSince;
         private float _retryAt;
-        private int   _toastedPort = -1;
+        private bool  _toasted;
 
         private readonly List<SongEntry> _songs = new();
         private bool _published;
@@ -56,16 +55,8 @@ namespace YARG.Integration
             {
                 StopServer();
                 _retryAt = 0;
-                _toastedPort = -1;
+                _toasted = false;
                 return;
-            }
-
-            int port = settings.SetlistServerPort.Value;
-            if (port != _wantedPort)
-            {
-                _wantedPort = port;
-                _wantedPortSince = Time.unscaledTime;
-                _retryAt = 0;
             }
 
             if (_server is { Faulted: true })
@@ -74,29 +65,26 @@ namespace YARG.Integration
                 _retryAt = Time.unscaledTime + RETRY_SECONDS;
             }
 
-            if (_server?.Port == port || Time.unscaledTime - _wantedPortSince < PORT_SETTLE_SECONDS ||
-                Time.unscaledTime < _retryAt)
+            if (_server is not null || Time.unscaledTime < _retryAt)
             {
                 return;
             }
 
-            StopServer();
             try
             {
-                _server = SetlistSocketServer.Start(port);
+                _server = SetlistSocketServer.Start(PORT);
                 _published = false;
-                _toastedPort = -1;
-                YargLogger.LogFormatInfo("Setlist socket listening on 127.0.0.1:{0}", port);
+                _toasted = false;
+                YargLogger.LogFormatInfo("Setlist socket listening on 127.0.0.1:{0}", PORT);
             }
             catch (SocketException ex)
             {
                 _retryAt = Time.unscaledTime + RETRY_SECONDS;
-                if (_toastedPort != port)
+                if (!_toasted)
                 {
-                    _toastedPort = port;
-                    YargLogger.LogException(ex, $"Failed to open the setlist socket on port {port}");
-                    ToastManager.ToastError(
-                        $"Couldn't open the setlist socket on port {port}. Another app may be using it.");
+                    _toasted = true;
+                    YargLogger.LogException(ex, $"Failed to open the setlist socket on port {PORT}");
+                    ToastManager.ToastError(Localize.KeyFormat("Menu.Toast.SetlistSocketPortInUse", PORT));
                 }
             }
         }
