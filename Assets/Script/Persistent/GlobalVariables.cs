@@ -175,6 +175,12 @@ namespace YARG
         {
             Navigator.Instance.DisableMenuInputs = true;
 
+            // The setlist lives only as long as a menu scene: every load of the menu starts it empty.
+            if (scene == SceneIndex.Menu)
+            {
+                Setlist.Reset();
+            }
+
             // Unload the current scene and load in the new one, or just load in the new one
             if (CurrentScene != SceneIndex.Persistent)
             {
