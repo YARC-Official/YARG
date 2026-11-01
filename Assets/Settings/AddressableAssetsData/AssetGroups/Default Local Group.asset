@@ -50,6 +50,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 20b5d2f83ebc13d4782f19a411277bc3
+    m_Address: SettingTab/ToastHistoryEntry
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 2741494e5a3b68c43986f18396a91a9c
     m_Address: SettingPreviews/TrackPreview
     m_ReadOnly: 0

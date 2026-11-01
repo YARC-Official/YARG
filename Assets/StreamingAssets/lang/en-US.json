@@ -1121,6 +1121,7 @@
             "LightingPeripherals": "Lighting Peripherals",
             "Debug": "Debug and Developer",
             "FileManagement": "File Management",
+            "ToastHistory": "Toast History",
             "Experimental": "Experimental"
         },
         "Header": {
@@ -1164,7 +1165,8 @@
             "Accessibility": "Accessibility",
             "CareerInformation": "Career Information",
             "CareerTiers": "Career Tiers",
-            "NoTiers": "  (No tiers created. Click '+ Add Tier' above)"
+            "NoTiers": "  (No tiers created. Click '+ Add Tier' above)",
+            "ToastHistory": "Toast History"
         },
         "Button": {
             "CopyCurrentSongJsonFilePath": "Copy Current Song Json File Path",

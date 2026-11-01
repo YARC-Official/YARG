@@ -285,6 +285,7 @@ namespace YARG.Settings
                 nameof(Settings.RB3EBroadcastIP),
 
             },
+            new ToastHistoryTab("ToastHistory", icon: "History"),
             new MetadataTab("Debug", icon: "Debug")
             {
                 nameof(Settings.InputDeviceLogging),
