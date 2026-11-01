@@ -112,10 +112,10 @@ Shader "YARG/Gameplay/Vocals Track Tinted"
 
                 // Match the original graph's ten-percent screen-edge fade.
                 float screenX = input.screenPos.x / input.screenPos.w;
-                half edgeFade = smoothstep(0.0h, 0.1h, screenX)
-                    * smoothstep(1.0h, 0.9h, screenX);
+                half edgeFade = smoothstep(0.0h, 0.1h, screenX + 0.05h)
+                    * smoothstep(1.0h, 0.9h, screenX - 0.05h);
 
-                return half4(color, saturate(source.a * 2.0h * edgeFade));
+                return half4(color, saturate(source.a * edgeFade));
             }
             ENDHLSL
         }
