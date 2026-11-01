@@ -834,6 +834,19 @@ namespace YARG.Gameplay.Player
 
         private void UpdateUnisonEvents(double time)
         {
+            var unisonDisplay = GameManager.UnisonDisplay;
+
+            if (unisonDisplay != null && unisonDisplay.CurrentPhraseIndex >= unisonDisplay.Phrases.Count)
+            {
+                // We may still need to unhide the solo box
+                if (_soloHiddenForUnison)
+                {
+                    ShowSoloAfterUnison(time);
+                }
+
+                return;
+            }
+
             HideSoloForUnison(time);
 
             if (_unisonStartIndex < _unisonPhrases.Count && _unisonPhrases[_unisonStartIndex].Time <= time)
@@ -848,13 +861,12 @@ namespace YARG.Gameplay.Player
                 OnUnisonEnd();
                 _unisonEndIndex++;
             }
-            
-            ShowSoloAfterUnison(time);
 
+            ShowSoloAfterUnison(time);
         }
 
         private void HideSoloForUnison(double time)
-        {   
+        {
             var hideTime = GameManager.UnisonDisplay.Phrases[GameManager.UnisonDisplay.CurrentPhraseIndex].TransitionIn.Time;
             if (Engine.IsSoloActive && !_soloHiddenForUnison && _unisonStartIndex < _unisonPhrases.Count && hideTime <= time)
             {
@@ -865,7 +877,7 @@ namespace YARG.Gameplay.Player
                     _currentUnisonEndTime = GameManager.UnisonDisplay.Phrases[GameManager.UnisonDisplay.CurrentPhraseIndex].TransitionOut.Time;
                     _soloHiddenForUnison = true;
                     TrackView.HideSoloForUnison();
-                }       
+                }
             }
         }
 
