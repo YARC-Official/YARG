@@ -67,6 +67,8 @@ namespace YARG.Gameplay
 
         [SerializeField]
         private UnisonDisplay _unisonDisplay;
+        
+        public UnisonDisplay UnisonDisplay => _unisonDisplay;
 
         [SerializeField]
         private BREBox _breBox;
