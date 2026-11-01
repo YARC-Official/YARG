@@ -16,13 +16,6 @@ namespace YARG.Integration
     /// </summary>
     public class SetlistServer : MonoSingleton<SetlistServer>
     {
-#if UNITY_STANDALONE || UNITY_EDITOR
-        public static bool IsSupported => true;
-#else
-        // UWP blocks loopback connections from other apps
-        public static bool IsSupported => false;
-#endif
-
         // Up/Down on the port setting moves one port per press, and rebinding on each would churn the listener
         private const float PORT_SETTLE_SECONDS = 1f;
 
