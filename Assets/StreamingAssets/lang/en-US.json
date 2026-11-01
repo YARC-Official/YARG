@@ -1934,7 +1934,7 @@
                 "Name": "Enable UDP data stream",
                 "Description": "Enables sending of UDP information packets over the network, for software such as YALCY."
             },
-            "SetlistServerEnable": {
+            "SetlistSocketEnable": {
                 "Name": "Enable setlist socket",
                 "Description": "Lets apps on this computer follow the setlist over a local connection on port 36108. Other devices can't connect."
             },

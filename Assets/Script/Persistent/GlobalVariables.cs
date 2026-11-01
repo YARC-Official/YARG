@@ -97,7 +97,7 @@ namespace YARG
 
             Players = new List<YargPlayer>();
 
-            gameObject.AddComponent<SetlistServer>();
+            gameObject.AddComponent<SetlistSocket>();
 
             // Set alpha fading (on the tracks) to on
             // (this is mostly for the editor, but just in case)

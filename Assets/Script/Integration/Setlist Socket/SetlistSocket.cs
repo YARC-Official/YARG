@@ -15,7 +15,7 @@ namespace YARG.Integration
     /// <summary>
     /// Pushes the live setlist to apps on this computer over a loopback socket while its setting is on.
     /// </summary>
-    public class SetlistServer : MonoSingleton<SetlistServer>
+    public class SetlistSocket : MonoSingleton<SetlistSocket>
     {
         // Next to the Data Stream's 36107
         public const int PORT = 36108;
@@ -23,7 +23,7 @@ namespace YARG.Integration
         // A port another app holds, or a server that failed, is tried again this often, without another toast
         private const float RETRY_SECONDS = 10f;
 
-        private SetlistSocketServer _server;
+        private SetlistSocketIO _server;
         private float _retryAt;
         private bool  _toasted;
 
@@ -51,7 +51,7 @@ namespace YARG.Integration
         private void UpdateServer()
         {
             var settings = SettingsManager.Settings;
-            if (settings is null || !settings.SetlistServerEnable.Value)
+            if (settings is null || !settings.SetlistSocketEnable.Value)
             {
                 StopServer();
                 _retryAt = 0;
@@ -72,7 +72,7 @@ namespace YARG.Integration
 
             try
             {
-                _server = SetlistSocketServer.Start(PORT);
+                _server = SetlistSocketIO.Start(PORT);
                 _published = false;
                 _toasted = false;
                 YargLogger.LogFormatInfo("Setlist socket listening on 127.0.0.1:{0}", PORT);

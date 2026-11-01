@@ -17,7 +17,7 @@ namespace YARG.Integration
     /// <remarks>
     /// Steady state allocates nothing once clients are connected; only accepting a connection and logging do.
     /// </remarks>
-    internal sealed class SetlistSocketServer
+    internal sealed class SetlistSocketIO
     {
         private const int MAX_CLIENTS        = 4;
         private const int MAX_PENDING        = 4;
@@ -109,7 +109,7 @@ namespace YARG.Integration
         /// Binds 127.0.0.1:<paramref name="port"/> on the calling thread, so a port in use throws here.
         /// </summary>
         /// <exception cref="SocketException">The port couldn't be bound.</exception>
-        public static SetlistSocketServer Start(int port)
+        public static SetlistSocketIO Start(int port)
         {
             var listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             try
@@ -123,12 +123,12 @@ namespace YARG.Integration
                 throw;
             }
 
-            var server = new SetlistSocketServer(listener);
+            var server = new SetlistSocketIO(listener);
             server._thread.Start();
             return server;
         }
 
-        private SetlistSocketServer(Socket listener)
+        private SetlistSocketIO(Socket listener)
         {
             _listener = listener;
             _sessionNonce = BitConverter.ToUInt64(Guid.NewGuid().ToByteArray(), 0);
