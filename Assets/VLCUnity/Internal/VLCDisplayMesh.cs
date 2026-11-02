@@ -1,11 +1,31 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace LibVLCSharp
 {
     [RequireComponent(typeof(Renderer))]
     public class VLCDisplayMesh : MonoBehaviour
     {
-        [SerializeField] private VLCVideoProviderBase mediaPlayer;
+        [FormerlySerializedAs("mediaPlayer")]
+        [SerializeField] private VLCVideoProviderBase _mediaPlayer;
+
+        public VLCVideoProviderBase MediaPlayer
+        {
+            get => _mediaPlayer;
+            set
+            {
+                if (_mediaPlayer == value)
+                    return;
+
+                if (isActiveAndEnabled)
+                    Unbind();
+
+                _mediaPlayer = value;
+
+                if (isActiveAndEnabled)
+                    Bind();
+            }
+        }
 
         [Tooltip("Use _MainTex for Built-in shaders, or whatever your shader exposes.")]
         [SerializeField] private string textureProperty = "_MainTex";
@@ -23,16 +43,30 @@ namespace LibVLCSharp
 
         private void OnEnable()
         {
-            if (mediaPlayer != null)
-                mediaPlayer.OnTextureResized += ApplyTexture;
+            Bind();
         }
 
         private void OnDisable()
         {
-            if (mediaPlayer != null)
-                mediaPlayer.OnTextureResized -= ApplyTexture;
+            Unbind();
+            ApplyTexture(null);
+        }
 
-            ClearTexture();
+        private void Bind()
+        {
+            if (_renderer == null)
+                return;
+
+            if (_mediaPlayer != null)
+                _mediaPlayer.OnTextureResized += ApplyTexture;
+
+            ApplyTexture(_mediaPlayer != null ? _mediaPlayer.OutputTexture : null);
+        }
+
+        private void Unbind()
+        {
+            if (_mediaPlayer != null)
+                _mediaPlayer.OnTextureResized -= ApplyTexture;
         }
 
         private void ApplyTexture(RenderTexture texture)
@@ -41,17 +75,7 @@ namespace LibVLCSharp
                 return;
 
             _renderer.GetPropertyBlock(_propBlock);
-            _propBlock.SetTexture(_texturePropertyId, texture);
-            _renderer.SetPropertyBlock(_propBlock);
-        }
-
-        private void ClearTexture()
-        {
-            if (_renderer == null)
-                return;
-
-            _renderer.GetPropertyBlock(_propBlock);
-            _propBlock.SetTexture(_texturePropertyId, Texture2D.blackTexture);
+            _propBlock.SetTexture(_texturePropertyId, texture != null ? (Texture)texture : Texture2D.blackTexture);
             _renderer.SetPropertyBlock(_propBlock);
         }
     }

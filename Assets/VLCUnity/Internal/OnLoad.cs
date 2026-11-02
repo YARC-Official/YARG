@@ -46,6 +46,7 @@ namespace LibVLCSharp
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         static void OnBeforeSceneLoadRuntimeMethod()
         {
+            OnQuit();
 #if UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX || UNITY_EMBEDDED_LINUX
             var libDir = LibVLCDirectory;
             var pluginPath = libDir + "/vlc/plugins";
@@ -65,7 +66,22 @@ namespace LibVLCSharp
 #if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX || UNITY_EMBEDDED_LINUX
             GL.IssuePluginEvent(GetRenderEventFunc(), 1);
 #endif
+            Application.onBeforeRender += PumpRendererCleanup;
+            Application.quitting += OnQuit;
         }
+
+        static void PumpRendererCleanup()
+        {
+            if (TextureHelper.HasRetiredRenderers())
+                TextureHelper.QueueRendererCleanupEvent();
+        }
+
+        internal static void OnQuit()
+        {
+            Application.onBeforeRender -= PumpRendererCleanup;
+            Application.quitting -= OnQuit;
+        }
+
         static UnityColorSpace PlayerColorSpace => QualitySettings.activeColorSpace == 0 ? UnityColorSpace.Gamma : UnityColorSpace.Linear;
     }
 }
