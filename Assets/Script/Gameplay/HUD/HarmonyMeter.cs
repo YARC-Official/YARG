@@ -11,14 +11,12 @@ namespace YARG.Gameplay.HUD
         [SerializeField] private Image _rim;
         [SerializeField] private Color _partColor = Color.cyan;
         [SerializeField] private Color _inactiveColor = new(0.28f, 0.28f, 0.28f, 1f);
-        [SerializeField] private Color _fullComboColor = new(1f, 0.84f, 0f, 1f);
 
         // The existing overlay artwork has 37 transparent rows at each end of its 122px height.
         [SerializeField, Range(0f, 0.5f)] private float _verticalSpritePadding = 37f / 122f;
 
         private bool _wasActive;
         private HarmonyMeterState _state;
-        private bool _fullCombo;
 
         public float GetVisualBottom(Transform relativeTo)
         {
@@ -40,13 +38,12 @@ namespace YARG.Gameplay.HUD
             ApplyColors();
         }
 
-        public void Render(HarmonyMeterState state, bool fullCombo, float deltaTime)
+        public void Render(HarmonyMeterState state, float deltaTime)
         {
             _fill.fillAmount = HarmonyMeterPresentation.AdvanceFill(
                 _fill.fillAmount, _wasActive, state, deltaTime);
             _state = state;
             _wasActive = state.Active;
-            _fullCombo = fullCombo;
             ApplyColors();
         }
 
@@ -73,8 +70,9 @@ namespace YARG.Gameplay.HUD
                 _fill.color = _partColor;
             }
             _rim.enabled = _state.Active;
-            // This is the player's FC status, not a per-part FC claim.
-            _rim.color = _fullCombo ? _fullComboColor : Color.white;
+            // Keep the rim subtle without coupling its opacity to the part color.
+            _rim.color = new Color(0.8f + 0.2f * _partColor.r,
+                0.8f + 0.2f * _partColor.g, 0.8f + 0.2f * _partColor.b, _rim.color.a);
         }
     }
 }

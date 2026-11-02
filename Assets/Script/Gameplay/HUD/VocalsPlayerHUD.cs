@@ -232,10 +232,10 @@ namespace YARG.Gameplay.HUD
             _playerNameDisplay.AlignNameAndNeedleWith(_harmonyNotificationContainer);
         }
 
-        public void UpdateHarmonyMeter(int partIndex, HarmonyMeterState state, bool fullCombo, Color color)
+        public void UpdateHarmonyMeter(int partIndex, HarmonyMeterState state, Color color)
         {
             _harmonyMeters.SetPartColor(partIndex, color);
-            _harmonyMeters.RenderPart(partIndex, state, fullCombo, Time.deltaTime);
+            _harmonyMeters.RenderPart(partIndex, state, Time.deltaTime);
         }
 
         public void ResetHarmonyMeters()

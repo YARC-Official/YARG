@@ -517,7 +517,7 @@ namespace YARG.Gameplay.Player
                         coordinator.PartInCurrentPhrase(part), coordinator.PartInNextPhrase(part),
                         coordinator.CurrentPhraseProgress, coordinator.CanonicalMeters[part],
                         coordinator.AwesomeThreshold, beatPhase);
-                    _hud.UpdateHarmonyMeter(part, state, IsFc, GameManager.VocalTrack.Colors[part]);
+                    _hud.UpdateHarmonyMeter(part, state, GameManager.VocalTrack.Colors[part]);
                 }
             }
 

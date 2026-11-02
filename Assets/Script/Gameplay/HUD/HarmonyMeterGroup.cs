@@ -69,10 +69,10 @@ namespace YARG.Gameplay.HUD
                 _meters[partIndex]?.SetColor(color);
         }
 
-        public void RenderPart(int partIndex, HarmonyMeterState state, bool fullCombo, float deltaTime)
+        public void RenderPart(int partIndex, HarmonyMeterState state, float deltaTime)
         {
             if (partIndex >= 0 && partIndex < _meters.Count)
-                _meters[partIndex]?.Render(state, fullCombo, deltaTime);
+                _meters[partIndex]?.Render(state, deltaTime);
         }
 
         public void ResetVisuals()

@@ -206,7 +206,6 @@ MonoBehaviour:
   _rim: {fileID: 1964026253897422611}
   _partColor: {r: 0, g: 1, b: 1, a: 1}
   _inactiveColor: {r: 0.28, g: 0.28, b: 0.28, a: 1}
-  _fullComboColor: {r: 1, g: 0.84, b: 0, a: 1}
 --- !u!1 &7345460136577959045
 GameObject:
   m_ObjectHideFlags: 0
