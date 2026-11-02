@@ -85,6 +85,7 @@ namespace YARG.Audio.BASS.Asio
 
         public override bool Start()
         {
+            bool started = false;
             try
             {
                 Device.Use();
@@ -111,12 +112,17 @@ namespace YARG.Audio.BASS.Asio
                 _driver.RegisterNotify();
                 _latencyFrames = _driver.GetLatencyFrames();
                 _microphones.Attach(this);
+                started = true;
                 return true;
             }
             catch (Exception exception)
             {
                 YargLogger.LogException(exception, "Failed to start ASIO output");
                 return false;
+            }
+            finally
+            {
+                if (!started) _microphones.EndRecovery();
             }
         }
 

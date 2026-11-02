@@ -73,30 +73,44 @@ namespace YARG.Audio.BASS.Asio
 
         internal void Release(BassAsioMicSource source) => _sources.Remove(source);
 
+        internal void EndRecovery()
+        {
+            foreach (var source in _sources)
+            {
+                source.EndRecovery();
+            }
+        }
+
         private void Resume(BassAsioMicSource source)
         {
-            var output = _output;
-            if (output == null || !string.Equals(source.DriverId, output.DriverId, StringComparison.OrdinalIgnoreCase))
+            bool restored = false;
+            try
             {
-                return;
-            }
+                var output = _output;
+                if (output == null || !string.Equals(source.DriverId, output.DriverId, StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
 
-            var input = output.ClaimInput(source.DriverId, source.Channel);
-            if (input != null)
-            {
-                try
+                var input = output.ClaimInput(source.DriverId, source.Channel);
+                if (input != null)
                 {
                     source.Rebind(input);
-                }
-                catch (Exception exception)
-                {
-                    YargLogger.LogException(exception, $"Failed to restore ASIO microphone '{source.DisplayName}'");
+                    restored = true;
+                    return;
                 }
 
-                return;
+                YargLogger.LogWarning($"Failed to restore ASIO microphone '{source.DisplayName}'");
             }
-
-            YargLogger.LogWarning($"Failed to restore ASIO microphone '{source.DisplayName}'");
+            catch (Exception exception)
+            {
+                YargLogger.LogException(exception, $"Failed to restore ASIO microphone '{source.DisplayName}'");
+            }
+            finally
+            {
+                // A completed attempt must not mask a failed claim or driver mismatch.
+                if (!restored) source.AbortRecovery();
+            }
         }
     }
 }

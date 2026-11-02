@@ -48,6 +48,23 @@ namespace YARG.Audio.BASS
         public int Channels   { get; }
         public int ReadHandle => _microphoneHandle;
 
+        internal bool IsConnected(string expectedName)
+        {
+            lock (_stateLock)
+            {
+                if (_disposed || !Bass.RecordGetDeviceInfo(_deviceId, out var info) ||
+                    !info.IsEnabled || info.Name != expectedName)
+                {
+                    return false;
+                }
+
+                // An intentionally paused capture has no listeners; do not treat it as unplugged.
+                if (!ShouldRun) return true;
+                var state = Bass.ChannelIsActive(_microphoneHandle);
+                return state is PlaybackState.Playing or PlaybackState.Stalled;
+            }
+        }
+
         public MicBufferInfo GetBufferInfo()
         {
             int devicePeriod = Math.Max(0, Bass.GetConfig(Configuration.DevicePeriod));
