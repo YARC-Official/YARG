@@ -35,6 +35,7 @@ namespace YARG.Gameplay.HUD
 
         public void SetColor(Color color)
         {
+            if (_partColor == color) return;
             _partColor = color;
             ApplyColors();
         }
