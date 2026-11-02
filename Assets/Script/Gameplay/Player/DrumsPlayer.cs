@@ -181,6 +181,9 @@ namespace YARG.Gameplay.Player
         private float _drumSoundEffectAccentThreshold;
 
         private Dictionary<Fret.AnimType, Dictionary<int, float>> _animTypeToPadToLastPressedDelta = new();
+        // Drives every pad's own inner light-up on a correct hit (tom/cymbal/kick alike, any
+        // theme) - see ZeroOutHitTime/UpdateFretArray.
+        private Dictionary<int, float> _padToLastPressedTimeDelta = new();
         // Tracked separately from the per-note hit delta above so Circular's whole-kit kick
         // flash (FlashAllButtonsForKick) can hold for its own shorter duration (matching the
         // kick's other, already-short effects - see KICK_BUTTON_FLASH_HOLD_DURATION) without
@@ -1089,6 +1092,7 @@ namespace YARG.Gameplay.Player
         {
             foreach (var pad in _highwayOrdering.Keys)
             {
+                _padToLastPressedTimeDelta[pad] = float.MaxValue;
                 _padToLastKickFlashTimeDelta[pad] = float.MaxValue;
                 _padToLastOverhitTimeDelta[pad] = float.MaxValue;
             }
@@ -1121,10 +1125,12 @@ namespace YARG.Gameplay.Player
         }
 
         // i.e., mark this pad's own accent/anim-type classification, used by GetAnimType for
-        // whichever fret ends up lit (currently only via the kick's whole-kit flash - see
-        // FlashAllButtonsForKick) and by UpdateAccentColorState's accent-color whitening.
+        // whichever fret ends up lit and by UpdateAccentColorState's accent-color whitening -
+        // also zeroes this pad's own inner light-up timer (see _padToLastPressedTimeDelta/
+        // UpdateFretArray), restoring every theme's existing per-hit light-up.
         private void ZeroOutHitTime(int pad, Fret.AnimType animType)
         {
+            _padToLastPressedTimeDelta[pad] = 0f;
             _animTypeToPadToLastPressedDelta[animType][pad] = 0f;
         }
 
@@ -1165,6 +1171,7 @@ namespace YARG.Gameplay.Player
         {
             foreach (var pad in _highwayOrdering.Keys)
             {
+                _padToLastPressedTimeDelta[pad] += Time.deltaTime;
                 _padToLastKickFlashTimeDelta[pad] += Time.deltaTime;
                 _padToLastOverhitTimeDelta[pad] += Time.deltaTime;
             }
@@ -1186,14 +1193,15 @@ namespace YARG.Gameplay.Player
             // For each visual fret...
             for (var i = 0; i < LaneCount; i++)
             {
-                // ...find the lowest last-kick-flash delta among pads that the visual fret
+                // ...find the lowest last-pressed delta among pads that the visual fret
                 // represents. Usually there's just one pad for each fret, but tom+cymbal frets
-                // have two so we want to take the minimum of those.
-                //
-                // Note the button "light up" (SetPressedImpulse) is only driven by the kick flash
-                // now, not by regular tom/cymbal hits - those still get their own flame/hit
-                // particle animation (see AnimateAction/AnimateFret), just without this
-                // additional light up.
+                // have two so we want to take the minimum of those. Only used for non-Circular
+                // themes (see the pressed calculation below) - zeroed unconditionally by every
+                // theme's own correct hits, but Circular intentionally ignores it.
+                var lowestPressedDelta = float.MaxValue;
+                // Same idea, but for Circular's whole-kit kick flash (see FlashAllButtonsForKick)
+                // - only ever zeroed for Circular, so this stays at float.MaxValue (never holds
+                // a fret "pressed") for every other theme.
                 var lowestKickFlashDelta = float.MaxValue;
                 // Same idea, but for a genuine overhit's own dim light-up (see
                 // Fret.SetOverhitPressed/ZeroOutOverhitTime/FlashAllButtonsOverhitForKick).
@@ -1211,6 +1219,10 @@ namespace YARG.Gameplay.Player
                     if (highwayOrderingInfo.Position == i)
                     {
                         padToPress ??= pad;
+                        if (_padToLastPressedTimeDelta[pad] < lowestPressedDelta)
+                        {
+                            lowestPressedDelta = _padToLastPressedTimeDelta[pad];
+                        }
                         if (_padToLastKickFlashTimeDelta[pad] < lowestKickFlashDelta)
                         {
                             lowestKickFlashDelta = _padToLastKickFlashTimeDelta[pad];
@@ -1224,7 +1236,14 @@ namespace YARG.Gameplay.Player
 
                 if (padToPress is not null)
                 {
-                    var pressed = lowestKickFlashDelta < KICK_BUTTON_FLASH_HOLD_DURATION;
+                    // Every non-Circular theme lights a pad up on its own correct hit (tom,
+                    // cymbal, or kick alike - restores dev's original behavior). Circular
+                    // deliberately opts out of this per-pad light-up in favor of its whole-kit
+                    // kick flash only (see FlashAllButtonsForKick) - individual tom/cymbal/kick
+                    // hits on Circular still get their own jump/particle animation elsewhere
+                    // (see AnimateFret/AnimateAction), just without this additional light up.
+                    var pressed = (!_isCircularTheme && lowestPressedDelta < DRUM_PAD_FLASH_HOLD_DURATION) ||
+                        lowestKickFlashDelta < KICK_BUTTON_FLASH_HOLD_DURATION;
                     _fretArray.SetPressedImpulse(padToPress.Value, pressed, GetAnimType(padToPress.Value));
                     _fretArray.UpdateAccentColorState(padToPress.Value,
                         _animTypeToPadToLastPressedDelta[Fret.AnimType.CorrectHard][padToPress.Value] <
