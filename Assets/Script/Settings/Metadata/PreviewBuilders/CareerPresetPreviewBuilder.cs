@@ -37,12 +37,13 @@ namespace YARG.Settings.Metadata
                 ButtonColor = null;
             }
 
-            public Field(string buttonLabel, Action buttonAction, Color? buttonColor = null)
+            public Field(string buttonLabel, Action buttonAction, Color? buttonColor = null,
+                bool visible = true)
             {
                 Label = buttonLabel;
                 Setting = null;
                 Editable = true;
-                Visible = true;
+                Visible = visible;
                 ButtonAction = buttonAction;
                 ButtonColor = buttonColor;
             }
@@ -168,6 +169,11 @@ namespace YARG.Settings.Metadata
             {
                 if (field.IsButton)
                 {
+                    if (!field.Visible)
+                    {
+                        continue;
+                    }
+
                     var buttonPrefab = Addressables.LoadAssetAsync<GameObject>("SettingTab/Button")
                         .WaitForCompletion();
                     var buttonObject = Object.Instantiate(buttonPrefab, _content);

@@ -587,7 +587,8 @@ namespace YARG.Settings.Metadata
                 new(FieldText("Artist"), CreateSongFacetSetting(state, SongFacet.Artist), editable),
                 new(FieldText("Source"), CreateSongFacetSetting(state, SongFacet.Source), editable),
                 new(FieldText("Charter"), CreateSongFacetSetting(state, SongFacet.Charter), editable),
-                new(EditorText("Clear"), () => ClearSongFacets(state), MenuData.Colors.CancelButton),
+                new(EditorText("Clear"), () => ClearSongFacets(state), MenuData.Colors.CancelButton,
+                    visible: editable),
                 new(FieldText("Identifier"), identifierSetting, editable),
                 new(FieldText("FallbackDescription"), new StringSetting(song.Description ?? string.Empty, value =>
                 {
@@ -726,6 +727,11 @@ namespace YARG.Settings.Metadata
 
         private void ClearSongFacets(SongFilterState state)
         {
+            if (ReadOnlyFields)
+            {
+                return;
+            }
+
             state.Song = string.Empty;
             state.Artist = string.Empty;
             state.Source = string.Empty;
