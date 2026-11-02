@@ -79,6 +79,17 @@ namespace YARG.Gameplay.HUD
             ShowPlayer(player);
         }
 
+        public void AlignNameAndNeedleWith(RectTransform feedback)
+        {
+            // The instrument badge/avatar remains beside the combo meter.
+            float y = transform.InverseTransformPoint(feedback.TransformPoint(feedback.rect.center)).y;
+            var namePosition = _playerName.rectTransform.localPosition;
+            float offset = y - namePosition.y;
+            namePosition.y = y;
+            _playerName.rectTransform.localPosition = namePosition;
+            _needleIcon.rectTransform.localPosition += new Vector3(0, offset, 0);
+        }
+
         private bool ShouldShowPlayer()
         {
             return !GameManager.IsPractice && SettingsManager.Settings.ShowPlayerNameWhenStartingSong.Value;

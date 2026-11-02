@@ -793,6 +793,8 @@
         "Vocals": {
             "Performance": {
                 "Awesome": "AWESOME!",
+                "DoubleAwesome": "DOUBLE AWESOME!",
+                "TripleAwesome": "TRIPLE AWESOME!",
                 "Awful": "AWFUL",
                 "Good": "GOOD",
                 "Messy": "MESSY",
