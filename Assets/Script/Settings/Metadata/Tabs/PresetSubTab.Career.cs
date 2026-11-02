@@ -517,6 +517,9 @@ namespace YARG.Settings.Metadata
         private static bool HasSongId(SongEntry song) =>
             song != null && Guid.TryParse(song.YargGuid, out Guid guid) && guid != Guid.Empty;
 
+        private static bool HasShortName(SongEntry song) =>
+            song is RBCONEntry rbconEntry && !string.IsNullOrEmpty(rbconEntry.RBSongId);
+
         private enum SongFacet
         {
             Song,
@@ -564,10 +567,9 @@ namespace YARG.Settings.Metadata
             bool editable = !ReadOnlyFields;
 
             bool songIdAvailable = song.SongEntry == null || HasSongId(song.SongEntry);
-            CareerSongIdentifier displayedIdentifier = song.Identifier == CareerSongIdentifier.ShortName
-                ? CareerSongIdentifier.SongId
-                : song.Identifier;
-            var identifierSetting = new CareerEnumSetting<CareerSongIdentifier>(displayedIdentifier, value =>
+            bool shortNameAvailable = song.Identifier == CareerSongIdentifier.ShortName ||
+                HasShortName(song.SongEntry);
+            var identifierSetting = new CareerEnumSetting<CareerSongIdentifier>(song.Identifier, value =>
             {
                 song.UpdateIdentifier(value);
                 Save();
@@ -579,6 +581,10 @@ namespace YARG.Settings.Metadata
                 identifierSetting.Add(CareerSongIdentifier.SongId);
             }
             identifierSetting.Add(CareerSongIdentifier.SongHash);
+            if (shortNameAvailable)
+            {
+                identifierSetting.Add(CareerSongIdentifier.ShortName);
+            }
             identifierSetting.Add(CareerSongIdentifier.SongTuple);
 
             _careerPreview.Show(new CareerPresetPreviewBuilder.Field[]
@@ -709,8 +715,7 @@ namespace YARG.Settings.Metadata
             state.Charter = selected.Charter.Original;
 
             CareerSongIdentifier identifier = state.CareerSong.Identifier;
-            if (identifier == CareerSongIdentifier.ShortName &&
-                (selected is not RBCONEntry rbconEntry || string.IsNullOrEmpty(rbconEntry.RBSongId)))
+            if (identifier == CareerSongIdentifier.ShortName && !HasShortName(selected))
             {
                 identifier = CareerSongIdentifier.SongId;
             }
