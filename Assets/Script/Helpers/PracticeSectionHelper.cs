@@ -6,10 +6,17 @@ using YARG.Localization;
 
 namespace YARG.Assets.Script.Helpers
 {
-    public static class PracticeSectionHelper
+    public static partial class PracticeSectionHelper
     {
         public static string ParseSectionName(string sectionName)
         {
+            // In English, show Clone Hero's name for a section in its table
+            if (LocalizationManager.CultureCode == "en-US" &&
+                _cloneHeroSectionNames.TryGetValue(sectionName, out var cloneHeroName))
+            {
+                return cloneHeroName;
+            }
+
             var percentageMatch = Regex.Match(sectionName, "^ugc_section_(\\d\\d?)_(\\d\\d?)$");
             if (percentageMatch.Success)
             {
