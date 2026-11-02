@@ -1,4 +1,5 @@
 // pattern: Mixed (needs refactoring)
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -45,6 +46,32 @@ namespace YARG.Gameplay.Player
         private ParticleSystem[] _cachedParticleSystems;
         private int _displayedHarmonyIndex = -1;
         private int _outlineHarmonyIndex = -1;
+        private VocalsEngine _visualEventEngine;
+        private Func<double> _visualInputTime;
+
+        private void AttachVisualEngineEvents(VocalsEngine engine, Func<double> inputTime)
+        {
+            DetachVisualEngineEvents();
+            _visualEventEngine = engine;
+            _visualInputTime = inputTime;
+            engine.OnTargetNoteChanged += OnVisualTargetNoteChanged;
+            engine.OnSing += OnVisualSing;
+            engine.OnHit += OnVisualHit;
+        }
+
+        private void DetachVisualEngineEvents()
+        {
+            if (_visualEventEngine == null) return;
+            _visualEventEngine.OnTargetNoteChanged -= OnVisualTargetNoteChanged;
+            _visualEventEngine.OnSing -= OnVisualSing;
+            _visualEventEngine.OnHit -= OnVisualHit;
+            _visualEventEngine = null;
+            _visualInputTime = null;
+        }
+
+        private void OnVisualTargetNoteChanged(VocalNote note) => _lastTargetNote = note;
+        private void OnVisualSing(bool singing) => _lastSingTime = singing ? _visualInputTime() : null;
+        private void OnVisualHit(bool hitting) => _lastHitTime = hitting ? _visualInputTime() : null;
 
         public override bool ShouldUpdateInputsOnResume => false;
 
@@ -217,6 +244,7 @@ namespace YARG.Gameplay.Player
 
         protected override void FinishDestruction()
         {
+            DetachVisualEngineEvents();
             DetachPartyPhraseHandler();
             _inputContext?.Stop();
         }
@@ -279,10 +307,7 @@ namespace YARG.Gameplay.Player
             engine.OnStarPowerStatus += OnStarPowerStatus;
             engine.OnStarPowerReady += OnStarPowerReady;
 
-            engine.OnTargetNoteChanged += (note) =>
-            {
-                _lastTargetNote = note;
-            };
+            AttachVisualEngineEvents(engine, () => GameManager.InputTime);
 
             engine.OnPhraseHit += (percent, fullPoints, isLastPhrase) =>
             {
@@ -323,20 +348,6 @@ namespace YARG.Gameplay.Player
                     LastCombo = Combo;
                     _hud.SetFullCombo(false);
                 }
-            };
-
-            engine.OnSing += (singing) =>
-            {
-                _lastSingTime = singing
-                    ? GameManager.InputTime
-                    : null;
-            };
-
-            engine.OnHit += (hitting) =>
-            {
-                _lastHitTime = hitting
-                    ? GameManager.InputTime
-                    : null;
             };
 
             if (_handlesCountdown)
@@ -484,7 +495,7 @@ namespace YARG.Gameplay.Player
                         coordinator.PartInCurrentPhrase(part), coordinator.PartInNextPhrase(part),
                         coordinator.CurrentPhraseProgress, coordinator.CanonicalMeters[part],
                         coordinator.AwesomeThreshold, beatPhase);
-                    _hud.UpdateHarmonyMeter(part, state, IsFc);
+                    _hud.UpdateHarmonyMeter(part, state);
                 }
             }
 
@@ -583,13 +594,20 @@ namespace YARG.Gameplay.Player
 
         private void UpdateSingNeedle()
         {
+            UpdateSingNeedle(GameManager.InputTime, GameManager.SongTime, GameManager.Rewinding,
+                Time.deltaTime, GameManager.VocalTrack.GetPosForPitch);
+        }
+
+        private void UpdateSingNeedle(double inputTime, double songTime, bool rewinding,
+            float deltaTime, Func<float, float> pitchProjection)
+        {
             const float NEEDLE_POS_LERP = 30f;
             const float NEEDLE_POS_SNAP_MULTIPLIER = 10f;
 
             const float NEEDLE_ROT_LERP = 25f;
 
             // Get the appropriate sing time
-            var singTime = GameManager.InputTime;
+            var singTime = inputTime;
 
             // Get whether or not the player has sang within the time threshold.
             // We gotta use a threshold here because microphone inputs are passed every X seconds,
@@ -597,6 +615,7 @@ namespace YARG.Gameplay.Player
             if (!IsInThreshold(singTime, _lastSingTime) || _shouldHideNeedle)
             {
                 // Hide the needle if there's no singing
+                SetOutline(false);
                 if (_needleVisualContainer.activeSelf)
                 {
                     _needleVisualContainer.SetActive(false);
@@ -617,16 +636,20 @@ namespace YARG.Gameplay.Player
                 }
 
                 var transformCache = transform;
-                float lastNotePitch = _lastTargetNote?.PitchAtSongTime(GameManager.SongTime) ?? -1f;
+                float lastNotePitch = _lastTargetNote?.PitchAtSongTime(songTime) ?? -1f;
 
                 if (_lastTargetNote is not null && IsInThreshold(singTime, _lastHitTime))
                 {
                     // Show particles if hitting (as long as we aren't rewinding)
-                    if (!GameManager.Rewinding)
+                    if (!rewinding)
                     {
                         _hittingParticleGroup.Play();
                     }
-                    SetOutline(!GameManager.Rewinding);
+                    else
+                    {
+                        _hittingParticleGroup.Stop();
+                    }
+                    SetOutline(!rewinding);
 
                     // Update particle color to match the currently-sung harmony part.
                     // For Free Harmonies, the coordinator tracks which part the mic is
@@ -658,11 +681,11 @@ namespace YARG.Gameplay.Player
                     }
 
                     // Transform!
-                    float z = GameManager.VocalTrack.GetPosForPitch(pitch);
-                    var lerp = Mathf.Lerp(transformCache.localPosition.z, z, Time.deltaTime * lerpRate);
+                    float z = pitchProjection(pitch);
+                    var lerp = Mathf.Lerp(transformCache.localPosition.z, z, deltaTime * lerpRate);
                     transformCache.localPosition = new Vector3(0f, 0f, lerp);
                     _needleTransform.rotation = Quaternion.Lerp(_needleTransform.rotation,
-                        Quaternion.Euler(0f, targetRotation + 90f, 0f), Time.deltaTime * NEEDLE_ROT_LERP);
+                        Quaternion.Euler(0f, targetRotation + 90f, 0f), deltaTime * NEEDLE_ROT_LERP);
                 }
                 else
                 {
@@ -691,13 +714,13 @@ namespace YARG.Gameplay.Player
                     }
 
                     // Set the position of the needle
-                    var z = GameManager.VocalTrack.GetPosForPitch(pitch);
-                    var lerp = Mathf.Lerp(transformCache.localPosition.z, z, Time.deltaTime * lerpRate);
+                    var z = pitchProjection(pitch);
+                    var lerp = Mathf.Lerp(transformCache.localPosition.z, z, deltaTime * lerpRate);
                     transformCache.localPosition = new Vector3(0f, 0f, lerp);
 
                     // Lerp the rotation to none
                     _needleTransform.rotation = Quaternion.Lerp(_needleTransform.rotation,
-                        Quaternion.Euler(0f, 90f, 0f), Time.deltaTime * NEEDLE_ROT_LERP);
+                        Quaternion.Euler(0f, 90f, 0f), deltaTime * NEEDLE_ROT_LERP);
                 }
             }
         }
