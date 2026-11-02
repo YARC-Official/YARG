@@ -228,7 +228,7 @@ namespace YARG.Gameplay.Player
                 var availableParts = new bool[coordinator.PartCount];
                 for (int part = 0; part < availableParts.Length; part++)
                     availableParts[part] = coordinator.PartHasContent(part);
-                _hud.InitializeHarmonyMeters(availableParts, VocalTrack.Colors);
+                _hud.InitializeHarmonyMeters(availableParts, GameManager.VocalTrack.Colors);
             }
 
             if (GameManager.IsPractice)
@@ -495,7 +495,7 @@ namespace YARG.Gameplay.Player
                         coordinator.PartInCurrentPhrase(part), coordinator.PartInNextPhrase(part),
                         coordinator.CurrentPhraseProgress, coordinator.CanonicalMeters[part],
                         coordinator.AwesomeThreshold, beatPhase);
-                    _hud.UpdateHarmonyMeter(part, state);
+                    _hud.UpdateHarmonyMeter(part, state, GameManager.VocalTrack.Colors[part]);
                 }
             }
 
