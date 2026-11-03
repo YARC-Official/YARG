@@ -505,7 +505,7 @@ namespace YARG.Menu.ProfileInfo.Overview
                 : "-";
 
             return (Localize.KeyFormat("Menu.ProfileInfo.Stats.TotalTimePlayedValue",
-                    totalTime.Days, totalTime.Hours, totalTime.Minutes),
+                    (long) totalTime.TotalHours, totalTime.Minutes),
                     favoriteEngine, mostPlayedSong, mostPlayedArtist, mostPlayedGenre, mostPlayedSource,
                 Localize.KeyFormat("Menu.ProfileInfo.Stats.LongestFullComboStreakValue", longestFullComboStreak),
                 averagePercentage);

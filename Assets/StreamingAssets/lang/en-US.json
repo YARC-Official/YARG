@@ -661,7 +661,7 @@
                 "ExpertGoldStarSongs": "Expert Gold Star Songs",
                 "ExpertFullCombos": "Expert Full Combos",
                 "UnknownCustomEngine": "Unknown Custom Engine",
-                "TotalTimePlayedValue": "{0} d {1} h {2} m",
+                "TotalTimePlayedValue": "{0} h {1} m",
                 "FavoriteSongValue": "{0} - {1}",
                 "LongestFullComboStreakValue": "{0:N0} Notes",
                 "ProgressValue": "{0:N0} / {1:N0} ({2})"
