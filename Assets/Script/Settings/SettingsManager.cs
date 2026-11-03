@@ -111,12 +111,15 @@ namespace YARG.Settings
                 nameof(Settings.ShowPercentDecimals),
                 new HeaderMetadata("SortingAndFiltering"),
                 nameof(Settings.MaxSongRating),
+                nameof(Settings.UnratedSongRating),
                 nameof(Settings.CensorMatureContent),
                 nameof(Settings.RememberFilters),
+                nameof(Settings.NumberOfRecommendations),
                 nameof(Settings.SecondaryAlbumSort),
                 nameof(Settings.SecondarySourceSort),
                 nameof(Settings.SecondaryIntensitySort),
                 nameof(Settings.SongLengthLabels),
+                nameof(Settings.DateAddedSort),
                 new HeaderMetadata("PlayAShow"),
                 nameof(Settings.EnablePlayAShow),
                 nameof(Settings.PlayAShowTimeout),
@@ -283,6 +286,7 @@ namespace YARG.Settings
                 nameof(Settings.RB3EBroadcastIP),
 
             },
+            new ToastHistoryTab("ToastHistory", icon: "History"),
             new MetadataTab("Debug", icon: "Debug")
             {
                 nameof(Settings.InputDeviceLogging),

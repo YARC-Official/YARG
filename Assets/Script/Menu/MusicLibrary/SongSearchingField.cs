@@ -152,7 +152,8 @@ namespace YARG.Menu.MusicLibrary
 
         private void Update()
         {
-            if (Keyboard.current.escapeKey.wasPressedThisFrame)
+            var keyboard = Keyboard.current;
+            if (keyboard != null && keyboard.escapeKey.wasPressedThisFrame)
             {
                 ClearFilterQueries();
             }
@@ -219,7 +220,12 @@ namespace YARG.Menu.MusicLibrary
                 return;
             }
 
-            Navigator.Instance.PopScheme();
+            // The Navigator is already destroyed when this runs from OnDisable at shutdown.
+            if (Navigator.Instance != null)
+            {
+                Navigator.Instance.PopScheme();
+            }
+
             _searchNavigationActive = false;
         }
 

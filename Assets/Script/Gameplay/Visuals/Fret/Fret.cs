@@ -119,6 +119,8 @@ namespace YARG.Gameplay.Visuals
             Initialize(top, inner, particles, openParticles);
 
             // Secondary half
+            _secondaryTopMaterials.Clear();
+            _secondaryInnerMaterials.Clear();
             _secondaryOriginalUnityTopColor = secondaryTop.ToUnityColor();
             _secondaryOriginalUnityInnerColor = secondaryInner.ToUnityColor();
             _secondaryOriginalEmissionColor = secondaryTop.ToUnityColor() * 11.5f;

@@ -249,7 +249,7 @@ namespace YARG.Menu.MusicLibrary
                 _year.text = songEntry.ParsedYear;
             }
 
-            _contentRatingImage.sprite = songEntry.GetSongRating(SettingsManager.Settings.CensorMatureContent.Value) switch
+            _contentRatingImage.sprite = SongContainer.GetEffectiveSongRating(songEntry) switch
             {
                 SongRating.Unspecified             => _contentRatingIcons[0],
                 SongRating.Family_Friendly         => _contentRatingIcons[1],

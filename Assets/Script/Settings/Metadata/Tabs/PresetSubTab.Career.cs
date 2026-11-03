@@ -142,7 +142,7 @@ namespace YARG.Settings.Metadata
                     };
 
                 tierHeader.Initialize(tierTitle + tierDetails, onAddSong, onEditTier, onUpTier, onDownTier,
-                    onRemoveTier);
+                    onRemoveTier, marquee: true);
                 _fieldIndex++;
 
                 // Render songs in this tier
@@ -200,7 +200,8 @@ namespace YARG.Settings.Metadata
                                 SaveAndRefresh();
                             };
 
-                        songHeader.Initialize(songLabel, null, onEditSong, onUpSong, onDownSong, onRemoveSong);
+                        songHeader.Initialize(songLabel, null, onEditSong, onUpSong, onDownSong, onRemoveSong,
+                            marquee: true);
                         _fieldIndex++;
                     }
                 }

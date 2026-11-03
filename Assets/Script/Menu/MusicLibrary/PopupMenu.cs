@@ -249,15 +249,6 @@ namespace YARG.Menu.MusicLibrary
                 gameObject.SetActive(false);
             });
 
-            if (_musicLibrary.MenuState != MenuState.PlaylistSelect)
-            {
-                CreateItem("SortBy", () =>
-                {
-                    _menuState = State.SortSelect;
-                    UpdateForState();
-                });
-            }
-
             if (_musicLibrary.MenuState != MenuState.Playlist &&
                 _musicLibrary.MenuState != MenuState.Show &&
                 _musicLibrary.MenuState != MenuState.PlaylistSelect &&
@@ -433,11 +424,6 @@ namespace YARG.Menu.MusicLibrary
 
                     _musicLibrary.RefreshAndReselect();
                     gameObject.SetActive(false);
-                    // Annoyingly, this has to be done after the popup menu is made inactive, requring duplicate if statements
-                    if (playlistView.Playlist.Ephemeral)
-                    {
-                        _musicLibrary.SetNavigationScheme(true);
-                    }
                 });
             }
 

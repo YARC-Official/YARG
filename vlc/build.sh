@@ -42,11 +42,12 @@ MESON_OPTS=(-Dfatal_warnings=false -Dwatermark=false)
 
 # VLC 4.x SDK nightlies (same upstream commit across OS/arch).
 # Downloaded as needed; not committed (see .gitignore vlc/sdk/).
-VLC_SDK_COMMIT="2b3db140"
-MACOS_SDK_ARM64_URL="https://artifacts.videolan.org/vlc/nightly-macos-arm64/20260901-0413/vlc-macos-sdk-4.0.0-dev-arm64-2b3db140.tar.gz"
-MACOS_SDK_X64_URL="https://artifacts.videolan.org/vlc/nightly-macos-x86_64/20260901-0411/vlc-macos-sdk-4.0.0-dev-intel64-2b3db140.tar.gz"
-WIN64_SDK_7Z_URL="https://artifacts.videolan.org/vlc/nightly-win64/20260901-0424/vlc-4.0.0-dev-win64-2b3db140.7z"
-WIN64_SDK_ZIP_URL="https://artifacts.videolan.org/vlc/nightly-win64/20260901-0424/vlc-4.0.0-dev-win64-2b3db140.zip"
+# Bump these together when fetching a newer libvlc than vlc/BUILT_WITH.
+VLC_SDK_COMMIT="169ec94f"
+MACOS_SDK_ARM64_URL="https://artifacts.videolan.org/vlc/nightly-macos-arm64/20260923-0414/vlc-macos-sdk-4.0.0-dev-arm64-169ec94f.tar.gz"
+MACOS_SDK_X64_URL="https://artifacts.videolan.org/vlc/nightly-macos-x86_64/20260923-0414/vlc-macos-sdk-4.0.0-dev-intel64-169ec94f.tar.gz"
+WIN64_SDK_7Z_URL="https://artifacts.videolan.org/vlc/nightly-win64/20260923-0423/vlc-4.0.0-dev-win64-169ec94f.7z"
+WIN64_SDK_ZIP_URL="https://artifacts.videolan.org/vlc/nightly-win64/20260923-0423/vlc-4.0.0-dev-win64-169ec94f.zip"
 
 die() { echo "error: $*" >&2; exit 1; }
 log() { echo "==> $*"; }
@@ -137,8 +138,11 @@ vlc_unity_changes="$(changes_since "$VLC_UNITY_DIR" "$prev_vlc_unity")"
 log "Building LibVLCSharp.dll"
 OUT="$VLC_DIR/out"
 rm -rf "$OUT"
+# TargetFrameworks= overrides the multi-targeted csproj. Otherwise dotnet
+# evaluates net9.0-android (and friends) and demands the Android workload.
 dotnet build "$LIBVLCSHARP_DIR/src/LibVLCSharp/LibVLCSharp.csproj" -c Release \
-    -p:DefineConstants="UNITY DESKTOP" -f netstandard2.1 -o "$OUT" --nologo -v q
+    -p:DefineConstants="UNITY DESKTOP" -f netstandard2.1 \
+    -p:TargetFrameworks=netstandard2.1 -o "$OUT" --nologo -v q
 
 # ---------------------------------------------------------------------------
 # Native plugins
@@ -396,6 +400,15 @@ cp "$VLC_UNITY_DIR/Assets/VLCUnity/VLCUnity.asmdef" "$ROOT/Assets/VLCUnity/"
 cp "$VLC_UNITY_DIR/Assets/VLCUnity/VLCUnity.asmdef.meta" "$ROOT/Assets/VLCUnity/"
 cp "$VLC_UNITY_DIR/Assets/VLCUnity/Internal.meta" "$ROOT/Assets/VLCUnity/"
 
+# Re-apply YARG fixes after the upstream import. Patches are against the
+# imported tree (Assets/VLCUnity/...), not the gitignored checkout.
+if compgen -G "$VLC_DIR/patches/*.patch" > /dev/null; then
+    log "Applying vlc/patches"
+    for patch in "$VLC_DIR"/patches/*.patch; do
+        git -C "$ROOT" apply --whitespace=nowarn "$patch"
+    done
+fi
+
 rm -rf "$OUT"
 
 # ---------------------------------------------------------------------------
@@ -423,9 +436,7 @@ rm -rf "$OUT"
 } > "$PROVENANCE"
 
 cd "$ROOT"
-git add Assets/VLCUnity Assets/Plugins/vlc vlc/BUILT_WITH
-# Drop removed patch files from the index if they were tracked.
-git add -u vlc/patches 2>/dev/null || true
+git add Assets/VLCUnity Assets/Plugins/vlc vlc/BUILT_WITH vlc/build.sh vlc/BUILDING.md vlc/patches
 
 if $NO_COMMIT; then
     log "--no-commit: changes staged, not committed"

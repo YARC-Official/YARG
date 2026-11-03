@@ -46,6 +46,12 @@ namespace YARG.Settings
         Pages,
     }
 
+    public enum DateAddedSortMode
+    {
+        ChartFileDate,
+        ReleaseDate,
+    }
+
     public enum SecondaryAlbumSortMode
     {
         AlbumsByTitleSongsByTitle,
@@ -319,11 +325,25 @@ namespace YARG.Settings
                 SongRating.None,
             };
 
+            public DropdownSetting<SongRating> UnratedSongRating { get; }
+                = new(SongRating.None, _ => RefreshSongs())
+            {
+                SongRating.Family_Friendly,
+                SongRating.Supervision_Recommended,
+                SongRating.Mature,
+                SongRating.Sensitive_Content,
+                SongRating.None,
+            };
+
             // If MaxSongRating is set to anything other than Family_Friendly,
             // this setting could change the available songs, so we need to refresh the song list
             public ToggleSetting CensorMatureContent { get; } = new(false, _ => RefreshSongs());
 
             public ToggleSetting RememberFilters { get; } = new(false);
+
+            public SliderSetting NumberOfRecommendations { get; } = new(10, 0, 100,
+                _ => ShowRecommendedSongsCallback(true), wholeNumbers: true, clampMax: false,
+                inputMax: () => Mathf.Max(0, SongContainer.Count - 1));
 
             public ToggleSetting AllowDuplicateSongs { get; } = new(true, _ => MusicLibraryMenu.SetReload(MusicLibraryReloadState.Partial));
             public ToggleSetting UseFullDirectoryForPlaylists { get; } = new(false);
@@ -372,6 +392,13 @@ namespace YARG.Settings
                 {
                     SongLengthLabelMode.RangeLabels,
                     SongLengthLabelMode.LegacyLabels,
+                };
+
+            public DropdownSetting<DateAddedSortMode> DateAddedSort { get; }
+                = new(DateAddedSortMode.ChartFileDate, _ => RefreshSongs())
+                {
+                    DateAddedSortMode.ChartFileDate,
+                    DateAddedSortMode.ReleaseDate,
                 };
 
             public ToggleSetting EnablePlayAShow { get; } = new(true);

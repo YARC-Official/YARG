@@ -306,7 +306,8 @@
                 "Practice": "Practice",
                 "History": "History",
                 "Back": "Main Menu"
-            }
+            },
+            "MessageOfTheDay": "Check the careers menu for the included careers and any custom careers you have created or imported from the presets tab in the settings menu."
         },
         "History": {
             "Name": "History",
@@ -339,7 +340,8 @@
             "NothingToReset": "This career has no progress to reset yet.",
             "UnlockTitle": "Tier Unlocked",
             "UnlockMessage": "New tier available: {0}",
-            "UnknownTier": "Unknown tier"
+            "UnknownTier": "Unknown tier",
+            "BonusTier": "Bonus: {0}"
         },
         "Main": {
             "MessageOfTheDay": "<align=center><size=32><b>Welcome to v0.15!</b></size></align>\n\nv0.15 is a major update that adds many highly requested and necessary gameplay features such as roll/trill lanes and Big \"YARG\" endings, as well as revamped user interface in the song selection and results screen, drum lane customization, automatic genre categorization, experimental custom vocalist characters in venues, and more.\n\n<b>If you have any feedback or find any bugs, please let us know on Discord or GitHub.</b>\n\nHappy YARGin'!",
@@ -658,6 +660,14 @@
                 "Duet": "Duet / 2-Part Harmony",
                 "Trio": "Trio / 3-Part Harmony",
                 "Instrumental": "Instrumental"
+            },
+            "VocalistGender": {
+                "Name": "Vocalist Gender",
+                "Woman": "Woman",
+                "Man": "Man",
+                "NonBinary": "Non-Binary",
+                "Other": "Other",
+                "Unspecified": "Unspecified"
             },
             "Sources": "Song Sources",
             "Charters": "Charters",
@@ -1111,6 +1121,7 @@
             "LightingPeripherals": "Lighting Peripherals",
             "Debug": "Debug and Developer",
             "FileManagement": "File Management",
+            "ToastHistory": "Toast History",
             "Experimental": "Experimental"
         },
         "Header": {
@@ -1154,7 +1165,8 @@
             "Accessibility": "Accessibility",
             "CareerInformation": "Career Information",
             "CareerTiers": "Career Tiers",
-            "NoTiers": "  (No tiers created. Click '+ Add Tier' above)"
+            "NoTiers": "  (No tiers created. Click '+ Add Tier' above)",
+            "ToastHistory": "Toast History"
         },
         "Button": {
             "CopyCurrentSongJsonFilePath": "Copy Current Song Json File Path",
@@ -1414,6 +1426,14 @@
                     "LegacyLabels": "Short, Medium, Long, Epic"
                 }
             },
+            "DateAddedSort": {
+                "Name": "Date Added Sort",
+                "Description": "Choose which date is used when sorting the music library by Date Added. Songs without release date metadata use the chart file date.",
+                "Dropdown": {
+                    "ChartFileDate": "Chart File Date",
+                    "ReleaseDate": "Release Date"
+                }
+            },
             "HighwayTiltMultiplier": {
                 "Name": "Highway Tilt Multiplier",
                 "Description": "Controls the amount that the tracks should tilt inward during multiplayer gameplay only."
@@ -1474,6 +1494,17 @@
                     "None": "None"
                 }
             },
+            "UnratedSongRating": {
+                "Name": "Treat Unrated Songs As",
+                "Description": "Treat songs with no rating metadata as the selected rating when applying the maximum song rating filter.",
+                "Dropdown": {
+                    "Family_Friendly": "Family Friendly",
+                    "Supervision_Recommended": "Supervision Recommended",
+                    "Mature": "Mature",
+                    "Sensitive_Content": "Sensitive Content",
+                    "None": "None"
+                }
+            },
             "CensorMatureContent": {
                 "Name": "Censor Mature Content",
                 "Description": "On supported songs, mutes and censors mature content in lyrics and vocals, and downgrades the song's rating to \"Supervision Recommended\"."
@@ -1481,6 +1512,10 @@
             "RememberFilters": {
                 "Name": "Remember Filters",
                 "Description": "Saves your Filters Menu selections so they are restored the next time you start the game."
+            },
+            "NumberOfRecommendations": {
+                "Name": "Number of Recommendations",
+                "Description": "Sets how many recommended songs appear in the Music Library. Recommendations are hidden when the library or filtered results contain no more songs than this value."
             },
             "MetronomeVolume": {
                 "Name": "Metronome Volume",
@@ -2184,7 +2219,8 @@
                         "SixFretGuitar": "Guitar (6-Fret)",
                         "FiveLaneDrums": "Drums (5-Lane)",
                         "FourLaneDrums": "Drums (4-Lane)",
-                        "ProKeys": "Pro Keys"
+                        "ProKeys": "Pro Keys",
+                        "Vocals": "Vocals"
                     }
                 },
                 "FiveLaneKeys": {
@@ -2539,6 +2575,18 @@
                 },
                 "OpenHopoNoteStarPower": {
                     "Name": "Open HOPO Note Star Power"
+                },
+                "LeadVocals": {
+                    "Name": "Lead Vocals"
+                },
+                "Harmony1": {
+                    "Name": "HARM1"
+                },
+                "Harmony2": {
+                    "Name": "HARM2"
+                },
+                "Harmony3": {
+                    "Name": "HARM3"
                 }
             },
             "EnginePreset": {
@@ -2673,6 +2721,10 @@
                 "EnableLanes": {
                     "Name": "Enable Trill/Tremolo Lanes",
                     "Description": "If enabled, the game honors charted trill/tremolo lanes."
+                },
+                "ReleaseKeysCanHitNotes": {
+                    "Name": "Hit Notes On Lift",
+                    "Description": "5LK Only: If enabled, releasing keys can hit notes."
                 }
             },
             "HighwayPreset" : {

@@ -207,7 +207,7 @@ namespace YARG.Gameplay
 
                 if (await LoadAddressableYarground(hint, vocalGender))
                 {
-                    GameManager.CrowdEventHandler.Start();
+                    GameManager.CrowdEventHandler?.Start();
                     return;
                 }
             }
@@ -220,14 +220,14 @@ namespace YARG.Gameplay
             // TODO: Figure out how to decouple this
             if (_type != BackgroundType.Yarground)
             {
-                GameManager.CrowdEventHandler.Start();
+                GameManager.CrowdEventHandler?.Start();
             }
 
             switch (_type)
             {
                 case BackgroundType.Yarground:
                     await LoadYarground(result);
-                    GameManager.CrowdEventHandler.Start();
+                    GameManager.CrowdEventHandler?.Start();
                     break;
                 case BackgroundType.Video:
                     LoadVideoBackground(result);
@@ -1003,17 +1003,30 @@ namespace YARG.Gameplay
             // Make sure the animator has taken the character out of t-pose
             animator.Update(0f);
 
-            // Needed to calculate position and rotation
-            var rightHand = animator.GetBoneTransform(HumanBodyBones.RightHand);
-            var rightLittleDistal = animator.GetBoneTransform(HumanBodyBones.RightLittleDistal);
-            var rightLittleIntermediate = animator.GetBoneTransform(HumanBodyBones.RightLittleIntermediate);
-            var rightLittleProximal = animator.GetBoneTransform(HumanBodyBones.RightLittleProximal);
-            var rightRingIntermediate = animator.GetBoneTransform(HumanBodyBones.RightRingIntermediate);
-            var rightMiddleIntermediate = animator.GetBoneTransform(HumanBodyBones.RightMiddleIntermediate);
-            var rightIndexDistal = animator.GetBoneTransform(HumanBodyBones.RightIndexDistal);
-            var rightIndexIntermediate = animator.GetBoneTransform(HumanBodyBones.RightIndexIntermediate);
-            var rightIndexProximal = animator.GetBoneTransform(HumanBodyBones.RightIndexProximal);
-            var rightThumbDistal = animator.GetBoneTransform(HumanBodyBones.RightThumbDistal);
+            Transform rightHand;
+            Transform rightThumbDistal;
+            Transform rightLittleDistal;
+            Transform rightIndexIntermediate;
+            Transform rightIndexProximal;
+            Transform rightLittleProximal;
+
+            try
+            {
+                rightHand = animator.GetBoneTransform(HumanBodyBones.RightHand);
+
+                // Needed to calculate position and rotation
+                rightLittleDistal = animator.GetBoneTransform(HumanBodyBones.RightLittleDistal);
+                rightLittleProximal = animator.GetBoneTransform(HumanBodyBones.RightLittleProximal);
+                rightIndexIntermediate = animator.GetBoneTransform(HumanBodyBones.RightIndexIntermediate);
+                rightIndexProximal = animator.GetBoneTransform(HumanBodyBones.RightIndexProximal);
+                rightThumbDistal = animator.GetBoneTransform(HumanBodyBones.RightThumbDistal);
+            }
+            catch (NullReferenceException)
+            {
+                // We're missing bones we need, so never mind
+                YargLogger.LogError("Custom character is missing one or more required hand bones!");
+                return;
+            }
 
             // Parent microphone to right hand
             var mic = Instantiate(Resources.Load<GameObject>("Animations/Vocals/Microphone"), rightHand);

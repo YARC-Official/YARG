@@ -25,6 +25,7 @@ using YARG.Menu.Persistent;
 using YARG.Menu.ScoreScreen;
 using YARG.Playback;
 using YARG.Player;
+using YARG.Playlists;
 using YARG.Replays;
 using YARG.Scores;
 using YARG.Settings;
@@ -67,6 +68,8 @@ namespace YARG.Gameplay
 
         [SerializeField]
         private UnisonDisplay _unisonDisplay;
+        
+        public UnisonDisplay UnisonDisplay => _unisonDisplay;
 
         [SerializeField]
         private BREBox _breBox;
@@ -198,8 +201,7 @@ namespace YARG.Gameplay
         private bool   _autoCalibrateVideoOnPause;
         private double _preFadeOutVolume = DEFAULT_VOLUME;
 
-        public bool PlayingAShow => GlobalVariables.State.PlayingAShow;
-        public int  ShowIndex = 0;
+        public bool PlayingAShow => Setlist.IsPlaying;
 
         private BandComboType _bandComboType;
 
@@ -293,18 +295,20 @@ namespace YARG.Gameplay
 
         private void Update()
         {
-
-
-            // Pause/unpause
-            if (Keyboard.current.escapeKey.wasPressedThisFrame)
+            var keyboard = Keyboard.current;
+            if (keyboard != null)
             {
-                TogglePause();
-            }
+                // Pause/unpause
+                if (keyboard.escapeKey.wasPressedThisFrame)
+                {
+                    TogglePause();
+                }
 
-            // Toggle debug text
-            if (Keyboard.current.ctrlKey.isPressed && Keyboard.current.tabKey.wasPressedThisFrame)
-            {
-                ToggleDebugEnabled();
+                // Toggle debug text
+                if (keyboard.ctrlKey.isPressed && keyboard.tabKey.wasPressedThisFrame)
+                {
+                    ToggleDebugEnabled();
+                }
             }
 
             // Skip the rest if paused
@@ -318,7 +322,7 @@ namespace YARG.Gameplay
 
             ApplySongSpeed();
             BeatEventHandler.Update(_songRunner.SongTime, _songRunner.VisualTime);
-            CrowdEventHandler.Update(_songRunner.SongTime);
+            CrowdEventHandler?.Update(_songRunner.SongTime);
 
             // Update players
             int totalScore = 0;
@@ -445,7 +449,7 @@ namespace YARG.Gameplay
                 {
                     _pauseMenu.PushMenu(PauseMenuManager.Menu.PracticePause);
                 }
-                else if (GlobalVariables.State.PlayingAShow)
+                else if (PlayingAShow)
                 {
                     _pauseMenu.PushMenu(PauseMenuManager.Menu.SetlistPause);
                 }

@@ -227,7 +227,7 @@ namespace YARG.Gameplay
             _crowdClapScheduler = new CrowdClapScheduler(_mixer);
             _crowdClapScheduler.Schedule(_songRunner, Chart.SyncTrack, Chart.CrowdEvents,
                 FirstNoteTime, LastNoteTime, SongLength);
-            CrowdEventHandler.SetClapScheduler(_crowdClapScheduler);
+            CrowdEventHandler?.SetClapScheduler(_crowdClapScheduler);
 
             // Spawn players
             CreatePlayers();
@@ -292,7 +292,7 @@ namespace YARG.Gameplay
 
             var noFail = ReplayData?.NoFail ?? SettingsManager.Settings.NoFail.Value != NoFailMode.Off;
             EngineManager.InitializeHappiness(noFail);
-            CrowdEventHandler.UpdateCrowdMuteState(force: true);
+            CrowdEventHandler?.UpdateCrowdMuteState(force: true);
 
             EngineManager.OnCodaStart += StartCoda;
             EngineManager.OnCodaEnd += EndCoda;
@@ -432,7 +432,11 @@ namespace YARG.Gameplay
             Chart.SyncTrack.GenerateBeatlines(SongLength + SONG_END_DELAY, true);
 
             BeatEventHandler = new BeatEventHandler(Chart.SyncTrack);
-            CrowdEventHandler = new CrowdEventHandler(Chart, this);
+
+            if (!IsPractice)
+            {
+                CrowdEventHandler = new CrowdEventHandler(Chart, this);
+            }
 
             _chartLoaded?.Invoke(Chart);
 

@@ -62,7 +62,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 1134014722335189955, guid: 21db4751dd6d460499117f8c2d3de781, type: 2}
+  - {fileID: 2100000, guid: 3b23fd95d2fd96d44ae755405d4a0c53, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -109,7 +109,7 @@ MonoBehaviour:
   m_text: Lyric...
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 21db4751dd6d460499117f8c2d3de781, type: 2}
-  m_sharedMaterial: {fileID: 1134014722335189955, guid: 21db4751dd6d460499117f8c2d3de781, type: 2}
+  m_sharedMaterial: {fileID: 2100000, guid: 3b23fd95d2fd96d44ae755405d4a0c53, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
