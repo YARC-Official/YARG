@@ -304,6 +304,37 @@ namespace YARG.Scores
             return null;
         }
 
+        public static List<PlayerScoreWithChecksum> GetAllScoresWithChecksumsByPlayerId(Guid id)
+        {
+            try
+            {
+                return _db.QueryPlayerScoresWithChecksums(id);
+            }
+            catch (Exception e)
+            {
+                YargLogger.LogException(e, "Failed to load all PlayerScoreRecords with song checksums from database");
+            }
+
+            return null;
+        }
+
+        public static List<PlayerScoreWithChecksum> GetScoresInCurrentLibraryByPlayerId(Guid id)
+        {
+            try
+            {
+                return _db.QueryPlayerScoresInCurrentLibrary(
+                    id,
+                    SongContainer.SongsByHash.Keys,
+                    SongContainer.LibraryRevision);
+            }
+            catch (Exception e)
+            {
+                YargLogger.LogException(e, "Failed to load current-library scores from database.");
+            }
+
+            return null;
+        }
+
         /// <summary>
         /// Get the highest score (in points) for a specific song, player and instrument.
         /// If `allowCacheUpdate` is true, all high scores for the player and instrument will be fetched from the database and cached, to speed up subsequent player high score requests.
