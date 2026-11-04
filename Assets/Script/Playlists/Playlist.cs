@@ -71,16 +71,25 @@ namespace YARG.Playlists
         public List<SongEntry> ToList()
         {
             var songlist = new List<SongEntry>();
+            ResolveInto(songlist);
+            return songlist;
+        }
+
+        /// <summary>
+        /// Replaces the contents of <paramref name="songs"/> with this playlist's songs that resolve in the current
+        /// library, in order. Allocates only when <paramref name="songs"/> has to grow.
+        /// </summary>
+        public void ResolveInto(List<SongEntry> songs)
+        {
+            songs.Clear();
 
             foreach (var hash in SongHashes)
             {
                 if (SongContainer.SongsByHash.TryGetValue(hash, out var song))
                 {
-                    songlist.Add(song[0]);
+                    songs.Add(song[0]);
                 }
             }
-
-            return songlist;
         }
 
         public void MoveSongUp(SongEntry song)

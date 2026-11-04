@@ -871,6 +871,7 @@ namespace YARG.Settings
             #region Experimental
 
             public ToggleSetting DataStreamEnable { get; } = new(false, DataStreamEnableCallback );
+            public ToggleSetting SetlistSocketEnable { get; } = new(false);
             public DropdownSetting<BandComboType> BandComboTypeSetting { get; } = new(BandComboType.Off)
             {
                 BandComboType.Off,

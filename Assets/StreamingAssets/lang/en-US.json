@@ -230,6 +230,7 @@
             "ProfileCreated": "Profile created for new device: {0}\nTime to do some YARGin!",
             "TooManyPauses": "Score saving disabled: Too many pauses.",
             "ProfileLoadWarning": "{0} profile(s) could not be loaded by this version of YARG. They are kept and will be retried after an update, or can be removed from the profile list.",
+            "SetlistSocketPortInUse": "Couldn't open the setlist socket on port {0}. Another app may be using it.",
             "UnsupportedDevice": "Automatic profile creation is not supported for {0}!"
         },
         "Dialog": {
@@ -1940,6 +1941,10 @@
             "DataStreamEnable": {
                 "Name": "Enable UDP data stream",
                 "Description": "Enables sending of UDP information packets over the network, for software such as YALCY."
+            },
+            "SetlistSocketEnable": {
+                "Name": "Enable setlist socket",
+                "Description": "Lets apps on this computer follow the setlist over a local connection on port 36108. Other devices can't connect."
             },
             "RB3EEnabled": {
                 "Name": "Enable RB3E Stage Kit data stream",
