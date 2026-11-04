@@ -52,5 +52,28 @@ namespace YARG.Helpers.Authoring
                 particles.SetBreMode(breMode);
             }
         }
+
+        // See EffectParticle.ZeroStartDelay - applies it to every particle in this group.
+        public void ZeroStartDelay()
+        {
+            foreach (var particles in EffectParticles)
+                particles.ZeroStartDelay();
+        }
+
+        // See EffectParticle.FastForward - applies it to every particle in this group.
+        public void FastForward(float seconds)
+        {
+            foreach (var particles in EffectParticles)
+                particles.FastForward(seconds);
+        }
+
+        // See EffectParticle.StopImmediate - applies it to every particle in this group.
+        public void StopImmediate()
+        {
+            foreach (var particles in EffectParticles)
+                particles.StopImmediate();
+            foreach (var lights in EffectLights)
+                lights.Stop();
+        }
     }
 }
