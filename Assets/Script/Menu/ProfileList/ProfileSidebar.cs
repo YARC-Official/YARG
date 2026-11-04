@@ -78,6 +78,9 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private TMP_InputField _inputCalibrationField;
         [SerializeField]
+        private TMP_InputField _videoOffsetField;
+
+        [SerializeField]
         private Toggle _leftyFlipToggle;
         [SerializeField]
         private Toggle _rangeDisabledToggle;
@@ -257,6 +260,7 @@ namespace YARG.Menu.ProfileList
             _noteSpeedField.text = profile.NoteSpeed.ToString(NUMBER_FORMAT, CultureInfo.CurrentCulture);
             _highwayLengthField.text = profile.HighwayLength.ToString(NUMBER_FORMAT, CultureInfo.CurrentCulture);
             _inputCalibrationField.text = _profile.InputCalibrationMilliseconds.ToString();
+            _videoOffsetField.text = VideoOffsetContainer.GetOffsetMilliseconds(_profile).ToString();
             _leftyFlipToggle.isOn = profile.LeftyFlip;
             _rangeDisabledToggle.isOn = profile.RangeEnabled;
             _openLaneDisplayTypeDropdown.value = _openLaneDisplayTypesByIndex.IndexOf(profile.OpenLaneDisplayType);
@@ -473,6 +477,17 @@ namespace YARG.Menu.ProfileList
 
             // Always format it after
             _inputCalibrationField.text = _profile.InputCalibrationMilliseconds.ToString();
+        }
+
+        public void ChangeVideoOffset()
+        {
+            if (long.TryParse(_videoOffsetField.text, out long offset))
+            {
+                VideoOffsetContainer.SetOffsetMilliseconds(_profile, offset);
+            }
+
+            // Always format it after
+            _videoOffsetField.text = VideoOffsetContainer.GetOffsetMilliseconds(_profile).ToString();
         }
 
         public void ChangeLeftyFlip()
