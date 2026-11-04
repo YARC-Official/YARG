@@ -6,6 +6,7 @@ using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Core.Replays.Analyzer;
 using YARG.Core.Song;
+using YARG.Gameplay;
 using YARG.Helpers;
 using YARG.Localization;
 using YARG.Menu.Persistent;
@@ -244,7 +245,9 @@ namespace YARG.Menu.History
                     IsHighScore = isHighScore,
                     Player = new YargPlayer(playerResult.Frame, data),
                     Stats = playerResult.ResultStats,
-                    IsReplay = playerEntry.IsReplayPlayer
+                    IsReplay = playerEntry.IsReplayPlayer,
+                    Percent = GameManager.GetScorePercent(playerResult.ResultStats,
+                        playerResult.Frame.EngineParameters, playerResult.MaxScoreWithoutStarPower),
                 };
             }
 

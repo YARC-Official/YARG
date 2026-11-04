@@ -31,6 +31,8 @@ namespace YARG.Gameplay.Visuals
         private Color _customPresetColor;
         [SerializeField]
         private Color _soloTapsPresetColor;
+        [SerializeField]
+        private Color _tournamentPresetColor;
 
         private TextMeshPro[] _textCache;
 
@@ -42,10 +44,13 @@ namespace YARG.Gameplay.Visuals
 
             Color color;
 
-            // Right now Solo Taps is the only default preset that has a different color. Add more here if needed.
             if (preset == EnginePreset.SoloTaps)
             {
                 color = _soloTapsPresetColor;
+            }
+            else if (preset == EnginePreset.Tournament)
+            {
+                color = _tournamentPresetColor;
             }
             else if (EnginePreset.Defaults.Contains(preset))
             {
