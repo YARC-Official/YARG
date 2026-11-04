@@ -17,6 +17,10 @@ namespace YARG.Settings.Types
         string IndexToString(int index);
     }
 
+    public interface ISearchableDropdownSetting
+    {
+    }
+
     // This attribute makes it not use IEnumerable to serialize
     [JsonObject]
     public class DropdownSetting<T> : AbstractSetting<T>, IDropdownSetting, IEnumerable<T>
@@ -54,5 +58,13 @@ namespace YARG.Settings.Types
         private List<T>.Enumerator GetEnumerator() => _possibleValues.GetEnumerator();
         IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    }
+
+    public class SearchableDropdownSetting<T> : DropdownSetting<T>, ISearchableDropdownSetting
+    {
+        public SearchableDropdownSetting(T value, Action<T> onChange = null, bool localizable = true)
+            : base(value, onChange, localizable)
+        {
+        }
     }
 }

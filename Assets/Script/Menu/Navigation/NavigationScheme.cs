@@ -28,6 +28,7 @@ namespace YARG.Menu.Navigation
             public readonly MenuAction Action;
             public readonly string     LocalizationKey;
             public readonly bool       Hide;
+            public readonly bool       ShowHeldState;
 
             private readonly Action<NavigationContext> _handler;
             private readonly Action<NavigationContext> _onHoldHandler;
@@ -44,7 +45,8 @@ namespace YARG.Menu.Navigation
                 Action onHoldOffHandler = null,
                 Action onHoldHandler = null,
                 float holdSeconds = 0,
-                bool hide = false)
+                bool hide = false,
+                bool showHeldState = false)
             {
                 Action = action;
                 LocalizationKey = localizationKey;
@@ -53,6 +55,7 @@ namespace YARG.Menu.Navigation
                 _onHoldHandler = _ => onHoldHandler?.Invoke();
                 HoldSeconds = holdSeconds;
                 Hide = hide;
+                ShowHeldState = showHeldState;
             }
 
             public Entry(MenuAction action,
@@ -61,7 +64,8 @@ namespace YARG.Menu.Navigation
                 Action<NavigationContext> onHoldOffHandler = null,
                 Action<NavigationContext> onHoldHandler = null,
                 float holdSeconds = 0,
-                bool hide = false)
+                bool hide = false,
+                bool showHeldState = false)
             {
                 Action = action;
                 LocalizationKey = localizationKey;
@@ -70,6 +74,7 @@ namespace YARG.Menu.Navigation
                 _onHoldHandler = onHoldHandler;
                 HoldSeconds = holdSeconds;
                 Hide = hide;
+                ShowHeldState = showHeldState;
             }
 
             public void Invoke() => Invoke(new(Action, null));

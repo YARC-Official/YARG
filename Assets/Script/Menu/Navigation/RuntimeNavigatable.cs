@@ -289,7 +289,7 @@ namespace YARG.Menu.Navigation
         /// </summary>
         public static void OpenDropdownList(TMP_Dropdown dropdown)
         {
-            if (dropdown == null || dropdown.options.Count == 0)
+            if (dropdown == null || !dropdown.interactable || dropdown.options.Count == 0)
             {
                 return;
             }
@@ -309,6 +309,14 @@ namespace YARG.Menu.Navigation
                 return;
             }
 
+            // A native mouse click and a row-level click forwarder can both arrive
+            // on the frame after TMP opens the list. Only attach one search/nav
+            // handler to a given list instance.
+            if (list.TryGetComponent<DropdownTypeaheadSearch>(out _))
+            {
+                return;
+            }
+
             var toggles = list.GetComponentsInChildren<Toggle>();
             if (toggles.Length == 0)
             {
@@ -318,8 +326,43 @@ namespace YARG.Menu.Navigation
             var scrollRect = list.GetComponent<ScrollRect>();
             int index = Mathf.Clamp(dropdown.value, 0, toggles.Length - 1);
 
+            DropdownTypeaheadSearch search = null;
+            SearchableDropdownMarker searchableMarker = null;
+            if (dropdown.TryGetComponent(out searchableMarker) && searchableMarker.IsConfigured)
+            {
+                search = list.gameObject.AddComponent<DropdownTypeaheadSearch>();
+                search.Initialize(dropdown, toggles, searchableMarker);
+            }
+
+            int FindVisible(int start, int direction)
+            {
+                for (int offset = 0; offset < toggles.Length; offset++)
+                {
+                    int rawCandidate = start + direction * offset;
+                    int candidate = ((rawCandidate % toggles.Length) + toggles.Length) % toggles.Length;
+                    if (toggles[candidate].gameObject.activeSelf && toggles[candidate].interactable)
+                    {
+                        return candidate;
+                    }
+                }
+
+                return -1;
+            }
+
             void Highlight()
             {
+                if (index < 0 || index >= toggles.Length ||
+                    !toggles[index].gameObject.activeSelf || !toggles[index].interactable)
+                {
+                    index = FindVisible(0, 1);
+                }
+
+                if (index < 0)
+                {
+                    EventSystem.current?.SetSelectedGameObject(null);
+                    return;
+                }
+
                 var eventSystem = EventSystem.current;
                 if (eventSystem != null)
                 {
@@ -332,6 +375,11 @@ namespace YARG.Menu.Navigation
                     scrollRect.verticalNormalizedPosition =
                         1f - (float) index / (toggles.Length - 1);
                 }
+            }
+
+            if (search != null)
+            {
+                search.FilterChanged = Highlight;
             }
 
             Highlight();
@@ -347,6 +395,40 @@ namespace YARG.Menu.Navigation
                 }
             }
 
+            void ConfirmSelection()
+            {
+                if (dropdown == null) { PopOnce(); return; }
+                if (index < 0 || !toggles[index].gameObject.activeSelf || !toggles[index].interactable) return;
+                if (searchableMarker != null)
+                {
+                    searchableMarker.SelectVisibleIndex(index);
+                    if (dropdown != null) dropdown.Hide();
+                    return;
+                }
+                if (index == dropdown.value)
+                {
+                    // TMP suppresses the change event for the same index, so
+                    // the list wouldn't close; treat re-picking as a cancel.
+                    dropdown.Hide();
+                }
+                else
+                {
+                    toggles[index].isOn = true;
+                }
+            }
+
+            void CancelSelection()
+            {
+                if (dropdown == null) { PopOnce(); return; }
+                dropdown.Hide();
+            }
+
+            if (search != null)
+            {
+                search.ConfirmPressed = ConfirmSelection;
+                search.CancelPressed = CancelSelection;
+            }
+
             var watcher = list.gameObject.AddComponent<DropdownListCloseWatcher>();
             watcher.Closed = PopOnce;
 
@@ -357,42 +439,24 @@ namespace YARG.Menu.Navigation
                 new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Previous", () =>
                 {
                     if (dropdown == null) { PopOnce(); return; }
-                    index = (index - 1 + toggles.Length) % toggles.Length;
+                    index = FindVisible(index - 1, -1);
                     Highlight();
                 }),
                 new NavigationScheme.Entry(MenuAction.Down, "Menu.Common.Next", () =>
                 {
                     if (dropdown == null) { PopOnce(); return; }
-                    index = (index + 1) % toggles.Length;
+                    index = FindVisible(index + 1, 1);
                     Highlight();
                 }),
-                new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm", () =>
-                {
-                    if (dropdown == null) { PopOnce(); return; }
-                    if (index == dropdown.value)
-                    {
-                        // TMP suppresses the change event for the same index, so
-                        // the list wouldn't close; treat re-picking as a cancel.
-                        dropdown.Hide();
-                    }
-                    else
-                    {
-                        toggles[index].isOn = true;
-                    }
-                }),
-                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Cancel", () =>
-                {
-                    if (dropdown == null) { PopOnce(); return; }
-                    dropdown.Hide();
-                }),
+                new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm", ConfirmSelection),
+                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Cancel", CancelSelection),
             }, null));
         }
     }
 
     /// <summary>
-    /// Pops the dropdown-list navigation scheme when the TMP list object is
-    /// destroyed (TMP destroys it on every close path). Added at runtime by
-    /// <see cref="RuntimeNavigatable.OpenDropdownList"/>.
+    /// Opt-in marker placed on dropdowns whose open list supports keyboard text filtering.
+    /// The current query is shown in the closed dropdown's caption while its list is open.
     /// </summary>
     public class DropdownListCloseWatcher : MonoBehaviour
     {
