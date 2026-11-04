@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using YARG.Helpers.Authoring;
 
 namespace YARG.Themes
 {
@@ -18,6 +19,13 @@ namespace YARG.Themes
         [field: Space]
         [field: SerializeField]
         public Animator Animator { get; private set; }
+
+        [field: Space]
+        [field: SerializeField]
+        public EffectGroup HitEffect { get; private set; }
+
+        [field: SerializeField]
+        public EffectGroup MissEffect { get; private set; }
 
         private void OnDrawGizmos()
         {
