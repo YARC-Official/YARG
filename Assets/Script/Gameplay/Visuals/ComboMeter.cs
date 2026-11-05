@@ -1,7 +1,10 @@
 ﻿using TMPro;
+using System.Collections;
+using DG.Tweening;
 using UnityEngine;
 using YARG.Core.Game;
 using YARG.Helpers.UI;
+using YARG.Settings;
 
 namespace YARG.Gameplay.Visuals
 {
@@ -18,11 +21,26 @@ namespace YARG.Gameplay.Visuals
         [Header("FC Ring")]
         [SerializeField]
         private MeshRenderer _ringMesh;
-
         [SerializeField]
         private Material _fcRingMaterial;
         [SerializeField]
         private Material _noFcRingMaterial;
+
+        [Header("ComboNumber")]
+        [SerializeField]
+        private MeshRenderer _comboWing;
+        [SerializeField]
+        private TextMeshPro _comboText;
+        [SerializeField]
+        private Color _noFcColor;
+        [SerializeField]
+        private Color _FcColor;
+
+        [Header("ComboNumber")]
+        [SerializeField]
+        private MeshRenderer _judgeWing;
+        [SerializeField]
+        private TextMeshPro _accuracy;
 
         [Header("Preset Colors")]
         [SerializeField]
@@ -34,10 +52,14 @@ namespace YARG.Gameplay.Visuals
 
         private TextMeshPro[] _textCache;
 
+        private static bool StreakCounterEnabled => SettingsManager.Settings.StreakCounter.Value;
+        private static bool Judgement => SettingsManager.Settings.Judgement.Value;
+
         public void Initialize(EnginePreset preset, int maxMultiplier, bool isMultiplayer)
         {
             _multiplierText.enabled = false;
             _multiplierText.text = string.Empty;
+            _accuracy.text = string.Empty;
             _textCache = MultiplierTextHelper.CreateMultiplierTextCache(maxMultiplier, _multiplierText, isMultiplayer);
 
             Color color;
@@ -56,12 +78,40 @@ namespace YARG.Gameplay.Visuals
                 color = _customPresetColor;
             }
 
+            // Set the combo text and wing visibility based on the StreakCounter setting
+            if (StreakCounterEnabled)
+            {
+                _comboText.enabled = true;
+                _comboWing.enabled = true;
+            }
+            else
+            {
+                _comboText.enabled = false;
+                _comboWing.enabled = false;
+            }
+
+            // Set the judgement text and wing visibility based on the Judgement setting
+            if (Judgement)
+            {
+                _accuracy.enabled = true;
+                _judgeWing.enabled = true;
+            }
+            else
+            {
+                _accuracy.enabled = false;
+                _judgeWing.enabled = false;
+            }
+
+            _comboText.color = _FcColor;
             _comboMesh.material.SetColor(_multiplierColorProperty, color);
         }
 
         public void SetCombo(int multiplier, int displayMultiplier, int maxMultiplier, int combo, bool codaStarted)
         {
             _multiplierText.enabled = false;
+
+            // Update the combo text everytime.
+            _comboText.SetText("{0}", combo);
 
             // No multiplier text or updates while coda is active
             if (codaStarted)
@@ -92,6 +142,37 @@ namespace YARG.Gameplay.Visuals
         public void SetFullCombo(bool isFc)
         {
             _ringMesh.sharedMaterial = isFc ? _fcRingMaterial : _noFcRingMaterial;
+            _comboText.color = isFc ? _FcColor : _noFcColor;
         }
+
+        // This will be simplified later...
+        public void JudgementPerfect()
+        {
+            // Originally supposed to be PEFRECT
+            _accuracy.SetText("PERFECT");
+            StartCoroutine(FadeCoroutine());
+        }
+
+        public void JudgementPoor()
+        {
+            _accuracy.SetText("POOR");
+            StartCoroutine(FadeCoroutine());
+        }
+
+        public void JudgementMiss()
+        {
+            _accuracy.SetText("MISS");
+            StartCoroutine(FadeCoroutine());
+        }
+
+        private IEnumerator FadeCoroutine()
+        {
+            _accuracy.DOFade(1f, 0f).SetLink(gameObject).WaitForCompletion();
+            _accuracy.alpha = 1f;
+
+            // Then fade to 0 in a second
+            yield return _accuracy.DOFade(0f, 0.2f).SetLink(gameObject).WaitForCompletion();
+        }
+
     }
 }
