@@ -627,6 +627,7 @@ namespace YARG.Input
 
             if (_activeMenuRuntimeBindings.Remove(controller, out var menuBindings))
             {
+                menuBindings.Source.Changed -= OnMenuBindingSetChanged;
                 _menuInputAggregator.Remove(menuBindings);
                 menuBindings.Dispose();
             }
