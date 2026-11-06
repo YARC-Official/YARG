@@ -126,7 +126,7 @@ namespace YARG.Input.Serialization
 
                             if (!reusableBindingSet.Bindings.ContainsKey(actionId))
                             {
-                                reusableBindingSet.Bindings[actionId] = controlBinding.Deserialize(binds);
+                                reusableBindingSet.Bindings[actionId] = controlBinding.Deserialize();
                             }
 
                             var deserializedSingle = singleBinding.Deserialize(binds);
@@ -168,7 +168,7 @@ namespace YARG.Input.Serialization
         [JsonConstructor]
         public SerializedControlBindingV2() { }
 
-        public SerializedReusableControlBinding Deserialize(SerializedProfileBindingsV2 binds)
+        public SerializedReusableControlBinding Deserialize()
         {
             var control = new SerializedReusableControlBinding();
 

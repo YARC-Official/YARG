@@ -549,7 +549,11 @@ namespace YARG.Input
 
         public void OnBindingSetDeleted(ReusableBindingSet deleted)
         {
-            _preferredBindsByContext.Remove((deleted.Mode, deleted.ControllerFamily));
+            var key = (deleted.Mode, deleted.ControllerFamily);
+            if (_preferredBindsByContext.TryGetValue(key, out var existingPreference) && existingPreference == deleted)
+            {
+                _preferredBindsByContext.Remove(key);
+            }
 
             // If we deleted a binding set that was being used by an actively-connected player, then
             // we might have some extra work to do, especially if this was a menu binding set since
