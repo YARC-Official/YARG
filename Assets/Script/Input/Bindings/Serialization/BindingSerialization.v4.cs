@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using YARG.Core;
+using YARG.Input.Bindings;
 using YARG.Menu.ProfileList;
 
 namespace YARG.Input.Serialization
@@ -59,8 +60,6 @@ namespace YARG.Input.Serialization
             public List<SerializedControllerV4> Controllers = new();
             public List<SerializedMicV4> Microphones = new();
             public Dictionary<GameMode, SerializedModeMappingCollectionV4> ModeMappings = new();
-
-            public Dictionary<string, Guid> MenuMappings = new(); // Key is BaseLayout
 
             [JsonConstructor]
             public SerializedProfileDeviceInfoV4() { }
@@ -166,6 +165,16 @@ namespace YARG.Input.Serialization
                 foreach (var (id, serializedBinds) in Bindings)
                 {
                     converted.Bindings[id] = serializedBinds.Deserialize();
+                }
+
+                // Flesh out any empty bindings from the template so we don't get KeyNotFound exceptions later
+                var template = ReusableBindingSetTemplates.GetTemplate(GameMode);
+                foreach (var templateAction in template.Keys)
+                {
+                    if (!converted.Bindings.ContainsKey(templateAction))
+                    {
+                        converted.Bindings[templateAction] = new();
+                    }
                 }
 
                 return converted;
