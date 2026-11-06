@@ -178,6 +178,7 @@ namespace YARG.Menu.ProfileList
         public void SelectBindingSet(ReusableBindingSet? bindingSet)
         {
             BindingSet = bindingSet;
+            _settingsPanel.UnsetExplicitUnlock();
 
             if (BindingSet is null)
             {

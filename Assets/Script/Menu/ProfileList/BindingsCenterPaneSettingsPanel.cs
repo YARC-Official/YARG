@@ -40,6 +40,10 @@ namespace YARG.Menu.ProfileList
 
         public bool Locked { get; private set; }
         private bool _explicitlyUnlocked = false;
+        public void UnsetExplicitUnlock()
+        {
+            _explicitlyUnlocked = false;
+        }
 
         public void OnEnable()
         {
