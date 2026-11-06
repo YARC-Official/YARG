@@ -1557,7 +1557,6 @@ MonoBehaviour:
   _unisonDisplay: {fileID: 1064002294}
   _breBox: {fileID: 1485334878}
   <VocalTrack>k__BackingField: {fileID: 1312797156}
-  ShowIndex: 0
 --- !u!4 &318454372
 Transform:
   m_ObjectHideFlags: 0

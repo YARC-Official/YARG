@@ -1681,6 +1681,7 @@
             "LightingPeripherals": "Lighting Peripherals",
             "Debug": "Debug and Developer",
             "FileManagement": "File Management",
+            "ToastHistory": "Toast History",
             "Experimental": "Experimental"
         },
         "Header": {
@@ -1724,7 +1725,8 @@
             "Accessibility": "Accessibility",
             "CareerInformation": "Career Information",
             "CareerTiers": "Career Tiers",
-            "NoTiers": "  (No tiers created. Click '+ Add Tier' above)"
+            "NoTiers": "  (No tiers created. Click '+ Add Tier' above)",
+            "ToastHistory": "Toast History"
         },
         "Button": {
             "CopyCurrentSongJsonFilePath": "Copy Current Song Json File Path",
@@ -1982,6 +1984,14 @@
                 "Dropdown": {
                     "RangeLabels": "2:00, 5:00, 10:00, 15:00, 20:00",
                     "LegacyLabels": "Short, Medium, Long, Epic"
+                }
+            },
+            "DateAddedSort": {
+                "Name": "Date Added Sort",
+                "Description": "Choose which date is used when sorting the music library by Date Added. Songs without release date metadata use the chart file date.",
+                "Dropdown": {
+                    "ChartFileDate": "Chart File Date",
+                    "ReleaseDate": "Release Date"
                 }
             },
             "HighwayTiltMultiplier": {
@@ -2757,7 +2767,8 @@
                         "SixFretGuitar": "Guitar (6-Fret)",
                         "FiveLaneDrums": "Drums (5-Lane)",
                         "FourLaneDrums": "Drums (4-Lane)",
-                        "ProKeys": "Pro Keys"
+                        "ProKeys": "Pro Keys",
+                        "Vocals": "Vocals"
                     }
                 },
                 "FiveLaneKeys": {
@@ -3112,6 +3123,18 @@
                 },
                 "OpenHopoNoteStarPower": {
                     "Name": "Open HOPO Note Star Power"
+                },
+                "LeadVocals": {
+                    "Name": "Lead Vocals"
+                },
+                "Harmony1": {
+                    "Name": "HARM1"
+                },
+                "Harmony2": {
+                    "Name": "HARM2"
+                },
+                "Harmony3": {
+                    "Name": "HARM3"
                 }
             },
             "EnginePreset": {

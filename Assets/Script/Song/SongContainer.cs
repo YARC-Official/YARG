@@ -201,8 +201,8 @@ namespace YARG.Song
                 await UniTask.NextFrame();
             }
 
-            PlaylistContainer.ReplaceUpdatedSongHashes(
-                FindUpdatedSongHashes(previousSongCache, refreshedSongCache));
+            var updatedSongHashes = FindUpdatedSongHashes(previousSongCache, refreshedSongCache);
+            PlaylistContainer.ReplaceUpdatedSongHashes(updatedSongHashes);
             _songCache = refreshedSongCache;
 
             if (SettingsManager.Settings.Genrelizer.Value is GenrelizerMode.Genrelize && !GlobalVariables.OfflineMode)
@@ -219,6 +219,8 @@ namespace YARG.Song
             }
             SongSorting.SortEntries(_songCache, _sortedSongs);
             FillContainers();
+            // After FillContainers, so Setlist.Changed subscribers resolve songs against the new library
+            Setlist.ReplaceUpdatedSongHashes(updatedSongHashes);
             stopwatch.Stop();
 
             YargLogger.LogFormatInfo("Scan time: {0}s", stopwatch.Elapsed.TotalSeconds);

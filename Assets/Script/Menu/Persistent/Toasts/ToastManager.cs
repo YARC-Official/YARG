@@ -42,8 +42,14 @@ namespace YARG.Menu.Persistent
         private Sprite _iconError;
 
         private static readonly Queue<ToastInfo> _toastQueue = new();
+        private static readonly QueueBuffer<ToastInfo> _toastHistory = new(50);
 
-        private enum ToastType
+        /// <summary>
+        /// The most recently shown toasts, oldest first.
+        /// </summary>
+        public static IEnumerable<ToastInfo> ToastHistory => _toastHistory;
+
+        public enum ToastType
         {
             General,
             Information,
@@ -52,7 +58,7 @@ namespace YARG.Menu.Persistent
             Error,
         }
 
-        private readonly struct ToastInfo
+        public readonly struct ToastInfo
         {
             public readonly ToastType Type;
 
@@ -144,12 +150,16 @@ namespace YARG.Menu.Persistent
 
         private static void AddToast(ToastType type, string text, Action onClick)
         {
-            _toastQueue.Enqueue(new ToastInfo(type, text, onClick));
+            var toastInfo = new ToastInfo(type, text, onClick);
+            _toastQueue.Enqueue(toastInfo);
+            _toastHistory.Add(toastInfo);
         }
 
         private static void AddToast(ToastType type, Func<string> text, Action onClick)
         {
-            _toastQueue.Enqueue(new ToastInfo(type, text, onClick));
+            var toastInfo = new ToastInfo(type, text, onClick);
+            _toastQueue.Enqueue(toastInfo);
+            _toastHistory.Add(toastInfo);
         }
 
         private void EnsureTopmostCanvas()
@@ -168,18 +178,21 @@ namespace YARG.Menu.Persistent
                 gameObject.AddComponent<GraphicRaycaster>();
         }
 
+        public (Color Color, Sprite Icon) GetStyle(ToastType type) => type switch
+        {
+            ToastType.General     => (_generalColor,     _iconGeneral),
+            ToastType.Information => (_informationColor, _iconInformation),
+            ToastType.Success     => (_successColor,     _iconSuccess),
+            ToastType.Warning     => (_warningColor,     _iconWarning),
+            ToastType.Error       => (_errorColor,       _iconError),
+            _ => throw new ArgumentException($"Invalid toast type {type}!")
+        };
+
         private void ShowToast(ToastType type, string body, Action onClick)
         {
             // Get properties for this message type
-            var (text, color, icon) = type switch
-            {
-                ToastType.General     => ("General",     _generalColor,     _iconGeneral),
-                ToastType.Information => ("Information", _informationColor, _iconInformation),
-                ToastType.Success     => ("Success",     _successColor,     _iconSuccess),
-                ToastType.Warning     => ("Warning",     _warningColor,     _iconWarning),
-                ToastType.Error       => ("Error",       _errorColor,       _iconError),
-                _ => throw new ArgumentException($"Invalid toast type {type}!")
-            };
+            var text = type.ToString();
+            var (color, icon) = GetStyle(type);
 
             var toast = Instantiate(_toastPrefab, transform);
             toast.Initialize(text, body, icon, color, onClick);

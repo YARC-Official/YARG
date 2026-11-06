@@ -181,6 +181,7 @@ namespace YARG.Menu.MusicLibrary
 
         private static bool _needsReload                  = false;
         protected      bool _needsNavigationSchemeRefresh = false;
+        private        bool _setlistHadSongs;
 
         protected virtual bool SearchAllowed => true;
 
@@ -207,6 +208,10 @@ namespace YARG.Menu.MusicLibrary
         protected override void OnEnable()
         {
             base.OnEnable();
+
+            // Start Set marks the show as playing before opening Difficulty Select, and every way out of that menu
+            // short of gameplay pops back here. Anything else that starts a show needs its own way to end it.
+            Setlist.EndShow();
 
             // Playable Songs used to be a sort that also filtered the library. Preserve that
             // preference while migrating it to the independent filter.
@@ -258,7 +263,17 @@ namespace YARG.Menu.MusicLibrary
                 // Note that the order matters here: SelectedPlaylist must be set before calling UpdateSearch,
                 // but SelectedIndex must be set _after_ calling UpdateSearch
                 SelectedPlaylist = _savedPlaylist;
-                if (SelectedPlaylist != null)
+
+                // The saved view can be the setlist after it was emptied (on every menu scene load, for
+                // instance), and an empty setlist view has nothing to show
+                bool savedSetlistWasCleared = SelectedPlaylist == ShowPlaylist && ShowPlaylist.Count == 0;
+                if (savedSetlistWasCleared)
+                {
+                    SelectedPlaylist = null;
+                    MenuState = MenuState.PlaylistSelect;
+                    ClearPreview();
+                }
+                else if (SelectedPlaylist != null)
                 {
                     // Preserve the playlist select anchor across menu reloads (e.g., after playing a song)
                     _lastPlaylistSelectPlaylist = SelectedPlaylist;
@@ -267,7 +282,12 @@ namespace YARG.Menu.MusicLibrary
 
                 UpdateSearch(true);
 
-                if (MenuState == MenuState.Library && _mainLibraryIndex != -1)
+                if (savedSetlistWasCleared)
+                {
+                    SetNavigationScheme(true);
+                    SelectedIndex = 0;
+                }
+                else if (MenuState == MenuState.Library && _mainLibraryIndex != -1)
                 {
                     SelectedIndex = _mainLibraryIndex;
                 }
@@ -326,6 +346,9 @@ namespace YARG.Menu.MusicLibrary
 
             PlayerContainer.PlayerAdded += OnPlayerAdded;
             PlayerContainer.PlayerRemoved += OnPlayerRemoved;
+
+            _setlistHadSongs = ShowPlaylist.Count > 0;
+            Setlist.Changed += OnSetlistChanged;
 
             // Ensure the sidebar is rendered correctly on first entry
             _sidebar.UpdateSidebar(true);
@@ -954,6 +977,25 @@ namespace YARG.Menu.MusicLibrary
             return false;
         }
 
+        private void OnSetlistChanged()
+        {
+            // The green button's action and label depend on whether the setlist is empty
+            bool hasSongs = ShowPlaylist.Count > 0;
+            if (hasSongs == _setlistHadSongs)
+            {
+                return;
+            }
+
+            _setlistHadSongs = hasSongs;
+            if (IsNavigationSchemeBlocked())
+            {
+                _needsNavigationSchemeRefresh = true;
+                return;
+            }
+
+            SetNavigationScheme(true);
+        }
+
         public void RefreshNavigationSchemeAfterPopup()
         {
             if (!_needsNavigationSchemeRefresh) return;
@@ -1035,6 +1077,7 @@ namespace YARG.Menu.MusicLibrary
         {
             base.OnDisable();
             SetSidebarDifficultiesVisible(false);
+            Setlist.Changed -= OnSetlistChanged;
 
             // Unsubscribe before the early-out below, or the static player events keep calling into a
             // destroyed menu when the Navigator is already gone at shutdown.

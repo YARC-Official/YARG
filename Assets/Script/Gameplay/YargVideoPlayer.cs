@@ -56,9 +56,6 @@ public class YargVideoPlayer : MonoBehaviour
             }
 #endif
             // Always set on the built-in player too, so we can fall back to it.
-            // Log items are formatted on the logger thread, where Object.ToString() throws.
-            YargLogger.LogFormatDebug("[YargVideoPlayer/UnityPlayer] targetTexture set to {0}",
-                value != null ? value.ToString() : "null");
             _unityVideoPlayer.targetTexture = value;
         }
     }

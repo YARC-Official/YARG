@@ -424,11 +424,6 @@ namespace YARG.Menu.MusicLibrary
 
                     _musicLibrary.RefreshAndReselect();
                     gameObject.SetActive(false);
-                    // Annoyingly, this has to be done after the popup menu is made inactive, requring duplicate if statements
-                    if (playlistView.Playlist.Ephemeral)
-                    {
-                        _musicLibrary.SetNavigationScheme(true);
-                    }
                 });
             }
 
