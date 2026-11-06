@@ -13,6 +13,13 @@ namespace YARG.Input.Serialization
     // Unchanged data types
     using SerializedMicV4 = SerializedMicV3;
 
+    /*
+     * The Profile Rework
+     * Bindings are now stored independently from profiles, allowing profiles to share and reuse binding sets.
+     * Whereas a BindingCollection was previously a soup of all of one profile's bindings across all devices
+     * and modes, a ReusableBindingSet is now specific to a (ControllerFamily, GameMode) tuple and can be reused
+     * across different controllers and profiles.
+     */
     public class SerializedBindingsV4
     {
         public const int VERSION = 4;
