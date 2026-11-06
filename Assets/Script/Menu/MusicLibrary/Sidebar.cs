@@ -392,6 +392,7 @@ namespace YARG.Menu.MusicLibrary
             label.fontSize = baseFontSize;
         }
 
+        // TODO: This kinda sucks - make it more extensible
         private void UpdateDifficulties(SongEntry entry)
         {
             // Make sure the display is visible
@@ -489,7 +490,16 @@ namespace YARG.Menu.MusicLibrary
             {
                 _difficultyRings[7].SetInfo("eliteDrums", Instrument.EliteDrums, entry[Instrument.EliteDrums]);
             }
-            _difficultyRings[8].SetInfo("realKeys", Instrument.ProKeys, entry[Instrument.ProKeys]);
+
+            if (entry.HasInstrument(Instrument.SixLaneKeys) && !entry.HasInstrument(Instrument.ProKeys))
+            {
+                _difficultyRings[8].SetInfo("keys6", Instrument.SixLaneKeys, entry[Instrument.SixLaneKeys]);
+            }
+            else
+            {
+                _difficultyRings[8].SetInfo("realKeys", Instrument.ProKeys, entry[Instrument.ProKeys]);
+            }
+
             _difficultyRings[9].SetInfo("band", Instrument.Band, entry[Instrument.Band]);
             return;
 

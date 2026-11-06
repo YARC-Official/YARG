@@ -46,7 +46,7 @@ namespace YARG.Song.Exporters
         /// <param name="subTypes">List of (exists, intensity) tuples for each sub-type.</param>
         /// <returns>
         /// '.' if no sub-type exists,
-        /// '?' if at least one exists but none have a known intensity (all < 0),
+        /// '?' if at least one exists but none have a known intensity (all &lt; 0),
         /// otherwise the base-36 character of the maximum known tier.
         /// </returns>
         /// <remarks>
@@ -54,7 +54,7 @@ namespace YARG.Song.Exporters
         /// - Vocals: Vocals + Harmony
         /// - Guitar: 5-fret + 6-fret variants
         /// - Drums: 4-lane + Pro + 5-lane
-        /// - Keys: Keys + ProKeys
+        /// - Keys: Keys + 6-lane Keys + ProKeys
         /// - Bass: 5-fret + 6-fret variants
         /// </remarks>
         public static char EncodeSlot(IReadOnlyList<(bool exists, int intensity)> subTypes)

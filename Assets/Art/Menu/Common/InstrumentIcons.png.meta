@@ -6,7 +6,7 @@ TextureImporter:
   serializedVersion: 13
   mipmaps:
     mipMapMode: 0
-    enableMipMap: 1
+    enableMipMap: 0
     sRGBTexture: 1
     linearTexture: 0
     fadeOut: 0
@@ -31,14 +31,14 @@ TextureImporter:
   cubemapConvolution: 0
   seamlessCubemap: 0
   textureFormat: 1
-  maxTextureSize: 2560
+  maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
     filterMode: 1
     aniso: 1
-    mipBias: -1
-    wrapU: 0
-    wrapV: 0
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
     wrapW: 0
   nPOTScale: 0
   lightmap: 0
@@ -72,7 +72,7 @@ TextureImporter:
     maxTextureSize: 4096
     resizeAlgorithm: 1
     textureFormat: -1
-    textureCompression: 0
+    textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -93,19 +93,6 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 4
-    buildTarget: Server
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
@@ -114,7 +101,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 1536
+        y: 2048
         width: 512
         height: 512
       alignment: 0
@@ -125,8 +112,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 14db709a9ff5b674fbc46a1956df831f
-      internalID: -1834431651
+      spriteID: 8734c3be7008346909331a7b074fe98d
+      internalID: -1293904553
       vertices: []
       indices: 
       edges: []
@@ -136,7 +123,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 512
-        y: 1536
+        y: 2048
         width: 512
         height: 512
       alignment: 0
@@ -147,8 +134,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 118f6afd8caa99a48bab74f699c0b2af
-      internalID: 1445730593
+      spriteID: 26a05082605f540c59931789eeb695f7
+      internalID: 2028331755
       vertices: []
       indices: 
       edges: []
@@ -158,7 +145,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 1024
-        y: 1536
+        y: 2048
         width: 512
         height: 512
       alignment: 0
@@ -169,8 +156,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 38e66e661aa866a4f93a63f42a5f402f
-      internalID: -1591131112
+      spriteID: 5b4d74700751e4cd7883fab54c50cf98
+      internalID: -172149626
       vertices: []
       indices: 
       edges: []
@@ -180,7 +167,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 1536
-        y: 1536
+        y: 2048
         width: 512
         height: 512
       alignment: 0
@@ -191,272 +178,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: c3d209dd9be6a4743b9648b9ca5fa474
-      internalID: -1340302279
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: realBass
-      rect:
-        serializedVersion: 2
-        x: 0
-        y: 1024
-        width: 512
-        height: 512
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: dea5e48b0f535e44b87146e20500ae11
-      internalID: 894865564
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: realGuitar
-      rect:
-        serializedVersion: 2
-        x: 512
-        y: 1024
-        width: 512
-        height: 512
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: b62229da7e171a34096d18de4b3eb849
-      internalID: 1760769726
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: realDrums
-      rect:
-        serializedVersion: 2
-        x: 1024
-        y: 1024
-        width: 512
-        height: 512
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: d643cfb7eb5b2fa4ab2507d96cea2d4e
-      internalID: -844217933
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: realKeys
-      rect:
-        serializedVersion: 2
-        x: 1536
-        y: 1024
-        width: 512
-        height: 512
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 552f07c4536e610418927c928abb7b83
-      internalID: -1173955509
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: vocals
-      rect:
-        serializedVersion: 2
-        x: 0
-        y: 512
-        width: 512
-        height: 512
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 0c507ffbf00fbb64a8f844b40cba1c88
-      internalID: -212029294
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: harmVocals
-      rect:
-        serializedVersion: 2
-        x: 512
-        y: 512
-        width: 512
-        height: 512
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 4f5ea8e4ab7d53740aabb67164c53498
-      internalID: 1676829369
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: ghDrums
-      rect:
-        serializedVersion: 2
-        x: 1024
-        y: 512
-        width: 512
-        height: 512
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 6ef920672700d9a418f900c9b900c235
-      internalID: -1041038840
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: guitarCoop
-      rect:
-        serializedVersion: 2
-        x: 1536
-        y: 512
-        width: 512
-        height: 512
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: a1324700852ec824aa8b5222b931570d
-      internalID: 1095511443
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: rhythm
-      rect:
-        serializedVersion: 2
-        x: 0
-        y: 0
-        width: 512
-        height: 512
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: f689ffdce6e9e3d43b34cf10266d49d4
-      internalID: -413506960
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: band
-      rect:
-        serializedVersion: 2
-        x: 512
-        y: 0
-        width: 512
-        height: 512
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: b5f5e4c0544e1f745a043b1a26f074c8
-      internalID: -2104244439
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: eliteDrums
-      rect:
-        serializedVersion: 2
-        x: 1024
-        y: 0
-        width: 512
-        height: 512
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: d8ed51d1aeca30e49ac4c69a5486c511
-      internalID: 1405555635
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: twoVocals
-      rect:
-        serializedVersion: 2
-        x: 1536
-        y: 0
-        width: 512
-        height: 512
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 30265fbc72f86554baadfd051fa0a628
-      internalID: -2070950562
+      spriteID: 97a6ff3f4af0f45fc8a2187d6d4a5166
+      internalID: 2056514139
       vertices: []
       indices: 
       edges: []
@@ -466,19 +189,107 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 2048
-        y: 1536
+        y: 2048
         width: 512
         height: 512
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 9b2f45d97859781fab5c16573a51ab64
-      internalID: 859472355
+      spriteID: e6bc1f5c038c44f3f9d39ab862ccaa76
+      internalID: -2003988325
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: realBass
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1536
+        width: 512
+        height: 512
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ecca274abc2f340a9a5783f254e1f906
+      internalID: -182374987
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: realGuitar
+      rect:
+        serializedVersion: 2
+        x: 512
+        y: 1536
+        width: 512
+        height: 512
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f89af2a52880f46519809e2f272ca467
+      internalID: 1497683678
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: realDrums
+      rect:
+        serializedVersion: 2
+        x: 1024
+        y: 1536
+        width: 512
+        height: 512
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6eb3c2d30c2ad45269711af0a51ba2fb
+      internalID: 303386970
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: realKeys
+      rect:
+        serializedVersion: 2
+        x: 1536
+        y: 1531
+        width: 512
+        height: 512
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b815bc705b1474de9b849efff97b3c6c
+      internalID: 436599248
       vertices: []
       indices: 
       edges: []
@@ -488,19 +299,107 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 2048
-        y: 1024
+        y: 1536
         width: 512
         height: 512
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 7f6e14c755f67a1be84249ac2b7251c5
-      internalID: 246568218
+      spriteID: 3bc8b6fecfa5f4498adcfceacf2d496b
+      internalID: 723362279
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vocals
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1024
+        width: 512
+        height: 512
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f029bada36fba4baf8e157ba2903cbe9
+      internalID: -615559823
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: harmVocals
+      rect:
+        serializedVersion: 2
+        x: 512
+        y: 1024
+        width: 512
+        height: 512
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c8e4b3b17d1734bc6b0d8598842b4a4a
+      internalID: 1008048621
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ghDrums
+      rect:
+        serializedVersion: 2
+        x: 1024
+        y: 1024
+        width: 512
+        height: 512
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 40a52ee234c7e49d8a45f1120e581580
+      internalID: -1783960665
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: guitarCoop
+      rect:
+        serializedVersion: 2
+        x: 1536
+        y: 1024
+        width: 512
+        height: 512
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 088dd21f4e990482bb731718b94d09d6
+      internalID: 1555622136
       vertices: []
       indices: 
       edges: []
@@ -510,19 +409,107 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 2048
-        y: 512
+        y: 1024
         width: 512
         height: 512
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 994001f29eb1745ab9dea9ecd8b674b3
-      internalID: 47051510
+      spriteID: 982bb523e2d53406089eb95f9f1005cd
+      internalID: -1365168534
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rhythm
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 512
+        width: 503
+        height: 512
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e12924123159d47bfb620b6acc1b135d
+      internalID: -1140884966
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: band
+      rect:
+        serializedVersion: 2
+        x: 512
+        y: 512
+        width: 512
+        height: 512
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: faef8ecc3599f4120987a9ec5ef44e44
+      internalID: -620867963
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: eliteDrums
+      rect:
+        serializedVersion: 2
+        x: 1024
+        y: 512
+        width: 512
+        height: 512
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 36b61c015675d4609bef5942352eb2ef
+      internalID: 971887412
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: twoVocals
+      rect:
+        serializedVersion: 2
+        x: 1536
+        y: 512
+        width: 512
+        height: 512
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a0ae02f175c1c4d6ca92af537357e051
+      internalID: -1984475282
       vertices: []
       indices: 
       edges: []
@@ -532,19 +519,41 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 2048
-        y: 0
+        y: 512
         width: 512
         height: 512
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 0b49cd4919d49d9048980301c439b201
-      internalID: -1332199399
+      spriteID: a8f86c00955224e7382a6943d15be7d9
+      internalID: 316687857
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: keys6
+      rect:
+        serializedVersion: 2
+        x: 2048
+        y: 0
+        width: 512
+        height: 512
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1ed883293215749dbb632ab4bb17204d
+      internalID: -407658670
       vertices: []
       indices: 
       edges: []
@@ -553,7 +562,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 6a6fe6d95646e3c4d87a4e4a278bddb5
+    spriteID: 05b1dbdd0fb1b4f75aa3ab9317cbdbf3
     internalID: 0
     vertices: []
     indices: 
@@ -561,33 +570,31 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     spriteCustomMetadata:
-      entries: []
+      entries:
+      - key: SpriteEditor.SliceSettings
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":512.0,"y":512.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":1,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
-      FontSprites_11: -883316654
-      FontSprites_12: -372531952
-      FontSprites_13: 1438842026
-      FontSprites_14: 454111736
-      FontSprites_15: 224382224
-      band: -2104244439
-      bass: 1530186425
-      bass6: 246568218
-      coop6: 47051510
-      drums: 678366802
-      eliteDrums: 1405555635
-      ghDrums: -768334538
-      guitar: -480311375
-      guitar6: 859472355
-      guitarCoop: 1095511443
-      harmVocals: -871424490
-      keys: 1353769368
-      realBass: -947667561
-      realDrums: 183447324
-      realGuitar: 1095511443
-      realKeys: 1095511443
-      rhythm: -413506960
-      rhythm6: -1332199399
-      twoVocals: -2070950562
-      vocals: 1095511443
+      band: -620867963
+      bass: -1293904553
+      bass6: 723362279
+      coop6: -1365168534
+      drums: -172149626
+      eliteDrums: 971887412
+      ghDrums: -1783960665
+      guitar: 2028331755
+      guitar6: -2003988325
+      guitarCoop: 1555622136
+      harmVocals: 1008048621
+      keys: 2056514139
+      keys6: -407658670
+      realBass: -182374987
+      realDrums: 303386970
+      realGuitar: 1497683678
+      realKeys: 436599248
+      rhythm: -1140884966
+      rhythm6: 316687857
+      twoVocals: -1984475282
+      vocals: -615559823
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

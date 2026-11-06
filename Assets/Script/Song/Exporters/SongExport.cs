@@ -73,8 +73,8 @@ namespace YARG.Song.Exporters
             output.WriteLine(
                 "Name,Artist,Album,Genre,Subgenre,Year,Length," +
                 "Charter,Playlist,Source,Master,Age Rating,Vocal Parts," +
-                "Guitar (5-Fret) Difficulty,Bass (5-Fret) Difficulty,Rhythm (5-Fret) Difficulty,Co-op (5-Fret) Difficulty,Keys Difficulty," +
-                "Guitar (6-Fret) Difficulty,Bass (6-Fret) Difficulty,Rhythm (6-Fret) Difficulty,Co-op (6-Fret) Difficulty," +
+                "Guitar (5-Fret) Difficulty,Bass (5-Fret) Difficulty,Rhythm (5-Fret) Difficulty,Co-op (5-Fret) Difficulty,Keys (5-Lane) Difficulty," +
+                "Guitar (6-Fret) Difficulty,Bass (6-Fret) Difficulty,Rhythm (6-Fret) Difficulty,Co-op (6-Fret) Difficulty,Keys (6-Lane) Difficulty," +
                 "Drums (4-Lane) Difficulty,Pro Drums Difficulty,Drums (5-Lane) Difficulty,Elite Drums Difficulty," +
                 "Pro Guitar (17-Fret) Difficulty,Pro Guitar (22-Fret) Difficulty,Pro Bass (17-Fret) Difficulty,Pro Bass (22-Fret) Difficulty,Pro Keys Difficulty," +
                 "Vocals Difficulty,Harmony Difficulty,Band Difficulty,Format,Hash"
@@ -128,6 +128,7 @@ namespace YARG.Song.Exporters
                 int sixFretBass = GetIntensity(Instrument.SixFretBass);
                 int sixFretRhythm = GetIntensity(Instrument.SixFretRhythm);
                 int sixFretCoopGuitar = GetIntensity(Instrument.SixFretCoopGuitar);
+                int sixLaneKeys = GetIntensity(Instrument.SixLaneKeys);
                 int fourLaneDrums = GetIntensity(Instrument.FourLaneDrums);
                 int proDrums = GetIntensity(Instrument.ProDrums);
                 int fiveLaneDrums = GetIntensity(Instrument.FiveLaneDrums);
@@ -148,7 +149,7 @@ namespace YARG.Song.Exporters
                     $"{name},{artist},{album},{genre},{subgenre},{year},{songLength}," +
                     $"{charter},{playlist},{source},{isMaster},{songRating},{vocalsCount}," +
                     $"{fiveFretGuitar},{fiveFretBass},{fiveFretRhythm},{fiveFretCoopGuitar},{keys}," +
-                    $"{sixFretGuitar},{sixFretBass},{sixFretRhythm},{sixFretCoopGuitar}," +
+                    $"{sixFretGuitar},{sixFretBass},{sixFretRhythm},{sixFretCoopGuitar},{sixLaneKeys}," +
                     $"{fourLaneDrums},{proDrums},{fiveLaneDrums},{eliteDrums}," +
                     $"{proGuitar17},{proGuitar22},{proBass17},{proBass22},{proKeys}," +
                     $"{vocals},{harmony},{band},{subType},{hash}"

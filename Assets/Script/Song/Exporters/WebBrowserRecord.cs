@@ -155,9 +155,9 @@ namespace YARG.Song.Exporters
 
         /// <summary>
         /// Builds the parts code as the subset of present parts in V,G,D,K,B order
-        /// (e.g. "VGD", "VGk", "VGDKB"). V requires lead Vocals, K appears only when
-        /// 5-lane Keys is present (uppercase if ProKeys also present, else lowercase
-        /// 'k'), and B covers 5/6-fret Bass only.
+        /// (e.g. "VGD", "VGk", "VGDKB"). V requires lead Vocals, K appears when
+        /// 5-lane Keys or 6-lane Keys is present (uppercase if ProKeys also present,
+        /// else lowercase 'k'), and B covers 5/6-fret Bass only.
         /// </summary>
         private static string BuildPartsCode(SongEntry song)
         {
@@ -175,8 +175,8 @@ namespace YARG.Song.Exporters
                 song.HasInstrument(Instrument.ProDrums) ||
                 song.HasInstrument(Instrument.FiveLaneDrums)) parts += "D";
 
-            // Keys: present when 5-lane Keys exists; 'K' if ProKeys also present, else 'k'.
-            if (song.HasInstrument(Instrument.Keys))
+            // Keys: present when 5-lane Keys or 6-lane Keys exists; 'K' if ProKeys also present, else 'k'.
+            if (song.HasInstrument(Instrument.Keys) || song.HasInstrument(Instrument.SixLaneKeys))
             {
                 parts += song.HasInstrument(Instrument.ProKeys) ? "K" : "k";
             }
@@ -224,9 +224,10 @@ namespace YARG.Song.Exporters
                 (song.HasInstrument(Instrument.FiveLaneDrums), GetIntensity(Instrument.FiveLaneDrums))
             );
 
-            // Keys: Keys + ProKeys (aggregate).
+            // Keys: Keys + 6-lane Keys + ProKeys (aggregate).
             char k = EncodeSlot(
                 (song.HasInstrument(Instrument.Keys), GetIntensity(Instrument.Keys)),
+                (song.HasInstrument(Instrument.SixLaneKeys), GetIntensity(Instrument.SixLaneKeys)),
                 (song.HasInstrument(Instrument.ProKeys), GetIntensity(Instrument.ProKeys))
             );
 
