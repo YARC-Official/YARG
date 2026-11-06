@@ -210,6 +210,10 @@ namespace YARG.Menu.ProfileList
             if (controllerIdx > 0)
             {
                 DummyController = dummyController;
+            } else
+            {
+                // Belt-and-suspenders; should never fail to find it
+                DummyController = null;
             }
 
             SelectBindingSet(bindingSet);
