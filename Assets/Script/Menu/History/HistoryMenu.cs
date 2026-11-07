@@ -70,7 +70,7 @@ namespace YARG.Menu.History
                     Back, hide: true),
                 new NavigationScheme.Entry(MenuAction.Yellow, "Menu.History.ViewScoreCard",
                     () => CurrentSelection?.ViewScoreCardClick()),
-#if UNITY_EDITOR || YARG_TEST_BUILD // This is the replay analyze, which isn't really useful if you are not a dev
+#if UNITY_EDITOR || YARG_DEV_BUILD // This is the replay analyze, which isn't really useful if you are not a dev
                 new NavigationScheme.Entry(MenuAction.Blue, "Menu.History.Analyze",
                     () => CurrentSelection?.AnalyzeReplayClick()),
 #endif
