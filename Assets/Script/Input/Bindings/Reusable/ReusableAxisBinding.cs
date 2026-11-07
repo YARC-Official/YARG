@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using UnityEditor.Experimental.GraphView;
-using UnityEngine.InputSystem;
-using YARG.Core.Game;
+﻿using System.Collections.Generic;
 using YARG.Helpers;
 using YARG.Input.Serialization;
 using YARG.Menu.ProfileList;

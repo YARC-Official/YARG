@@ -1,5 +1,4 @@
-﻿using UnityEditor.Experimental.GraphView;
-using UnityEngine.InputSystem;
+﻿using UnityEngine.InputSystem;
 using YARG.Helpers;
 
 namespace YARG.Input.Bindings
