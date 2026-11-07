@@ -4,6 +4,7 @@ using UnityEngine.AddressableAssets;
 using YARG.Core;
 using YARG.Core.Engine.Drums;
 using YARG.Input;
+using YARG.Input.Bindings;
 using YARG.Localization;
 
 namespace YARG.Menu.ScoreScreen
@@ -23,13 +24,14 @@ namespace YARG.Menu.ScoreScreen
             _overhits.text = ColorizePrimary(Stats.Overhits);
 
             var overhitsRow = _overhits.transform.parent;
-            var bindings = BindingCollection.CreateGameplayBindings(Player.Profile.CurrentInstrument.ToNativeGameMode());
 
-            foreach (var binding in bindings)
+            var template = ReusableBindingSetTemplates.GetTemplate(Player.Profile.CurrentInstrument.ToNativeGameMode());
+
+            foreach (var actionInfo in template.Values)
             {
-                if (Stats.OverhitsByAction.TryGetValue(binding.Action, out int count))
+                if (Stats.OverhitsByAction.TryGetValue(actionInfo.Action, out int count))
                 {
-                    CreateOverhitRow(binding, count, overhitsRow.parent);
+                    CreateOverhitRow(actionInfo, count, overhitsRow.parent);
                 }
             }
         }
@@ -38,10 +40,10 @@ namespace YARG.Menu.ScoreScreen
                 .LoadAssetAsync<Sprite>("InstrumentIcons[drums]")
                 .WaitForCompletion();
 
-        private void CreateOverhitRow(ControlBinding binding, int count, Transform parent)
+        private void CreateOverhitRow(InputActionInfo actionInfo, int count, Transform parent)
         {
             var info = Instantiate(_statInfoPrefab, parent);
-            string key = Player.Profile.LeftyFlip ? binding.NameLefty : binding.Name;
+            string key = Player.Profile.LeftyFlip ? actionInfo.LeftyLocalizationKey: actionInfo.Key;
             info.Label.text = "<space=20px>" + Localize.Key("Bindings", key);
             info.Value.text = ColorizePrimary(count);
         }

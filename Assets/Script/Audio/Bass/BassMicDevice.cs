@@ -98,7 +98,9 @@ namespace YARG.Audio.BASS
 
         public override void SetReverbLevel(float wet) => _source.SetReverbLevel(wet);
 
-        public override SerializedMic Serialize() => new(_source.BaseName, _source.Channel);
+        public override MicId Id => new(_source.BaseName, _source.Channel);
+
+        public override SerializedMic Serialize() => new(Id);
 
         public override MicBufferInfo? GetBufferInfo() => _source.GetBufferInfo();
 

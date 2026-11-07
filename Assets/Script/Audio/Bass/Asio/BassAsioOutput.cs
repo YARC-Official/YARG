@@ -161,11 +161,8 @@ namespace YARG.Audio.BASS.Asio
             var available = new List<InputDeviceInfo>();
             foreach (var input in _inputs)
             {
-                if (!_microphones.IsClaimed(input.DriverId, input.ChannelIndex))
-                {
-                    available.Add(new InputDeviceInfo(NO_DEVICE_ID, $"{DEVICE_PREFIX}{input.DriverName}",
-                        input.ChannelIndex, _inputs.Count));
-                }
+                available.Add(new InputDeviceInfo(NO_DEVICE_ID, $"{DEVICE_PREFIX}{input.DriverName}",
+                    input.ChannelIndex, _inputs.Count));
             }
 
             return available;
