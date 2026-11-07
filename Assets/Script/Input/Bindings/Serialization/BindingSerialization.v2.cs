@@ -117,8 +117,12 @@ namespace YARG.Input.Serialization
                     {
                         if (singleBinding.DeviceIndex == i)
                         {
+                            var layoutString = controller.Layout.EndsWith(BindingSerialization.REPORT_ID_SUFFIX) ?
+                                controller.Layout.Substring(0, controller.Layout.Length - BindingSerialization.REPORT_ID_SUFFIX.Length) :
+                                controller.Layout;
+
                             reusableBindingSet ??= new SerializedReusableBindingSet(
-                                $"{profileName}'s {controller.Layout} Bindings",
+                                $"{profileName}'s {layoutString} Bindings",
                                 LayoutHelper.LayoutStringToControllerFamily(controller.Layout),
                                 mode
                             )
