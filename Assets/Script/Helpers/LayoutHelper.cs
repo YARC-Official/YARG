@@ -39,7 +39,7 @@ namespace YARG.Helpers
 
         public static string GetControlDisplayName(string layout, string controlPath)
         {
-            if (layout is null)
+            if (layout is null || InputSystem.LoadLayout(layout) is null)
             {
                 return controlPath;
             }

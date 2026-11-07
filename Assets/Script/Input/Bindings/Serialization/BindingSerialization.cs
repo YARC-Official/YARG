@@ -128,6 +128,8 @@ namespace YARG.Input.Serialization
     {
         public const int CURRENT_VERSION = 4;
 
+        public const string REPORT_ID_SUFFIX = "_ReportId";
+
         private static readonly SHA1 _hashAlgorithm = SHA1.Create();
         private static readonly Regex _xinputUserIndexRegex = new(@"\\""userIndex\\"":\s*\d,");
 
