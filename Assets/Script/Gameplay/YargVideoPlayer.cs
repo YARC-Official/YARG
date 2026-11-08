@@ -13,6 +13,8 @@ using YARG.Core.Logging;
 /// binaries are not available. On platforms without a native plugin
 /// (e.g. WSA), the VLC code path is compiled out entirely
 /// (see VLC_SUPPORTED) and the class behaves as a thin Unity VideoPlayer wrapper.
+/// Which VLC output is used, and where VLC can't be used at all, is
+/// <see cref="VlcLibraryLoader.OutputPath"/>.
 /// </summary>
 // Awake must run before VLCMediaPlayer's (on the "Video Player" GameObject), which builds LibVLC
 // itself unless one exists. Unity wakes it at scene load even though it starts disabled.
@@ -279,7 +281,21 @@ public class YargVideoPlayer : MonoBehaviour
         if (_vlcPlayer != null && _vlcPlayer.didAwake)
             YargLogger.LogError("[YargVideoPlayer] VLCMediaPlayer woke first; its own libVLC init may have poisoned VLC for this session");
 
-        if (_vlcPlayer != null && !VlcLibraryLoader.EnsureLoaded(_vlcPlayer))
+        if (_vlcPlayer == null)
+            return;
+
+        if (VlcLibraryLoader.OutputPath == VlcLibraryLoader.VideoOutputPath.NvidiaVulkan)
+        {
+            // Removed before it wakes: a player created through vlc-unity here plays in a window of
+            // libVLC's own.
+            YargLogger.LogWarning("[YargVideoPlayer] VLC can't render under Vulkan on NVIDIA's Linux driver; " +
+                "using Unity's video player. Launch YARG with -force-glcore to use VLC.");
+            DestroyImmediate(_vlcPlayer);
+            _vlcPlayer = null;
+            return;
+        }
+
+        if (!VlcLibraryLoader.EnsureLoaded(_vlcPlayer))
         {
             DestroyImmediate(_vlcPlayer);
             _vlcPlayer = null;

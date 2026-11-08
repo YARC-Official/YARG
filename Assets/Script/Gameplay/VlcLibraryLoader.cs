@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using LibVLCSharp;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
@@ -21,8 +22,9 @@ using Debug = UnityEngine.Debug;
 /// install (the VlcLibraryPath setting, then standard install locations) and preloads it, which is
 /// what binds LibVLCSharp's imports. On Linux libvlc binds at launch from the library path, so the
 /// player relaunches itself with the setting's folder there (RelaunchWithLibVlcPath), and this
-/// uses whatever was bound. It must run before the first <c>VLCMediaPlayer.Awake</c>, which only builds its own LibVLC when none exists;
-/// <see cref="YargVideoPlayer"/> calls it from its Awake.
+/// uses whatever was bound. It must run before the first <c>VLCMediaPlayer.Awake</c>, which only
+/// builds its own LibVLC when none exists; <see cref="YargVideoPlayer"/> calls it from its Awake.
+/// <see cref="OutputPath"/> says which of vlc-unity's outputs works on this machine.
 /// </summary>
 public static class VlcLibraryLoader
 {
@@ -33,6 +35,40 @@ public static class VlcLibraryLoader
     public static string PathOverride { get; set; }
 
 #if VLC_LOADER_SUPPORTED
+    /// <summary>How VLC video reaches the screen on this machine; see <see cref="OutputPath"/>.</summary>
+    public enum VideoOutputPath
+    {
+        /// <summary>vlc-unity's GPU output with hardware decoding: macOS, Windows, and Linux on
+        /// anything but NVIDIA.</summary>
+        Gpu,
+        /// <summary>Linux, NVIDIA, OpenGLCore: vlc-unity's GLX output, decoding in software
+        /// (see DecoderArguments).</summary>
+        NvidiaOpenGL,
+        /// <summary>Linux, NVIDIA, Vulkan: vlc-unity can't output at all. Its renderer imports frames
+        /// as linear DMA-BUFs, which NVIDIA's EGL only allows as external textures, and then leaves the
+        /// player without an output, so libVLC opens a window of its own.</summary>
+        NvidiaVulkan,
+    }
+
+    /// <summary>Which <see cref="VideoOutputPath"/> applies. Read on the main thread, from Awake on.</summary>
+    public static VideoOutputPath OutputPath
+    {
+        get
+        {
+#if UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX
+            if (SystemInfo.graphicsDeviceVendorID == NVIDIA_VENDOR_ID)
+            {
+                return SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Vulkan
+                    ? VideoOutputPath.NvidiaVulkan
+                    : VideoOutputPath.NvidiaOpenGL;
+            }
+#endif
+            return VideoOutputPath.Gpu;
+        }
+    }
+
+    private const int NVIDIA_VENDOR_ID = 0x10DE;
+
     /// <summary>
     /// Makes sure LibVLC exists. Runs the search once per process: a loaded native library can't be
     /// replaced, so a later PathOverride change needs a restart. Returns false when no usable
@@ -93,6 +129,7 @@ public static class VlcLibraryLoader
             var args = new List<string>();
             if (player.Configuration != null)
                 args.AddRange(player.Configuration.GetOptions());
+            args.AddRange(DecoderArguments());
             args.AddRange(player.libVLCArguments?.Where(arg => !string.IsNullOrWhiteSpace(arg)) ??
                 Array.Empty<string>());
 
@@ -107,6 +144,23 @@ public static class VlcLibraryLoader
             Debug.LogWarning($"[VlcLibraryLoader] Failed to initialize libVLC, using Unity's video player: {ex}");
             return false;
         }
+    }
+
+    // Before the player's own libVLCArguments, so a scene-set argument still wins.
+    private static IEnumerable<string> DecoderArguments()
+    {
+        // On NVIDIA libVLC picks nvdec with the glinterop_nvdec GL interop, which VLC only supports
+        // on a GLX window of its own. In vlc-unity's external context the texture then never changes
+        // after the first frame, with every layer reporting success.
+        if (OutputPath != VideoOutputPath.Gpu)
+            yield return "--no-hw-dec";
+        // dav1d sizes its frame threads to the CPU count, and its frame delay grows with them,
+        // past file-caching, so most pictures arrive after their display time and are dropped.
+        yield return "--dav1d-thread-frames=1";
+        // With direct rendering, VP9 blocks in libVLC's picture pool after a seek, and the
+        // player's release then hangs the main thread. A bool takes no "=0" on the command line:
+        // libvlc_new rejects it.
+        yield return "--no-avcodec-dr";
     }
 
     private static bool _attempted;
@@ -485,13 +539,34 @@ public static class VlcLibraryLoader
             if (libDir == null || ldPath.Split(':').Contains(libDir))
                 return;
 
+            var dirs = new List<string> { libDir };
+            // libVLC's plugin helpers (libvlc_xcb_events, libvlc_pulse, libvlc_vdpau). Plugins look for
+            // them through a RUNPATH of /usr/lib/vlc, which is wrong once the bundle moves.
+            string helperDir = Path.Combine(libDir, "vlc");
+            if (Directory.Exists(helperDir) && Directory.EnumerateFiles(helperDir, "libvlc_*.so.*").Any())
+                dirs.Add(helperDir);
+            int linked = 0;
+            try
+            {
+                string gapDir = LinkBundledLibrariesMissingFromSystem(libDir, out linked);
+                if (gapDir != null)
+                    dirs.Add(gapDir);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[VlcLibraryLoader] Couldn't link libVLC's bundled libraries: {ex}");
+            }
+            if (ldPath.Length > 0)
+                dirs.Add(ldPath);
+
             var env = Environment.GetEnvironmentVariables().Cast<System.Collections.DictionaryEntry>()
                 .Where(e => (string) e.Key != "LD_LIBRARY_PATH")
                 .Select(e => $"{e.Key}={e.Value}")
-                .Append($"LD_LIBRARY_PATH={(ldPath.Length > 0 ? libDir + ":" + ldPath : libDir)}")
+                .Append($"LD_LIBRARY_PATH={string.Join(":", dirs)}")
                 .Append($"{RELAUNCH_ENV}={ldPath}");
 
-            Debug.Log($"[VlcLibraryLoader] Relaunching with '{libDir}' on LD_LIBRARY_PATH so vlc-unity's plugin loads at startup.");
+            Debug.Log($"[VlcLibraryLoader] Relaunching with '{libDir}' (and {linked} bundled libraries the system " +
+                "lacks) on LD_LIBRARY_PATH so vlc-unity's plugin loads at startup.");
             // Arrays end in null: execve takes NULL-terminated char* arrays.
             Execve("/proc/self/exe", Environment.GetCommandLineArgs().Append(null).ToArray(), env.Append(null).ToArray());
             Debug.LogWarning($"[VlcLibraryLoader] Relaunch failed (errno {Marshal.GetLastWin32Error()}).");
@@ -516,6 +591,67 @@ public static class VlcLibraryLoader
 
         return LibDirCandidates(root).FirstOrDefault(dir => HasLibVlc(dir) && !IsVlc3(dir));
     }
+
+    // A snap or Debian-built bundle keeps its third-party libraries in <libDir>/<triplet>, which
+    // libvlccore (libidn) and plugins (avcodec's FFmpeg) need. Putting that folder on the library
+    // path would shadow the system's copies of the same SONAMEs, including Unity's own GL, Vulkan
+    // and X11, so link only the SONAMEs the system lacks into a folder of YARG's. Returns that
+    // folder, or null when nothing needed linking.
+    private static string LinkBundledLibrariesMissingFromSystem(string libDir, out int linked)
+    {
+        linked = 0;
+        string triplet = MultiarchTriplet();
+        if (triplet == null)
+            return null;
+
+        string bundleDir = Path.Combine(libDir, triplet);
+        string gapDir = Path.Combine(YARG.Helpers.PathHelper.PersistentDataPath, "vlc-bundle-libs");
+        if (Directory.Exists(gapDir))
+        {
+            // Unlinks symlinks without following them.
+            foreach (string entry in Directory.EnumerateFileSystemEntries(gapDir))
+                Unlink(entry);
+        }
+        if (!Directory.Exists(bundleDir))
+            return null;
+        Directory.CreateDirectory(gapDir);
+
+        string[] systemDirs = { "/usr/lib64", "/usr/lib", "/lib64", $"/usr/lib/{triplet}", "/usr/local/lib" };
+        foreach (string library in Directory.EnumerateFiles(bundleDir, "*.so.*"))
+        {
+            string name = Path.GetFileName(library);
+            if (!SonameFileName.IsMatch(name) || GraphicsStackPrefixes.Any(p => name.StartsWith(p, StringComparison.Ordinal)))
+                continue;
+            if (systemDirs.Any(dir => File.Exists(Path.Combine(dir, name))))
+                continue;
+            if (Symlink(library, Path.Combine(gapDir, name)) == 0)
+                linked++;
+        }
+        return linked > 0 ? gapDir : null;
+    }
+
+    // SONAME-style names (libfoo.so.12, libbz2.so.1.0), not the fully versioned files they point at.
+    private static readonly Regex SonameFileName = new(@"\.so\.\d+(\.\d+)?$");
+
+    // Shared with Unity's renderer, so never taken from the bundle even if the system lacks one.
+    private static readonly string[] GraphicsStackPrefixes =
+        { "libGL", "libEGL", "libgbm", "libvulkan", "libdrm", "libX", "libxcb", "libwayland" };
+
+    // The bundle's folder must match the running process's CPU: other architectures' libraries don't load.
+    private static string MultiarchTriplet() => RuntimeInformation.ProcessArchitecture switch
+    {
+        Architecture.X64 => "x86_64-linux-gnu",
+        Architecture.Arm64 => "aarch64-linux-gnu",
+        Architecture.X86 => "i386-linux-gnu",
+        Architecture.Arm => "arm-linux-gnueabihf",
+        _ => null,
+    };
+
+    [DllImport("libc.so.6", EntryPoint = "symlink")]
+    private static extern int Symlink(string target, string linkPath);
+
+    [DllImport("libc.so.6", EntryPoint = "unlink")]
+    private static extern int Unlink(string path);
 
     [DllImport("libc.so.6", EntryPoint = "execve", SetLastError = true)]
     private static extern int Execve(string path, string[] argv, string[] envp);
