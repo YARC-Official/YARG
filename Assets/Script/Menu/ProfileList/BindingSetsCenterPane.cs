@@ -2,9 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.XR;
 using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Logging;
@@ -12,6 +14,7 @@ using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Input;
 using YARG.Input.Bindings;
+using YARG.Localization;
 using YARG.Menu.Persistent;
 using YARG.Menu.ProfileInfo;
 using YARG.Player;
@@ -292,12 +295,22 @@ namespace YARG.Menu.ProfileList
         public void RefreshDummyControllers()
         {
             _dummyControllerDropdown.options.Clear();
-            _dummyControllerDropdown.options.Add(new("<i>None</i>"));
+            var family = _profilesMenu.CurrentBindingSetFilter;
+
+            if (InputSystem.devices.Any(controller => family == LayoutHelper.LayoutStringToControllerFamily(controller.layout)))
+            {
+                _dummyControllerDropdown.options.Add(new("<i>None</i>"));
+                _dummyControllerDropdown.interactable = true;
+            }
+            else
+            {
+                _dummyControllerDropdown.options.Add(new($"<i><color=grey>No {family.ToLocalizedNamePluralSentence()} connected</color></i>"));
+                _dummyControllerDropdown.interactable = false;
+            }
 
             _availableDummyControllers.Clear();
             _availableDummyControllers.Add(null);
 
-            var family = _profilesMenu.CurrentBindingSetFilter;
 
             foreach (var controller in InputSystem.devices)
             {
