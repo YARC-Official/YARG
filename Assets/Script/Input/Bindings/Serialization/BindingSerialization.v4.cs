@@ -145,7 +145,7 @@ namespace YARG.Input.Serialization
             public string Name;
             public int? Version; // Populated only in single-set export files
             public Dictionary<string, SerializedControlBindingV4> Bindings = new();
-            public GameMode GameMode;
+            public GameMode Mode;
             public ControllerFamily Family;
 
             [JsonConstructor]
@@ -154,7 +154,7 @@ namespace YARG.Input.Serialization
             public SerializedReusableBindingSetV4(SerializedReusableBindingSet serialized)
             {
                 Name = serialized.Name;
-                GameMode = serialized.Mode;
+                Mode = serialized.Mode;
                 Family = serialized.Family;
 
                 foreach (var (id, serializedBindings) in serialized.Bindings)
@@ -165,7 +165,7 @@ namespace YARG.Input.Serialization
 
             public SerializedReusableBindingSet Deserialize(Guid guid)
             {
-                var converted = new SerializedReusableBindingSet(Name, Family, GameMode) {
+                var converted = new SerializedReusableBindingSet(Name, Family, Mode) {
                     Guid = guid
                 };
 
@@ -175,7 +175,7 @@ namespace YARG.Input.Serialization
                 }
 
                 // Flesh out any empty bindings from the template so we don't get KeyNotFound exceptions later
-                var template = ReusableBindingSetTemplates.GetTemplate(GameMode);
+                var template = ReusableBindingSetTemplates.GetTemplate(Mode);
                 foreach (var templateAction in template.Keys)
                 {
                     if (!converted.Bindings.ContainsKey(templateAction))
