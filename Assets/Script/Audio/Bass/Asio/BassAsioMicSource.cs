@@ -17,6 +17,7 @@ namespace YARG.Audio.BASS.Asio
         private BassAsioInput _input;
         private float _monitoringLevel;
         private float _reverbLevel;
+        private bool _recovering;
 
         public BassAsioMicSource(BassAsioMics owner, string driverId, BassAsioInput input, InputDeviceInfo info)
             : base(info.Name, info.DisplayName, info.Channel)
@@ -38,6 +39,8 @@ namespace YARG.Audio.BASS.Asio
         protected override int GetSampleRateCore() => _input.SampleRate;
 
         protected override bool GetIsValidCore() => _input.IsValid;
+
+        protected override bool GetIsRecoveringCore() => _recovering;
 
         protected override int ReadCore(Span<float> destination) => _input.Read(destination);
 
@@ -98,6 +101,7 @@ namespace YARG.Audio.BASS.Asio
 
                 _input.Release();
                 _input = input;
+                _recovering = false;
                 if (!_input.EnableMonitoring(_monitoringLevel))
                 {
                     YargLogger.LogWarning($"Failed to restore monitoring for ASIO microphone '{DisplayName}'");
@@ -108,10 +112,28 @@ namespace YARG.Audio.BASS.Asio
             RaiseInputChanged();
         }
 
+        internal void AbortRecovery()
+        {
+            lock (SyncRoot)
+            {
+                _input.Release();
+                _recovering = false;
+            }
+        }
+
+        internal void EndRecovery()
+        {
+            lock (SyncRoot)
+            {
+                _recovering = false;
+            }
+        }
+
         internal void Suspend()
         {
             lock (SyncRoot)
             {
+                _recovering = true;
                 _input.Release();
             }
         }

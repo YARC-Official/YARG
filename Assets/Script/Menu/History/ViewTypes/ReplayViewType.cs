@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using YARG.Core;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
@@ -231,8 +232,10 @@ namespace YARG.Menu.History
                 else
                 {
                     var playerScoreRecord = _gameInfo.PlayerScoreRecords[i];
-                    var currentHighScore = ScoreContainer.GetHighScore(_entry.SongChecksum, playerScoreRecord.PlayerId,
-                        playerResult.Frame.Profile.CurrentInstrument, false);
+                    var currentHighScore = playerScoreRecord.Instrument == Instrument.PartyVocals &&
+                        !playerScoreRecord.VocalChartSource.HasValue ? null :
+                        ScoreContainer.GetHighScore(_entry.SongChecksum, playerScoreRecord.PlayerId,
+                            playerResult.Frame.Profile.CurrentInstrument, false, playerScoreRecord.VocalChartSource);
                     isHighScore = currentHighScore != null &&
                         playerScoreRecord.GameRecordId == currentHighScore.GameRecordId;
                 }

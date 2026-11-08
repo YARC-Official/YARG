@@ -18,6 +18,7 @@ namespace YARG.Audio.BASS.Wasapi
         private readonly WasapiNotifyProcedure                 _notifyProcedure;
         private readonly BassAudioRouter                       _router;
         private          bool                                  _notificationsRegistered;
+        private          bool                                  _disposed;
         private          BassWasapiOutput?                     _output;
 
         public BassWasapiMicManager(BassAudioRouter router)
@@ -28,6 +29,7 @@ namespace YARG.Audio.BASS.Wasapi
 
         public void Dispose()
         {
+            _disposed = true;
             _output = null;
             UnregisterNotifications();
 
@@ -154,6 +156,8 @@ namespace YARG.Audio.BASS.Wasapi
 
                 for (int i = 0; BassWasapi.GetDeviceInfo(i, out var devInfo); i++)
                 {
+                    if (_captures.TryGetValue(i, out var capture) && capture.IsChannelClaimed(requested.Channel))
+                        continue;
                     if (devInfo.MatchesRequested(i, requested, out resolved))
                     {
                         return true;
@@ -187,11 +191,16 @@ namespace YARG.Audio.BASS.Wasapi
 
         private void OnWasapiNotify(WasapiNotificationType notify, int device, IntPtr user)
         {
-            _output?.OnWasapiNotify(notify, device);
-            foreach (var capture in _captures.Values)
+            // Native notifications can race capture creation/release. The registry is main-thread owned.
+            UnityMainThreadCallback.QueueEvent(() =>
             {
-                capture.OnWasapiNotify(notify, device);
-            }
+                if (_disposed) return;
+                _output?.OnWasapiNotify(notify, device);
+                foreach (var capture in _captures.Values)
+                {
+                    capture.OnWasapiNotify(notify, device);
+                }
+            });
         }
 
         private void ReleaseMic(int deviceId, int channel, BassWasapiMicCapture capture)

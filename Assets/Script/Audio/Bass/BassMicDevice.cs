@@ -16,11 +16,13 @@ namespace YARG.Audio.BASS
         private          BassMicAnalyzer _analyzer;
         private readonly object          _lifecycleLock = new();
         private          bool                 _disposed;
+        private          bool                 _analyzerAvailable;
 
         internal BassMicDevice(IBassMicSource source) : base(source.DisplayName)
         {
             _source = source;
             _analyzer = CreateAnalyzer();
+            _analyzerAvailable = true;
             _source.InputChanged += RecreateAnalyzer;
         }
 
@@ -35,6 +37,18 @@ namespace YARG.Audio.BASS
                 YargLogger.LogException(exception, $"Failed to initialize microphone '{source.DisplayName}'");
                 source.Dispose();
                 return null;
+            }
+        }
+
+        public override bool IsConnected
+        {
+            get
+            {
+                lock (_lifecycleLock)
+                {
+                    // ASIO keeps ownership of its sources while restarting the driver.
+                    return !_disposed && (_source.IsRecovering || (_source.IsConnected && _analyzerAvailable && !_analyzer.HasFailed));
+                }
             }
         }
 
@@ -55,10 +69,12 @@ namespace YARG.Audio.BASS
                     return;
                 }
 
+                _analyzerAvailable = false;
                 _analyzer.Dispose();
                 try
                 {
                     _analyzer = CreateAnalyzer();
+                    _analyzerAvailable = true;
                 }
                 catch (Exception exception)
                 {
