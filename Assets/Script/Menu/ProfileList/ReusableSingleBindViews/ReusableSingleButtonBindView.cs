@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.Layouts;
+using UnityEngine.InputSystem.Controls;
 using UnityEngine.UI;
-using YARG.Assets.Script.Helpers;
 using YARG.Assets.Script.Menu.ProfileList;
 using YARG.Helpers;
 using YARG.Input;
@@ -52,7 +49,7 @@ namespace YARG.Menu.ProfileList
 
             // Set with notify for propogation to other components
             _invertToggle.isOn = singleBinding.Inverted;
-            _pressPointSlider.Value = singleBinding.PressPoint;
+            _pressPointSlider.SetValueWithoutNotify(GetDisplayedPressPoint());
             _debounceModeDropdown.value = (int) singleBinding.DebounceMode;
             _debounceSlider.Value = singleBinding.DebounceThreshold;
 
@@ -102,6 +99,7 @@ namespace YARG.Menu.ProfileList
         public override void OnControlDropdownChange()
         {
             base.OnControlDropdownChange();
+            UpdateAxisDisplayThreshold();
 
             if (
                 (_current is null && _profilesMenu.CurrentBindingSetFilter is ControllerFamily.MidiDevice) ||
@@ -144,9 +142,39 @@ namespace YARG.Menu.ProfileList
         {
             var calibrated = dummyControl.value * (SingleBinding.Inverted ? -1 : 1);
             _valueDisplay.Value = calibrated;
-            var pressed = calibrated >= SingleBinding.PressPoint;
+            var pressPoint = GetEffectivePressPoint(dummyControl);
+            _valueDisplay.PressPoint = pressPoint;
+            var pressed = calibrated >= pressPoint;
             _pressedIndicator.IsPressed = pressed;
             return pressed;
+        }
+
+        private void UpdateAxisDisplayThreshold()
+        {
+            var pressPoint = GetEffectivePressPoint(_dummyInputControl as InputControl<float>);
+            _valueDisplay.PressPoint = pressPoint;
+        }
+
+        private float GetEffectivePressPoint(InputControl<float> control)
+        {
+            if (SingleBinding.HasPressPointOverride)
+            {
+                return SingleBinding.PressPoint;
+            }
+
+            return control is ButtonControl button
+                ? button.pressPointOrDefault
+                : GetDisplayedPressPoint();
+        }
+
+        private float GetDisplayedPressPoint()
+        {
+            if (SingleBinding.HasPressPointOverride)
+            {
+                return SingleBinding.PressPoint;
+            }
+
+            return _current?.DefaultPressPoint ?? ReusableSingleButtonBinding.PRESS_POINT_DEFAULT;
         }
     }
 }

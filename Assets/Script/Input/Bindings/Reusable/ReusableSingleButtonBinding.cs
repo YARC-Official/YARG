@@ -40,11 +40,13 @@ namespace YARG.Input.Bindings
             }
         }
 
-        private float _pressPoint = PRESS_POINT_DEFAULT;
+        private float _pressPoint;
+        public bool HasPressPointOverride { get; private set; }
         public float PressPoint {
             get => _pressPoint;
             set
             {
+                HasPressPointOverride = true;
                 if (_pressPoint != value)
                 {
                     _pressPoint = value;
@@ -70,7 +72,6 @@ namespace YARG.Input.Bindings
         {
             DebounceThreshold = DEBOUNCE_THRESHOLD_DEFAULT;
             DebounceMode = DEBOUNCE_MODE_DEFAULT;
-            PressPoint = PRESS_POINT_DEFAULT;
             Inverted = INVERTED_DEFAULT;
         }
 
@@ -78,7 +79,10 @@ namespace YARG.Input.Bindings
         {
             DebounceThreshold = config.DebounceThreshold ?? DEBOUNCE_THRESHOLD_DEFAULT;
             DebounceMode = config.DebounceMode ?? DEBOUNCE_MODE_DEFAULT;
-            PressPoint = config.PressPoint ?? PRESS_POINT_DEFAULT;
+            if (config.PressPoint.HasValue)
+            {
+                PressPoint = config.PressPoint.Value;
+            }
             Inverted = config.Inverted ?? INVERTED_DEFAULT;
         }
 
@@ -86,7 +90,8 @@ namespace YARG.Input.Bindings
         {
             DebounceThreshold = original.DebounceThreshold;
             DebounceMode = original.DebounceMode;
-            PressPoint = original.PressPoint;
+            _pressPoint = original.PressPoint;
+            HasPressPointOverride = original.HasPressPointOverride;
             Inverted = original.Inverted;
         }
 
@@ -109,7 +114,7 @@ namespace YARG.Input.Bindings
                 serialized[nameof(DebounceMode)] = DebounceMode.ToString();
             }
 
-            if (PressPoint != PRESS_POINT_DEFAULT)
+            if (HasPressPointOverride)
             {
                 serialized[nameof(PressPoint)] = PressPoint.ToString();
             }

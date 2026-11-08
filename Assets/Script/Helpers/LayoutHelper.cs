@@ -16,6 +16,19 @@ namespace YARG.Helpers
     {
         private static readonly Dictionary<ControllerFamily, List<ControlItemInfo>> _controlInfoCache = new();
 
+        private static readonly HashSet<string> _plasticBandDrumVelocityControls = new()
+        {
+            ControlStrings.DRUMKIT_5L_KICK,
+            ControlStrings.DRUMKIT_RED_PAD,
+            ControlStrings.DRUMKIT_YELLOW_PAD,
+            ControlStrings.DRUMKIT_BLUE_PAD,
+            ControlStrings.DRUMKIT_GREEN_PAD,
+            ControlStrings.DRUMKIT_YELLOW_CYMBAL,
+            ControlStrings.DRUMKIT_BLUE_CYMBAL,
+            ControlStrings.DRUMKIT_GREEN_CYMBAL,
+            ControlStrings.DRUMKIT_ORANGE_CYMBAL,
+        };
+
         public static ControlItemInfo GetControlInfo(ControllerFamily family, string controlName)
         {
             var layouts = GetLayoutsForFamily(family);
@@ -197,6 +210,7 @@ namespace YARG.Helpers
             void AddControl(ControlItem controlItem, string sourceLayout, string parentPath = null, string parentLayout = null)
             {
                 var controlPath = parentPath is null ? controlItem.name : $"{parentPath}/{controlItem.name}";
+                var defaultPressPoint = GetDefaultPressPoint(sourceLayout, controlPath, controlItem.layout);
 
                 if (controlItem.isModifyingExistingControl)
                 {
@@ -219,6 +233,7 @@ namespace YARG.Helpers
                         parentPath: parentPath,
                         sourceLayout: sourceLayout,
                         parentLayout: parentLayout,
+                        defaultPressPoint: defaultPressPoint,
                         controlItem: controlItem
                     );
                     RegisterAliases(controlItem, controlPath);
@@ -235,6 +250,7 @@ namespace YARG.Helpers
                         parentPath: parentPath,
                         sourceLayout: sourceLayout,
                         parentLayout: parentLayout,
+                        defaultPressPoint: defaultPressPoint,
                         controlItem: controlItem
                     );
                     RegisterAliases(controlItem, controlPath);
@@ -246,6 +262,7 @@ namespace YARG.Helpers
                     parentPath: parentPath,
                     sourceLayout: sourceLayout,
                     parentLayout: parentLayout,
+                    defaultPressPoint: defaultPressPoint,
                     controlItem: controlItem
                 );
                 RegisterAliases(controlItem, controlPath);
@@ -275,6 +292,22 @@ namespace YARG.Helpers
             return (controlsByPath, aliasesToCanonicalPaths);
         }
 
+        private static float? GetDefaultPressPoint(string sourceLayout, string controlPath, string controlLayout)
+        {
+            if (controlLayout is LayoutStrings.MIDI_NOTE)
+            {
+                return 1f / 127f;
+            }
+
+            if (sourceLayout is LayoutStrings.FOUR_LANE_DRUMKIT or LayoutStrings.FIVE_LANE_DRUMKIT &&
+                _plasticBandDrumVelocityControls.Contains(controlPath))
+            {
+                return 1f / 255f;
+            }
+
+            return null;
+        }
+
         public static ControllerFamily GetFamily(this InputDevice device)
         {
             return InputDeviceToControllerFamily(device);
@@ -290,12 +323,14 @@ namespace YARG.Helpers
         public string? ParentLayout;
         public string Layout;
         public string DisplayName;
+        public float? DefaultPressPoint;
 
         public ControlItemInfo(
             string controlPath,
             string? parentPath,
             string sourceLayout,
             string? parentLayout,
+            float? defaultPressPoint,
             ControlItem controlItem
         ) {
             ControlPath = controlPath;
@@ -304,6 +339,7 @@ namespace YARG.Helpers
             ParentLayout = parentLayout;
             SourceLayout = sourceLayout;
             ParentPath = parentPath;
+            DefaultPressPoint = defaultPressPoint;
         }
 
         public void ApplyOverride(ControlItem controlItem)
