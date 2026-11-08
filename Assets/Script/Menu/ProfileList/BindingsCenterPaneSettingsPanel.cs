@@ -16,6 +16,10 @@ namespace YARG.Menu.ProfileList
     public class BindingsCenterPaneSettingsPanel : MonoBehaviour
     {
         [SerializeField]
+        private GameObject _uneditableMessageGroup;
+        [SerializeField]
+        private RectTransform _dummyControllerDropdownRect;
+        [SerializeField]
         private Button _quickBindButton;
         [SerializeField]
         private GameObject _leftyNamesGroup;
@@ -29,8 +33,6 @@ namespace YARG.Menu.ProfileList
         private TextMeshProUGUI _userCountText;
         [SerializeField]
         private GameObject _unlockButton;
-        [SerializeField]
-        private GameObject _uneditableMessageGroup;
         [SerializeField]
         private BindingSetsCenterPane _centerPane;
 
@@ -69,9 +71,7 @@ namespace YARG.Menu.ProfileList
 
         public void Refresh()
         {
-            _quickBindButton.interactable = _centerPane.BindingSet is not null &&
-                !_centerPane.BindingSet.IsHardcoded &&
-                _centerPane.DummyController is not null;
+            RefreshQuickBindButton();
 
             _leftyToggle.SetIsOnWithoutNotify(_centerPane.ShowLeftyNames);
 
@@ -112,6 +112,23 @@ namespace YARG.Menu.ProfileList
             }
 
             _uneditableMessageGroup.SetActive(bindingSet.IsHardcoded);
+        }
+
+        private void RefreshQuickBindButton()
+        {
+            if (_centerPane.BindingSet.Mode.IsQuickBindable())
+            {
+                _quickBindButton.transform.parent.gameObject.SetActive(true);
+                _dummyControllerDropdownRect.offsetMax = _dummyControllerDropdownRect.offsetMax.WithX(-45);
+
+                _quickBindButton.interactable = _centerPane.BindingSet is not null &&
+                    !_centerPane.BindingSet.IsHardcoded &&
+                    _centerPane.DummyController is not null;
+            } else
+            {
+                _quickBindButton.transform.parent.gameObject.SetActive(false);
+                _dummyControllerDropdownRect.offsetMax = _dummyControllerDropdownRect.offsetMax.WithX(20);
+            }
         }
     }
 }

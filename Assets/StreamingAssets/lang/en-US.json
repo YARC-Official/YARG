@@ -961,7 +961,7 @@
                         },
                         "QuickBind": {
                             "Title": "Quick Bind",
-                            "Text": "Use the dummy controller to quickly provide bindings for this binding set."
+                            "Text": "Use the dummy controller to quickly provide bindings for this binding set. Quick Bind is currently supported for only drums and keys modes."
                         },
                         "DummyController": {
                             "Title": "Dummy Controller",

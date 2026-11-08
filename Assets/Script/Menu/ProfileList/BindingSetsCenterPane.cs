@@ -9,6 +9,7 @@ using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Logging;
 using YARG.Helpers;
+using YARG.Helpers.Extensions;
 using YARG.Input;
 using YARG.Input.Bindings;
 using YARG.Menu.Persistent;
@@ -132,8 +133,7 @@ namespace YARG.Menu.ProfileList
 
         public async void ShowQuickBind()
         {
-            if (BindingSet.Mode is GameMode.FourLaneDrums or GameMode.ProKeys or
-                    GameMode.FiveLaneDrums or GameMode.EliteDrums)
+            if (BindingSet.Mode.IsQuickBindable())
             {
                 var dialog = DialogManager.Instance.ShowFriendlyBindingDialog(BindingSet, DummyController, _showLeftyNames);
 

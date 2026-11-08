@@ -3158,6 +3158,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 97affc230a4191842b1756e0f11b7bbf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.ProfileList.BindingsCenterPaneSettingsPanel
+  _uneditableMessageGroup: {fileID: 7344247320632777362}
+  _dummyControllerDropdownRect: {fileID: 6503194225160590252}
   _quickBindButton: {fileID: 2302844888091306588}
   _leftyNamesGroup: {fileID: 4522117044565965088}
   _leftyToggle: {fileID: 4911705530541695676}
@@ -3165,7 +3167,6 @@ MonoBehaviour:
   _userCountBackground: {fileID: 3568410395716775788}
   _userCountText: {fileID: 2503170214413269372}
   _unlockButton: {fileID: 8192298306226586296}
-  _uneditableMessageGroup: {fileID: 7344247320632777362}
   _centerPane: {fileID: 8728195230581420338}
 --- !u!1 &8480179244186169325
 GameObject:
@@ -3556,7 +3557,7 @@ GameObject:
   - component: {fileID: 8450608183129137363}
   - component: {fileID: 6401358924917571683}
   m_Layer: 5
-  m_Name: Label (1)
+  m_Name: Sublabel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
