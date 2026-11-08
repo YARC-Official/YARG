@@ -104,6 +104,7 @@ namespace YARG.Input.Serialization
         )
         {
             var converted = new SerializedModeMappingCollection();
+            List<SerializedReusableBindingSet> createdSetsForThisProfile = new();
 
             for (var i = 0; i < controllers.Count; i++)
             {
@@ -142,8 +143,14 @@ namespace YARG.Input.Serialization
                     }
                 }
 
-                // We don't want to flood a first-time upgrader with a bazillion redundant copies of the same default binding set
-                if (LegacyBindingSetDeserialization.LegacyBindingSetShouldBeDeserialized(reusableBindingSet))
+                // We don't want to flood a first-time upgrader with redundant or useless binding sets
+                // -If the set matches any legacy default set (meaning the user never configured anything), then we discard it
+                // -If we've already migrated an identical binding set for this profile, we discard it
+                //
+                // We don't check for duplicates against nondefault binding sets made for other profiles, mostly because it makes
+                // naming lengthy ("Alice, Bob, Charlie, and David's XInputGuitarHeroGuitar bindings") or confusing (Bob: "Hey, why
+                // did I default to Alice's bindings? Where are mine?")
+                if (LegacyBindingSetDeserialization.LegacyBindingSetShouldBeDeserialized(reusableBindingSet, createdSetsForThisProfile))
                 {
                     // Flesh out any empty bindings from the template so we don't get KeyNotFound exceptions later
                     var template = ReusableBindingSetTemplates.GetTemplate(mode);
@@ -157,6 +164,7 @@ namespace YARG.Input.Serialization
 
                     converted.MappingsByControllerFamily[reusableBindingSet!.Family] = reusableBindingSet.Guid!.Value;
                     reusableBindingSets[reusableBindingSet.Guid!.Value] = reusableBindingSet;
+                    createdSetsForThisProfile.Add(reusableBindingSet);
                 }
             }
 
