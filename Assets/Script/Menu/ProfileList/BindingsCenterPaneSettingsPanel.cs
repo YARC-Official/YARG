@@ -30,6 +30,8 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private GameObject _unlockButton;
         [SerializeField]
+        private GameObject _uneditableMessageGroup;
+        [SerializeField]
         private BindingSetsCenterPane _centerPane;
 
         private List<YargProfile> _allUsers = new();
@@ -108,6 +110,8 @@ namespace YARG.Menu.ProfileList
                 _unlockButton.SetActive(Locked);
                 _userCountBackground.color = _userCountBackground.color.WithAlpha(Locked ? 1 : 0);
             }
+
+            _uneditableMessageGroup.SetActive(bindingSet.IsHardcoded);
         }
     }
 }
