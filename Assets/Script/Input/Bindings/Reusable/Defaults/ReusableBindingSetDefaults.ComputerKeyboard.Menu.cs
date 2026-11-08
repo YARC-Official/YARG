@@ -324,7 +324,7 @@ namespace YARG.Input.Bindings
 
         public static readonly Guid GUID_COMPUTER_KEYBOARD_MENU = new("0c95fb65-7031-4af7-9ebe-037446da0813");
         public static readonly ReusableBindingSet DefaultComputerKeyboardMenu = MakeHardcodedBindingSet(
-            "Default Computer Keyboard Menu",
+            "WASD and Arrow Keys",
             GameMode.Menu,
             ControllerFamily.ComputerKeyboard,
             GUID_COMPUTER_KEYBOARD_MENU,

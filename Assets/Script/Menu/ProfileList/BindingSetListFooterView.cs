@@ -69,6 +69,12 @@ namespace YARG.Menu.ProfileList
 
             foreach (var remainingGameMode in _remainingGameModes)
             {
+                if (remainingGameMode is GameMode.ProGuitar)
+                {
+                    // Pro Guitar is not a supported mode currently
+                    continue;
+                }
+
                 dialog.AddListButton(remainingGameMode.ToLocalizedName(), () =>
                 {
                     var bindingSet = ReusableBindingSetTemplates.MakeBlankBindingSet(remainingGameMode, _family);

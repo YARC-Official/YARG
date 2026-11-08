@@ -945,7 +945,7 @@
                         "AddOtherBindingSet": {
                             "Title": "Add Other Binding Set",
                             "Text": "{0}",
-                            "Generic": "Create a binding set for use with miscellaneous input devices in a mode that isn't already listed here.\n\n<b><color=yellow>Note:</color></b> You won't be able to select bindings from dropdowns; you'll need to assign a dummy controller and use the <b>Quick Bind</b> and/or <b>Record</b> buttons to create your binding set.",
+                            "Generic": "Create a binding set for use with miscellaneous input devices in a mode that isn't already listed here.\n\n<b><color=yellow>Note:</color></b> Because this is for unknown devices, we can't populate dropdowns with controls for you to pick from. You'll have to create this binding set by using the <b>Record</b> and/or <b>Quick Bind</b> buttons with a controller connected.",
                             "Flexible": "Create a binding set for use with {0} in a mode that isn't already listed here.",
                             "NotRecommended": "Create a binding set for use with {0} in a mode that isn't already listed here. <b><color=\"yellow\">Only use this if you know what you're doing!</color></b> This controller type wasn't designed for other modes."
                         }
