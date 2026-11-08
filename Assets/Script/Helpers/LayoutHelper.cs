@@ -275,7 +275,10 @@ namespace YARG.Helpers
             return (controlsByPath, aliasesToCanonicalPaths);
         }
 
-
+        public static ControllerFamily GetFamily(this InputDevice device)
+        {
+            return InputDeviceToControllerFamily(device);
+        }
     }
 
 #nullable enable

@@ -116,7 +116,7 @@ namespace YARG.Menu.ProfileList
 
         private void RefreshQuickBindButton()
         {
-            if (_centerPane.BindingSet.Mode.IsQuickBindable())
+            if (_centerPane.BindingSet is not null && _centerPane.BindingSet.Mode.IsQuickBindable())
             {
                 _quickBindButton.transform.parent.gameObject.SetActive(true);
                 _dummyControllerDropdownRect.offsetMax = _dummyControllerDropdownRect.offsetMax.WithX(-45);

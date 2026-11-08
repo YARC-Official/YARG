@@ -394,11 +394,16 @@ namespace YARG.Menu.ProfileList
 
         public void JumpToBindingSet(ReusableBindingSet bindingSet, InputDevice dummyController, bool lefty)
         {
-            _headerTabs.SelectTabById(BINDINGS_TAB);
-            SetCurrentBindingSetFilter(bindingSet.ControllerFamily);
-            _bindingSetsFilter.UpdateDropdown();
+            JumpToBindingSetCategory(bindingSet.ControllerFamily);
             _bindingSetsCenterPane.JumpTo(bindingSet, dummyController, lefty);
             SetSelectedBindingSet(bindingSet);
+        }
+
+        public void JumpToBindingSetCategory(ControllerFamily family)
+        {
+            _headerTabs.SelectTabById(BINDINGS_TAB);
+            SetCurrentBindingSetFilter(family);
+            _bindingSetsFilter.UpdateDropdown();
         }
 
         public void OnPlayerAdded(YargPlayer player)
