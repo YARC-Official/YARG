@@ -17,9 +17,14 @@ namespace YARG.Menu.ProfileList
             var mode = _entry.Profile.GameMode;
             var family = LayoutHelper.LayoutStringToControllerFamily(_entry.Controller.layout);
 
+            var existenceString = _entry.GameplayBindingSetsExist ? "Exist" : "NoneExist";
+
+            var prefix = Localize.Key("Menu.ProfileList.Tooltip.Profiles.Settings.GameplayBindings", existenceString, "Prefix");
+            var suffix = Localize.Key("Menu.ProfileList.Tooltip.Profiles.Settings.GameplayBindings", existenceString, "Suffix");
+
             return (
                 new List<string>() { },
-                new List<string>() { BindingSetHelper.GetDescriptiveName(mode, family) }
+                new List<string>() { prefix, BindingSetHelper.GetDescriptiveName(mode, family), suffix }
             );
         }
     }

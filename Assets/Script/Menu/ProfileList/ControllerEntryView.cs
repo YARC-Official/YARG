@@ -48,7 +48,9 @@ namespace YARG.Menu.ProfileList
         public InputDevice Controller { get; private set; }
 
         private List<ReusableBindingSet> _gameplayBindingSetsByIndex = new();
+        public bool GameplayBindingSetsExist => _gameplayBindingSetsByIndex.Count > 1; // Account for null entry
         private List<ReusableBindingSet> _menuBindingSetsByIndex = new();
+        public bool MenuBindingSetsExist => _menuBindingSetsByIndex.Count > 1; // Account for null entry
 
 #nullable enable
         public ReusableBindingSet? GameplayBindingSet => _gameplayBindingSetsByIndex[_gameplayBindingSetDropdown.value];
@@ -93,13 +95,18 @@ namespace YARG.Menu.ProfileList
             {
                 if (bindingSet is null)
                 {
-                    _gameplayBindingSetDropdown.options.Add(new("<i>No gameplay bindings</i>"));
+                    _gameplayBindingSetDropdown.options.Add(new(GameplayBindingSetsExist ?
+                        "<i>No gameplay bindings</i>" :
+                        "<i><color=grey>No gameplay bindings available</color></i>"
+                        
+                    ));
                     continue;
                 }
 
                 _gameplayBindingSetDropdown.options.Add(new(bindingSet.Name));
             }
 
+            _gameplayBindingSetDropdown.interactable = GameplayBindingSetsExist;
             _gameplayBindingSetDropdown.SetValueWithoutNotify(_gameplayBindingSetsByIndex.IndexOf(player.DeviceInfo.GetSelectedGameplayBindingsForController(Controller)));
             UpdateGameplayBindingsStatus();
 
@@ -107,16 +114,22 @@ namespace YARG.Menu.ProfileList
             _menuBindingSetsByIndex.Add(null); // Always start with the None option
             _menuBindingSetsByIndex.AddRange(BindingsContainer.GetBindingSetsForControllerInMode(family, GameMode.Menu));
             _menuBindingSetDropdown.options.Clear();
+
             foreach (var bindingSet in _menuBindingSetsByIndex)
             {
                 if (bindingSet is null)
                 {
-                    _menuBindingSetDropdown.options.Add(new("<i>No menu bindings</i>"));
+                    _menuBindingSetDropdown.options.Add(new(MenuBindingSetsExist ?
+                        "<i>No menu bindings</i>" :
+                        "<i><color=grey>No menu bindings available</color></i>"
+                    ));
                     continue;
                 }
 
                 _menuBindingSetDropdown.options.Add(new(bindingSet.Name));
             }
+
+            _menuBindingSetDropdown.interactable = MenuBindingSetsExist;
 
             _menuBindingSetDropdown.SetValueWithoutNotify(_menuBindingSetsByIndex.IndexOf(player.DeviceInfo.GetActiveMenuBindingsForController(Controller)));
             UpdateMenuBindingsStatus();
