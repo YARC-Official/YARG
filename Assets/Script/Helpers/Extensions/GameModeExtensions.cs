@@ -155,5 +155,11 @@ namespace YARG.Helpers.Extensions
         {
             return gameMode is GameMode.FiveFretGuitar or GameMode.SixFretGuitar or GameMode.FourLaneDrums or GameMode.EliteDrums;
         }
+
+        public static bool IsQuickBindable(this GameMode gameMode)
+        {
+            return gameMode is GameMode.FourLaneDrums or GameMode.ProKeys or
+                    GameMode.FiveLaneDrums or GameMode.EliteDrums;
+        }
     }
 }
