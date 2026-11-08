@@ -12,9 +12,24 @@ namespace YARG.Input.Serialization
      */
     public static partial class LegacyBindingSetDeserialization
     {
-        public static bool LegacyBindingSetShouldBeDeserialized(SerializedReusableBindingSet candidate)
+        public static bool LegacyBindingSetShouldBeDeserialized(
+            SerializedReusableBindingSet candidate, List<SerializedReusableBindingSet> othersCreatedForThisProfile
+        )
         {
-            return candidate is not null && candidate.Bindings.Count is not 0 && !SerializedBindingSetIsOldDefault(candidate);
+            if (candidate is null)
+            {
+                return false;
+            }
+
+            foreach (var existing in othersCreatedForThisProfile)
+            {
+                if (SerializedBindingSetsAreEquivalent(candidate, existing))
+                {
+                    return false;
+                }
+            }
+
+            return candidate.Bindings.Count is not 0 && !SerializedBindingSetIsOldDefault(candidate);
         }
 
         public static string IsolateControlName(string controlPath)
