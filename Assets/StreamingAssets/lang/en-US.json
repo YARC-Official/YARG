@@ -189,7 +189,7 @@
                 "ComputerKeyboard": "computer keyboards",
                 "Mouse": "computer mice",
                 "Gamepad": "gamepads",
-                "Other": "other input devices"
+                "Other": "misc. input devices"
             }
         }
     },
