@@ -844,11 +844,27 @@
                         },
                         "GameplayBindings": {
                             "Title": "Gameplay Bindings",
-                            "Text": "Select from all binding sets for {0}."
+                            "Text": "{0} {1}.{2}",
+							"Exist": {
+								"Prefix": "Select from all binding sets for",
+								"Suffix": ""
+							},
+							"NoneExist": {
+								"Prefix": "You don't have any binding sets for",
+								"Suffix": " If you want to make one, click the eye button to go to the appropriate section of the <b>Bindings</b> tab."
+							}
                         },
                         "MenuBindings": {
                             "Title": "Menu Bindings",
-                            "Text": "Select from all binding sets for menu navigation on {0}."
+                            "Text": "{0} binding sets for menu navigation on {1}.{2}",
+							"Exist": {
+								"Prefix": "Select from all",
+								"Suffix": ""
+							},
+							"NoneExist": {
+								"Prefix": "You don't have any",
+								"Suffix": " If you want to make one, click the eye button to go to the appropriate section of the <b>Bindings</b> tab."
+							}
                         },
                         "NoteSpeed": {
                             "Title": "Note Speed",

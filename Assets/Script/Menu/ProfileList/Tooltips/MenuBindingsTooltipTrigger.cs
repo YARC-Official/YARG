@@ -14,9 +14,14 @@ namespace YARG.Menu.ProfileList
 
         protected override (IReadOnlyList<string> titleParams, IReadOnlyList<string> textParams) GetParameters()
         {
+            var existenceString = _entry.MenuBindingSetsExist ? "Exist" : "NoneExist";
+
+            var prefix = Localize.Key("Menu.ProfileList.Tooltip.Profiles.Settings.MenuBindings", existenceString, "Prefix");
+            var suffix = Localize.Key("Menu.ProfileList.Tooltip.Profiles.Settings.MenuBindings", existenceString, "Suffix");
+
             return (
                 new List<string>() { },
-                new List<string>() { LayoutHelper.LayoutStringToControllerFamily(_entry.Controller.layout).ToLocalizedNamePluralSentence() }
+                new List<string>() { prefix, LayoutHelper.LayoutStringToControllerFamily(_entry.Controller.layout).ToLocalizedNamePluralSentence(), suffix }
             );
         }
     }
