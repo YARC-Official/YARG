@@ -110,6 +110,7 @@ namespace YARG.Menu.ProfileList
             TSingle newBinding = new();
             await newBinding.QuickBind(CenterPane.DummyController, _quickBindDialog, Binding.Info.Type); // Will return immediately if no dummy controller
             Binding.AddBinding(newBinding);
+            SetBindingsDrawer(true);
             RefreshBindings();
         }
 

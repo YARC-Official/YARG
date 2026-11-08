@@ -16,15 +16,20 @@ namespace YARG.Input.Bindings
     /// </summary>
     public static class BindingsContainer
     {
+        static BindingsContainer()
+        {
+            _reusableBindingSetsByControllerFamily = _defaultsByControllerFamily;
+        }
+
         private static string BindingsPath => Path.Combine(PlayerContainer.ProfilesDirectory, "bindings.json");
         private static string BindingsBackupPath => Path.Combine(PlayerContainer.ProfilesDirectory, "bindings.json.bak");
 
         private static readonly Dictionary<Guid, PlayerDeviceInfo> _profileDeviceInfo = new(); // GUID is YargProfile GUID
 
-        private static readonly Dictionary<Guid, ReusableBindingSet> _allReusableBindingSetsByGuid = new(); // GUID is ReusableBindingSet GUID
+        private static Dictionary<Guid, ReusableBindingSet> _allReusableBindingSetsByGuid; // GUID is ReusableBindingSet GUID
         public static IEnumerable<PlayerDeviceInfo> AllPlayerDeviceInfo => _profileDeviceInfo.Values;
 
-        private static readonly Dictionary<ControllerFamily, Dictionary<GameMode, List<ReusableBindingSet>>> _reusableBindingSetsByControllerFamily = new();
+        private static readonly Dictionary<ControllerFamily, Dictionary<GameMode, List<ReusableBindingSet>>> _reusableBindingSetsByControllerFamily;
 
         public static PlayerDeviceInfo GetDeviceInfoForProfile(YargProfile profile)
         {
@@ -54,7 +59,7 @@ namespace YARG.Input.Bindings
                 ControllerFamily.MidiDevice => new() { GameMode.ProKeys, GameMode.EliteDrums },
                 ControllerFamily.ProGuitar => new() { GameMode.ProGuitar, GameMode.FiveFretGuitar },
                 ControllerFamily.Turntable => new() { /* GameMode.Dj */ },
-                ControllerFamily.Gamepad => new() { GameMode.Vocals, GameMode.FiveFretGuitar, GameMode.SixFretGuitar, GameMode.FourLaneDrums, GameMode.FiveLaneDrums, GameMode.EliteDrums },
+                ControllerFamily.Gamepad => new() { GameMode.Vocals, GameMode.FiveFretGuitar, GameMode.SixFretGuitar, GameMode.FourLaneDrums, GameMode.FiveLaneDrums, GameMode.EliteDrums, GameMode.ProKeys },
                 ControllerFamily.ComputerKeyboard => new() { GameMode.FiveFretGuitar, GameMode.SixFretGuitar, GameMode.FourLaneDrums, GameMode.FiveLaneDrums, GameMode.EliteDrums, GameMode.ProKeys, GameMode.Vocals },
                 ControllerFamily.Mouse => new() { GameMode.Vocals },
                 _ => new() { }
@@ -85,8 +90,6 @@ namespace YARG.Input.Bindings
 
         public static void LoadBindings()
         {
-            ReusableBindingSetDefaults.InitializeDefaults();
-
             bool usedBackup = false;
 
             _profileDeviceInfo.Clear();
@@ -171,7 +174,7 @@ namespace YARG.Input.Bindings
 
         public static void AddBindingSet(ReusableBindingSet newSet)
         {
-            _allReusableBindingSetsByGuid[newSet.Guid] = newSet;
+            RegisterBindingSetGuid(newSet);
 
             if (!_reusableBindingSetsByControllerFamily.ContainsKey(newSet.ControllerFamily))
             {
@@ -184,6 +187,15 @@ namespace YARG.Input.Bindings
             }
 
             _reusableBindingSetsByControllerFamily[newSet.ControllerFamily][newSet.Mode].Add(newSet);
+        }
+
+        // Do not call directly except when creating hardcoded binding sets!
+        // If you are making a user-defined binding set at runtime, call AddBindingSet so it is also added
+        // to the controller family dictionary
+        public static void RegisterBindingSetGuid(ReusableBindingSet bindingSet)
+        {
+            _allReusableBindingSetsByGuid ??= new();
+            _allReusableBindingSetsByGuid[bindingSet.Guid] = bindingSet;
         }
 
         public static void DeleteBindingSet(ReusableBindingSet bindingSet)
@@ -242,5 +254,152 @@ namespace YARG.Input.Bindings
                 }
             }
         }
+
+        private static Dictionary<ControllerFamily, Dictionary<GameMode, List<ReusableBindingSet>>> _defaultsByControllerFamily = new()
+        {
+            { ControllerFamily.FiveFretGuitar, new() {
+                { GameMode.FiveFretGuitar, new() {
+                    ReusableBindingSetDefaults.DefaultFiveFretGuitar,
+                    ReusableBindingSetDefaults.DefaultRiffmasterGuitar,
+                }},
+                { GameMode.Menu, new() {
+                    ReusableBindingSetDefaults.DefaultFiveFretGuitarMenu,
+                }},
+            }},
+
+            { ControllerFamily.SixFretGuitar, new() {
+                { GameMode.SixFretGuitar, new() {
+                    ReusableBindingSetDefaults.DefaultSixFretGuitar,
+                }},
+                { GameMode.Menu, new() {
+                    ReusableBindingSetDefaults.DefaultSixFretGuitarMenu,
+                }},
+            }},
+
+            { ControllerFamily.FourLaneDrumkit, new() {
+                { GameMode.FourLaneDrums, new() {
+                    ReusableBindingSetDefaults.DefaultFourLaneDrumkit,
+                }},
+                { GameMode.Menu, new() {
+                    ReusableBindingSetDefaults.DefaultFourLaneDrumkitMenu,
+                    ReusableBindingSetDefaults.FourLaneDrumkitControllerOnlyMenu,
+                }},
+            }},
+
+            { ControllerFamily.FiveLaneDrumkit, new() {
+                { GameMode.FiveLaneDrums, new() {
+                    ReusableBindingSetDefaults.DefaultFiveLaneDrumkit,
+                }},
+                { GameMode.Menu, new() {
+                    ReusableBindingSetDefaults.DefaultFiveLaneDrumkitMenu,
+                    ReusableBindingSetDefaults.FiveLaneDrumkitControllerOnlyMenu,
+                }},
+            }},
+
+            { ControllerFamily.ProKeyboard, new() {
+                { GameMode.ProKeys, new() {
+                    ReusableBindingSetDefaults.DefaultProKeyboard,
+                }},
+                { GameMode.Menu, new() {
+                    ReusableBindingSetDefaults.DefaultProKeyboardMenu,
+                }},
+            }},
+
+            { ControllerFamily.ProGuitar, new() {
+                { GameMode.FiveFretGuitar, new() {
+                    ReusableBindingSetDefaults.DefaultFiveFretGuitarOnProGuitar,
+                }},
+                { GameMode.Menu, new() {
+                    ReusableBindingSetDefaults.DefaultProGuitarMenu,
+                }},
+            }},
+
+            { ControllerFamily.Turntable, new() {
+                { GameMode.Menu, new() {
+                    ReusableBindingSetDefaults.DefaultTurntableMenu,
+                }},
+            }},
+
+            { ControllerFamily.MidiDevice, new() {
+                { GameMode.ProKeys, new() {
+                    ReusableBindingSetDefaults.DefaultMidiKeyboard,
+                }},
+                { GameMode.EliteDrums, new() {
+                    ReusableBindingSetDefaults.GeneralMidiDrumkit,
+                    ReusableBindingSetDefaults.AlesisNitroDrumkit,
+                }},
+            }},
+
+            { ControllerFamily.Gamepad, new() {
+                { GameMode.Menu, new() {
+                    ReusableBindingSetDefaults.DefaultGamepadMenu,
+                    ReusableBindingSetDefaults.DefaultSwitchGamepadMenu,
+                    ReusableBindingSetDefaults.DefaultGamepadFiveFretGuitarMenu,
+                    ReusableBindingSetDefaults.DefaultCrkdMode1Menu,
+                    ReusableBindingSetDefaults.DefaultGamepadSixFretGuitarMenu,
+                    ReusableBindingSetDefaults.DefaultGamepadFourLaneDrumkitMenu,
+                    ReusableBindingSetDefaults.DefaultGamepadFiveLaneDrumkitMenu,
+                }},
+                { GameMode.Vocals, new() {
+                    ReusableBindingSetDefaults.DefaultGamepadVocalGameplay,
+                    ReusableBindingSetDefaults.DefaultSwitchGamepadVocalGameplay,
+                }},
+                { GameMode.FiveFretGuitar, new() {
+                    ReusableBindingSetDefaults.DefaultGamepadFiveFretGuitarGameplay,
+                    ReusableBindingSetDefaults.DefaultCrkdMode1Gameplay,
+                    ReusableBindingSetDefaults.DefaultCrkdMode1Fw30Gameplay,
+                }},
+                { GameMode.SixFretGuitar, new() {
+                    ReusableBindingSetDefaults.DefaultGamepadSixFretGuitarGameplay,
+                }},
+                { GameMode.FourLaneDrums, new() {
+                    ReusableBindingSetDefaults.DefaultGamepadFourLaneDrumkitGameplay,
+                }},
+                { GameMode.FiveLaneDrums, new() {
+                    ReusableBindingSetDefaults.DefaultGamepadFiveLaneDrumkitGameplay,
+                }},
+                { GameMode.EliteDrums, new() {
+                    ReusableBindingSetDefaults.DefaultGamepadMidiDrumkitGameplay,
+                }},
+                { GameMode.ProKeys, new() {
+                    ReusableBindingSetDefaults.DefaultGamepadKeysGameplay,
+                }},
+            }},
+
+            { ControllerFamily.ComputerKeyboard, new() {
+                { GameMode.Menu, new() {
+                    ReusableBindingSetDefaults.DefaultComputerKeyboardMenu,
+                    ReusableBindingSetDefaults.ComputerKeyboardMenuArrowKeysOnly,
+                    ReusableBindingSetDefaults.ComputerKeyboardMenuWASDOnly,
+                }},
+                { GameMode.FiveFretGuitar, new() {
+                    ReusableBindingSetDefaults.DefaultComputerKeyboardFiveFretGuitarGameplay,
+                }},
+                { GameMode.SixFretGuitar, new() {
+                    ReusableBindingSetDefaults.DefaultComputerKeyboardSixFretGuitarGameplay,
+                }},
+                { GameMode.FourLaneDrums, new() {
+                    ReusableBindingSetDefaults.DefaultComputerKeyboardFourLaneDrumsGameplay,
+                }},
+                { GameMode.FiveLaneDrums, new() {
+                    ReusableBindingSetDefaults.DefaultComputerKeyboardFiveLaneDrumsGameplay,
+                }},
+                { GameMode.EliteDrums, new() {
+                    ReusableBindingSetDefaults.DefaultComputerKeyboardDrumsGameplay,
+                }},
+                { GameMode.ProKeys, new() {
+                    ReusableBindingSetDefaults.DefaultComputerKeyboardKeysGameplay,
+                }},
+                { GameMode.Vocals, new() {
+                    ReusableBindingSetDefaults.DefaultComputerKeyboardVocalGameplay,
+                }}
+            }},
+
+            { ControllerFamily.Mouse, new() {
+                { GameMode.Vocals, new() {
+                    ReusableBindingSetDefaults.DefaultMouseVocalGameplay,
+                }}
+            }},
+        };
     }
 }

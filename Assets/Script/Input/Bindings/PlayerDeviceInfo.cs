@@ -688,6 +688,12 @@ namespace YARG.Input
                             return ReusableBindingSetDefaults.DefaultSwitchGamepadMenu;
                         }
                         break;
+                    case (ControllerFamily.Gamepad, GameMode.Vocals):
+                        if (controller is SwitchProControllerHID)
+                        {
+                            return ReusableBindingSetDefaults.DefaultSwitchGamepadVocalGameplay;
+                        }
+                        break;
                     case (ControllerFamily.FiveFretGuitar, GameMode.FiveFretGuitar):
                         if (controller.name.Contains("Riffmaster"))
                         {

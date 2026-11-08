@@ -264,7 +264,7 @@ namespace YARG.Input.Bindings
         public static readonly Guid GUID_CRKD_MODE_1_MENU = new("4fa7d4ac-c85b-4c86-b9b0-c36f2c0870a5");
         public static readonly ReusableBindingSet DefaultCrkdMode1Menu = MakeHardcodedBindingSet(
             "Default CRKD Guitar (Mode 1) Menu",
-            GameMode.FiveFretGuitar,
+            GameMode.Menu,
             ControllerFamily.Gamepad,
             GUID_CRKD_MODE_1_MENU,
             _crkdMode1Menu
