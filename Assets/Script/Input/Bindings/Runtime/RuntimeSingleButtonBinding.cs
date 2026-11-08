@@ -1,4 +1,5 @@
 ﻿using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Controls;
 
 namespace YARG.Input.Bindings
 {
@@ -26,7 +27,11 @@ namespace YARG.Input.Bindings
 
             Inverted = reusableBinding.Inverted;
             DebounceMode = reusableBinding.DebounceMode;
-            PressPoint = reusableBinding.PressPoint;
+            PressPoint = reusableBinding.HasPressPointOverride
+                ? reusableBinding.PressPoint
+                : control is ButtonControl button
+                    ? button.pressPointOrDefault
+                    : InputSystem.settings.defaultButtonPressPoint;
         }
 
         public void UpdateDebounce(double time)
