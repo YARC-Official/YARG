@@ -216,6 +216,24 @@ namespace YARG.Input.Bindings
             },
         };
 
+        private static readonly Dictionary<string, ReusableControlBinding> _switchGamepadVocalDefaults = new()
+        {
+            {
+                ActionStrings.VOCAL_HIT,
+                new ReusableButtonBinding(
+                    ReusableBindingSetTemplates.VOCALS[ActionStrings.VOCAL_HIT],
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_BUTTON_EAST)
+                )
+            },
+            {
+                ActionStrings.VOCAL_STAR_POWER,
+                new ReusableButtonBinding(
+                    ReusableBindingSetTemplates.VOCALS[ActionStrings.VOCAL_STAR_POWER],
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.Gamepad, ControlStrings.GAMEPAD_SELECT)
+                )
+            },
+        };
+
         public static readonly Guid GUID_GAMEPAD_MENU = new("16162888-ccd1-4bd2-8ca0-0255d3477984");
         public static readonly ReusableBindingSet DefaultGamepadMenu = MakeHardcodedBindingSet(
             "Default Gamepad Menu",
@@ -241,6 +259,15 @@ namespace YARG.Input.Bindings
             ControllerFamily.Gamepad,
             GUID_VOCALS_WITH_GAMEPAD,
             _gamepadVocalDefaults
+        );
+
+        public static readonly Guid GUID_VOCALS_WITH_SWITCH_GAMEPAD = new("6816c5ee-2ba9-441e-a90f-a44542cd760b");
+        public static readonly ReusableBindingSet DefaultSwitchGamepadVocalGameplay = MakeHardcodedBindingSet(
+            "Default Vocals with Switch Gamepad",
+            GameMode.Vocals,
+            ControllerFamily.Gamepad,
+            GUID_VOCALS_WITH_SWITCH_GAMEPAD,
+            _switchGamepadVocalDefaults
         );
     }
 }

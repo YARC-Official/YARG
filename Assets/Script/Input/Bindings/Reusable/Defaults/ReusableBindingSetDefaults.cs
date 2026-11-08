@@ -9,10 +9,6 @@ namespace YARG.Input.Bindings
     {
         public static readonly Guid GUID_NONE = Guid.Empty;
 
-        // Voodoo - this makes the static default initializers run early so we don't crunch
-        // later in the menu. I have no idea why lmao
-        public static void InitializeDefaults() {}
-
         private static ReusableBindingSet MakeHardcodedBindingSet(
             string name,
             GameMode mode,
@@ -49,7 +45,9 @@ namespace YARG.Input.Bindings
                 }
             }
 
-            BindingsContainer.AddBindingSet(bindingSet);
+            BindingsContainer.RegisterBindingSetGuid(bindingSet);
+            // Remember to also add the hardcoded set to DefaultsByControllerFamily below; that's manual so
+            // that we retain control over how the default binding sets are ordered
 
             return bindingSet;
         }
