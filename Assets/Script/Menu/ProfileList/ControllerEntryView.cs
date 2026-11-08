@@ -151,16 +151,12 @@ namespace YARG.Menu.ProfileList
 
         private void UpdateGameplayBindingsStatus()
         {
-            var status = _gameplayBindingSetDropdown.value is not 0;
-            _gameplayIndicator.SetLit(status);
-            _jumpToGameplayBindingsButton.interactable = status;
+            _gameplayIndicator.SetLit(_gameplayBindingSetDropdown.value is not 0);
         }
 
         private void UpdateMenuBindingsStatus()
         {
-            var status = _menuBindingSetDropdown.value is not 0;
-            _menuIndicator.SetLit(status);
-            _jumpToMenuBindingsButton.interactable = status;
+            _menuIndicator.SetLit(_menuBindingSetDropdown.value is not 0);
         }
 
         public void ToggleDrawer()
@@ -178,12 +174,26 @@ namespace YARG.Menu.ProfileList
 
         public void JumpToGameplayBindingSet()
         {
-            _centerPane.ProfileMenu.JumpToBindingSet(GameplayBindingSet, Controller, Profile.LeftyFlip);
+            if (GameplayBindingSet is null)
+            {
+                _centerPane.ProfileMenu.JumpToBindingSetCategory(Controller.GetFamily());
+            }
+            else
+            {
+                _centerPane.ProfileMenu.JumpToBindingSet(GameplayBindingSet, Controller, Profile.LeftyFlip);
+            }
         }
 
         public void JumpToMenuBindingSet()
         {
-            _centerPane.ProfileMenu.JumpToBindingSet(MenuBindingSet, Controller, Profile.LeftyFlip);
+            if (MenuBindingSet is null)
+            {
+                _centerPane.ProfileMenu.JumpToBindingSetCategory(Controller.GetFamily());
+            }
+            else
+            {
+                _centerPane.ProfileMenu.JumpToBindingSet(MenuBindingSet, Controller, Profile.LeftyFlip);
+            }
         }
     }
 }

@@ -809,10 +809,18 @@
 							"Text": "Expand this controller listing to view and edit its gameplay and menu binding sets."
 						},
                         "JumpTo": {
-                            "Title": "Jump to Binding Set",
+                            "Title": "{0}",
                             "Text": "{0}",
-                            "Populated": "Open the <b>Bindings</b> tab and view this binding set. {0} will automatically become the dummy controller, so you can use it to test and edit bindings.",
-                            "Unpopulated": "If you select a binding set, you can use this button to open the <b>Bindings</b> tab and view it."
+                            "Populated": {
+								"Title": "Jump to Binding Set",
+								"Text": "Open the <b>Bindings</b> tab and view this binding set. {0} will automatically become the dummy controller, so you can use it to test and edit bindings."
+							},
+                            "Unpopulated": {
+								"Title": "Jump to Bindings Tab",
+								"Text": "Open the {0} category on <b>Bindings</b> tab. From there, you can create a binding set for {1}.",
+								"GameplaySuffix": "gameplay",
+								"MenuSuffix": "menu navigation"
+							}
                         },
                         "Microphones": {
                             "Title": "Microphones",
