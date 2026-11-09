@@ -53,16 +53,7 @@ namespace LibVLCSharp
 
         internal static bool HasRetiredRenderers()
         {
-            try
-            {
-                return HasRetiredRenderersNative();
-            }
-            catch (Exception exception) when (
-                exception is DllNotFoundException ||
-                exception is EntryPointNotFoundException)
-            {
-                return false;
-            }
+            return HasRetiredRenderersNative();
         }
 
         internal static void QueueRendererCleanupEvent()
