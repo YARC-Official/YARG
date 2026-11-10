@@ -142,7 +142,7 @@ public class YargVideoPlayer : MonoBehaviour
     public double time
     {
 #if VLC_SUPPORTED
-        // MediaPlayer.Time is in microseconds; IVlcPlayer.Time truncates it to milliseconds.
+        // MediaPlayer.Time is in microseconds.
         get => usingVlc
             ? (_vlc.MediaPlayer != null ? _vlc.MediaPlayer.Time / 1_000_000.0 : 0)
             : _unityVideoPlayer.time;
@@ -559,8 +559,9 @@ public class YargVideoPlayer : MonoBehaviour
         GL.PushMatrix();
         // y-down (bottom > top), which is what keeps this stage orientation-neutral:
         // Graphics.DrawTexture maps v=0 to the rect's top edge, so a y-up matrix flips the
-        // image. The pipeline's flip convention lives elsewhere: _flipInBlit (or _vlcPlayer's
-        // flipTextureX/Y) and the yarground image blit's (1, -1).
+        // image. The pipeline's flip convention lives elsewhere: VLCMediaPlayer's flipTextureX/Y
+        // (set in Awake; _flipInBlit instead on Linux Vulkan), VlcCpuMediaPlayer's upright output,
+        // and the yarground image blit's (1, -1).
         GL.LoadPixelMatrix(0, dest.width, dest.height, 0);
         if (flip)
             Graphics.DrawTexture(fitted, source, new Rect(1f, 1f, -1f, -1f), 0, 0, 0, 0);
