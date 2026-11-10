@@ -29,6 +29,7 @@ using YARG.Menu.Persistent;
 using YARG.Scores;
 using YARG.Song;
 using YARG.Playlists;
+using YARG.Roguelike;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Core.Engine;
@@ -667,8 +668,9 @@ namespace YARG.Menu.ScoreScreen
             {
                 buttons.Add(_viewReplayButtonEntry);
             }
-            else
+            else if (!RoguelikeSession.IsRoguelikeSong)
             {
+                // Restarting would replay a roguelike round after its result is recorded
                 buttons.Add(_restartButtonEntry);
             }
 

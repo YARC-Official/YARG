@@ -1,6 +1,7 @@
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using YARG.Menu.Navigation;
+using YARG.Roguelike;
 using YARG.Settings;
 
 namespace YARG.Gameplay.HUD
@@ -12,6 +13,7 @@ namespace YARG.Gameplay.HUD
 
         protected override void OnEnable()
         {
+            RoguelikePauseOptions.HideBlockedOptions(this);
             HandleNavigationScheme();
         }
 
@@ -33,6 +35,11 @@ namespace YARG.Gameplay.HUD
         }
         public void EnableNoFail(bool resume)
         {
+            if (RoguelikeSession.IsRoguelikeSong)
+            {
+                return;
+            }
+
             // It feels a bit icky reaching down into the settings like this
             SettingsManager.Settings.NoFail.SetValueWithoutNotify(NoFailMode.On);
             if (resume)
