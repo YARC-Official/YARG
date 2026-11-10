@@ -43,9 +43,6 @@ public sealed class VlcCpuMediaPlayer : MonoBehaviour, IVlcPlayer
     /// </summary>
     public event Action<RenderTexture> OnTextureResized;
 
-    /// <summary>The playback time in milliseconds.</summary>
-    public long Time => MediaPlayer != null ? MediaPlayer.Time / 1000 : 0;
-
     /// <summary>The media duration in milliseconds.</summary>
     public long Duration
     {
@@ -152,13 +149,7 @@ public sealed class VlcCpuMediaPlayer : MonoBehaviour, IVlcPlayer
 
     public void Play() => MediaPlayer.Play();
 
-    // SetPause, not VLCMediaPlayer.Pause's libvlc_media_player_pause, which toggles: on a player
-    // that hasn't reached Playing yet it starts playback instead.
-    public void Pause() => MediaPlayer.SetPause(true);
-
     public void Stop() => MediaPlayer?.Stop();
-
-    public void SetTime(long milliseconds) => MediaPlayer.SeekTo(TimeSpan.FromMilliseconds(milliseconds));
 
     MonoBehaviour IVlcPlayer.component => this;
 

@@ -15,13 +15,10 @@ public interface IVlcPlayer
     MediaPlayer MediaPlayer { get; }
     RenderTexture OutputTexture { get; }
     event Action<RenderTexture> OnTextureResized;
-    long Time { get; }
     long Duration { get; }
     Task OpenAsync(string path, params string[] options);
     void Play();
-    void Pause();
     void Stop();
-    void SetTime(long milliseconds);
 
     // The player's component.
     bool enabled { get; set; }
@@ -48,13 +45,10 @@ public sealed class VlcUnityPlayer : IVlcPlayer
         remove => _player.OnTextureResized -= value;
     }
 
-    public long Time => _player.Time;
     public long Duration => _player.Duration;
     public Task OpenAsync(string path, params string[] options) => _player.OpenAsync(path, options);
     public void Play() => _player.Play();
-    public void Pause() => _player.Pause();
     public void Stop() => _player.Stop();
-    public void SetTime(long milliseconds) => _player.SetTime(milliseconds);
 
     public bool enabled
     {
