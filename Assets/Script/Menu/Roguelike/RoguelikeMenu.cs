@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
+using YARG.Audio;
 using YARG.Core;
+using YARG.Core.Audio;
 using YARG.Core.Input;
 using YARG.Core.Song;
 using YARG.Localization;
@@ -13,6 +15,7 @@ using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Player;
 using YARG.Roguelike;
+using YARG.Settings;
 using CareerViewType = YARG.Menu.Career.ViewType;
 
 namespace YARG.Menu.Roguelike
@@ -33,6 +36,15 @@ namespace YARG.Menu.Roguelike
         [SerializeField]
         private TextMeshProUGUI _subtitleText;
 
+        // Same timing as Quick Play: the first preview starts straight away, later ones wait a moment
+        // so scrolling past a song doesn't start it
+        private const double PREVIEW_SCROLL_DELAY = 0.6;
+        private const double PREVIEW_FADE_DURATION = 1.25;
+
+        private readonly PreviewPlayer _previewPlayer = new();
+        private SongEntry _previewSong;
+        private double _previewDelay;
+
         private bool _hasScheme;
         private bool _runInProgressScheme;
 
@@ -43,6 +55,9 @@ namespace YARG.Menu.Roguelike
             SetText(_titleText, Localize.Key("Menu.Roguelike.Name"));
             SetText(_subtitleText, Localize.Key("Menu.Roguelike.Description"));
 
+            StemSettings.ApplySettings = SettingsManager.Settings.ApplyVolumesInMusicLibrary.Value;
+            _previewDelay = 0;
+
             Refresh();
         }
 
@@ -50,11 +65,57 @@ namespace YARG.Menu.Roguelike
         {
             base.OnDisable();
 
+            StopPreview();
+            StemSettings.ApplySettings = true;
+
             if (_hasScheme)
             {
                 Navigator.Instance.PopScheme();
                 _hasScheme = false;
             }
+        }
+
+        private void OnDestroy()
+        {
+            _previewPlayer.Dispose();
+        }
+
+        protected override void OnSelectedIndexChanged()
+        {
+            base.OnSelectedIndexChanged();
+            UpdatePreview();
+        }
+
+        private void UpdatePreview()
+        {
+            var song = (CurrentSelection as RoguelikeChoiceViewType)?.Song;
+            if (song != null && song == _previewSong)
+            {
+                // Still on the same song (e.g. the list was rebuilt), keep it playing
+                return;
+            }
+
+            StopPreview();
+            _previewSong = song;
+            if (song == null)
+            {
+                return;
+            }
+
+            float volume = SettingsManager.Settings.PreviewVolume.Value;
+            if (volume > 0)
+            {
+                _ = _previewPlayer.StartPreview(song, volume, GlobalVariables.State.SongSpeed, _previewDelay,
+                    PREVIEW_FADE_DURATION, SettingsManager.Settings.CensorMatureContent.Value);
+            }
+
+            _previewDelay = PREVIEW_SCROLL_DELAY;
+        }
+
+        private void StopPreview()
+        {
+            _previewSong = null;
+            _ = _previewPlayer.StopPreview();
         }
 
         private void Refresh()

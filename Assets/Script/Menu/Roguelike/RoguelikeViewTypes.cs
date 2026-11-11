@@ -60,6 +60,8 @@ namespace YARG.Menu.Roguelike
 
         public override BackgroundType Background => BackgroundType.Normal;
 
+        public SongEntry Song => _song;
+
         public RoguelikeChoiceViewType(SongEntry song, int rating, Action<SongEntry> onPlay)
         {
             _song = song;
