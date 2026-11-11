@@ -142,6 +142,21 @@ namespace YARG.Input.Serialization
                     }
                 }
 
+                if (reusableBindingSet is null)
+                {
+                    continue;
+                }
+
+                // Flesh out any empty bindings from the template so we don't get KeyNotFound exceptions later
+                var template = ReusableBindingSetTemplates.GetTemplate(mode);
+                foreach (var templateAction in template.Keys)
+                {
+                    if (!reusableBindingSet!.Bindings.ContainsKey(templateAction))
+                    {
+                        reusableBindingSet.Bindings.Add(templateAction, new());
+                    }
+                }
+
                 // We don't want to flood a first-time upgrader with redundant or useless binding sets
                 // -If the set matches any legacy default set (meaning the user never configured anything), then we discard it
                 // -If we've already migrated an identical binding set for this profile, we discard it
@@ -151,16 +166,6 @@ namespace YARG.Input.Serialization
                 // did I default to Alice's bindings? Where are mine?")
                 if (LegacyBindingSetDeserialization.LegacyBindingSetShouldBeDeserialized(reusableBindingSet, createdSetsForThisProfile))
                 {
-                    // Flesh out any empty bindings from the template so we don't get KeyNotFound exceptions later
-                    var template = ReusableBindingSetTemplates.GetTemplate(mode);
-                    foreach (var templateAction in template.Keys)
-                    {
-                        if (!reusableBindingSet!.Bindings.ContainsKey(templateAction))
-                        {
-                            reusableBindingSet.Bindings.Add(templateAction, new());
-                        }
-                    }
-
                     converted.MappingsByControllerFamily[reusableBindingSet!.Family] = reusableBindingSet.Guid!.Value;
                     reusableBindingSets[reusableBindingSet.Guid!.Value] = reusableBindingSet;
                     createdSetsForThisProfile.Add(reusableBindingSet);
