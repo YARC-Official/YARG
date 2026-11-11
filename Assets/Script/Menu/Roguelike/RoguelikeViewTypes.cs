@@ -1,23 +1,30 @@
 using System;
+using Cysharp.Text;
+using YARG.Core.Game;
 using YARG.Core.Song;
+using YARG.Helpers;
 using YARG.Localization;
+using YARG.Menu.Data;
+using YARG.Menu.MusicLibrary;
 using YARG.Roguelike;
-using CareerViewType = YARG.Menu.Career.ViewType;
+using LibraryViewType = YARG.Menu.MusicLibrary.ViewType;
 
 namespace YARG.Menu.Roguelike
 {
-    // The roguelike menu reuses the career menu's row prefab (SongView), which lays itself out from
-    // CareerInfo. So these rows derive from the career ViewType and report a matching row kind:
-    // TierHeader for headers and buttons (title + detail line), Song for songs (title, artist, stars).
+    // The roguelike menu is built from the Quick Play (music library) prefab and uses its row prefab,
+    // so these rows derive from the music library's view types. Song rows subclass SongViewType so
+    // they get the full Quick Play song row (source icon, best stars/score) and drive the sidebar.
 
-    /// <summary>A header or info row: a title and a detail line, with no action.</summary>
-    public class RoguelikeHeaderViewType : CareerViewType
+    /// <summary>A header row in the Quick Play header style: a title and a detail line.</summary>
+    public class RoguelikeHeaderViewType : LibraryViewType
     {
         private readonly string _title;
         private readonly string _detail;
 
         public override BackgroundType Background { get; }
-        public override bool IsClickable => false;
+        public override bool IsSelectable => false;
+        public override bool UseWiderPrimaryText => true;
+        public override string StableId => $"RoguelikeHeader:{_title}";
 
         public RoguelikeHeaderViewType(string title, string detail, BackgroundType background = BackgroundType.Category)
         {
@@ -26,101 +33,93 @@ namespace YARG.Menu.Roguelike
             Background = background;
         }
 
-        public override CareerInfo? GetCareerInfo()
+        public override string GetPrimaryText(bool selected)
         {
-            return new CareerInfo { Kind = CareerRowKind.TierHeader, Unlocked = true };
+            return TextColorer.StyleString(_title, MenuData.Colors.HeaderPrimary, 550);
         }
 
-        public override string GetPrimaryText(bool selected) => FormatAs(_title, TextType.Primary, selected);
-        public override string GetSecondaryText(bool selected) => FormatAs(_detail ?? string.Empty, TextType.Secondary, selected);
+        public override string GetSecondaryText(bool selected)
+        {
+            return string.IsNullOrEmpty(_detail)
+                ? string.Empty
+                : TextColorer.StyleString(_detail, MenuData.Colors.HeaderSecondary, 500);
+        }
     }
 
-    /// <summary>A row that runs an action when confirmed, e.g. "Start new run".</summary>
-    public class RoguelikeActionViewType : RoguelikeHeaderViewType
+    /// <summary>A button row, e.g. "Start New Run".</summary>
+    public class RoguelikeActionViewType : LibraryViewType
     {
+        private readonly string _title;
+        private readonly string _detail;
         private readonly Action _action;
 
-        public override bool IsClickable => true;
+        public override BackgroundType Background => BackgroundType.Button;
+        public override string StableId => $"RoguelikeAction:{_title}";
 
         public RoguelikeActionViewType(string title, string detail, Action action)
-            : base(title, detail, BackgroundType.Button)
         {
+            _title = title;
+            _detail = detail;
             _action = action;
         }
 
-        public override void ViewClick() => _action?.Invoke();
+        public override string GetPrimaryText(bool selected) => FormatAs(_title, TextType.Bright, selected);
+        public override string GetSecondaryText(bool selected) => FormatAs(_detail ?? string.Empty, TextType.Secondary, selected);
+
+        public override void PrimaryButtonClick() => _action?.Invoke();
+    }
+
+    /// <summary>
+    /// A Quick Play song row with the music-library-only actions (search by artist/source, favorites,
+    /// playlists) switched off, since there's no music library behind it.
+    /// </summary>
+    public abstract class RoguelikeSongViewType : SongViewType
+    {
+        protected RoguelikeSongViewType(SongEntry song, string context)
+            : base(null, song, context)
+        {
+        }
+
+        public override FavoriteInfo GetFavoriteInfo() => new() { ShowFavoriteButton = false };
+
+        public override void SecondaryTextClick() { }
+        public override void IconClick() { }
+        public override void FavoriteClick() { }
+        public override void AddToPlaylist(YARG.Playlists.Playlist playlist) { }
+        public override void RemoveFromPlaylist(YARG.Playlists.Playlist playlist) { }
     }
 
     /// <summary>One of the current round's song choices. Confirming it starts the song.</summary>
-    public class RoguelikeChoiceViewType : CareerViewType
+    public class RoguelikeChoiceViewType : RoguelikeSongViewType
     {
-        private readonly SongEntry _song;
-        private readonly int       _rating;
+        private readonly int _rating;
         private readonly Action<SongEntry> _onPlay;
 
-        public override BackgroundType Background => BackgroundType.Normal;
-
-        public SongEntry Song => _song;
-
         public RoguelikeChoiceViewType(SongEntry song, int rating, Action<SongEntry> onPlay)
+            : base(song, "roguelike")
         {
-            _song = song;
             _rating = rating;
             _onPlay = onPlay;
         }
 
-        public override CareerInfo? GetCareerInfo()
-        {
-            return new CareerInfo
-            {
-                Kind = CareerRowKind.Song,
-                Unlocked = true,
-                Artist = _song.Artist.ToString(),
-                Album = _song.Album.ToString(),
-            };
-        }
-
-        public override string GetPrimaryText(bool selected) => FormatAs(_song.Name, TextType.Primary, selected);
-
         public override string GetSecondaryText(bool selected)
         {
-            return FormatAs(Localize.KeyFormat("Menu.Roguelike.ChoiceDetail", _song.Artist.ToString(), _rating),
+            return FormatAs(Localize.KeyFormat("Menu.Roguelike.ChoiceDetail", SongEntry.Artist.ToString(), _rating),
                 TextType.Secondary, selected);
         }
 
-        public override void ViewClick() => _onPlay?.Invoke(_song);
+        public override void PrimaryButtonClick() => _onPlay?.Invoke(SongEntry);
     }
 
-    /// <summary>A round already played this run: the song and the stars it earned.</summary>
-    public class RoguelikeHistoryViewType : CareerViewType
+    /// <summary>A round already played this run: the song and the stars it earned in the run.</summary>
+    public class RoguelikeHistoryViewType : RoguelikeSongViewType
     {
         private readonly RoguelikeRoundResult _result;
-        private readonly SongEntry            _song;
-
-        public override BackgroundType Background => BackgroundType.Normal;
-        public override bool IsClickable => false;
 
         public RoguelikeHistoryViewType(RoguelikeRoundResult result, SongEntry song)
+            : base(song, $"roguelike-history-{result.Round}-{result.Attempt}")
         {
             _result = result;
-            _song = song;
-        }
-
-        public override CareerInfo? GetCareerInfo()
-        {
-            return new CareerInfo
-            {
-                Kind = CareerRowKind.Song,
-                Unlocked = true,
-                Completed = _result.Passed,
-                BestStars = _result.Failed ? 0 : _result.Stars,
-            };
-        }
-
-        public override string GetPrimaryText(bool selected)
-        {
-            var name = _song?.Name ?? Localize.Key("Menu.Career.SongMissing");
-            return FormatAs(name, TextType.Primary, selected);
         }
 
         public override string GetSecondaryText(bool selected)
@@ -129,5 +128,12 @@ namespace YARG.Menu.Roguelike
             return FormatAs(Localize.KeyFormat(key, _result.Round + 1, _result.PlayedInstrument.ToLocalizedName()),
                 TextType.Secondary, selected);
         }
+
+        // Show what this round earned, not the player's all-time best on the song
+        public override StarAmount? GetStarAmount() => _result.Failed ? StarAmount.None : (StarAmount) _result.Stars;
+        public override ScoreInfo? GetScoreInfo() => null;
+        public override string GetSideText(bool selected) => string.Empty;
+
+        public override void PrimaryButtonClick() { }
     }
 }

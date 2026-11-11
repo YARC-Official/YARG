@@ -97,6 +97,11 @@ namespace YARG.Menu.MusicLibrary
         private CancellationTokenSource _cancellationToken;
         private ViewType _currentView;
 
+        // The song whose details are shown, so an album cover that finishes loading late is only
+        // applied if that song is still displayed. Tracked separately from _currentView because
+        // ShowSong (standalone use) doesn't go through a library view.
+        private SongEntry _displayedSong;
+
         private MusicLibraryMenu _musicLibraryMenu;
         private SongSearchingField _songSearchingField;
 
@@ -116,17 +121,7 @@ namespace YARG.Menu.MusicLibrary
             _musicLibraryMenu = musicLibraryMenu;
             _songSearchingField = songSearchingField;
 
-            for (int i = 0; i < 5; ++i)
-            {
-                var go = Instantiate(_difficultyRingPrefab, _difficultyRingsTopContainer);
-                _difficultyRings.Add(go.GetComponent<DifficultyRing>());
-            }
-
-            for (int i = 0; i < 5; ++i)
-            {
-                var go = Instantiate(_difficultyRingPrefab, _difficultyRingsBottomContainer);
-                _difficultyRings.Add(go.GetComponent<DifficultyRing>());
-            }
+            CreateDifficultyRings();
 
             UpdatePlayButtonLabel(_musicLibraryMenu.ShowPlaylist.Count > 0);
 
@@ -140,9 +135,58 @@ namespace YARG.Menu.MusicLibrary
             _favoriteButton.Initialize(FavoriteClick);
         }
 
+        /// <summary>
+        /// Set up the sidebar for a menu other than the music library, which drives it with
+        /// <see cref="ShowSong"/>. Library-only parts (play button, favorite button, click-to-search)
+        /// are hidden or do nothing.
+        /// </summary>
+        public void InitializeStandalone()
+        {
+            _musicLibraryMenu = null;
+            _songSearchingField = null;
+
+            CreateDifficultyRings();
+
+            _playButton.gameObject.SetActive(false);
+            _favoriteButton.gameObject.SetActive(false);
+            SetDifficultiesVisible(true);
+        }
+
+        /// <summary>Show a song's details, or clear the sidebar if <paramref name="song"/> is null.</summary>
+        public void ShowSong(SongEntry song)
+        {
+            CancelAlbumLoad();
+            ClearSidebar();
+
+            if (song != null)
+            {
+                ShowSongInfo(song);
+            }
+        }
+
+        private void CreateDifficultyRings()
+        {
+            if (_difficultyRings.Count > 0)
+            {
+                return;
+            }
+
+            for (int i = 0; i < 5; ++i)
+            {
+                var go = Instantiate(_difficultyRingPrefab, _difficultyRingsTopContainer);
+                _difficultyRings.Add(go.GetComponent<DifficultyRing>());
+            }
+
+            for (int i = 0; i < 5; ++i)
+            {
+                var go = Instantiate(_difficultyRingPrefab, _difficultyRingsBottomContainer);
+                _difficultyRings.Add(go.GetComponent<DifficultyRing>());
+            }
+        }
+
         public void RefreshFavoriteState()
         {
-            if (_musicLibraryMenu.CurrentSelection is SongViewType)
+            if (_musicLibraryMenu != null && _musicLibraryMenu.CurrentSelection is SongViewType)
             {
                 _favoriteButtonImage.color = _musicLibraryMenu.CurrentSelection.GetFavoriteInfo().IsFavorited ?
                     _filledFavoritesHeart : _unfilledFavoritesHeart;
@@ -151,7 +195,7 @@ namespace YARG.Menu.MusicLibrary
 
         public void UpdateSidebar(bool force = false)
         {
-            if (_musicLibraryMenu.ViewList.Count <= 0)
+            if (_musicLibraryMenu == null || _musicLibraryMenu.ViewList.Count <= 0)
             {
                 return;
             }
@@ -206,6 +250,7 @@ namespace YARG.Menu.MusicLibrary
 
         private void ClearSidebar()
         {
+            _displayedSong = null;
             ClearAlbumCoverTextures();
             _album.text = string.Empty;
 
@@ -232,7 +277,12 @@ namespace YARG.Menu.MusicLibrary
 
         private void ShowSongInfo(SongViewType songViewType)
         {
-            var songEntry = songViewType.SongEntry;
+            ShowSongInfo(songViewType.SongEntry);
+        }
+
+        private void ShowSongInfo(SongEntry songEntry)
+        {
+            _displayedSong = songEntry;
 
             SetWrappedText(_albumTitleContainer, _album, songEntry.Album, ref _albumBaseFontSize);
             SetWrappedText(_sourceContainer, _source, SongSources.SourceToGameName(songEntry.Source), ref _sourceBaseFontSize);
@@ -519,6 +569,11 @@ namespace YARG.Menu.MusicLibrary
 
         public void UpdatePlayButtonLabel(bool setListNotEmpty)
         {
+            if (_musicLibraryMenu == null)
+            {
+                return;
+            }
+
             string key;
             bool enableButton;
             Action<NavigationContext> holdHandler = null;
@@ -587,9 +642,7 @@ namespace YARG.Menu.MusicLibrary
                 texture = image.LoadTexture(false);
             }
 
-            if (cancellationToken.IsCancellationRequested
-                || _currentView is not SongViewType currentView
-                || currentView.SongEntry != songEntry)
+            if (cancellationToken.IsCancellationRequested || _displayedSong != songEntry)
             {
                 if (texture != null)
                 {
@@ -644,11 +697,17 @@ namespace YARG.Menu.MusicLibrary
 
         public void PrimaryButtonClick()
         {
-            _musicLibraryMenu.CurrentSelection.PrimaryButtonClick();
+            _musicLibraryMenu?.CurrentSelection.PrimaryButtonClick();
         }
 
         public void SearchFilter(string type)
         {
+            if (_musicLibraryMenu == null)
+            {
+                // Click-to-search only applies inside the music library
+                return;
+            }
+
             var viewType = _musicLibraryMenu.CurrentSelection;
 
             if (viewType is not SongViewType songViewType)
