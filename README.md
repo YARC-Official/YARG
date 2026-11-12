@@ -105,6 +105,10 @@ SUBSYSTEM=="usb", ATTR{idVendor}=="045e", ATTR{idProduct}=="02a9", MODE="0666"
 SUBSYSTEM=="usb", ATTR{idVendor}=="045e", ATTR{idProduct}=="0719", MODE="0666"
 ```
 
+Xbox One instruments (such as the Mad Catz Rock Band 4 guitars and drumkit, or the PDP Riffmaster) are not
+HID devices, and require the [xone](https://github.com/dlundqvist/xone) kernel driver. These are exposed as
+regular joystick devices and should work without any additional udev rules.
+
 ## 🔨 Building/Contributing
 
 > [!IMPORTANT]
