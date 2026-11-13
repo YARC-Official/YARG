@@ -1,4 +1,4 @@
-namespace YARG.Input
+﻿namespace YARG.Input
 {
     public enum GamepadBindingMode
     {

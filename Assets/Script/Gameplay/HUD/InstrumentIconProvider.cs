@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using YARG.Core;
 using YARG.Core.Engine;
 using YARG.Core.Engine.Vocals.Engines;
@@ -20,7 +20,7 @@ namespace YARG.Gameplay.HUD
 
         public static string GetInstrumentSprite(this YargPlayer player)
         {
-            var isMissingDevice = player.IsMissingInputDevice || player.IsMissingMicrophone;
+            var isMissingDevice = player.IsMissingController || player.IsMissingMicrophone;
             return GetInstrumentSprite(player.Profile.CurrentInstrument, player.Profile.HarmonyIndex, isMissingDevice);
         }
 
@@ -89,7 +89,7 @@ namespace YARG.Gameplay.HUD
         public static Color GetHarmonyColor(this YargPlayer player)
         {
             return GetHarmonyColor(player.Profile.CurrentInstrument, player.Profile.HarmonyIndex,
-                player.IsMissingInputDevice || player.IsMissingMicrophone, player.SittingOut,
+                player.IsMissingController || player.IsMissingMicrophone, player.SittingOut,
                 player.ColorProfile);
         }
 

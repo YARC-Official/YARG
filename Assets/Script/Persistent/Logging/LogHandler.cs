@@ -28,7 +28,7 @@ namespace YARG.Logging
             // We must do this as the LogHandler is initialized before the PathHelper
             var persistentPath = Application.persistentDataPath;
 
-#if UNITY_EDITOR || YARG_TEST_BUILD
+#if UNITY_EDITOR || YARG_DEV_BUILD
             persistentPath = PathHelper.SanitizePath(Path.Combine(persistentPath, "dev"));
 #elif YARG_NIGHTLY_BUILD
             persistentPath = PathHelper.SanitizePath(Path.Combine(persistentPath, "nightly"));
