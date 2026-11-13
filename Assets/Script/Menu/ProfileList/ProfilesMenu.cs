@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Game;
 using YARG.Core.Input;
@@ -123,6 +124,10 @@ namespace YARG.Menu.ProfileList
             _bindingSetsCenterPane.HideContents();
 
             // Remove old ones
+            foreach (Transform child in _leftPaneList)
+            {
+                child.gameObject.SetActive(false);
+            }
             _leftPaneList.transform.DestroyChildren();
             _navigationGroup.ClearNavigatables();
 
@@ -385,6 +390,35 @@ namespace YARG.Menu.ProfileList
             }
         }
 
+        private void ScrollLeftPaneTo(Transform item)
+        {
+            var scrollRect = _leftPaneList.GetComponentInParent<ScrollRect>();
+            var content = scrollRect.content;
+            var viewport = scrollRect.viewport;
+
+            Canvas.ForceUpdateCanvases();
+
+            var viewportRect = viewport.rect;
+            var itemBounds = RectTransformUtility.CalculateRelativeRectTransformBounds(viewport, item);
+
+            var newPos = content.anchoredPosition.y;
+            if (itemBounds.max.y > viewportRect.yMax)
+            {
+                newPos -= itemBounds.max.y - viewportRect.yMax;
+            }
+            else if (itemBounds.min.y < viewportRect.yMin)
+            {
+                newPos += viewportRect.yMin - itemBounds.min.y;
+            }
+            else
+            {
+                return;
+            }
+
+            scrollRect.StopMovement();
+            content.anchoredPosition = content.anchoredPosition.WithY(Mathf.Clamp(newPos, 0f, scrollRect.ScrollableHeight()));
+        }
+
 #nullable enable
         public BindingSetView? GetSelectedBindingSetView()
 #nullable disable
@@ -397,6 +431,12 @@ namespace YARG.Menu.ProfileList
             JumpToBindingSetCategory(bindingSet.ControllerFamily);
             _bindingSetsCenterPane.JumpTo(bindingSet, dummyController, lefty);
             SetSelectedBindingSet(bindingSet);
+
+            var selectedView = GetSelectedBindingSetView();
+            if (selectedView != null)
+            {
+                ScrollLeftPaneTo(selectedView.transform);
+            }
         }
 
         public void JumpToBindingSetCategory(ControllerFamily family)
