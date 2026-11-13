@@ -57,9 +57,9 @@ namespace YARG.Menu.ProfileList
         public ReusableBindingSet? MenuBindingSet => _menuBindingSetsByIndex[_menuBindingSetDropdown.value];
 #nullable disable
 
-        private bool _open;
+        public bool DrawerOpen => _drawer.activeSelf;
 
-        public void Init(YargProfile profile, ProfileView profileView, ProfileCenterPane centerPane, InputDevice controller)
+        public void Init(YargProfile profile, ProfileView profileView, ProfileCenterPane centerPane, InputDevice controller, bool drawerOpen)
         {
             _name.text = controller.displayName;
             Profile = profile;
@@ -67,7 +67,7 @@ namespace YARG.Menu.ProfileList
             _centerPane = centerPane;
             Controller = controller;
             PopulateDropdownOptions();
-            SetDrawerOpen(false);
+            SetDrawerOpen(drawerOpen);
 
             _gameplayBindingsTitle.text = $"{Localize.Key("Menu.ProfileList.BindingsTitle", Profile.GameMode)}:";
             _menuBindingsTitle.text = $"{Localize.Key("Menu.ProfileList.BindingsTitle.Menu")}:";
@@ -161,15 +161,14 @@ namespace YARG.Menu.ProfileList
 
         public void ToggleDrawer()
         {
-            SetDrawerOpen(!_open);
+            SetDrawerOpen(!DrawerOpen);
         }
 
         private void SetDrawerOpen(bool open)
         {
-            _open = open;
-            _drawer.SetActive(_open);
-            _arrow.localScale = _arrow.localScale.WithY(_open ? -1f : 1f);
-            _layoutElement.preferredHeight = _open ? 240 : 60;
+            _drawer.SetActive(open);
+            _arrow.localScale = _arrow.localScale.WithY(open ? -1f : 1f);
+            _layoutElement.preferredHeight = open ? 240 : 60;
         }
 
         public void JumpToGameplayBindingSet()
