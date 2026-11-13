@@ -615,6 +615,12 @@ namespace YARG.Input
             }
 
             ControllerAdded?.Invoke(controller);
+
+            var profileCenterPane = UnityEngine.Object.FindAnyObjectByType<ProfileCenterPane>();
+            if (profileCenterPane is not null && profileCenterPane.Profile == Profile)
+            {
+                profileCenterPane.RefreshControllers();
+            }
         }
         
         private void NotifyControllerRemoved(InputDevice controller)
@@ -633,6 +639,12 @@ namespace YARG.Input
             }
 
             ControllerRemoved?.Invoke(controller);
+
+            var profileCenterPane = UnityEngine.Object.FindAnyObjectByType<ProfileCenterPane>();
+            if (profileCenterPane is not null && profileCenterPane.Profile == Profile)
+            {
+                profileCenterPane.RefreshControllers();
+            }
         }
 
         public void ActivateMenuBindings()
