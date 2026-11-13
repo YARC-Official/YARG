@@ -68,7 +68,7 @@ namespace YARG.Gameplay
 
         [SerializeField]
         private UnisonDisplay _unisonDisplay;
-        
+
         public UnisonDisplay UnisonDisplay => _unisonDisplay;
 
         [SerializeField]
@@ -721,7 +721,7 @@ namespace YARG.Gameplay
 
             // Get all of the individual player score entries
             var playerEntries = new List<PlayerScoreRecord>();
-            var starScoreCutoffsList = new List<int[]>();
+            var realPlayerEngineContainers = new List<EngineManager.EngineContainer>();
             foreach (var player in ActivePlayers)
             {
                 var profile = player.Player.Profile;
@@ -752,7 +752,7 @@ namespace YARG.Gameplay
                     Percent = player.BaseStats.Percent
                 });
 
-                starScoreCutoffsList.Add(player.BaseEngine.StarScoreThresholds);
+                realPlayerEngineContainers.Add(player.EngineContainer);
             }
 
             var validScoreCount = ActivePlayers.Count(player => ScoreContainer.IsSoloScoreValid(SongSpeed, player.Player));
@@ -777,7 +777,7 @@ namespace YARG.Gameplay
                 {
                     humanBandScore += result.ResultStats.TotalScore + result.ResultStats.BandBonusScore;
                 }
-                var humanStarScoreCutoffs = EngineManager.GetStarScoreCutoffs(starScoreCutoffsList);
+                var humanStarScoreCutoffs = EngineManager.GetStarScoreCutoffs(realPlayerEngineContainers);
                 // Determine where in the cutoffs humanBandScore is
                 // Iterating backwards is slightly faster assuming people are good at the game
                 for (int i = humanStarScoreCutoffs.Length - 1; i >= 0; i--)
@@ -1147,7 +1147,7 @@ namespace YARG.Gameplay
 
         public void DifficultyChanged(BasePlayer player)
         {
-            EngineManager.StarScoreThresholds = EngineManager.GetStarScoreCutoffs(_players.ConvertAll(p => p.BaseEngine.StarScoreThresholds));
+            EngineManager.StarScoreThresholds = EngineManager.GetStarScoreCutoffs(_players.ConvertAll(p => p.EngineContainer));
             EngineManager.ResetStars();
             if (_unisonDisplay.enabled)
             {
