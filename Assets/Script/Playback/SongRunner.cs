@@ -735,7 +735,7 @@ namespace YARG.Playback
         }
 
         public async UniTask<bool> RewindAndResume(double seconds, double? overrideTargetTime = null,
-            Action onRewound = null)
+            Action onRewound = null, Action<double> onRewindUpdate = null)
         {
             // We can only do this when paused
             if (!Paused)
@@ -752,7 +752,9 @@ namespace YARG.Playback
             var targetVisualTime = targetRewindTime + (VideoCalibration - AudioCalibration) * SongSpeed;
             var targetResumeTime = overrideTargetTime ?? SongTime;
 
-            _rewindTween = DOTween.To(() => VisualTime, x => VisualTime = x, targetVisualTime, 0.5f);
+            var startVisualTime = VisualTime;
+            _rewindTween = DOTween.To(() => VisualTime, x => VisualTime = x, targetVisualTime, 0.5f)
+                .OnUpdate(() => onRewindUpdate?.Invoke(VisualTime - startVisualTime));
 
             var rewindCanceled = await _rewindTween
                 .AsyncWaitForCompletion()

@@ -1104,7 +1104,9 @@ namespace YARG.Gameplay
                 targetTime = PauseInfo[^1].PauseTime;
             }
 
-            var canceled = await _songRunner.RewindAndResume(seconds, targetTime, SeekVideoAfterRewind);
+            var canceled = await _songRunner.RewindAndResume(seconds, targetTime,
+                onRewound: SeekVideoAfterRewind,
+                onRewindUpdate: BackgroundManager.ScrubRewind);
 
             if (canceled)
             {
