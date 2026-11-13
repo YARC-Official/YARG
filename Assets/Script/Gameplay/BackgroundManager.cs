@@ -63,8 +63,18 @@ namespace YARG.Gameplay
         private bool _videoSeeking = false;
         private bool _videoSeekWaitForPause = false;
         private bool _videoWasPausedBeforeSeek = false;
+        private bool _videoScrubSeekPending = false;
+        private float _lastVideoScrubSeekTime;
 
         private const float FADE_DURATION = 0.5f;
+
+        // Minimum time between two seeks while the pause rewind animation scrubs the video.
+        // Seeks are also gated on seekCompleted, so this only caps the rate when the
+        // decoder can keep up.
+        private const float REWIND_SCRUB_MIN_INTERVAL = 1f / 60f;
+
+        // Don't let a missed seek callback stop the rewind entirely
+        private const float REWIND_SCRUB_TIMEOUT = 0.3f;
 
         private float YARGROUND_OFFSET = 50f;
 
@@ -669,8 +679,62 @@ namespace YARG.Gameplay
             }
         }
 
+        /// <summary>
+        /// Seeks the video back while the pause rewind animation plays, so that the rewind
+        /// is visible instead of being hidden behind a fade.
+        /// </summary>
+        /// <param name="timeDelta">How far visual time has moved since the rewind started.</param>
+        public void ScrubRewind(double timeDelta)
+        {
+            // Only song videos follow song time, and only once playback has started
+            if (_type != BackgroundType.Video || _source != VenueSource.Song || !_videoStarted)
+            {
+                return;
+            }
+
+            // Seeks are asynchronous, so start the next one as soon as the last one lands
+            float sinceLastSeek = Time.unscaledTime - _lastVideoScrubSeekTime;
+            if (sinceLastSeek < REWIND_SCRUB_MIN_INTERVAL ||
+                (_videoScrubSeekPending && sinceLastSeek < REWIND_SCRUB_TIMEOUT))
+            {
+                return;
+            }
+
+            double videoTime = GameManager.GetAudioPlaybackTime(GameManager.SongTime) +
+                timeDelta + _videoStartTime;
+
+            if (_videoPlayer.isLooping)
+            {
+                double length = _videoPlayer.length;
+                if (length > 0)
+                {
+                    videoTime %= length;
+                    if (videoTime < 0)
+                    {
+                        videoTime += length;
+                    }
+                }
+            }
+            else if (videoTime < 0)
+            {
+                videoTime = 0;
+            }
+
+            _videoPlayer.time = videoTime;
+            _videoScrubSeekPending = true;
+            _lastVideoScrubSeekTime = Time.unscaledTime;
+        }
+
         private void OnVideoSeeked(YargVideoPlayer player)
         {
+            if (_videoScrubSeekPending)
+            {
+                // The sought frame only reaches the render texture at the end of the
+                // frame. Starting the next scrub seek sooner cancels that presentation,
+                // which makes the video look frozen while the rewind plays.
+                ReleaseScrubSeek().Forget();
+            }
+
             if (!_videoSeeking)
                 return;
 
@@ -686,6 +750,13 @@ namespace YARG.Gameplay
             _videoSeeking = false;
             _videoSeekWaitForPause = false;
             _videoWasPausedBeforeSeek = false;
+        }
+
+        private async UniTaskVoid ReleaseScrubSeek()
+        {
+            await UniTask.WaitForEndOfFrame(this);
+
+            _videoScrubSeekPending = false;
         }
 
         public void SetSpeed(float speed)
