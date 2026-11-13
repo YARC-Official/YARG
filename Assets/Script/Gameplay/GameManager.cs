@@ -1104,7 +1104,7 @@ namespace YARG.Gameplay
                 targetTime = PauseInfo[^1].PauseTime;
             }
 
-            var canceled = await _songRunner.RewindAndResume(seconds, targetTime);
+            var canceled = await _songRunner.RewindAndResume(seconds, targetTime, SeekVideoAfterRewind);
 
             if (canceled)
             {
@@ -1119,6 +1119,14 @@ namespace YARG.Gameplay
             CheckForRewindInvalidation();
 
             return false;
+        }
+
+        private void SeekVideoAfterRewind()
+        {
+            // Resume the video before seeking so it plays from the rewound time
+            // while the song time catches back up to the pause time.
+            BackgroundManager.SetPaused(false);
+            BackgroundManager.SetTime(GetAudioPlaybackTime(SongTime), waitForSeek: false);
         }
 
         private void OnUnisonPhraseSuccess()

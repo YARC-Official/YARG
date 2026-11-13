@@ -734,7 +734,8 @@ namespace YARG.Playback
             return !Paused;
         }
 
-        public async UniTask<bool> RewindAndResume(double seconds, double? overrideTargetTime = null)
+        public async UniTask<bool> RewindAndResume(double seconds, double? overrideTargetTime = null,
+            Action onRewound = null)
         {
             // We can only do this when paused
             if (!Paused)
@@ -768,6 +769,10 @@ namespace YARG.Playback
 
             SetSongTime(targetRewindTime - (AudioCalibration * SongSpeed), 0);
             Resume();
+
+            // Seek the video to the rewound time now, so it plays in sync with the audio
+            // while the song time catches back up to the pause time.
+            onRewound?.Invoke();
 
             var waitCanceled = await UniTask.WaitUntil(() => SongTime > targetResumeTime, cancellationToken: token)
                 .SuppressCancellationThrow();
