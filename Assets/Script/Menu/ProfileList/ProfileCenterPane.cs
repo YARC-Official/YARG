@@ -455,11 +455,16 @@ namespace YARG.Menu.ProfileList
         public void RefreshControllers()
         {
             var player = PlayerContainer.GetPlayerFromProfile(Profile);
+            var openControllers = _controllersList.GetComponentsInChildren<ControllerEntryView>()
+                .Where(e => e.DrawerOpen)
+                .Select(e => e.Controller)
+                .ToHashSet();
+
             _controllersList.transform.DestroyChildren();
             foreach (var controller in player.DeviceInfo.Controllers)
             {
                 var entry = Instantiate(_controllerEntryViewPrefab, _controllersList.transform);
-                entry.Init(Profile, _profileView, this, controller);
+                entry.Init(Profile, _profileView, this, controller, drawerOpen: openControllers.Contains(controller));
             }
 
             _noControllersText.gameObject.SetActive(player.DeviceInfo.Controllers.Count is 0);
