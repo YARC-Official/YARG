@@ -39,6 +39,9 @@ namespace YARG.Menu.ProfileList
 
         private static ProfileMenuTab _currentTab = ProfileMenuTab.Profiles;
 
+        private YargProfile _selectedProfile;
+        private ReusableBindingSet _selectedBindingSet;
+
         private const ControllerFamily DEFAULT_BINDING_SET_FILTER = ControllerFamily.FiveFretGuitar;
         public ControllerFamily CurrentBindingSetFilter = DEFAULT_BINDING_SET_FILTER;
         private List<ControlItemInfo> _controls;
@@ -362,6 +365,7 @@ namespace YARG.Menu.ProfileList
                 .LastOrDefault(e => e.Profile == profile);
             if (profileView is not null)
             {
+                _selectedProfile = profile;
                 profileView.SetSelected(true, SelectionOrigin.Programmatically);
             }
         }
@@ -386,6 +390,7 @@ namespace YARG.Menu.ProfileList
                 .LastOrDefault(e => e.BindingSet == bindingSet);
             if (bindingSetView is not null)
             {
+                _selectedBindingSet = bindingSet;
                 bindingSetView.SetSelected(true, SelectionOrigin.Programmatically);
             }
         }
@@ -535,6 +540,15 @@ namespace YARG.Menu.ProfileList
 
         private void OnTabChanged(string tabId)
         {
+            if (_currentTab is ProfileMenuTab.Profiles)
+            {
+                _selectedProfile = GetSelectedProfile();
+            }
+            else
+            {
+                _selectedBindingSet = GetSelectedBindingSet();
+            }
+
             _profileCenterPane.gameObject.SetActive(tabId == PROFILES_TAB);
             _addProfileButtons.gameObject.SetActive(tabId == PROFILES_TAB);
             _importBindingSetButton.gameObject.SetActive(tabId == BINDINGS_TAB);
@@ -545,11 +559,11 @@ namespace YARG.Menu.ProfileList
             {
                 case PROFILES_TAB:
                     _currentTab = ProfileMenuTab.Profiles;
-                    RefreshProfileList();
+                    RefreshProfileList(_selectedProfile);
                     break;
                 case BINDINGS_TAB:
                     _currentTab = ProfileMenuTab.Bindings;
-                    RefreshBindingSetList();
+                    RefreshBindingSetList(_selectedBindingSet);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException($"Unexpected tabId {tabId}");
