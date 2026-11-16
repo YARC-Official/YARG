@@ -17,6 +17,7 @@ namespace YARG.Input.Bindings
         public GameMode Mode { get; }
         public ControllerFamily ControllerFamily { get; private set; }
         public string Name;
+        public string Description;
         public bool IsHardcoded { get; private set; }
 
         // Key is binding name, like "FiveFret.Green" or "FourDrums.RedPad"
@@ -30,7 +31,7 @@ namespace YARG.Input.Bindings
             Changed?.Invoke(this);
         }
 
-        public ReusableBindingSet(string name, GameMode mode, ControllerFamily controllerFamily, Guid guid, bool isHardcoded) {
+        public ReusableBindingSet(string name, GameMode mode, ControllerFamily controllerFamily, Guid guid, bool isHardcoded, string description = "") {
             Name = name;
             Mode = mode;
             ControllerFamily = controllerFamily;
@@ -58,6 +59,7 @@ namespace YARG.Input.Bindings
             Name = BindingsContainer.GetNameWithNumber(serialized.Name, serialized.Family, serialized.Mode);
             Guid = serialized.Guid ?? Guid.NewGuid();
             Mode = serialized.Mode;
+            Description = serialized.Description ?? string.Empty;
             ControllerFamily = serialized.Family;
 
             var template = ReusableBindingSetTemplates.GetTemplate(Mode);
@@ -104,10 +106,12 @@ namespace YARG.Input.Bindings
                 serializedBindings[key] = binding.Serialize();
             }
 
-            return new SerializedReusableBindingSet(Name, ControllerFamily, Mode) {
+            return new SerializedReusableBindingSet(Name, ControllerFamily, Mode)
+            {
                 Guid = export ? null : Guid, // When exporting, don't include a GUID; we'll make a fresh one on import
                 Version = export ? BindingSerialization.CURRENT_VERSION : null, // But DO include a version number, since we'll deserialize this in a vacuum
-                Bindings = serializedBindings
+                Bindings = serializedBindings,
+                Description = Description ?? string.Empty
             };
         }
 

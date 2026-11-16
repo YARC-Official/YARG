@@ -59,14 +59,16 @@ namespace YARG.Input.Serialization
 
     public class SerializedReusableBindingSet
     {
-        public SerializedReusableBindingSet(string name, ControllerFamily family, GameMode mode)
+        public SerializedReusableBindingSet(string name, ControllerFamily family, GameMode mode, string description = "")
         {
             Name = name;
             Family = family;
             Mode = mode;
+            Description = description;
         }
 
         public string Name;
+        public string Description;
         public Guid? Guid;
         public int? Version;
         public GameMode Mode;

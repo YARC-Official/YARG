@@ -8,6 +8,7 @@ using YARG.Core;
 using YARG.Core.Logging;
 using YARG.Helpers;
 using YARG.Input.Bindings;
+using YARG.Localization;
 using YARG.Player;
 
 #nullable enable
@@ -124,7 +125,8 @@ namespace YARG.Input.Serialization
                             reusableBindingSet ??= new SerializedReusableBindingSet(
                                 $"{profileName}'s {layoutString} Bindings",
                                 LayoutHelper.LayoutStringToControllerFamily(controller.Layout),
-                                mode
+                                mode,
+                                $"Automatically generated from <color=#2DD9FE>{profileName}</color>'s custom bindings in an older version of YARG."
                             )
                             { Guid = Guid.NewGuid() };
 
