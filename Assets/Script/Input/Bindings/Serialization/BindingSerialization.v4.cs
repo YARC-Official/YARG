@@ -143,6 +143,7 @@ namespace YARG.Input.Serialization
         public class SerializedReusableBindingSetV4
         {
             public string Name;
+            public string Description;
             public int? Version; // Populated only in single-set export files
             public Dictionary<string, SerializedControlBindingV4> Bindings = new();
             public GameMode Mode;
@@ -154,6 +155,7 @@ namespace YARG.Input.Serialization
             public SerializedReusableBindingSetV4(SerializedReusableBindingSet serialized)
             {
                 Name = serialized.Name;
+                Description = serialized.Description ?? "";
                 Mode = serialized.Mode;
                 Family = serialized.Family;
 
@@ -165,8 +167,8 @@ namespace YARG.Input.Serialization
 
             public SerializedReusableBindingSet Deserialize(Guid guid)
             {
-                var converted = new SerializedReusableBindingSet(Name, Family, Mode) {
-                    Guid = guid
+                var converted = new SerializedReusableBindingSet(Name, Family, Mode, Description) {
+                    Guid = guid,
                 };
 
                 foreach (var (id, serializedBinds) in Bindings)

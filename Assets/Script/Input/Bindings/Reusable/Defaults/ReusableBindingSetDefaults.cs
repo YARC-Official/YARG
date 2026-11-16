@@ -14,7 +14,8 @@ namespace YARG.Input.Bindings
             GameMode mode,
             ControllerFamily family,
             Guid guid,
-            Dictionary<string, ReusableControlBinding> bindings
+            Dictionary<string, ReusableControlBinding> bindings,
+            string description = ""
         )
         {
             var bindingSet = new ReusableBindingSet(
@@ -23,7 +24,10 @@ namespace YARG.Input.Bindings
                 family,
                 guid,
                 true
-            );
+            )
+            {
+                Description = description
+            };
 
             var template = ReusableBindingSetTemplates.GetTemplate(mode);
 
