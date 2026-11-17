@@ -337,6 +337,28 @@ namespace YARG.Scores
                 : GetBestPercentageScore(songChecksum, playerId, instrument, allowCacheUpdate);
         }
 
+        /// <summary>
+        /// Get the best result (score or percentage, following the high score history setting's metric)
+        /// for a specific song, player, instrument and difficulty.
+        /// </summary>
+        public static PlayerScoreRecord GetPreferredHighScoreForDifficulty(HashWrapper songChecksum,
+            Guid playerId, Instrument instrument, Difficulty difficulty)
+        {
+            try
+            {
+                return UseHighestScore
+                    ? _db.QueryPlayerSongHighScore(songChecksum, playerId, instrument,
+                        highestDifficultyOnly: false, currentDifficultyOnly: true, difficulty)
+                    : _db.QueryPlayerSongHighestPercentage(songChecksum, playerId, instrument,
+                        highestDifficultyOnly: false, currentDifficultyOnly: true, difficulty);
+            }
+            catch (Exception e)
+            {
+                YargLogger.LogException(e, $"Failed to load high score from database for player with ID {playerId}.");
+                return null;
+            }
+        }
+
         public static bool UseBandHighScoresForCurrentPlayers
             => PlayerContainer.Players.Count(player => !player.Profile.IsBot) != 1;
 
