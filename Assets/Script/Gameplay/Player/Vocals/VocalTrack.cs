@@ -528,10 +528,12 @@ namespace YARG.Gameplay.Player
             // Hide overlay
             _starpowerMaterial.SetFloat(_alphaMultiplier, 0f);
 
+            AllowStarPower = primaryPlayer.IsReplay
+                ? primaryPlayer.EngineParameterOverride.StarPowerEnabled
+                : primaryPlayer.EnginePreset.Vocals.StarPowerEnabled;
+
             PrepareLyricSpawns();
             PrewarmVocalPools();
-
-            AllowStarPower = true;
         }
 
         /// <summary>

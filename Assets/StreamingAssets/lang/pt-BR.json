@@ -2073,6 +2073,7 @@
                     "DefaultEngine": "Engine Padrão",
                     "CasualEngine": "Engine Casual",
                     "PrecisionEngine": "Engine de Precisão",
+                    "TournamentEngine": "Tournament Engine",
                     "SoloTapsEngine": "Engine com Taps no Solo",
                     "CustomEnginePreset": "Engine Personalizada"
                 },
