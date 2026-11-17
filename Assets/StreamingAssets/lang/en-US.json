@@ -738,7 +738,8 @@
                 "SetBPosition": "Set B Position",
                 "ClearAB": "Clear A/B",
                 "SelectNewSections": "Select New Sections",
-                "Quickplay": "Quickplay"
+                "Quickplay": "Quickplay",
+                "RestoreLast": "Restore Last Session"
             },
             "Quickplay": {
                 "SaveReplay": "Save Replay"

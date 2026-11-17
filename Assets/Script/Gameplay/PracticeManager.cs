@@ -7,6 +7,7 @@ using YARG.Core.Chart;
 using YARG.Core.Input;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Player;
+using YARG.Gameplay.Practice;
 using YARG.Menu.Navigation;
 using YARG.Settings;
 
@@ -247,6 +248,7 @@ namespace YARG.Gameplay
             }
 
             HasUpdatedAbPositions = true;
+            PracticeCacheManager.SaveABLoop(GameManager.Song.Hash, TimeStart, TimeEnd);
         }
 
         public void SetBPosition(double time)
@@ -264,6 +266,7 @@ namespace YARG.Gameplay
             }
 
             HasUpdatedAbPositions = true;
+            PracticeCacheManager.SaveABLoop(GameManager.Song.Hash, TimeStart, TimeEnd);
         }
 
         public void ResetAbPositions()
@@ -275,6 +278,7 @@ namespace YARG.Gameplay
             TimeEnd = _sectionEndTime;
 
             HasUpdatedAbPositions = true;
+            PracticeCacheManager.ClearABLoop(GameManager.Song.Hash);
         }
 
         public void ResetPractice(bool isSeamless = false)
