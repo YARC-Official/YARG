@@ -211,12 +211,14 @@ namespace YARG.Input
             ResolveMicrophones();
         }
 
-        public void ResolveMicrophones()
+        public bool ResolveMicrophones()
         {
+            bool resolvedAny = false;
+
             for (int i = _unresolvedMics.Count - 1; i >= 0; i--)
             {
                 var mic = _unresolvedMics[i];
-                if (PlayerContainer.GetMicrophoneUser(mic.Id) is not null)
+                if (IsClaimedByAnotherPlayer(mic.Id))
                 {
                     _unresolvedMics.RemoveAt(i);
                     continue;
@@ -227,8 +229,16 @@ namespace YARG.Input
                 {
                     _unresolvedMics.RemoveAt(i);
                     AddMicrophone(device);
+                    resolvedAny = true;
                 }
             }
+
+            return resolvedAny;
+        }
+
+        private bool IsClaimedByAnotherPlayer(MicId id)
+        {
+            return PlayerContainer.Players.Any(p => p.DeviceInfo != this && p.DeviceInfo.ContainsMicrophone(id));
         }
 
         public void ReleaseMicrophones()
@@ -616,11 +626,7 @@ namespace YARG.Input
 
             ControllerAdded?.Invoke(controller);
 
-            var profileCenterPane = UnityEngine.Object.FindAnyObjectByType<ProfileCenterPane>();
-            if (profileCenterPane is not null && profileCenterPane.Profile == Profile)
-            {
-                profileCenterPane.RefreshControllers();
-            }
+            GetPaneForThisProfile()?.RefreshControllers();
         }
 
         private void NotifyControllerRemoved(InputDevice controller)
@@ -640,11 +646,18 @@ namespace YARG.Input
 
             ControllerRemoved?.Invoke(controller);
 
-            var profileCenterPane = UnityEngine.Object.FindAnyObjectByType<ProfileCenterPane>();
-            if (profileCenterPane is not null && profileCenterPane.Profile == Profile)
+            GetPaneForThisProfile()?.RefreshControllers();
+        }
+
+        private ProfileCenterPane GetPaneForThisProfile()
+        {
+            var pane = UnityEngine.Object.FindAnyObjectByType<ProfileCenterPane>();
+            if (pane is null || pane.Profile != Profile)
             {
-                profileCenterPane.RefreshControllers();
+                return null;
             }
+
+            return pane;
         }
 
         public void ActivateMenuBindings()
@@ -770,6 +783,34 @@ namespace YARG.Input
             _microphones.Add(microphone);
 
             _unresolvedMics.RemoveAll(m => m.Id == microphone.Id);
+        }
+
+        public void OnMicrophoneAdded(MicId id)
+        {
+            if (!_unresolvedMics.Any(m => m.Id == id))
+            {
+                return;
+            }
+
+            if (ResolveMicrophones())
+            {
+                GetPaneForThisProfile()?.RefreshMicrophones();
+            }
+        }
+
+        public void OnMicrophoneRemoved(MicId id)
+        {
+            var mic = _microphones.Find(m => m.Id == id);
+            if (mic is null)
+            {
+                return;
+            }
+
+            _microphones.Remove(mic);
+            _unresolvedMics.Add(mic.Serialize());
+            mic.Dispose();
+
+            GetPaneForThisProfile()?.RefreshMicrophones();
         }
 
         public bool ContainsMicrophone(MicId id) =>

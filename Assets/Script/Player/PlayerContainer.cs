@@ -91,6 +91,8 @@ namespace YARG.Player
 
             InputManager.DeviceAdded += OnDeviceAdded;
             InputManager.DeviceRemoved += OnDeviceRemoved;
+            MicrophoneWatcher.MicrophoneAdded += OnMicrophoneAdded;
+            MicrophoneWatcher.MicrophoneRemoved += OnMicrophoneRemoved;
         }
 
         public static bool AddProfile(YargProfile profile)
@@ -338,6 +340,22 @@ namespace YARG.Player
             foreach (var player in _players)
             {
                 player.DeviceInfo.OnControllerRemoved(device);
+            }
+        }
+
+        private static void OnMicrophoneAdded(MicId id)
+        {
+            foreach (var player in _players)
+            {
+                player.DeviceInfo.OnMicrophoneAdded(id);
+            }
+        }
+
+        private static void OnMicrophoneRemoved(MicId id)
+        {
+            foreach (var player in _players)
+            {
+                player.DeviceInfo.OnMicrophoneRemoved(id);
             }
         }
 
