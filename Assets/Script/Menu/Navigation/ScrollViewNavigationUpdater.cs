@@ -18,6 +18,7 @@ namespace YARG.Menu.Navigation
         {
             _navigationGroup = GetComponent<NavigationGroup>();
             _scrollRect = GetComponent<ScrollRect>();
+            _contentTransform ??= _scrollRect.content;
             _viewportTransform = _scrollRect.viewport != null
                 ? _scrollRect.viewport
                 : GetComponent<RectTransform>();

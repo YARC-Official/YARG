@@ -381,6 +381,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 74b7d0790de0489587526dc60303efdf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Gameplay.HUD.TrackPlayerMenu
+  _headingText: {fileID: 8216482013380270817}
+  _icon: {fileID: 5395973072641401487}
+  _normalColor: {r: 0, g: 0.23, b: 0.36, a: 0}
+  _selectedColor: {r: 1, g: 1, b: 1, a: 1}
   _slots:
   - _root: {fileID: 4965573073590545018}
     _background: {fileID: 225164771146153191}
@@ -394,10 +398,6 @@ MonoBehaviour:
   - _root: {fileID: 5443714494266424477}
     _background: {fileID: 3973714259677180827}
     _label: {fileID: 1674082158921734895}
-  _headingText: {fileID: 8216482013380270817}
-  _icon: {fileID: 5395973072641401487}
-  _normalColor: {r: 0, g: 0.23, b: 0.36, a: 0}
-  _selectedColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &1432634592921514175
 GameObject:
   m_ObjectHideFlags: 0
@@ -995,8 +995,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 72}
+  m_AnchoredPosition: {x: 0, y: 40}
+  m_SizeDelta: {x: 80, y: 112}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!222 &8200000000000000002
 CanvasRenderer:
@@ -1504,7 +1504,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: -20}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &5714121925501733726
