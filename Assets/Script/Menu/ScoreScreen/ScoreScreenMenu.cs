@@ -236,6 +236,7 @@ namespace YARG.Menu.ScoreScreen
                         break;
                     }
                     case GameMode.Vocals:
+                    case GameMode.PartyVocals:
                     {
                         card = Instantiate(_vocalsCardPrefab, _cardContainer);
                         ((ScoreCard<VocalsStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as VocalsStats, score.IsReplay);

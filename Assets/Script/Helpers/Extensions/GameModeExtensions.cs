@@ -23,6 +23,7 @@ namespace YARG.Helpers.Extensions
                 GameMode.ProKeys        => "realKeys",
 
                 GameMode.Vocals         => "vocals",
+                GameMode.PartyVocals    => "harmVocals",
 
                 // GameMode.Dj          => "dj",
 
@@ -100,7 +101,7 @@ namespace YARG.Helpers.Extensions
 
             var possibleOptions = unconditionallyValidInAllModes;
 
-            if (gameMode is not GameMode.Vocals)
+            if (gameMode is not (GameMode.Vocals or GameMode.PartyVocals))
             {
                 possibleOptions.AddRange(unconditionallyValidInAllModesExceptVocals);
             }

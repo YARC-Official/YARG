@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using ManagedBass;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
@@ -21,19 +22,27 @@ namespace YARG.Audio.BASS
 
         public MicDevice? CreateMic(InputDeviceInfo requestedDevice)
         {
+            var timing = Stopwatch.StartNew();
             if (!TryResolveRequestedDevice(requestedDevice, out var device))
             {
                 return null;
             }
 
+            long resolveMs = timing.ElapsedMilliseconds;
             int channelCount = GetChannelCount(device.DeviceId, device.Name);
+            long probeMs = timing.ElapsedMilliseconds - resolveMs;
 
             if (!IsChannelInRange(device, channelCount))
             {
                 return null;
             }
 
-            return TryCreateClaimedMic(device, channelCount);
+            var microphone = TryCreateClaimedMic(device, channelCount);
+            if (microphone != null)
+                YargLogger.LogFormatInfo("Microphone opened [{0}] '{1}' channel {2}: resolve {3} ms, probe {4} ms, setup {5} ms",
+                    device.DeviceId, device.Name, device.Channel, resolveMs, probeMs,
+                    timing.ElapsedMilliseconds - resolveMs - probeMs);
+            return microphone;
         }
 
         public List<InputDeviceInfo> GetAllDevices()
@@ -50,6 +59,7 @@ namespace YARG.Audio.BASS
         private MicDevice? TryCreateClaimedMic(InputDeviceInfo device, int channelCount)
         {
             BassMicrophoneCapture? capture;
+            var timing = Stopwatch.StartNew();
 
             lock (_lock)
             {
@@ -73,33 +83,56 @@ namespace YARG.Audio.BASS
                 }
             }
 
-            string displayName = channelCount > 1 ? $"{device.Name} - Channel {device.Channel + 1}" : device.Name;
-            BassSharedMicSource? source = null;
+            long captureMs = timing.ElapsedMilliseconds;
+            // Keep capture alive until the monitor takes ownership. Native startup can block;
+            // finish it before the playing output mixer can pull from this recording stream.
+            capture.AddListener();
             try
             {
-                source = new BassSharedMicSource(capture, device.Name, displayName, device.Channel, _router,
-                    () => ReleaseMic(device.DeviceId, device.Channel, capture));
-            }
-            catch (Exception exception)
-            {
-                YargLogger.LogException(exception, $"Failed to create mic '{displayName}'");
-                ReleaseMic(device.DeviceId, device.Channel, capture);
-                return null;
-            }
+                if (!capture.Start())
+                {
+                    ReleaseMic(device.DeviceId, device.Channel, capture);
+                    return null;
+                }
+                long startMs = timing.ElapsedMilliseconds - captureMs;
 
-            if (!source.IsValid || !capture.Start())
-            {
-                source.Dispose();
-                return null;
-            }
+                string displayName = channelCount > 1 ? $"{device.Name} - Channel {device.Channel + 1}" : device.Name;
+                BassSharedMicSource? source;
+                try
+                {
+                    source = new BassSharedMicSource(capture, device.Name, displayName, device.Channel, _router,
+                        () => ReleaseMic(device.DeviceId, device.Channel, capture));
+                }
+                catch (Exception exception)
+                {
+                    YargLogger.LogException(exception, $"Failed to create mic '{displayName}'");
+                    ReleaseMic(device.DeviceId, device.Channel, capture);
+                    return null;
+                }
 
-            var mic = BassMicDevice.Create(source);
-            if (mic == null)
-            {
-                source.Dispose();
-            }
+                long signalMs = timing.ElapsedMilliseconds - captureMs - startMs;
+                if (!source.IsValid)
+                {
+                    source.Dispose();
+                    return null;
+                }
 
-            return mic;
+                var mic = BassMicDevice.Create(source);
+                if (mic == null)
+                {
+                    source.Dispose();
+                }
+
+                if (mic != null)
+                    YargLogger.LogFormatInfo("Microphone setup [{0}]: capture {1} ms, start {2} ms, signal/monitor {3} ms, analyzer {4} ms",
+                        device.DeviceId, captureMs, startMs, signalMs,
+                        timing.ElapsedMilliseconds - captureMs - startMs - signalMs);
+                return mic;
+            }
+            finally
+            {
+                capture.RemoveListener();
+            }
         }
 
         private BassMicrophoneCapture? FindOrCreateCapture(int deviceId, int channels)
@@ -220,7 +253,7 @@ namespace YARG.Audio.BASS
             }
         }
 
-        private static bool TryResolveRequestedDevice(InputDeviceInfo requested, out InputDeviceInfo resolved)
+        private bool TryResolveRequestedDevice(InputDeviceInfo requested, out InputDeviceInfo resolved)
         {
             if (requested.DeviceId >= 0)
             {
@@ -228,7 +261,7 @@ namespace YARG.Audio.BASS
                 return true;
             }
 
-            int foundId = FindDeviceIdByName(requested.Name);
+            int foundId = FindDeviceIdByName(requested.Name, requested.Channel);
             if (foundId < 0)
             {
                 resolved = default;
@@ -323,14 +356,19 @@ namespace YARG.Audio.BASS
             driver.StartsWith(device + ":", StringComparison.OrdinalIgnoreCase);
 #endif
 
-        private static int FindDeviceIdByName(string name)
+        private int FindDeviceIdByName(string name, int channel)
         {
             foreach (var device in FindUsableDevices())
             {
-                if (device.Info.Name == name)
+                if (device.Info.Name != name) continue;
+                lock (_lock)
                 {
-                    return device.Id;
+                    // Identical microphones share a saved name. Each binding needs its own channel claim.
+                    if (_captures.TryGetValue(device.Id, out var capture) && capture.IsChannelClaimed(channel))
+                        continue;
                 }
+                if (channel >= 0 && channel < GetChannelCount(device.Id, name))
+                    return device.Id;
             }
 
             return -1;

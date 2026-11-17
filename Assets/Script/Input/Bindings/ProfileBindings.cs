@@ -31,6 +31,8 @@ namespace YARG.Input
         /// </summary>
         public List<MicDevice> Microphones => _microphones;
 
+        public IReadOnlyList<SerializedMic> UnresolvedMicrophones => _unresolvedMics;
+
         public List<InputDevice> InputDevices => _devices;
 
         private readonly List<SerializedInputDevice> _unresolvedDevices = new();
@@ -139,6 +141,14 @@ namespace YARG.Input
                 }
             }
 
+            // A migrated Free Harmonies profile retains its vocal controller bindings.
+            if (profile.GameMode == GameMode.PartyVocals && bindings.ModeMappings is not null &&
+                !bindings.ModeMappings.ContainsKey(GameMode.PartyVocals) &&
+                bindings.ModeMappings.TryGetValue(GameMode.Vocals, out var legacyVocalsBindings))
+            {
+                _bindsByGameMode[GameMode.PartyVocals].Deserialize(legacyVocalsBindings);
+            }
+
             MenuBindings.Deserialize(bindings.MenuMappings);
         }
 
@@ -197,19 +207,11 @@ namespace YARG.Input
             ResolveMicrophones();
         }
 
-        public void ResolveMicrophones()
-        {
-            for (int i = _unresolvedMics.Count - 1; i >= 0; i--)
-            {
-                var mic = _unresolvedMics[i];
-                var device = GlobalAudioHandler.GetInputDevice(mic.BaseName, mic.Channel);
-                if (device != null)
-                {
-                    _unresolvedMics.RemoveAt(i);
-                    AddMicrophone(device);
-                }
-            }
-        }
+        public bool ResolveMicrophones() =>
+            MicrophoneConnectionRecovery.Resolve(_microphones, _unresolvedMics, GlobalAudioHandler.GetInputDevice);
+
+        public bool DisconnectUnavailableMicrophones() =>
+            MicrophoneConnectionRecovery.DisconnectUnavailable(_microphones, _unresolvedMics);
 
         public void ReleaseMicrophones()
         {
@@ -458,6 +460,7 @@ namespace YARG.Input
                 if (_unresolvedMics[i].BaseName == serialized.BaseName && _unresolvedMics[i].Channel == serialized.Channel)
                 {
                     _unresolvedMics.RemoveAt(i);
+                    break;
                 }
             }
         }
@@ -470,6 +473,11 @@ namespace YARG.Input
             }
 
             microphone.Dispose();
+        }
+
+        public void RemoveMicrophone(SerializedMic microphone)
+        {
+            _unresolvedMics.Remove(microphone);
         }
 
         public void RemoveAllMicrophones()

@@ -24,7 +24,8 @@ namespace YARG.Audio.BASS.Wasapi
 
         private readonly HashSet<int> _claimedChannels = new();
 
-        private bool _disposed;
+        private volatile bool _disposed;
+        private volatile bool _disconnected;
 
         private BassWasapiMicCapture(int deviceId, int channels, int sampleRate, int pushStreamHandle,
             int bufferFrames, double bufferMilliseconds)
@@ -44,6 +45,9 @@ namespace YARG.Audio.BASS.Wasapi
         public int    BufferFrames       { get; }
         public double BufferMilliseconds { get; }
         public bool   IsRunning          { get; private set; }
+
+        internal bool IsConnected => !_disposed && !_disconnected &&
+            BassWasapi.GetDeviceInfo(DeviceId, out var info) && info.IsUsableInput();
 
         internal bool HasClaimedChannel => _claimedChannels.Count > 0;
 
@@ -206,6 +210,7 @@ namespace YARG.Audio.BASS.Wasapi
             if ((device == DeviceId || device == -1) && notify is WasapiNotificationType.Disabled)
             {
                 YargLogger.LogFormatWarning("WASAPI input device [{0}] disabled or disconnected", DeviceId);
+                _disconnected = true;
                 IsRunning = false;
             }
         }

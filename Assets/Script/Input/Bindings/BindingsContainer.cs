@@ -103,6 +103,17 @@ namespace YARG.Input.Bindings
             return _bindings.Count;
         }
 
+        public static bool RefreshMicrophones()
+        {
+            bool changed = false;
+            // Release every failed channel before reopening any shared capture.
+            foreach (var player in PlayerContainer.Players)
+                if (!player.IsReplay) changed |= player.Bindings.DisconnectUnavailableMicrophones();
+            foreach (var player in PlayerContainer.Players)
+                if (!player.IsReplay) changed |= player.Bindings.ResolveMicrophones();
+            return changed;
+        }
+
         public static void ReleaseMicrophones()
         {
             foreach (var player in PlayerContainer.Players)

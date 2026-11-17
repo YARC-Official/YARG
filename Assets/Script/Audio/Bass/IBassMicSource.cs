@@ -14,6 +14,9 @@ namespace YARG.Audio.BASS
         string BaseName    { get; }
         int    Channel     { get; }
 
+        bool IsConnected { get; }
+        bool IsRecovering { get; }
+
         event Action? InputChanged;
 
         bool TryCreateRecordingChannel(bool withEffects, out int handle, out int sampleRate);

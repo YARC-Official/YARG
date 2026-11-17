@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.XInput;
 using UnityEngine.UI;
+using YARG.Core;
 using YARG.Core.Audio;
+using YARG.Core.Engine.Vocals;
 using YARG.Core.Game;
 using YARG.Core.Logging;
 using YARG.Helpers.Extensions;
@@ -306,6 +309,15 @@ namespace YARG.Menu.ProfileList
 
             bool TryAddMicrophone(InputDeviceInfo device)
             {
+                if (player.Profile.GameMode == GameMode.PartyVocals &&
+                    player.Bindings.Microphones.Count + player.Bindings.UnresolvedMicrophones.Count >= VocalsEngineParameters.MAX_PARTY_MIC_COUNT &&
+                    !player.Bindings.UnresolvedMicrophones.Any(mic => mic.BaseName == device.Name && mic.Channel == device.Channel))
+                {
+                    DialogManager.Instance.ClearDialog();
+                    DialogManager.Instance.ShowMessage(GameMode.PartyVocals.ToLocalizedName(),
+                        Localize.Key("Menu.DifficultySelect.PartyMicLimit"));
+                    return false;
+                }
                 var created = GlobalAudioHandler.CreateInputDevice(device);
                 if (created is null)
                 {
@@ -462,6 +474,16 @@ namespace YARG.Menu.ProfileList
             {
                 devicesAvailable = true;
                 dialog.AddListButton(mic.DisplayName, () =>
+                {
+                    player.Bindings.RemoveMicrophone(mic);
+                    selectedDevice = true;
+                });
+            }
+
+            foreach (var mic in player.Bindings.UnresolvedMicrophones)
+            {
+                devicesAvailable = true;
+                dialog.AddListButton(Localize.KeyFormat("Menu.ProfileList.MissingMicrophone", mic.Name), () =>
                 {
                     player.Bindings.RemoveMicrophone(mic);
                     selectedDevice = true;

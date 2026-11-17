@@ -358,7 +358,7 @@ namespace YARG.Scores
             string query = $@"WITH RankedScores AS (
                     SELECT ps.*,
                         ROW_NUMBER() OVER (
-                            PARTITION BY gr.SongChecksum
+                            PARTITION BY gr.SongChecksum, ps.VocalChartSource
                             ORDER BY {orderBy}
                         ) AS ScoreRank
                     FROM CurrentLibrarySongHashes library
@@ -404,7 +404,7 @@ namespace YARG.Scores
             string query = $@"WITH RankedScores AS (
                     SELECT ps.*,
                         ROW_NUMBER() OVER (
-                            PARTITION BY gr.SongChecksum
+                            PARTITION BY gr.SongChecksum, ps.VocalChartSource
                             ORDER BY {orderBy}
                         ) AS ScoreRank
                     FROM CurrentLibrarySongHashes library
@@ -438,7 +438,8 @@ namespace YARG.Scores
             Instrument instrument,
             bool highestDifficultyOnly,
             bool currentDifficultyOnly,
-            Difficulty currentDifficulty
+            Difficulty currentDifficulty,
+            Instrument? vocalChartSource = null
         )
         {
             string query =
@@ -450,9 +451,17 @@ namespace YARG.Scores
                     AND PlayerScores.Instrument = ?
                     AND PlayerScores.IsReplay = 0";
 
+            var args = new List<object> { songChecksum.HashBytes, playerId, (int) instrument };
+            if (instrument == Instrument.PartyVocals)
+            {
+                query += " AND PlayerScores.VocalChartSource IS ?";
+                args.Add(vocalChartSource.HasValue ? (object) (int) vocalChartSource.Value : null);
+            }
+
             if (currentDifficultyOnly)
             {
                 query += " AND PlayerScores.Difficulty = ?";
+                args.Add((int) currentDifficulty);
             }
 
             if (highestDifficultyOnly)
@@ -466,18 +475,7 @@ namespace YARG.Scores
 
             query += " LIMIT 1";
 
-            return currentDifficultyOnly
-                ? FindWithQuery<PlayerScoreRecord>(
-                    query,
-                    songChecksum.HashBytes,
-                    playerId,
-                    (int) instrument,
-                    (int) currentDifficulty)
-                : FindWithQuery<PlayerScoreRecord>(
-                    query,
-                    songChecksum.HashBytes,
-                    playerId,
-                    (int) instrument);
+            return FindWithQuery<PlayerScoreRecord>(query, args.ToArray());
         }
 
         public PlayerScoreRecord QueryPlayerSongHighestPercentage(
@@ -486,7 +484,8 @@ namespace YARG.Scores
             Instrument instrument,
             bool highestDifficultyOnly,
             bool currentDifficultyOnly,
-            Difficulty currentDifficulty
+            Difficulty currentDifficulty,
+            Instrument? vocalChartSource = null
         )
         {
             string query =
@@ -498,9 +497,17 @@ namespace YARG.Scores
                     AND PlayerScores.Instrument = ?
                     AND PlayerScores.IsReplay = 0";
 
+            var args = new List<object> { songChecksum.HashBytes, playerId, (int) instrument };
+            if (instrument == Instrument.PartyVocals)
+            {
+                query += " AND PlayerScores.VocalChartSource IS ?";
+                args.Add(vocalChartSource.HasValue ? (object) (int) vocalChartSource.Value : null);
+            }
+
             if (currentDifficultyOnly)
             {
                 query += " AND PlayerScores.Difficulty = ?";
+                args.Add((int) currentDifficulty);
             }
 
             if (highestDifficultyOnly)
@@ -514,18 +521,7 @@ namespace YARG.Scores
 
             query += " LIMIT 1";
 
-            return currentDifficultyOnly
-                ? FindWithQuery<PlayerScoreRecord>(
-                    query,
-                    songChecksum.HashBytes,
-                    playerId,
-                    (int) instrument,
-                    (int) currentDifficulty)
-                : FindWithQuery<PlayerScoreRecord>(
-                    query,
-                    songChecksum.HashBytes,
-                    playerId,
-                    (int) instrument);
+            return FindWithQuery<PlayerScoreRecord>(query, args.ToArray());
         }
 
         public List<SongRecord> QueryMostPlayedSongs(int maxCount)
@@ -622,7 +618,7 @@ namespace YARG.Scores
             string query = $@"WITH RankedScores AS (
                     SELECT ps.*, gr.SongChecksum,
                         ROW_NUMBER() OVER (
-                            PARTITION BY gr.SongChecksum
+                            PARTITION BY gr.SongChecksum, ps.VocalChartSource
                             ORDER BY {orderBy}
                         ) AS ScoreRank
                     FROM CurrentLibrarySongHashes library
@@ -684,7 +680,7 @@ namespace YARG.Scores
             string query = $@"WITH RankedScores AS (
                     SELECT ps.*, gr.SongChecksum,
                         ROW_NUMBER() OVER (
-                            PARTITION BY gr.SongChecksum
+                            PARTITION BY gr.SongChecksum, ps.VocalChartSource
                             ORDER BY {orderBy}
                         ) AS ScoreRank
                     FROM CurrentLibrarySongHashes library

@@ -85,6 +85,13 @@ namespace YARG.Player
         /// </summary>
         public static List<YargPlayer>.Enumerator PlayerEnumerator => _players.GetEnumerator();
 
+        public static PartyVocalsChartPreference GetPartyVocalsChartPreference()
+        {
+            return _players.FirstOrDefault(player => !player.SittingOut &&
+                player.Profile.GameMode == GameMode.PartyVocals)?.Profile.PartyVocalsChartPreference
+                ?? PartyVocalsChartPreference.Harmony;
+        }
+
         private static bool _isInitialized;
 
         static PlayerContainer()

@@ -67,7 +67,7 @@ namespace YARG.Input
                 // GameMode.ProGuitar => SetDefaultProGuitarBindings_Gamepad(gamepad),
                 // GameMode.ProKeys => SetDefaultProKeysBindings_Gamepad(gamepad),
 
-                GameMode.Vocals => SetDefaultVocalsBindings_Gamepad(gamepad),
+                GameMode.Vocals or GameMode.PartyVocals => SetDefaultVocalsBindings_Gamepad(gamepad),
 
                 _ => false
             };
@@ -123,7 +123,7 @@ namespace YARG.Input
 
         private bool SetDefaultVocalsBindings_Gamepad(Gamepad gamepad)
         {
-            if (Mode != GameMode.Vocals)
+            if (Mode is not (GameMode.Vocals or GameMode.PartyVocals))
                 return false;
 
             AddBinding(VocalsAction.Hit, gamepad.aButton);

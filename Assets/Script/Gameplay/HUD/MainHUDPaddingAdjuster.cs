@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using UnityEngine;
 using YARG.Core;
 using YARG.Core.Chart;
@@ -16,7 +16,7 @@ namespace YARG.Gameplay.HUD
 
             bool usePadding = GameManager.YargPlayers
                 .Where(player => !player.SittingOut)
-                .Any(player => player.Profile.GameMode == GameMode.Vocals);
+                .Any(player => player.Profile.GameMode is GameMode.Vocals or GameMode.PartyVocals);
 
             if (usePadding)
             {

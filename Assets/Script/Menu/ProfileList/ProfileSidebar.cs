@@ -37,6 +37,7 @@ namespace YARG.Menu.ProfileList
             GameMode.FourLaneDrums,
             GameMode.FiveLaneDrums,
             GameMode.Vocals,
+            GameMode.PartyVocals,
             GameMode.ProKeys
         };
 
@@ -207,7 +208,7 @@ namespace YARG.Menu.ProfileList
             }
 
             // Casual only changes FiveFretGuitar, SixFretGuitar, and Vocals
-            if (profile.GameMode is not (GameMode.FiveFretGuitar or GameMode.Vocals or GameMode.SixFretGuitar))
+            if (profile.GameMode is not (GameMode.FiveFretGuitar or GameMode.Vocals or GameMode.PartyVocals or GameMode.SixFretGuitar))
             {
                 RemoveDropdownOption(_engineDropdown, _enginePresetsByIndex, EnginePreset.Casual.Id);
             }
