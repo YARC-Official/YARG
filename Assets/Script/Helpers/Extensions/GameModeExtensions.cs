@@ -52,6 +52,7 @@ namespace YARG.Helpers.Extensions
                 (ProfileSettingStrings.CAMERA_PRESET, null),
                 (ProfileSettingStrings.HIGHWAY_PRESET, null),
                 (ProfileSettingStrings.INPUT_CALIBRATION, null),
+                (ProfileSettingStrings.VIDEO_OFFSET, null),
                 (ProfileSettingStrings.NOTE_SPEED_AND_HIGHWAY_LENGTH, null),
             };
 
