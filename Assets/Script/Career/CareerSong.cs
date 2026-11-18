@@ -42,7 +42,7 @@ namespace YARG.Career
         public Guid?        SongId;
         [JsonConverter(typeof(JsonHashWrapperConverter))]
         public HashWrapper? SongHash;
-        public string?      ShortName;
+        public string       ShortName;
         public SongTuple?   SongTuple;
 
         // Which identifier this particular instance is using
@@ -153,7 +153,6 @@ namespace YARG.Career
                     }
 
                     throw new ArgumentException("Song does not have a valid RBSongId");
-                    break;
                 case CareerSongIdentifier.SongTuple:
                     return new CareerSong(new SongTuple
                     {
