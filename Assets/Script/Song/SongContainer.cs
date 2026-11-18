@@ -53,7 +53,6 @@ namespace YARG.Song
         SixFretBass,
         SixFretRhythm,
         SixFretCoop,
-        SixLaneKeys,
         FourLaneDrums,
         ProDrums,
         FiveLaneDrums,
@@ -67,7 +66,8 @@ namespace YARG.Song
         Vocals,
         Harmony,
         Band,
-        FreeHarmony
+        FreeHarmony,
+        SixLaneKeys // this sucks, but to preserve saved filters it needs to go at the end
     }
 
     public readonly struct SongCategory
