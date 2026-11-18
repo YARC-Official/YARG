@@ -412,7 +412,7 @@ namespace YARG.Menu.ScoreScreen
                 var analysisResult = results[i];
 
                 // Always print the stats in debug mode
-#if UNITY_EDITOR || YARG_TEST_BUILD
+#if UNITY_EDITOR || YARG_DEV_BUILD
                 YargLogger.LogFormatInfo("({0}, {1}/{2}) Verification Result: {3}. Stats:\n{4}",
                     data.Frames[i].Profile.Name, data.Frames[i].Profile.CurrentInstrument,
                     data.Frames[i].Profile.CurrentDifficulty, item4: analysisResult.Passed ? "Passed" : "Failed",
@@ -421,7 +421,7 @@ namespace YARG.Menu.ScoreScreen
 
                 if (!analysisResult.Passed)
                 {
-#if !(UNITY_EDITOR || YARG_TEST_BUILD)
+#if !(UNITY_EDITOR || YARG_DEV_BUILD)
                     YargLogger.LogFormatWarning("({0}, {1}/{2}) FAILED verification. Stats:\n{3}",
                         data.Frames[i].Profile.Name, data.Frames[i].Profile.CurrentInstrument,
                         data.Frames[i].Profile.CurrentDifficulty, item4: analysisResult.StatLog);
