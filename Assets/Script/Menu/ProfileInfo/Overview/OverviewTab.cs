@@ -63,6 +63,7 @@ namespace YARG.Menu.ProfileInfo.Overview
         private int? _statsSelectedIndex;
         private readonly TextMeshProUGUI[] _profileSummaryValues = new TextMeshProUGUI[14];
         private static readonly Dictionary<string, Sprite> InstrumentIconCache = new();
+        private const float StatColumnInset = 25f;
 
         private static readonly Instrument[] Instruments = CreateInstrumentList();
 
@@ -978,6 +979,10 @@ namespace YARG.Menu.ProfileInfo.Overview
             // (and even between strings with different ascenders or descenders).
             labelText.alignment = TextAlignmentOptions.Left;
             labelText.textWrappingMode = TextWrappingModes.NoWrap;
+            // The shared Settings row has no horizontal margin so controls in the Career
+            // preset UI can use the full row width. Profile stats need an inset on both
+            // sides of the midpoint to keep their value and label columns separated.
+            labelText.margin = new Vector4(StatColumnInset, 0, 0, 0);
             var labelRect = (RectTransform) labelTransform;
             labelRect.anchorMin = new Vector2(0.5f, 0);
             labelRect.anchorMax = Vector2.one;
@@ -1000,7 +1005,7 @@ namespace YARG.Menu.ProfileInfo.Overview
             }
             valueText.alignment = TextAlignmentOptions.Right;
             valueText.textWrappingMode = TextWrappingModes.NoWrap;
-            valueText.margin = new Vector4(0, 0, labelText.margin.x, 0);
+            valueText.margin = new Vector4(0, 0, StatColumnInset, 0);
             var valueTextRect = (RectTransform) valueText.transform;
             valueTextRect.anchorMin = Vector2.zero;
             valueTextRect.anchorMax = new Vector2(0.5f, 1);
