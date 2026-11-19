@@ -225,12 +225,12 @@ void runRenderAheadMixerTests() {
         REQUIRE(renderer.start());
         std::this_thread::sleep_for(5ms);
 
-        renderer.beginSourceAccess();
+        renderer.pauseReadAhead();
         std::this_thread::sleep_for(5ms);
         const auto heldFrames = renderer.producedFrames();
         std::this_thread::sleep_for(20ms);
         const auto framesWhileHeld = renderer.producedFrames();
-        renderer.endSourceAccess();
+        renderer.resumeReadAhead();
 
         const auto deadline = std::chrono::steady_clock::now() + 2s;
         while (renderer.producedFrames() == framesWhileHeld &&

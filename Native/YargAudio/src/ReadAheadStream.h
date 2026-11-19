@@ -30,8 +30,8 @@ public:
     int prefill(std::uint32_t timeoutMilliseconds) noexcept;
     int flush() noexcept;
     int setBufferLength(std::uint32_t bufferMilliseconds) noexcept;
-    int beginSourceAccess() noexcept;
-    int endSourceAccess() noexcept;
+    int pauseReadAhead() noexcept;
+    int resumeReadAhead() noexcept;
     std::int64_t getSourcePosition(std::uint32_t source,
         std::uint32_t endpointDelayFrames, int& error) noexcept;
     int getPositionSnapshot(std::uint32_t source,

@@ -104,7 +104,7 @@ std::size_t RenderAheadMixer::lowWatermarkFrames() const noexcept {
 
 std::int64_t RenderAheadMixer::bufferedSourcePosition(
     std::uint32_t sourceHandle, std::uint32_t endpointDelayFrames) noexcept {
-    SourceAccess access{*this};
+    ReadAheadPause access{*this};
     std::lock_guard lock(sourceMutex_);
     return bufferedSourcePositionLocked(sourceHandle, endpointDelayFrames);
 }
@@ -205,7 +205,7 @@ void RenderAheadMixer::run() noexcept {
         const auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now() - started).count();
         updateMaximum(static_cast<std::uint64_t>(elapsed));
-        yieldToSourceAccess();
+        yieldToPauseRequests();
 
         if (rendered < 0) {
             lastError_.store(source_->lastError());
@@ -223,8 +223,8 @@ void RenderAheadMixer::run() noexcept {
     }
 }
 
-void RenderAheadMixer::yieldToSourceAccess() const noexcept {
-    while (sourceAccessors_.load(std::memory_order_acquire) != 0 &&
+void RenderAheadMixer::yieldToPauseRequests() const noexcept {
+    while (pauseRequests_.load(std::memory_order_acquire) != 0 &&
         !stopping_.load(std::memory_order_acquire)) {
         std::this_thread::yield();
     }

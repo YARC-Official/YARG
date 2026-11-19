@@ -285,7 +285,7 @@ namespace YARG.Audio.BASS
             }
 
             var connection = _connection;
-            bool holdingSource = connection?.BeginSourceAccess() == true;
+            bool pausedReadAhead = connection?.PauseReadAhead() == true;
             try
             {
                 RefreshToneChannels();
@@ -297,9 +297,9 @@ namespace YARG.Audio.BASS
             }
             finally
             {
-                if (holdingSource)
+                if (pausedReadAhead)
                 {
-                    connection!.EndSourceAccess();
+                    connection!.ResumeReadAhead();
                 }
             }
         }
