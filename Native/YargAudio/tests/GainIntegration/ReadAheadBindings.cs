@@ -61,6 +61,9 @@ namespace YARG.Core.Logging
 {
     internal static class YargLogger
     {
+        internal static void LogError(string message) =>
+            throw new InvalidOperationException(message);
+
         internal static void LogFormatError(string format, params object[] arguments) =>
             throw new InvalidOperationException(string.Format(format, arguments));
 
