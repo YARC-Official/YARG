@@ -54,18 +54,27 @@ public:
     template <typename DelayProvider>
     std::int64_t bufferedSourcePositionAfterLock(std::uint32_t sourceHandle,
         DelayProvider delayProvider) noexcept {
+        SourceAccess access{*this};
         std::lock_guard lock(sourceMutex_);
         return bufferedSourcePositionLocked(sourceHandle, delayProvider());
     }
     template <typename DelayProvider>
     bool sourcePositionSnapshotAfterLock(std::uint32_t sourceHandle,
         SourcePositionSnapshot& snapshot, DelayProvider delayProvider) noexcept {
+        SourceAccess access{*this};
         std::lock_guard lock(sourceMutex_);
         std::uint32_t delayFrames;
         if (!delayProvider(delayFrames)) {
             return false;
         }
         return sourcePositionSnapshotLocked(sourceHandle, delayFrames, snapshot);
+    }
+
+    void beginSourceAccess() noexcept {
+        sourceAccessors_.fetch_add(1, std::memory_order_acq_rel);
+    }
+    void endSourceAccess() noexcept {
+        sourceAccessors_.fetch_sub(1, std::memory_order_acq_rel);
     }
 
     std::size_t queuedFrames() const noexcept { return ring_.available(); }
@@ -77,6 +86,17 @@ public:
     std::uint64_t positionOutputFrame() const noexcept { return positionOutputFrame_.load(); }
 
 private:
+    struct SourceAccess {
+        RenderAheadMixer& mixer;
+        explicit SourceAccess(RenderAheadMixer& owner) noexcept : mixer(owner) {
+            mixer.beginSourceAccess();
+        }
+        ~SourceAccess() { mixer.endSourceAccess(); }
+        SourceAccess(const SourceAccess&) = delete;
+        SourceAccess& operator=(const SourceAccess&) = delete;
+    };
+
+    void yieldToSourceAccess() const noexcept;
     std::int64_t bufferedSourcePositionLocked(std::uint32_t sourceHandle,
         std::uint32_t endpointDelayFrames) noexcept;
     bool sourcePositionSnapshotLocked(std::uint32_t sourceHandle,
@@ -103,6 +123,7 @@ private:
     std::atomic<std::uint64_t> generationProducedFrames_{0};
     std::atomic<std::uint64_t> maximumRenderNs_{0};
     std::atomic<std::uint64_t> positionOutputFrame_{0};
+    std::atomic<std::uint32_t> sourceAccessors_{0};
 };
 
 } // namespace yarg::audio

@@ -309,11 +309,23 @@ namespace YARG.Audio.BASS
                 return;
             }
 
-            RefreshToneChannels();
-
-            foreach (var oneShot in _oneShots)
+            var connection = _connection;
+            bool holdingSource = connection?.BeginSourceAccess() == true;
+            try
             {
-                oneShot.ResetAfterSpeedChange();
+                RefreshToneChannels();
+
+                foreach (var oneShot in _oneShots)
+                {
+                    oneShot.ResetAfterSpeedChange();
+                }
+            }
+            finally
+            {
+                if (holdingSource)
+                {
+                    connection!.EndSourceAccess();
+                }
             }
         }
 

@@ -148,6 +148,18 @@ namespace YARG.Audio.BASS
             return YargAudioBindings.ReadAheadStreamSetBufferLength(this, bufferMilliseconds) == 0;
         }
 
+        public bool BeginSourceAccess()
+        {
+            ThrowIfDisposed();
+            return YargAudioBindings.ReadAheadStreamBeginSourceAccess(this) == 0;
+        }
+
+        public void EndSourceAccess()
+        {
+            ThrowIfDisposed();
+            YargAudioBindings.ReadAheadStreamEndSourceAccess(this);
+        }
+
         public long GetSourcePosition(int sourceHandle, int endpointDelayFrames) =>
             TryGetPositionSnapshot(sourceHandle, endpointDelayFrames, out var snapshot)
                 ? snapshot.HeardPosition

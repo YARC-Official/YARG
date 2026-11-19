@@ -166,6 +166,18 @@ int ReadAheadStream::setBufferLength(std::uint32_t bufferMilliseconds) noexcept 
         ? YARG_AUDIO_OK : YARG_AUDIO_ERROR_INVALID_ARGUMENT;
 }
 
+int ReadAheadStream::beginSourceAccess() noexcept {
+    if (!renderer_) return YARG_AUDIO_ERROR_INVALID_STATE;
+    renderer_->beginSourceAccess();
+    return YARG_AUDIO_OK;
+}
+
+int ReadAheadStream::endSourceAccess() noexcept {
+    if (!renderer_) return YARG_AUDIO_ERROR_INVALID_STATE;
+    renderer_->endSourceAccess();
+    return YARG_AUDIO_OK;
+}
+
 std::int64_t ReadAheadStream::getSourcePosition(std::uint32_t source,
     std::uint32_t endpointDelayFrames, int& error) noexcept {
     yarg_read_ahead_position_snapshot snapshot{
