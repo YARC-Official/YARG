@@ -172,7 +172,7 @@ Where:
 - `PlaybackStartOffset` is the full preparation advance: `OutputLatency` + `PlaybackStartDelay` + `AlignmentDelay`.
 - `OutputLatency` is the calibrated target offset (including device hardware latency when automatic hardware-latency compensation is enabled).
 - `PlaybackStartDelay` is the output-specific transport delay before prepared audio reaches the endpoint.
-- `AlignmentDelay` is the processing delay introduced by DSP effects (like pitch shift/whammy) on the audio stems.
+- `AlignmentDelay` is the processing delay introduced by DSP effects (like the whammy pitch shifter) on the audio stems.
 - `SongSpeed` (represented by `_songSpeed`) is the current playback speed rate.
 
 Depending on whether the resulting `PreparedPosition` is positive or negative, the system handles synchronization using one of two mathematical branches:

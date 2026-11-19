@@ -18,6 +18,8 @@ set(YARG_AUDIO_SOURCES
     src/dsp/GainDsp.cpp
     src/dsp/FreeverbDsp.cpp
     src/dsp/NoiseGateDsp.cpp
+    src/dsp/PitchShiftDsp.cpp
+    src/dsp/PitchShifter.cpp
     src/dsp/SineSynthDsp.cpp
     src/one_shot/ScheduledSampleSource.cpp
     src/one_shot/NativeOneShotStream.cpp
@@ -94,6 +96,7 @@ if(YARG_AUDIO_BUILD_TESTS)
         tests/FreeverbDspTests.cpp
         tests/DattorroReverbDspTests.cpp
         tests/NoiseGateDspTests.cpp
+        tests/PitchShifterTests.cpp
         tests/NoiseMorphTests.cpp
         tests/YargStretchTests.cpp
         tests/SineSynthDspTests.cpp
@@ -109,6 +112,8 @@ if(YARG_AUDIO_BUILD_TESTS)
         src/dsp/GainDsp.cpp
         src/dsp/FreeverbDsp.cpp
         src/dsp/NoiseGateDsp.cpp
+        src/dsp/PitchShiftDsp.cpp
+        src/dsp/PitchShifter.cpp
         src/dsp/SineSynthDsp.cpp
         src/one_shot/ScheduledSampleSource.cpp
         src/one_shot/NativeOneShotStream.cpp

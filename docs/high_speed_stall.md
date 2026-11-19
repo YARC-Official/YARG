@@ -105,3 +105,60 @@ The audio itself still can't keep up at these speeds. Underruns continue, and au
 - **Stop correction from feeding the overload.** While the read-ahead is underrunning, a positive sync adjustment only adds input work. It could be suppressed while `UnderrunEvents` is increasing.
 
 Other main-thread calls that lock the song mixer, such as pause, seek and output-channel changes, are not wrapped. They are one-off user actions rather than per-frame calls, but at extreme speeds they can still stall for a moment.
+
+## 15 FPS at 5000% on most songs: the whammy pitch shifter
+
+After the position-read fix, most songs still ran at about 15 FPS at 5000%. The test song was "The Dark Side" (Muse, 4 OGG stems: guitar, bass, drums, vocals) in Performance effects mode (BASS_FX tempo, whammy oversample 8), one guitar player.
+
+### What happens
+
+Guitar, bass and rhythm stems get BASS's FFT pitch shifter for whammy (`BassHelpers.SetPitchParams`). It is attached to both the dry split and the reverb split of each stem, so this song had four instances. They sit before the tempo stream, so at 50x they process 50 times as much audio as at 1x. They also run on every sample whether or not anyone touches the whammy.
+
+At 50x that makes one 128-frame output chunk take 60 to 90 ms to render, against about 3 ms of audio. Each per-stem mixer thread and the render worker ran at about 85% CPU, and the worker produced about half of real time. Every main-thread source access (position snapshot, speed change) waits for the chunk in progress to finish, because of the preemption fix above. A whole chunk now lasts about 64 ms, so frames took about 70 ms.
+
+### Measurements (The Dark Side, 5000%, editor)
+
+| Whammy FX | Frame time (median) | Worst chunk render | Underrun events | Audio behind chart at end |
+|-----------|---------------------|--------------------|-----------------|---------------------------|
+| On        | ~70 ms (~14 FPS)    | 92 ms              | 290             | ~134 s                    |
+| Off       | 16.7 ms (60 FPS)    | 11 ms              | 0               | ~0 s                      |
+
+With the whammy effect off, nothing else changed. Snapshot reads dropped to about 0.01 ms (with occasional 5 to 7 ms), the ring stayed full, and sync error settled at 0.
+
+### Fix
+
+The BASS_FX pitch shifter is replaced by a native YargAudio DSP, `yarg_pitch_shift_dsp` (`Native/YargAudio/src/dsp/PitchShifter.cpp`). It works on the waveform rather than the spectrum:
+
+- A read tap trails the input by a delay and moves at the pitch ratio, so the delay drifts by `1 - ratio` per frame.
+- When the delay drifts about 12.5 ms past its rest point, the tap crossfades over 12 ms to a new position about one jump (15 to 35 ms) away. The new position is the one whose upcoming audio correlates best with the old tap, found with a decimated search followed by a full-rate refinement. If the best match correlates below 0.8, the splice waits 2.5 ms and searches again, for up to 5 ms, before committing. Well-matched splices use a linear crossfade and poorly matched ones an equal-power crossfade.
+- The latency is fixed at about 34.7 ms (1529 frames at 44.1 kHz). `BassStemPipeline.AttachPitchShift` reads it from the DSP and uses it as the stem's alignment delay. The delay is only counted when the shifter attached to both the dry and the reverb split.
+- When the whammy is released, the tap splices back to within 2.5 ms of the rest point, then glides there at 0.4%. Once there, the DSP copies its delay line straight to the output, so an idle shifter costs two `memcpy` calls per block.
+- Seeks reset the delay line through `BassStemChannel.SetPosition_Internal`, like the reverb.
+
+Whammy works at every speed again. The 500% cutoff from the first version of this fix is gone.
+
+Cost, measured with the native test (`PitchShifterTests.cpp`, stereo, 44.1 kHz): about 72,000x realtime at rest, and 530x while bending white noise, the worst case because every splice retries. Six bending instances at 50x need 300x, so even that worst case fits on about half of one core.
+
+Quality, measured against BASS_FX on recorded guitar clips (`Native/YargAudio/build/pitch-ab`, rendered through real BASS with the whammy wobbling and then held):
+
+- At rest, the output is exactly the input delayed. BASS_FX is never an exact copy.
+- Splice correlation had a median of 0.98 to 1.0. The worst splice per clip was 0.79 or better on five of six clips; one had a single forced splice at 0.17.
+- While the whammy moves, the volume of 20 ms windows changes about as much as in the dry signal. With BASS_FX it changes 3 to 5 times as much.
+- Second-difference click energy stays near the dry signal's level. With BASS_FX it is 1.5 to 4 times higher.
+
+### Result with the fix
+
+Same song and setup, patched build, whammy setting on, whammy amount 5 semitones. Guitar and bass were bent continuously (a 3 Hz wobble) for the whole song.
+
+| Frames in song | Average FPS | Median frame | 95th percentile | Worst frame | Underrun events | Sync error |
+|----------------|-------------|--------------|-----------------|-------------|-----------------|------------|
+| 282            | 59.6        | 16.7 ms      | 25.6 ms         | 40.5 ms     | 0               | ~0 s       |
+
+The worst chunk render was 13.1 ms, compared with 92 ms for BASS_FX. The one frame over 33 ms came at the song's end.
+
+### Limits
+
+- The shifter crossfades between two points in time, so it can be heard on dense material with no clear period: the jump never lines up perfectly, and the 12 ms crossfade sounds slightly phasey. The retry search avoids most bad splices. The ones it can't avoid use an equal-power crossfade.
+- During a bend, the stem drifts up to about ±20 ms against the other stems, as with any time-domain shifter. It returns to exact alignment within about 0.6 s of release.
+- The native plugin must export `yarg_read_ahead_stream_begin_source_access`. The plugin committed with the position-read fix did not, so `BassSong.SetPlaybackSpeed_Internal` threw `EntryPointNotFoundException` on every speed change until the plugin was rebuilt. The pitch shifter raised the ABI to 28, so Windows and macOS plugins need rebuilding too.
+- Songs whose other per-stem DSP (Quality reverb on many stems) can't keep up at extreme speeds will still block the main thread for one chunk per source access. That cost is bounded by chunk render time, which grows with speed.

@@ -42,6 +42,11 @@ namespace YARG.Audio.BASS.Native
         private static NoiseGateDspResetDelegate? _noiseGateDspReset;
         private static NoiseGateDspSetParamsDelegate? _noiseGateDspSetParams;
         private static NoiseGateDspDestroyDelegate? _noiseGateDspDestroy;
+        private static PitchShiftDspAttachDelegate? _pitchShiftDspAttach;
+        private static PitchShiftDspSetRatioDelegate? _pitchShiftDspSetRatio;
+        private static PitchShiftDspResetDelegate? _pitchShiftDspReset;
+        private static PitchShiftDspGetLatencyDelegate? _pitchShiftDspGetLatency;
+        private static PitchShiftDspDestroyDelegate? _pitchShiftDspDestroy;
         private static OneShotStreamCreateDelegate? _oneShotStreamCreate;
         private static OneShotStreamAttachDelegate? _oneShotStreamAttach;
         private static OneShotStreamResyncDelegate? _oneShotStreamResync;
@@ -181,6 +186,21 @@ namespace YARG.Audio.BASS.Native
         internal static void NoiseGateDspDestroy(IntPtr dsp) =>
             EnsureBound(ref _noiseGateDspDestroy, "yarg_noise_gate_dsp_destroy")(dsp);
 
+        internal static int PitchShiftDspAttach(int channel, int priority, out BassPitchShiftDsp dsp, out int bassError) =>
+            EnsureBound(ref _pitchShiftDspAttach, "yarg_pitch_shift_dsp_attach")(channel, priority, out dsp, out bassError);
+
+        internal static int PitchShiftDspSetRatio(BassPitchShiftDsp dsp, float ratio) =>
+            EnsureBound(ref _pitchShiftDspSetRatio, "yarg_pitch_shift_dsp_set_ratio")(dsp, ratio);
+
+        internal static int PitchShiftDspReset(BassPitchShiftDsp dsp) =>
+            EnsureBound(ref _pitchShiftDspReset, "yarg_pitch_shift_dsp_reset")(dsp);
+
+        internal static int PitchShiftDspGetLatency(BassPitchShiftDsp dsp, out uint frames) =>
+            EnsureBound(ref _pitchShiftDspGetLatency, "yarg_pitch_shift_dsp_get_latency")(dsp, out frames);
+
+        internal static void PitchShiftDspDestroy(IntPtr dsp) =>
+            EnsureBound(ref _pitchShiftDspDestroy, "yarg_pitch_shift_dsp_destroy")(dsp);
+
         internal static int OneShotStreamCreate(in BassNativeOneShotStream.NativeConfig config, IntPtr pcm, ulong pcmSampleCount, IntPtr schedule, ulong scheduleCount, out BassNativeOneShotStream stream, out int bassError) =>
             EnsureBound(ref _oneShotStreamCreate, "yarg_one_shot_stream_create")(in config, pcm, pcmSampleCount, schedule, scheduleCount, out stream, out bassError);
 
@@ -299,6 +319,11 @@ namespace YARG.Audio.BASS.Native
             _noiseGateDspReset = GetFunction<NoiseGateDspResetDelegate>(handle, "yarg_noise_gate_dsp_reset");
             _noiseGateDspSetParams = GetFunction<NoiseGateDspSetParamsDelegate>(handle, "yarg_noise_gate_dsp_set_params");
             _noiseGateDspDestroy = GetFunction<NoiseGateDspDestroyDelegate>(handle, "yarg_noise_gate_dsp_destroy");
+            _pitchShiftDspAttach = GetFunction<PitchShiftDspAttachDelegate>(handle, "yarg_pitch_shift_dsp_attach");
+            _pitchShiftDspSetRatio = GetFunction<PitchShiftDspSetRatioDelegate>(handle, "yarg_pitch_shift_dsp_set_ratio");
+            _pitchShiftDspReset = GetFunction<PitchShiftDspResetDelegate>(handle, "yarg_pitch_shift_dsp_reset");
+            _pitchShiftDspGetLatency = GetFunction<PitchShiftDspGetLatencyDelegate>(handle, "yarg_pitch_shift_dsp_get_latency");
+            _pitchShiftDspDestroy = GetFunction<PitchShiftDspDestroyDelegate>(handle, "yarg_pitch_shift_dsp_destroy");
             _oneShotStreamCreate = GetFunction<OneShotStreamCreateDelegate>(handle, "yarg_one_shot_stream_create");
             _oneShotStreamAttach = GetFunction<OneShotStreamAttachDelegate>(handle, "yarg_one_shot_stream_attach");
             _oneShotStreamResync = GetFunction<OneShotStreamResyncDelegate>(handle, "yarg_one_shot_stream_resync_ex");
@@ -476,6 +501,21 @@ namespace YARG.Audio.BASS.Native
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate void NoiseGateDspDestroyDelegate(IntPtr dsp);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate int PitchShiftDspAttachDelegate(int channel, int priority, out BassPitchShiftDsp dsp, out int bassError);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate int PitchShiftDspSetRatioDelegate(BassPitchShiftDsp dsp, float ratio);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate int PitchShiftDspResetDelegate(BassPitchShiftDsp dsp);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate int PitchShiftDspGetLatencyDelegate(BassPitchShiftDsp dsp, out uint frames);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void PitchShiftDspDestroyDelegate(IntPtr dsp);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate int OneShotStreamCreateDelegate(in BassNativeOneShotStream.NativeConfig config, IntPtr pcm, ulong pcmSampleCount, IntPtr schedule, ulong scheduleCount, out BassNativeOneShotStream stream, out int bassError);

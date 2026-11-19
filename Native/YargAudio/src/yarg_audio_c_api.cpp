@@ -5,6 +5,7 @@
 #include "dsp/FreeverbDsp.h"
 #include "dsp/GainDsp.h"
 #include "dsp/NoiseGateDsp.h"
+#include "dsp/PitchShiftDsp.h"
 #include "dsp/SineSynthDsp.h"
 #include "one_shot/NativeOneShotStream.h"
 #include "stretch/StretchTempoStream.h"
@@ -272,6 +273,27 @@ int32_t YARG_AUDIO_CALL yarg_noise_gate_dsp_set_params(yarg_noise_gate_dsp* dsp,
 
 void YARG_AUDIO_CALL yarg_noise_gate_dsp_destroy(yarg_noise_gate_dsp* dsp) {
     (void) yarg::audio::noiseGateDspDestroy(dsp);
+}
+
+int32_t YARG_AUDIO_CALL yarg_pitch_shift_dsp_attach(uint32_t channel, int32_t priority,
+    yarg_pitch_shift_dsp** dsp, int32_t* bass_error) {
+    return yarg::audio::pitchShiftDspAttach(coreBassBindings(), channel, priority, dsp, bass_error);
+}
+
+int32_t YARG_AUDIO_CALL yarg_pitch_shift_dsp_set_ratio(yarg_pitch_shift_dsp* dsp, float ratio) {
+    return yarg::audio::pitchShiftDspSetRatio(dsp, ratio);
+}
+
+int32_t YARG_AUDIO_CALL yarg_pitch_shift_dsp_reset(yarg_pitch_shift_dsp* dsp) {
+    return yarg::audio::pitchShiftDspRequestReset(dsp);
+}
+
+int32_t YARG_AUDIO_CALL yarg_pitch_shift_dsp_get_latency(yarg_pitch_shift_dsp* dsp, uint32_t* frames) {
+    return yarg::audio::pitchShiftDspGetLatency(dsp, frames);
+}
+
+void YARG_AUDIO_CALL yarg_pitch_shift_dsp_destroy(yarg_pitch_shift_dsp* dsp) {
+    (void) yarg::audio::pitchShiftDspDestroy(dsp);
 }
 
 int32_t YARG_AUDIO_CALL yarg_one_shot_stream_create(

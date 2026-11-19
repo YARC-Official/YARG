@@ -37,6 +37,7 @@ Custom audio effects attached directly to BASS channels:
 - **Gain & Pan (`yarg_gain_dsp`)**: Atomic, lock-free volume, stereo panning, and channel muting without locks or allocations.
 - **Freeverb (`yarg_freeverb_dsp`)**: Schroeder-Moorer model reverb with sample-rate-scaled comb/all-pass delay lines.
 - **Dattorro Plate Reverb (`yarg_dattorro_reverb_dsp`)**: High-quality figure-eight tank plate reverb with input diffusers, high-frequency damping, pre-delay, and decay controls.
+- **Whammy Pitch Shift (`yarg_pitch_shift_dsp`)**: Time-domain pitch shifter for guitar, bass and rhythm stems. A read tap moves at the pitch ratio and crossfades to a correlation-matched position when it drifts too far. It has a fixed latency (about 35 ms) so stems stay aligned, and at rest it is a plain delay that costs almost nothing.
 - **Noise Gate (`yarg_noise_gate_dsp`)**: Linked multi-channel envelope follower that silences microphone background noise when the player is not singing.
 - **Sine Synth (`yarg_sine_synth_dsp`)**: Real-time vocal guide pitch generator that renders scheduled pitch segments synchronized with the song, featuring smooth fades and speaker-pair output routing.
 
@@ -53,7 +54,7 @@ Native/YargAudio/
 ├── include/
 │   └── yarg_audio.h      # Public C ABI interface shared with C#
 ├── src/
-│   ├── dsp/              # DSP effects (Gain, Freeverb, Dattorro, Noise Gate, Sine Synth)
+│   ├── dsp/              # DSP effects (Gain, Freeverb, Dattorro, Pitch Shift, Noise Gate, Sine Synth)
 │   ├── one_shot/         # Scheduled sample player & metronome
 │   ├── stretch/          # Time-stretch and transient detection engine
 │   ├── ReadAheadStream.* # Song pre-buffering and ring buffer management

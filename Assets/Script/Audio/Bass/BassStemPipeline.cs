@@ -270,11 +270,9 @@ namespace YARG.Audio.BASS
                 }
 
                 var (streamHandle, reverbHandle) = handles.Value;
-                double pitchFxDelay = GetPitchDelay(stem, streamHandle, whammyFxEnabled);
-                if (pitchFxDelay < 0)
-                {
-                    return false;
-                }
+                double pitchFxDelay = whammyFxEnabled && AudioHelpers.PitchBendAllowedStems.Contains(stem)
+                    ? AttachPitchShift(streamHandle, reverbHandle)
+                    : 0;
 
                 float[,]? volumeMatrix = BassHelpers.BuildVolumeMatrix(group, indices.Length);
                 stemDatas.Add(new StemData(stem, source, volumeMatrix, streamHandle, reverbHandle, pitchFxDelay));
@@ -289,20 +287,29 @@ namespace YARG.Audio.BASS
             return false;
         }
 
-        private static double GetPitchDelay(SongStem stem, StreamHandle streamHandle, bool whammyFxEnabled)
+        private static double AttachPitchShift(StreamHandle streamHandle, StreamHandle reverbHandle)
         {
-            if (!whammyFxEnabled || !AudioHelpers.PitchBendAllowedStems.Contains(stem))
+            if (!Bass.ChannelGetAttribute(streamHandle.Stream, ChannelAttribute.Frequency, out float frequency) ||
+                frequency <= 0)
             {
+                YargLogger.LogFormatError("Failed to get frequency for channel {0}: {1}!", streamHandle.Stream,
+                    Bass.LastError);
                 return 0;
             }
 
-            if (Bass.ChannelGetAttribute(streamHandle.Stream, ChannelAttribute.Frequency, out float frequency))
+            var streamShift = BassPitchShiftDsp.Attach(streamHandle.Stream);
+            var reverbShift = streamShift != null ? BassPitchShiftDsp.Attach(reverbHandle.Stream) : null;
+            if (streamShift == null || reverbShift == null || streamShift.LatencyFrames != reverbShift.LatencyFrames)
             {
-                return GlobalAudioHandler.WHAMMY_FFT_DEFAULT / frequency;
+                YargLogger.LogError("Failed to set up whammy pitch shift. Whammy will not bend this stem.");
+                streamShift?.Dispose();
+                reverbShift?.Dispose();
+                return 0;
             }
 
-            YargLogger.LogFormatError("Failed to get frequency for channel {0}!", streamHandle.Stream);
-            return -1;
+            streamHandle.PitchShift = streamShift;
+            reverbHandle.PitchShift = reverbShift;
+            return streamShift.LatencyFrames / frequency;
         }
 
         private void UpdateThreading()

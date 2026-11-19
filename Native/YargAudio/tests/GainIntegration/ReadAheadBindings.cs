@@ -6,7 +6,7 @@ namespace YARG.Audio.BASS.Native
 {
     internal static class YargAudioNative
     {
-        internal static bool CheckAbi() => GetAbiVersion() == 27;
+        internal static bool CheckAbi() => GetAbiVersion() == 28;
 
         [DllImport("yarg_audio", EntryPoint = "yarg_audio_get_abi_version", CallingConvention = CallingConvention.Cdecl)]
         private static extern uint GetAbiVersion();
