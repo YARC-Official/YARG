@@ -169,7 +169,7 @@ namespace YARG.Audio.BASS
 
             foreach (var data in _stemDatas)
             {
-                double delay = playbackDelay + requiredAlignment - data.PitchFxDelay;
+                double delay = playbackDelay + requiredAlignment - data.WhammyLatencySeconds;
                 channels.Add(new BassMixerChannel(data.StreamHandles.Stream, data.VolumeMatrix, delay));
                 channels.Add(new BassMixerChannel(data.ReverbHandles.Stream, data.VolumeMatrix, delay));
             }
@@ -265,12 +265,12 @@ namespace YARG.Audio.BASS
                 }
 
                 var (streamHandle, reverbHandle) = handles.Value;
-                double pitchFxDelay = whammyFxEnabled && AudioHelpers.PitchBendAllowedStems.Contains(stem)
+                double whammyLatencySeconds = whammyFxEnabled && AudioHelpers.PitchBendAllowedStems.Contains(stem)
                     ? AttachPitchShift(streamHandle, reverbHandle)
                     : 0;
 
                 float[,]? volumeMatrix = BassHelpers.BuildVolumeMatrix(group, indices.Length);
-                stemDatas.Add(new StemData(stem, source, volumeMatrix, streamHandle, reverbHandle, pitchFxDelay));
+                stemDatas.Add(new StemData(stem, source, volumeMatrix, streamHandle, reverbHandle, whammyLatencySeconds));
             }
 
             if (stemDatas.Count > 0)
@@ -304,9 +304,9 @@ namespace YARG.Audio.BASS
             double maxDelay = 0;
             foreach (var data in _stemDatas)
             {
-                if (data.PitchFxDelay > maxDelay)
+                if (data.WhammyLatencySeconds > maxDelay)
                 {
-                    maxDelay = data.PitchFxDelay;
+                    maxDelay = data.WhammyLatencySeconds;
                 }
             }
 
@@ -330,17 +330,17 @@ namespace YARG.Audio.BASS
             public readonly float[,]?       VolumeMatrix;
             public readonly StreamHandle    StreamHandles;
             public readonly StreamHandle    ReverbHandles;
-            public readonly double          PitchFxDelay;
+            public readonly double          WhammyLatencySeconds;
 
             public StemData(SongStem stem, BassMixerSource source, float[,]? volumeMatrix,
-                StreamHandle streamHandles, StreamHandle reverbHandles, double pitchFxDelay)
+                StreamHandle streamHandles, StreamHandle reverbHandles, double whammyLatencySeconds)
             {
                 Stem = stem;
                 Source = source;
                 VolumeMatrix = volumeMatrix;
                 StreamHandles = streamHandles;
                 ReverbHandles = reverbHandles;
-                PitchFxDelay = pitchFxDelay;
+                WhammyLatencySeconds = whammyLatencySeconds;
             }
         }
     }

@@ -39,11 +39,11 @@ namespace YARG.Audio.BASS.Native
         [DllImport("yarg_audio", EntryPoint = "yarg_read_ahead_stream_set_buffer_length", CallingConvention = CallingConvention.Cdecl)]
         internal static extern int ReadAheadStreamSetBufferLength(BassReadAheadStream stream, int milliseconds);
 
-        [DllImport("yarg_audio", EntryPoint = "yarg_read_ahead_stream_pause", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern int ReadAheadStreamPause(BassReadAheadStream stream);
+        [DllImport("yarg_audio", EntryPoint = "yarg_read_ahead_stream_hold_next_render", CallingConvention = CallingConvention.Cdecl)]
+        internal static extern int ReadAheadStreamHoldNextRender(BassReadAheadStream stream);
 
-        [DllImport("yarg_audio", EntryPoint = "yarg_read_ahead_stream_resume", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern int ReadAheadStreamResume(BassReadAheadStream stream);
+        [DllImport("yarg_audio", EntryPoint = "yarg_read_ahead_stream_release_next_render", CallingConvention = CallingConvention.Cdecl)]
+        internal static extern int ReadAheadStreamReleaseNextRender(BassReadAheadStream stream);
 
         [DllImport("yarg_audio", EntryPoint = "yarg_read_ahead_stream_get_position_snapshot", CallingConvention = CallingConvention.Cdecl)]
         internal static extern int ReadAheadStreamGetPositionSnapshot(BassReadAheadStream stream, int source,

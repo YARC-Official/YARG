@@ -285,7 +285,7 @@ namespace YARG.Audio.BASS
             }
 
             var connection = _connection;
-            bool pausedReadAhead = connection?.PauseReadAhead() == true;
+            bool heldNextRender = connection?.HoldNextRender() == true;
             try
             {
                 RefreshToneChannels();
@@ -297,9 +297,9 @@ namespace YARG.Audio.BASS
             }
             finally
             {
-                if (pausedReadAhead)
+                if (heldNextRender)
                 {
-                    connection!.ResumeReadAhead();
+                    connection!.ReleaseNextRender();
                 }
             }
         }
@@ -346,12 +346,13 @@ namespace YARG.Audio.BASS
 
         protected override bool AddChannels_Internal(Stream stream, params StemInfo[] stemInfos)
         {
+            double previousAlignmentDelay = AlignmentDelay;
             if (!_stemPipeline.AddStems(stream, stemInfos, out var createdStems))
             {
                 return false;
             }
 
-            _lastSongPosition = -TotalStreamDelay;
+            _lastSongPosition -= AlignmentDelay - previousAlignmentDelay;
             RefreshToneChannels();
 
             foreach (var stem in createdStems)

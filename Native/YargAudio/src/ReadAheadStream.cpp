@@ -166,15 +166,15 @@ int ReadAheadStream::setBufferLength(std::uint32_t bufferMilliseconds) noexcept 
         ? YARG_AUDIO_OK : YARG_AUDIO_ERROR_INVALID_ARGUMENT;
 }
 
-int ReadAheadStream::pauseReadAhead() noexcept {
+int ReadAheadStream::holdNextRender() noexcept {
     if (!renderer_) return YARG_AUDIO_ERROR_INVALID_STATE;
-    renderer_->pauseReadAhead();
+    renderer_->holdNextRender();
     return YARG_AUDIO_OK;
 }
 
-int ReadAheadStream::resumeReadAhead() noexcept {
+int ReadAheadStream::releaseNextRender() noexcept {
     if (!renderer_) return YARG_AUDIO_ERROR_INVALID_STATE;
-    renderer_->resumeReadAhead();
+    renderer_->releaseNextRender();
     return YARG_AUDIO_OK;
 }
 

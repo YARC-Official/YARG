@@ -179,9 +179,9 @@ void PitchShifter::processShifting(float* output, std::size_t frames) noexcept {
         if (fading_) {
             const std::uint32_t in = fadePosition_;
             const std::uint32_t outIndex = fadeFrames_ - 1 - in;
-            const float gainIn = fadeLinear_[in] + (fadePower_[in] - fadeLinear_[in]) * fadeShape_;
+            const float gainIn = fadeLinear_[in] + (fadePower_[in] - fadeLinear_[in]) * fadeCurveBlend_;
             const float gainOut = fadeLinear_[outIndex] +
-                (fadePower_[outIndex] - fadeLinear_[outIndex]) * fadeShape_;
+                (fadePower_[outIndex] - fadeLinear_[outIndex]) * fadeCurveBlend_;
             readTap(frame, delay_, gainOut, out);
             readTap(frame, nextDelay_, gainIn, out);
         }
@@ -206,15 +206,12 @@ void PitchShifter::maybeStartSplice(std::uint64_t nextFrame) noexcept {
     const auto jump = static_cast<std::int64_t>(2 * halfJump_);
     const auto search = static_cast<std::int64_t>(halfSearch_);
     const double offset = delay_ - nominalDelay_;
-    if (ratio_ < 1.0) {
-        if (offset >= halfJump_) {
-            startSplice(nextFrame, jump - search, jump + search, jump, offset >= halfJump_ + retryWindow_);
-        }
-        return;
-    }
-    if (ratio_ > 1.0) {
-        if (-offset >= halfJump_) {
-            startSplice(nextFrame, -jump - search, -jump + search, -jump, -offset >= halfJump_ + retryWindow_);
+    if (ratio_ != 1.0) {
+        const std::int64_t sign = ratio_ < 1.0 ? 1 : -1;
+        const double drift = sign * offset;
+        if (drift >= halfJump_) {
+            const std::int64_t centre = sign * jump;
+            startSplice(nextFrame, centre - search, centre + search, centre, drift >= halfJump_ + retryWindow_);
         }
         return;
     }
@@ -254,7 +251,7 @@ void PitchShifter::startSplice(std::uint64_t nextFrame, std::int64_t lagLow, std
 
     retryCountdown_ = 0;
     nextDelay_ = delay_ - static_cast<double>(lag);
-    fadeShape_ = std::clamp(1.0f - correlation, 0.0f, 1.0f);
+    fadeCurveBlend_ = std::clamp(1.0f - correlation, 0.0f, 1.0f);
     fadePosition_ = 0;
     fading_ = true;
     ++spliceCount_;

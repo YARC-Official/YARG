@@ -280,9 +280,9 @@ namespace YARG.Audio.BASS
             return true;
         }
 
-        public bool PauseReadAhead() => _readAhead.PauseReadAhead();
+        public bool HoldNextRender() => _readAhead.HoldNextRender();
 
-        public void ResumeReadAhead() => _readAhead.ResumeReadAhead();
+        public void ReleaseNextRender() => _readAhead.ReleaseNextRender();
 
         public double GetCommandDelay()
         {

@@ -54,14 +54,14 @@ public:
     template <typename DelayProvider>
     std::int64_t bufferedSourcePositionAfterLock(std::uint32_t sourceHandle,
         DelayProvider delayProvider) noexcept {
-        ReadAheadPause access{*this};
+        NextRenderHold access{*this};
         std::lock_guard lock(sourceMutex_);
         return bufferedSourcePositionLocked(sourceHandle, delayProvider());
     }
     template <typename DelayProvider>
     bool sourcePositionSnapshotAfterLock(std::uint32_t sourceHandle,
         SourcePositionSnapshot& snapshot, DelayProvider delayProvider) noexcept {
-        ReadAheadPause access{*this};
+        NextRenderHold access{*this};
         std::lock_guard lock(sourceMutex_);
         std::uint32_t delayFrames;
         if (!delayProvider(delayFrames)) {
@@ -70,11 +70,11 @@ public:
         return sourcePositionSnapshotLocked(sourceHandle, delayFrames, snapshot);
     }
 
-    void pauseReadAhead() noexcept {
-        pauseRequests_.fetch_add(1, std::memory_order_acq_rel);
+    void holdNextRender() noexcept {
+        nextRenderHolds_.fetch_add(1, std::memory_order_acq_rel);
     }
-    void resumeReadAhead() noexcept {
-        pauseRequests_.fetch_sub(1, std::memory_order_acq_rel);
+    void releaseNextRender() noexcept {
+        nextRenderHolds_.fetch_sub(1, std::memory_order_acq_rel);
     }
 
     std::size_t queuedFrames() const noexcept { return ring_.available(); }
@@ -86,17 +86,17 @@ public:
     std::uint64_t positionOutputFrame() const noexcept { return positionOutputFrame_.load(); }
 
 private:
-    struct ReadAheadPause {
+    struct NextRenderHold {
         RenderAheadMixer& mixer;
-        explicit ReadAheadPause(RenderAheadMixer& owner) noexcept : mixer(owner) {
-            mixer.pauseReadAhead();
+        explicit NextRenderHold(RenderAheadMixer& owner) noexcept : mixer(owner) {
+            mixer.holdNextRender();
         }
-        ~ReadAheadPause() { mixer.resumeReadAhead(); }
-        ReadAheadPause(const ReadAheadPause&) = delete;
-        ReadAheadPause& operator=(const ReadAheadPause&) = delete;
+        ~NextRenderHold() { mixer.releaseNextRender(); }
+        NextRenderHold(const NextRenderHold&) = delete;
+        NextRenderHold& operator=(const NextRenderHold&) = delete;
     };
 
-    void yieldToPauseRequests() const noexcept;
+    void yieldWhileHeld() const noexcept;
     std::int64_t bufferedSourcePositionLocked(std::uint32_t sourceHandle,
         std::uint32_t endpointDelayFrames) noexcept;
     bool sourcePositionSnapshotLocked(std::uint32_t sourceHandle,
@@ -123,7 +123,7 @@ private:
     std::atomic<std::uint64_t> generationProducedFrames_{0};
     std::atomic<std::uint64_t> maximumRenderNs_{0};
     std::atomic<std::uint64_t> positionOutputFrame_{0};
-    std::atomic<std::uint32_t> pauseRequests_{0};
+    std::atomic<std::uint32_t> nextRenderHolds_{0};
 };
 
 } // namespace yarg::audio

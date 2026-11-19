@@ -25,8 +25,6 @@ public:
     std::uint64_t spliceCount() const noexcept { return spliceCount_; }
 
 private:
-    enum class SpliceKind { Down, Up, Return };
-
     void writeRing(const float* input, std::size_t frames) noexcept;
     void copyDelayed(float* output, std::size_t frames) noexcept;
     void processShifting(float* output, std::size_t frames) noexcept;
@@ -65,7 +63,7 @@ private:
     double nextDelay_ = 0.0;
     bool fading_ = false;
     std::uint32_t fadePosition_ = 0;
-    float fadeShape_ = 0.0f;
+    float fadeCurveBlend_ = 0.0f;
     std::uint64_t spliceCount_ = 0;
 };
 

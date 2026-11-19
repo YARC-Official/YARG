@@ -461,17 +461,17 @@ int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_set_buffer_length(
         : YARG_AUDIO_ERROR_INVALID_ARGUMENT;
 }
 
-int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_pause(
+int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_hold_next_render(
     yarg_read_ahead_stream* stream) {
     return stream && stream->value
-        ? stream->value->pauseReadAhead()
+        ? stream->value->holdNextRender()
         : YARG_AUDIO_ERROR_INVALID_ARGUMENT;
 }
 
-int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_resume(
+int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_release_next_render(
     yarg_read_ahead_stream* stream) {
     return stream && stream->value
-        ? stream->value->resumeReadAhead()
+        ? stream->value->releaseNextRender()
         : YARG_AUDIO_ERROR_INVALID_ARGUMENT;
 }
 
