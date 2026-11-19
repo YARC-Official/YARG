@@ -226,7 +226,9 @@ void runRenderAheadMixerTests() {
         std::this_thread::sleep_for(5ms);
 
         renderer.pauseReadAhead();
-        std::this_thread::sleep_for(5ms);
+        // A read already in flight may finish after pauseReadAhead returns. Wait longer than the
+        // slowest timer slice (Windows can sleep ~15 ms) before sampling the held frame count.
+        std::this_thread::sleep_for(100ms);
         const auto heldFrames = renderer.producedFrames();
         std::this_thread::sleep_for(20ms);
         const auto framesWhileHeld = renderer.producedFrames();
