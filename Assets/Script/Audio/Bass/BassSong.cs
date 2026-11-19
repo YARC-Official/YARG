@@ -5,12 +5,9 @@ using System.IO;
 using System.Linq;
 using ManagedBass;
 using ManagedBass.Mix;
-using UnityEngine;
-using YARG.Audio.BASS.Effects;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
 using YARG.Core.Song;
-using YARG.Helpers;
 using YARG.Settings;
 
 namespace YARG.Audio.BASS
@@ -21,16 +18,14 @@ namespace YARG.Audio.BASS
     /// </summary>
     public sealed class BassSong : StemMixer
     {
-        private const float WHAMMY_SYNC_INTERVAL_SECONDS = 1f;
-        private const float MIN_PLAYBACK_SPEED           = 0.05f;
-        private const float MAX_PLAYBACK_SPEED           = 51f;
+        private const float MIN_PLAYBACK_SPEED = 0.05f;
+        private const float MAX_PLAYBACK_SPEED = 51f;
 
         private readonly BassStemPipeline            _stemPipeline;
         private readonly HashSet<BassOneShotChannel> _oneShots     = new();
         private readonly HashSet<BassToneChannel>    _toneChannels = new();
 
-        private readonly Timer _whammySyncTimer;
-        private          int   _bufferLength;
+        private int _bufferLength;
 
         private BassSongConnection? _connection;
         private bool           _hasConnectedOutput;
@@ -55,15 +50,11 @@ namespace YARG.Audio.BASS
         {
             _stemPipeline = stemPipeline;
 
-            _whammySyncTimer = new Timer();
-
             SetOutputChannel_Internal(outputChannel);
             SetVolume_Internal(volume);
             SetPlaybackSpeed_Internal(speed, 0f, true);
             SetBufferLength_Internal(SettingsManager.Settings.PlaybackBufferLength.Value);
         }
-
-        private bool IsWhammyEnabled => _stemPipeline.WhammyFxEnabled;
 
         private bool IsOutputPlaying => _connection?.IsPlaying == true;
 
@@ -177,11 +168,6 @@ namespace YARG.Audio.BASS
                 }
             }
 
-            if (IsWhammyEnabled)
-            {
-                _whammySyncTimer.Start(WHAMMY_SYNC_INTERVAL_SECONDS, SyncWhammyDrift);
-            }
-
             return 0;
         }
 
@@ -235,17 +221,6 @@ namespace YARG.Audio.BASS
         protected override void FadeOut_Internal(double duration)
         {
             _connection?.FadeTo(0, (int) (duration * SongMetadata.MILLISECOND_FACTOR));
-        }
-
-        private void SyncWhammyDrift()
-        {
-            foreach (var channel in Channels)
-            {
-                if (Mathf.Approximately(channel.GetWhammyPitch(), 1f))
-                {
-                    channel.SetWhammyPitch(0f);
-                }
-            }
         }
 
         public double AlignmentDelay { get; private set; }
@@ -573,8 +548,6 @@ namespace YARG.Audio.BASS
 
         protected override void DisposeManagedResources()
         {
-            _whammySyncTimer.Stop();
-
             _stemPipeline.StopNormalization();
 
             foreach (var channel in Channels)

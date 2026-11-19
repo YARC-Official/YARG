@@ -41,6 +41,7 @@ namespace YARG.Audio.BASS
         private readonly BassNormalizer? _normalizer;
         private readonly List<StemData>  _stemDatas = new();
         private readonly BassTempoStream _tempoStream;
+        private readonly bool            _whammyFxEnabled;
         private          bool            _disposed;
         private          bool            _normalizationEnabled;
 
@@ -52,11 +53,10 @@ namespace YARG.Audio.BASS
             _normalizer = normalizer;
             _gainDsp = gainDsp;
             _normalizationEnabled = normalizer != null;
-            WhammyFxEnabled = whammyFxEnabled;
+            _whammyFxEnabled = whammyFxEnabled;
         }
 
         public int OutputHandle => _tempoStream.Handle;
-        public bool WhammyFxEnabled { get; }
         internal double CommandDelay => _tempoStream.CommandDelay;
 
         public static BassStemPipeline? Create(int sampleRate, int channelCount, BassFlags flags,
@@ -132,7 +132,7 @@ namespace YARG.Audio.BASS
                 return false;
             }
 
-            if (!BuildStemData(source, stemInfoList, WhammyFxEnabled, out var newStems))
+            if (!BuildStemData(source, stemInfoList, _whammyFxEnabled, out var newStems))
             {
                 source.Dispose();
                 return false;
