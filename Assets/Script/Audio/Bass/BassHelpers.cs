@@ -172,11 +172,11 @@ namespace YARG.Audio.BASS
         }
 
         internal static PitchShiftParametersStruct SetPitchParams(SongStem stem, StreamHandle streamHandles,
-            StreamHandle reverbHandles)
+            StreamHandle reverbHandles, bool whammyFxEnabled)
         {
             PitchShiftParametersStruct pitchParams = new(1, 0, GlobalAudioHandler.WHAMMY_FFT_DEFAULT,
                 GlobalAudioHandler.WHAMMY_OVERSAMPLE_DEFAULT);
-            if (GlobalAudioHandler.UseWhammyFx && AudioHelpers.PitchBendAllowedStems.Contains(stem))
+            if (whammyFxEnabled && AudioHelpers.PitchBendAllowedStems.Contains(stem))
             {
                 pitchParams.OversampleFactor = GlobalAudioHandler.WhammyOversampleFactor;
                 if (SetupPitchBend(pitchParams, streamHandles))

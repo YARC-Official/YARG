@@ -45,20 +45,22 @@ namespace YARG.Audio.BASS
         private          bool            _normalizationEnabled;
 
         private BassStemPipeline(BassMixer mixer, BassTempoStream tempoStream,
-            BassNormalizer? normalizer, BassGainDsp? gainDsp)
+            BassNormalizer? normalizer, BassGainDsp? gainDsp, bool whammyFxEnabled)
         {
             _mixer = mixer;
             _tempoStream = tempoStream;
             _normalizer = normalizer;
             _gainDsp = gainDsp;
             _normalizationEnabled = normalizer != null;
+            WhammyFxEnabled = whammyFxEnabled;
         }
 
         public int OutputHandle => _tempoStream.Handle;
+        public bool WhammyFxEnabled { get; }
         internal double CommandDelay => _tempoStream.CommandDelay;
 
         public static BassStemPipeline? Create(int sampleRate, int channelCount, BassFlags flags,
-            bool withCompressor = true, bool withNormalization = false, int processingThreads = 0)
+            bool withWhammyFx, bool withCompressor = true, bool withNormalization = false, int processingThreads = 0)
         {
             var mixer = BassMixer.Create(sampleRate, channelCount, flags, processingThreads);
             if (mixer == null)
@@ -103,7 +105,7 @@ namespace YARG.Audio.BASS
                 }
             }
 
-            return new BassStemPipeline(mixer, tempoStream, normalizer, gainDsp);
+            return new BassStemPipeline(mixer, tempoStream, normalizer, gainDsp, withWhammyFx);
         }
 
         public bool AddStems(Stream stream, IEnumerable<StemMixer.StemInfo> stemInfos,
@@ -130,7 +132,7 @@ namespace YARG.Audio.BASS
                 return false;
             }
 
-            if (!BuildStemData(source, stemInfoList, out var newStems))
+            if (!BuildStemData(source, stemInfoList, WhammyFxEnabled, out var newStems))
             {
                 source.Dispose();
                 return false;
@@ -251,7 +253,7 @@ namespace YARG.Audio.BASS
         }
 
         private static bool BuildStemData(BassMixerSource source, IEnumerable<StemMixer.StemInfo> stemInfos,
-            out List<StemData> stemDatas)
+            bool whammyFxEnabled, out List<StemData> stemDatas)
         {
             stemDatas = new List<StemData>();
 
@@ -268,7 +270,7 @@ namespace YARG.Audio.BASS
                 }
 
                 var (streamHandle, reverbHandle) = handles.Value;
-                double pitchFxDelay = GetPitchDelay(stem, streamHandle);
+                double pitchFxDelay = GetPitchDelay(stem, streamHandle, whammyFxEnabled);
                 if (pitchFxDelay < 0)
                 {
                     return false;
@@ -287,9 +289,9 @@ namespace YARG.Audio.BASS
             return false;
         }
 
-        private static double GetPitchDelay(SongStem stem, StreamHandle streamHandle)
+        private static double GetPitchDelay(SongStem stem, StreamHandle streamHandle, bool whammyFxEnabled)
         {
-            if (!GlobalAudioHandler.UseWhammyFx || !AudioHelpers.PitchBendAllowedStems.Contains(stem))
+            if (!whammyFxEnabled || !AudioHelpers.PitchBendAllowedStems.Contains(stem))
             {
                 return 0;
             }

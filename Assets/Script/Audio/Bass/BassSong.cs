@@ -24,6 +24,7 @@ namespace YARG.Audio.BASS
         private const float WHAMMY_SYNC_INTERVAL_SECONDS = 1f;
         private const float MIN_PLAYBACK_SPEED           = 0.05f;
         private const float MAX_PLAYBACK_SPEED           = 51f;
+        private const float MAX_WHAMMY_FX_SPEED          = 5f;
 
         private readonly BassStemPipeline            _stemPipeline;
         private readonly HashSet<BassOneShotChannel> _oneShots     = new();
@@ -63,7 +64,7 @@ namespace YARG.Audio.BASS
             SetBufferLength_Internal(SettingsManager.Settings.PlaybackBufferLength.Value);
         }
 
-        private static bool IsWhammyEnabled => GlobalAudioHandler.UseWhammyFx;
+        private bool IsWhammyEnabled => _stemPipeline.WhammyFxEnabled;
 
         private bool IsOutputPlaying => _connection?.IsPlaying == true;
 
@@ -71,8 +72,9 @@ namespace YARG.Audio.BASS
             bool clampStemVolume, bool normalize, OutputChannel? outputChannel)
         {
             bool enableNormalization = normalize && SettingsManager.Settings.EnableNormalization.Value;
+            bool enableWhammyFx = GlobalAudioHandler.UseWhammyFx && speed <= MAX_WHAMMY_FX_SPEED;
             var stemPipeline = BassStemPipeline.Create(44100, 2, BassFlags.Float | BassFlags.Decode,
-                withCompressor: true, withNormalization: enableNormalization);
+                withWhammyFx: enableWhammyFx, withCompressor: true, withNormalization: enableNormalization);
             if (stemPipeline == null)
             {
                 return null;
@@ -389,7 +391,7 @@ namespace YARG.Audio.BASS
         private void CreateChannel(SongStem stem, int sourceHandle, StreamHandle streamHandles,
             StreamHandle reverbHandles)
         {
-            var pitch = BassHelpers.SetPitchParams(stem, streamHandles, reverbHandles);
+            var pitch = BassHelpers.SetPitchParams(stem, streamHandles, reverbHandles, IsWhammyEnabled);
             var channel = new BassStemChannel(_manager, stem, _clampStemVolume, sourceHandle, pitch, streamHandles,
                 reverbHandles);
 

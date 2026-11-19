@@ -76,6 +76,23 @@ private:
     std::size_t produced_ = 0;
 };
 
+class SlowSource final : public IAudioSource {
+public:
+    bool prepareThread() noexcept override { return true; }
+    int read(float* samples, std::size_t frames) noexcept override {
+        std::this_thread::sleep_for(500us);
+        std::fill_n(samples, frames, 0.0f);
+        produced_ += frames;
+        return static_cast<int>(frames);
+    }
+    int lastError() const noexcept override { return 0; }
+    std::int64_t position(std::uint32_t, std::uint32_t delayBytes) noexcept override {
+        return static_cast<std::int64_t>(produced_ * sizeof(float)) - delayBytes;
+    }
+private:
+    std::size_t produced_ = 0;
+};
+
 } // namespace
 
 void runRenderAheadMixerTests() {
@@ -182,5 +199,49 @@ void runRenderAheadMixerTests() {
         REQUIRE(!requestedWhileBlocked);
         REQUIRE(delayRequested.load());
         REQUIRE(position >= 0);
+    }
+
+    {
+        RenderAheadMixer renderer(std::make_unique<SlowSource>(), 48000, 1, 64, 5000);
+        REQUIRE(renderer.start());
+
+        auto slowest = std::chrono::steady_clock::duration::zero();
+        for (int read = 0; read < 50; ++read) {
+            const auto started = std::chrono::steady_clock::now();
+            const auto position = renderer.bufferedSourcePositionAfterLock(1, [] { return 0u; });
+            slowest = std::max(slowest, std::chrono::steady_clock::now() - started);
+            REQUIRE(position >= 0);
+            std::this_thread::sleep_for(2ms);
+        }
+        const auto stillFilling = renderer.queuedFrames() < renderer.targetFrames();
+        renderer.stop();
+
+        REQUIRE(stillFilling);
+        REQUIRE(slowest < 50ms);
+    }
+
+    {
+        RenderAheadMixer renderer(std::make_unique<SlowSource>(), 48000, 1, 64, 5000);
+        REQUIRE(renderer.start());
+        std::this_thread::sleep_for(5ms);
+
+        renderer.beginSourceAccess();
+        std::this_thread::sleep_for(5ms);
+        const auto heldFrames = renderer.producedFrames();
+        std::this_thread::sleep_for(20ms);
+        const auto framesWhileHeld = renderer.producedFrames();
+        renderer.endSourceAccess();
+
+        const auto deadline = std::chrono::steady_clock::now() + 2s;
+        while (renderer.producedFrames() == framesWhileHeld &&
+               std::chrono::steady_clock::now() < deadline) {
+            std::this_thread::sleep_for(1ms);
+        }
+        const auto resumed = renderer.producedFrames() > framesWhileHeld;
+        renderer.stop();
+
+        REQUIRE(heldFrames > 0);
+        REQUIRE(framesWhileHeld == heldFrames);
+        REQUIRE(resumed);
     }
 }
