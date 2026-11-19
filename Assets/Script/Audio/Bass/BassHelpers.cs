@@ -12,6 +12,7 @@ namespace YARG.Audio.BASS
     internal sealed class StreamHandle
     {
         public readonly int Stream;
+        public BassPitchShiftDsp PitchShift;
 
         internal StreamHandle(int stream)
         {
@@ -29,8 +30,6 @@ namespace YARG.Audio.BASS
                     Bass.LastError);
             }
         }
-
-        public BassPitchShiftDsp PitchShift;
 
 #pragma warning disable CS0649
         public int CompressorFX;
