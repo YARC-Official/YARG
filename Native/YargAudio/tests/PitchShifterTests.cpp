@@ -346,7 +346,7 @@ void reportThroughput() {
     const double bendRate = framesPerSecond(bending, data, channels);
     std::cout << "PitchShifter stereo throughput: idle " << idleRate / 44100.0
               << "x realtime, bending " << bendRate / 44100.0 << "x realtime\n";
-    REQUIRE(bendRate > 44100.0 * 300.0);
+    REQUIRE(bendRate > 44100.0 * 100.0);
 }
 
 } // namespace

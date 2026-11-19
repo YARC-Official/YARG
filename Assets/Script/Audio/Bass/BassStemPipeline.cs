@@ -57,6 +57,7 @@ namespace YARG.Audio.BASS
         }
 
         public int OutputHandle => _tempoStream.Handle;
+        public double AlignmentDelay { get; private set; }
         internal double CommandDelay => _tempoStream.CommandDelay;
 
         public static BassStemPipeline? Create(int sampleRate, int channelCount, BassFlags flags,
@@ -109,10 +110,9 @@ namespace YARG.Audio.BASS
         }
 
         public bool AddStems(Stream stream, IEnumerable<StemMixer.StemInfo> stemInfos,
-            out List<StemAudioHandles> createdStems, out double alignmentDelay)
+            out List<StemAudioHandles> createdStems)
         {
             createdStems = new List<StemAudioHandles>();
-            alignmentDelay = 0;
 
             if (_disposed)
             {
@@ -139,12 +139,14 @@ namespace YARG.Audio.BASS
             }
 
             _stemDatas.AddRange(newStems);
+            UpdateAlignmentDelay();
 
-            if (!RealignChannels(0, out alignmentDelay))
+            if (!RealignChannels(0))
             {
                 _stemDatas.RemoveAll(data => data.Source == source);
                 source.Dispose();
-                RealignChannels(0, out _);
+                UpdateAlignmentDelay();
+                RealignChannels(0);
                 return false;
             }
 
@@ -158,20 +160,11 @@ namespace YARG.Audio.BASS
             return true;
         }
 
-        public bool RealignChannels(double playbackDelay, out double alignmentDelay)
+        public bool RealignChannels(double playbackDelay = 0)
         {
             _mixer.RemoveAllChannels();
 
-            double requiredAlignment = 0;
-            foreach (var data in _stemDatas)
-            {
-                if (data.PitchFxDelay > requiredAlignment)
-                {
-                    requiredAlignment = data.PitchFxDelay;
-                }
-            }
-
-            alignmentDelay = requiredAlignment;
+            double requiredAlignment = AlignmentDelay;
             var channels = new List<BassMixerChannel>(_stemDatas.Count * 2);
 
             foreach (var data in _stemDatas)
@@ -205,6 +198,7 @@ namespace YARG.Audio.BASS
 
             if (removed)
             {
+                UpdateAlignmentDelay();
                 UpdateThreading();
             }
 
@@ -246,6 +240,7 @@ namespace YARG.Audio.BASS
 
             _disposed = true;
             _stemDatas.Clear();
+            AlignmentDelay = 0;
             _normalizer?.Dispose();
             _gainDsp?.Dispose();
             _tempoStream.Dispose();
@@ -289,14 +284,6 @@ namespace YARG.Audio.BASS
 
         private static double AttachPitchShift(StreamHandle streamHandle, StreamHandle reverbHandle)
         {
-            if (!Bass.ChannelGetAttribute(streamHandle.Stream, ChannelAttribute.Frequency, out float frequency) ||
-                frequency <= 0)
-            {
-                YargLogger.LogFormatError("Failed to get frequency for channel {0}: {1}!", streamHandle.Stream,
-                    Bass.LastError);
-                return 0;
-            }
-
             var streamShift = BassPitchShiftDsp.Attach(streamHandle.Stream);
             var reverbShift = streamShift != null ? BassPitchShiftDsp.Attach(reverbHandle.Stream) : null;
             if (streamShift == null || reverbShift == null || streamShift.LatencyFrames != reverbShift.LatencyFrames)
@@ -309,7 +296,21 @@ namespace YARG.Audio.BASS
 
             streamHandle.PitchShift = streamShift;
             reverbHandle.PitchShift = reverbShift;
-            return streamShift.LatencyFrames / frequency;
+            return streamShift.LatencySeconds;
+        }
+
+        private void UpdateAlignmentDelay()
+        {
+            double maxDelay = 0;
+            foreach (var data in _stemDatas)
+            {
+                if (data.PitchFxDelay > maxDelay)
+                {
+                    maxDelay = data.PitchFxDelay;
+                }
+            }
+
+            AlignmentDelay = maxDelay;
         }
 
         private void UpdateThreading()

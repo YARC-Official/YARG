@@ -223,7 +223,7 @@ namespace YARG.Audio.BASS
             _connection?.FadeTo(0, (int) (duration * SongMetadata.MILLISECOND_FACTOR));
         }
 
-        public double AlignmentDelay { get; private set; }
+        public double AlignmentDelay => _stemPipeline.AlignmentDelay;
 
         private double TotalStreamDelay => AlignmentDelay + _playbackDelay;
 
@@ -316,9 +316,9 @@ namespace YARG.Audio.BASS
 
             _connection?.PrepareForSeek();
 
-            if (!_stemPipeline.RealignChannels(playbackDelay, out double alignmentDelay))
+            if (!_stemPipeline.RealignChannels(playbackDelay))
             {
-                _stemPipeline.RealignChannels(0, out _);
+                _stemPipeline.RealignChannels(0);
                 return;
             }
 
@@ -327,7 +327,7 @@ namespace YARG.Audio.BASS
                 channel.SetPosition(seekPosition);
             }
 
-            ResetPosition(seekPosition, alignmentDelay, playbackDelay);
+            ResetPosition(seekPosition, playbackDelay);
 
             _connection?.ResetAfterSeek();
 
@@ -346,12 +346,13 @@ namespace YARG.Audio.BASS
 
         protected override bool AddChannels_Internal(Stream stream, params StemInfo[] stemInfos)
         {
-            if (!_stemPipeline.AddStems(stream, stemInfos, out var createdStems, out double delay))
+            if (!_stemPipeline.AddStems(stream, stemInfos, out var createdStems))
             {
                 return false;
             }
 
-            SetAlignmentDelay(delay);
+            _lastSongPosition = -TotalStreamDelay;
+            RefreshToneChannels();
 
             foreach (var stem in createdStems)
             {
@@ -632,7 +633,7 @@ namespace YARG.Audio.BASS
             return succeeded;
         }
 
-        private void ResetPosition(double seekPosition, double alignmentDelay, double playbackDelay)
+        private void ResetPosition(double seekPosition, double playbackDelay)
         {
             _positionBeforeSeek = _connection?.GetPosition() ?? -1;
             if (_positionBeforeSeek < 0)
@@ -642,16 +643,8 @@ namespace YARG.Audio.BASS
 
             _seekPending = _positionBeforeSeek > 0;
             _seekPosition = seekPosition;
-            AlignmentDelay = alignmentDelay;
             _playbackDelay = playbackDelay;
             _lastSongPosition = seekPosition - TotalStreamDelay;
-            RefreshToneChannels();
-        }
-
-        private void SetAlignmentDelay(double delay)
-        {
-            _lastSongPosition -= delay - AlignmentDelay;
-            AlignmentDelay = delay;
             RefreshToneChannels();
         }
     }

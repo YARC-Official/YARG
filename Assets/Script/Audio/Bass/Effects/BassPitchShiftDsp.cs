@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using ManagedBass;
 using YARG.Audio.BASS.Native;
 using YARG.Core.Logging;
 
@@ -14,12 +15,19 @@ namespace YARG.Audio.BASS.Effects
         }
 
         internal uint LatencyFrames { get; private set; }
+        internal double LatencySeconds { get; private set; }
 
         internal static BassPitchShiftDsp? Attach(int channelHandle, int priority = 0)
         {
             if (channelHandle == 0)
             {
                 YargLogger.LogFormatError("Cannot attach {0}: channel={1}.", EFFECT_NAME, channelHandle);
+                return null;
+            }
+
+            if (!Bass.ChannelGetAttribute(channelHandle, ChannelAttribute.Frequency, out float frequency) || frequency <= 0)
+            {
+                YargLogger.LogFormatError("Failed to get frequency for channel {0}: {1}!", channelHandle, Bass.LastError);
                 return null;
             }
 
@@ -39,6 +47,7 @@ namespace YARG.Audio.BASS.Effects
             }
 
             dsp.LatencyFrames = latency;
+            dsp.LatencySeconds = latency / (double) frequency;
             return dsp;
         }
 
