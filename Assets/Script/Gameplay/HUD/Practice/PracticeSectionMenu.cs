@@ -135,8 +135,6 @@ namespace YARG.Gameplay.HUD
         protected override void OnChartLoaded(SongChart chart)
         {
             _sections = chart.Sections;
-            _finalTick = chart.GetLastTick();
-            _finalChartTime = chart.SyncTrack.TickToTime(_finalTick);
 
             //_pauseMenuManager.PushMenu(PauseMenuManager.Menu.SelectSections);
         }
@@ -301,19 +299,23 @@ namespace YARG.Gameplay.HUD
 
         private bool IsSessionValid(PracticeSessionData session)
         {
-            if (session.HasValidABLoop)
-            {
-                return session.LoopStartTime.Value >= 0 && session.LoopEndTime.Value <= _finalChartTime;
-            }
-
             if (session.HasValidSections)
             {
                 int first = session.StartSectionIndex.Value;
                 int last = session.EndSectionIndex.Value;
-                return first >= 0 && first < _sections.Count && last >= 0 && last < _sections.Count;
+                if (first < 0 || first >= _sections.Count || last < 0 || last >= _sections.Count)
+                {
+                    return false;
+                }
             }
 
-            return false;
+            if (session.HasValidABLoop)
+            {
+                return session.LoopStartTime.Value >= 0
+                    && session.LoopEndTime.Value <= GameManager.SongLength + 0.1;
+            }
+
+            return session.HasValidSections;
         }
 
         private void RestoreSession(PracticeSessionData session)

@@ -12,6 +12,8 @@ namespace YARG.Gameplay.Practice
     [Serializable]
     public class PracticeSessionData
     {
+        public HashWrapper SongHash { get; set; }
+
         public int? StartSectionIndex { get; set; }
         public int? EndSectionIndex { get; set; }
 
@@ -30,34 +32,24 @@ namespace YARG.Gameplay.Practice
         public static string PracticeDirectory { get; private set; }
         private static string _cachePath;
 
-        [Serializable]
-        private class PracticeCacheFile
-        {
-            public List<PracticeCacheEntry> Sessions { get; set; } = new();
-        }
-
-        [Serializable]
-        private class PracticeCacheEntry
-        {
-            public HashWrapper SongHash { get; set; }
-            public PracticeSessionData Data { get; set; }
-        }
-
         private static readonly JsonSerializerSettings _jsonSettings = new()
         {
             Formatting = Formatting.Indented,
+            NullValueHandling = NullValueHandling.Ignore,
             Converters = new List<JsonConverter>
             {
                 new JsonHashWrapperConverter()
             }
         };
-        
+
         private static readonly Dictionary<HashWrapper, PracticeSessionData> _sessions = new();
 
         public static void Initialize()
         {
             PracticeDirectory = Path.Combine(PathHelper.PersistentDataPath, "practice");
             _cachePath = Path.Combine(PracticeDirectory, "practice_sessions.json");
+
+            Directory.CreateDirectory(PracticeDirectory);
             _sessions.Clear();
 
             if (!File.Exists(_cachePath))
@@ -69,18 +61,18 @@ namespace YARG.Gameplay.Practice
             try
             {
                 var text = File.ReadAllText(_cachePath);
-                var cacheFile = JsonConvert.DeserializeObject<PracticeCacheFile>(text, _jsonSettings);
+                var entries = JsonConvert.DeserializeObject<List<PracticeSessionData>>(text, _jsonSettings);
 
-                if (cacheFile?.Sessions == null)
+                if (entries == null)
                 {
                     return;
                 }
 
-                foreach (var entry in cacheFile.Sessions)
+                foreach (var entry in entries)
                 {
-                    if (entry?.Data != null && !entry.SongHash.Equals(default))
+                    if (entry != null && !entry.SongHash.Equals(default))
                     {
-                        _sessions[entry.SongHash] = entry.Data;
+                        _sessions[entry.SongHash] = entry;
                     }
                 }
             }
@@ -99,21 +91,7 @@ namespace YARG.Gameplay.Practice
 
             try
             {
-                var cacheFile = new PracticeCacheFile
-                {
-                    Sessions = new List<PracticeCacheEntry>(_sessions.Count)
-                };
-
-                foreach (var (hash, data) in _sessions)
-                {
-                    cacheFile.Sessions.Add(new PracticeCacheEntry
-                    {
-                        SongHash = hash,
-                        Data = data
-                    });
-                }
-
-                var text = JsonConvert.SerializeObject(cacheFile, _jsonSettings);
+                var text = JsonConvert.SerializeObject(_sessions.Values, _jsonSettings);
                 File.WriteAllText(_cachePath, text);
             }
             catch (Exception ex)
@@ -131,6 +109,7 @@ namespace YARG.Gameplay.Practice
         {
             _sessions[songHash] = new PracticeSessionData
             {
+                SongHash = songHash,
                 StartSectionIndex = startIdx,
                 EndSectionIndex = endIdx,
                 LoopStartTime = null,
@@ -144,7 +123,7 @@ namespace YARG.Gameplay.Practice
         {
             if (!_sessions.TryGetValue(songHash, out var data))
             {
-                data = new PracticeSessionData();
+                data = new PracticeSessionData { SongHash = songHash };
                 _sessions[songHash] = data;
             }
 
@@ -163,6 +142,7 @@ namespace YARG.Gameplay.Practice
                 Save();
             }
         }
+
         public static int ReplaceUpdatedSongHashes(IReadOnlyDictionary<HashWrapper, HashWrapper> replacements)
         {
             if (replacements == null || replacements.Count == 0 || _sessions.Count == 0)
@@ -184,6 +164,7 @@ namespace YARG.Gameplay.Practice
             foreach (var (oldHash, newHash, data) in updatedEntries)
             {
                 _sessions.Remove(oldHash);
+                data.SongHash = newHash;
                 _sessions[newHash] = data;
                 replaced++;
             }

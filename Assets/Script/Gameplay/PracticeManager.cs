@@ -329,8 +329,24 @@ namespace YARG.Gameplay
             if (_chart == null || _chart.SyncTrack == null)
                 return 0;
 
-            return (int) _chart.SyncTrack.GetMeasurePosition(time);
+            uint tick = _chart.SyncTrack.TimeToTick(time);
+            int barIndex = 0;
+
+            foreach (var beatline in _chart.SyncTrack.Beatlines)
+            {
+                if (beatline.Type == BeatlineType.Measure)
+                {
+                    if (beatline.Tick > tick)
+                    {
+                        return Math.Max(0, barIndex - 1);
+                    }
+                    barIndex++;
+                }
+            }
+
+            return Math.Max(0, barIndex - 1);
         }
+
 
         public double GetTimeAtBar(int barIndex)
         {
