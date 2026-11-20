@@ -12,7 +12,6 @@
 
 using namespace std::chrono_literals;
 using yarg::audio::IAudioSource;
-using yarg::audio::PositionRead;
 using yarg::audio::SourcePositionSnapshot;
 using yarg::audio::RenderAheadMixer;
 
@@ -33,10 +32,8 @@ public:
         return static_cast<int>(frames);
     }
     int lastError() const noexcept override { return 0; }
-    std::int64_t position(std::uint32_t, std::uint32_t delayBytes) noexcept override {
-        const auto currentBytes = nextFrame_ * channels_ * sizeof(float);
-        return static_cast<std::int64_t>(currentBytes - std::min(currentBytes,
-            static_cast<std::size_t>(delayBytes)));
+    std::int64_t position(std::uint32_t) noexcept override {
+        return static_cast<std::int64_t>(nextFrame_ * channels_ * sizeof(float));
     }
     bool prepared() const noexcept { return prepared_.load(); }
 private:
@@ -50,7 +47,7 @@ public:
     bool prepareThread() noexcept override { return true; }
     int read(float*, std::size_t) noexcept override { return -1; }
     int lastError() const noexcept override { return 37; }
-    std::int64_t position(std::uint32_t, std::uint32_t) noexcept override { return -1; }
+    std::int64_t position(std::uint32_t) noexcept override { return -1; }
 };
 
 class BlockingSource final : public IAudioSource {
@@ -67,8 +64,8 @@ public:
         return static_cast<int>(frames);
     }
     int lastError() const noexcept override { return 0; }
-    std::int64_t position(std::uint32_t, std::uint32_t delayBytes) noexcept override {
-        return static_cast<std::int64_t>(produced_ * sizeof(float) - delayBytes);
+    std::int64_t position(std::uint32_t) noexcept override {
+        return static_cast<std::int64_t>(produced_ * sizeof(float));
     }
     void block() noexcept { blocked_.store(true); }
     void release() noexcept { blocked_.store(false); }
@@ -89,8 +86,8 @@ public:
         return static_cast<int>(frames);
     }
     int lastError() const noexcept override { return 0; }
-    std::int64_t position(std::uint32_t, std::uint32_t delayBytes) noexcept override {
-        return static_cast<std::int64_t>(produced_ * sizeof(float)) - delayBytes;
+    std::int64_t position(std::uint32_t) noexcept override {
+        return static_cast<std::int64_t>(produced_ * sizeof(float));
     }
 private:
     std::size_t produced_ = 0;
@@ -116,7 +113,7 @@ public:
         return static_cast<int>(frames);
     }
     int lastError() const noexcept override { return 0; }
-    std::int64_t position(std::uint32_t, std::uint32_t) noexcept override { return 0; }
+    std::int64_t position(std::uint32_t) noexcept override { return 0; }
     bool setAttribute(std::uint32_t channel, std::uint32_t attribute,
         float value) noexcept override {
         std::lock_guard lock(writesMutex_);
@@ -143,7 +140,7 @@ void runRenderAheadMixerTests() {
     {
         auto source = std::make_unique<SequenceSource>(2);
         auto* sourcePointer = source.get();
-        RenderAheadMixer renderer(std::move(source), 48000, 2, 64, 10);
+        RenderAheadMixer renderer(std::move(source), 48000, 2, 64, 10, 1);
         REQUIRE(renderer.start());
         REQUIRE(renderer.prefill(2s));
         REQUIRE(sourcePointer->prepared());
@@ -160,7 +157,9 @@ void runRenderAheadMixerTests() {
             std::this_thread::sleep_for(1ms);
         }
         REQUIRE(renderer.queuedFrames() >= renderer.targetFrames());
-        REQUIRE(renderer.bufferedSourcePosition(1, 0) == 192 * 2 * sizeof(float));
+        SourcePositionSnapshot filled{};
+        REQUIRE(renderer.sourcePositionSnapshot(0, filled));
+        REQUIRE(filled.heardPosition == 192 * 2 * sizeof(float));
 
         REQUIRE(renderer.clear());
         REQUIRE(renderer.queuedFrames() == 0);
@@ -172,7 +171,7 @@ void runRenderAheadMixerTests() {
     }
 
     {
-        RenderAheadMixer renderer(std::make_unique<SequenceSource>(2), 48000, 2, 64, 0);
+        RenderAheadMixer renderer(std::make_unique<SequenceSource>(2), 48000, 2, 64, 0, 1);
         REQUIRE(renderer.prefill(2s));
         REQUIRE(renderer.targetFrames() == 128);
 
@@ -190,7 +189,7 @@ void runRenderAheadMixerTests() {
     }
 
     {
-        RenderAheadMixer renderer(std::make_unique<FailingSource>(), 48000, 2, 64, 10);
+        RenderAheadMixer renderer(std::make_unique<FailingSource>(), 48000, 2, 64, 10, 1);
         REQUIRE(renderer.start());
         REQUIRE(!renderer.prefill(2s));
         REQUIRE(renderer.failed());
@@ -200,7 +199,7 @@ void runRenderAheadMixerTests() {
     {
         auto source = std::make_unique<BlockingSource>();
         auto* sourcePointer = source.get();
-        RenderAheadMixer renderer(std::move(source), 48000, 1, 64, 0);
+        RenderAheadMixer renderer(std::move(source), 48000, 1, 64, 0, 1);
         REQUIRE(renderer.prefill(2s));
 
         sourcePointer->block();
@@ -219,42 +218,29 @@ void runRenderAheadMixerTests() {
             REQUIRE(startedReading);
         }
 
-        std::atomic<bool> positionStarted{false};
-        std::atomic<bool> delayRequested{false};
-        std::int64_t position = -1;
-        std::thread positionThread([&] {
-            positionStarted.store(true);
-            position = renderer.bufferedSourcePositionAfterLock(1, [&] {
-                delayRequested.store(true);
-                return 0u;
-            });
-        });
-
-        const auto positionDeadline = std::chrono::steady_clock::now() + 2s;
-        while (!positionStarted.load() && std::chrono::steady_clock::now() < positionDeadline) {
-            std::this_thread::yield();
-        }
-        std::this_thread::sleep_for(10ms);
-        const auto requestedWhileBlocked = delayRequested.load();
+        SourcePositionSnapshot snapshot{};
+        const auto readWhileBlocked = renderer.sourcePositionSnapshot(0, snapshot);
+        const auto stillReading = sourcePointer->reading();
         sourcePointer->release();
-        positionThread.join();
         renderer.stop();
 
-        REQUIRE(!requestedWhileBlocked);
-        REQUIRE(delayRequested.load());
-        REQUIRE(position >= 0);
+        REQUIRE(readWhileBlocked);
+        REQUIRE(stillReading);
+        REQUIRE(snapshot.heardPosition ==
+            static_cast<std::int64_t>(renderer.targetFrames() * sizeof(float)));
     }
 
     {
-        RenderAheadMixer renderer(std::make_unique<SlowSource>(), 48000, 1, 64, 5000);
+        RenderAheadMixer renderer(std::make_unique<SlowSource>(), 48000, 1, 64, 5000, 1);
         REQUIRE(renderer.start());
 
         auto slowest = std::chrono::steady_clock::duration::zero();
         for (int read = 0; read < 50; ++read) {
             const auto started = std::chrono::steady_clock::now();
-            const auto position = renderer.bufferedSourcePositionAfterLock(1, [] { return 0u; });
+            SourcePositionSnapshot snapshot{};
+            const auto succeeded = renderer.sourcePositionSnapshot(0, snapshot);
             slowest = std::max(slowest, std::chrono::steady_clock::now() - started);
-            REQUIRE(position >= 0);
+            REQUIRE(succeeded && snapshot.heardPosition >= 0);
             std::this_thread::sleep_for(2ms);
         }
         const auto stillFilling = renderer.queuedFrames() < renderer.targetFrames();
@@ -265,7 +251,7 @@ void runRenderAheadMixerTests() {
     }
 
     {
-        RenderAheadMixer renderer(std::make_unique<SlowSource>(), 48000, 1, 64, 5000);
+        RenderAheadMixer renderer(std::make_unique<SlowSource>(), 48000, 1, 64, 5000, 1);
         REQUIRE(renderer.start());
         std::this_thread::sleep_for(5ms);
 
@@ -294,13 +280,10 @@ void runRenderAheadMixerTests() {
     {
         auto source = std::make_unique<BlockingSource>();
         auto* sourcePointer = source.get();
-        RenderAheadMixer renderer(std::move(source), 48000, 1, 64, 10);
-        const auto noDelay = [](std::uint32_t& delayFrames) {
-            delayFrames = 0;
-            return true;
-        };
+        RenderAheadMixer renderer(std::move(source), 48000, 1, 64, 10, 1);
         SourcePositionSnapshot snapshot{};
-        REQUIRE(renderer.trySourcePositionSnapshot(1, snapshot, noDelay) == PositionRead::Succeeded);
+        REQUIRE(renderer.sourcePositionSnapshot(0, snapshot));
+        REQUIRE(snapshot.heardPosition == 0 && snapshot.decodePosition == 0);
         REQUIRE(renderer.prefill(2s));
         REQUIRE(renderer.producedFrames() == 512);
 
@@ -315,29 +298,27 @@ void runRenderAheadMixerTests() {
         const auto startedReading = sourcePointer->reading();
 
         SourcePositionSnapshot busySnapshot{};
-        const auto busyRead = renderer.trySourcePositionSnapshot(1, busySnapshot, noDelay);
-        SourcePositionSnapshot uncoveredSnapshot{};
-        const auto uncoveredRead = renderer.trySourcePositionSnapshot(1, uncoveredSnapshot,
-            [](std::uint32_t& delayFrames) {
-                delayFrames = 400;
-                return true;
-            });
+        const auto busyRead = renderer.sourcePositionSnapshot(0, busySnapshot);
+        SourcePositionSnapshot originSnapshot{};
+        const auto originRead = renderer.sourcePositionSnapshot(400, originSnapshot);
         sourcePointer->release();
         renderer.stop();
 
         REQUIRE(consumed == 200);
         REQUIRE(startedReading);
-        REQUIRE(busyRead == PositionRead::Succeeded);
+        REQUIRE(busyRead);
         REQUIRE(busySnapshot.heardPosition == 200 * sizeof(float));
         REQUIRE(busySnapshot.decodePosition == 512 * sizeof(float));
         REQUIRE(busySnapshot.totalDelayFrames == 312);
-        REQUIRE(uncoveredRead == PositionRead::Busy);
+        REQUIRE(originRead);
+        REQUIRE(originSnapshot.heardPosition == 0);
+        REQUIRE(originSnapshot.totalDelayFrames == 712);
     }
 
     {
         auto source = std::make_unique<AttributeSource>();
         auto* sourcePointer = source.get();
-        RenderAheadMixer renderer(std::move(source), 48000, 1, 64, 10);
+        RenderAheadMixer renderer(std::move(source), 48000, 1, 64, 10, 1);
         REQUIRE(renderer.prefill(2s));
 
         sourcePointer->block();
@@ -378,7 +359,7 @@ void runRenderAheadMixerTests() {
     {
         auto source = std::make_unique<AttributeSource>();
         auto* sourcePointer = source.get();
-        RenderAheadMixer renderer(std::move(source), 48000, 1, 64, 10);
+        RenderAheadMixer renderer(std::move(source), 48000, 1, 64, 10, 1);
         for (std::uint32_t attribute = 0; attribute < RenderAheadMixer::MaximumQueuedAttributes; ++attribute) {
             REQUIRE(renderer.queueSourceAttribute(1, attribute, 1.0f));
         }

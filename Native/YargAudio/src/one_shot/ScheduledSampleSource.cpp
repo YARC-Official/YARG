@@ -83,20 +83,6 @@ bool ScheduledSampleSource::reset(double anchorSongPosition,
         return false;
     }
 
-    applyReset(anchorSongPosition, playbackSpeed, clearActiveVoices);
-    appliedResetSequence_ = resetSequence_.load(std::memory_order_acquire);
-    appliedClears_ = requestedClears_.load(std::memory_order_relaxed);
-    pausedBits_.store(paused ? 1u : 0u, std::memory_order_relaxed);
-    return true;
-}
-
-bool ScheduledSampleSource::requestReset(double anchorSongPosition,
-    float playbackSpeed, bool paused, bool clearActiveVoices) noexcept {
-    if (!std::isfinite(anchorSongPosition) || !std::isfinite(playbackSpeed) ||
-        playbackSpeed <= 0) {
-        return false;
-    }
-
     const auto sequence = resetSequence_.load(std::memory_order_relaxed);
     resetSequence_.store(sequence + 1, std::memory_order_relaxed);
     std::atomic_thread_fence(std::memory_order_release);
@@ -112,16 +98,6 @@ bool ScheduledSampleSource::requestReset(double anchorSongPosition,
     return true;
 }
 
-void ScheduledSampleSource::applyReset(double anchorSongPosition,
-    float playbackSpeed, bool clearActiveVoices) noexcept {
-    anchorSongPosition_ = anchorSongPosition;
-    playbackSpeed_ = playbackSpeed;
-    cursorFrame_ = 0;
-    if (clearActiveVoices) activeVoiceCount_ = 0;
-    nextScheduledVoice_ = findNextSchedule();
-    droppedVoiceCount_ = 0;
-}
-
 void ScheduledSampleSource::applyRequestedReset() noexcept {
     const auto sequence = resetSequence_.load(std::memory_order_acquire);
     if (sequence == appliedResetSequence_ || (sequence & 1u) != 0) return;
@@ -133,10 +109,13 @@ void ScheduledSampleSource::applyRequestedReset() noexcept {
     if (resetSequence_.load(std::memory_order_relaxed) != sequence) return;
 
     appliedResetSequence_ = sequence;
-    const bool clearActiveVoices = clears != appliedClears_;
+    anchorSongPosition_ = yarg::audio::bitCast<double>(anchorBits);
+    playbackSpeed_ = yarg::audio::bitCast<float>(speedBits);
+    cursorFrame_ = 0;
+    if (clears != appliedClears_) activeVoiceCount_ = 0;
     appliedClears_ = clears;
-    applyReset(yarg::audio::bitCast<double>(anchorBits),
-        yarg::audio::bitCast<float>(speedBits), clearActiveVoices);
+    nextScheduledVoice_ = findNextSchedule();
+    droppedVoiceCount_ = 0;
 }
 
 void ScheduledSampleSource::setPaused(bool paused) noexcept {

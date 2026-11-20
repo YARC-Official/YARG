@@ -97,7 +97,7 @@ int NativeOneShotStream::resync(std::uint32_t mixer,
 
     if (!source_ || stream_ == 0 || mixer_ != mixer)
         return YARG_AUDIO_ERROR_INVALID_STATE;
-    return source_->requestReset(anchorSongPosition, playbackSpeed, paused_,
+    return source_->reset(anchorSongPosition, playbackSpeed, paused_,
         clearActiveVoices) ? YARG_AUDIO_OK : YARG_AUDIO_ERROR_INVALID_ARGUMENT;
 }
 

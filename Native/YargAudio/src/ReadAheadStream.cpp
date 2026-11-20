@@ -70,10 +70,8 @@ public:
 
     int lastError() const noexcept override { return bass_.error(); }
 
-    std::int64_t position(std::uint32_t sourceHandle,
-        std::uint32_t delayBytes) noexcept override {
-        // Include output delay when asking BASS for the source position.
-        return bassMix_.getPosition(sourceHandle, delayBytes);
+    std::int64_t position(std::uint32_t sourceHandle) noexcept override {
+        return bassMix_.getPosition(sourceHandle, 0);
     }
 
     bool setAttribute(std::uint32_t channel, std::uint32_t attribute,
@@ -190,18 +188,9 @@ int ReadAheadStream::setSourceAttribute(std::uint32_t channel,
         ? YARG_AUDIO_OK : YARG_AUDIO_ERROR_INVALID_STATE;
 }
 
-std::int64_t ReadAheadStream::getSourcePosition(std::uint32_t source,
-    std::uint32_t endpointDelayFrames, int& error) noexcept {
-    yarg_read_ahead_position_snapshot snapshot{
-        sizeof(yarg_read_ahead_position_snapshot)};
-    error = getPositionSnapshot(source, endpointDelayFrames, snapshot);
-    return error == YARG_AUDIO_OK ? snapshot.heard_position : -1;
-}
-
-int ReadAheadStream::getPositionSnapshot(std::uint32_t source,
-    std::uint32_t endpointDelayFrames,
+int ReadAheadStream::getPositionSnapshot(std::uint32_t endpointDelayFrames,
     yarg_read_ahead_position_snapshot& snapshot) noexcept {
-    if (!renderer_ || source == 0) {
+    if (!renderer_) {
         return YARG_AUDIO_ERROR_INVALID_ARGUMENT;
     }
 
@@ -209,50 +198,33 @@ int ReadAheadStream::getPositionSnapshot(std::uint32_t source,
     // busy; a changed value means retry.
     SourcePositionSnapshot position{};
     for (;;) {
-        struct OutputLock {
-            BassCoreBindings& bass;
-            std::uint32_t handle = 0;
-            ~OutputLock() { release(); }
-            void release() {
-                if (handle != 0) {
-                    bass.lockChannel(handle, false);
-                    handle = 0;
-                }
-            }
-        } outputLock{bass_};
         const auto sequence = consumerSequence_.load(std::memory_order_acquire);
         if ((sequence & 1u) != 0) {
             std::this_thread::yield();
             continue;
         }
 
-        const auto delayProvider = [this, endpointDelayFrames, &outputLock](std::uint32_t& delayFrames) {
-            if (config_.output_stream != 0) {
-                if (!bass_.lockChannel(config_.output_stream, true)) {
-                    lastError_.store(bass_.error(), std::memory_order_relaxed);
-                    return false;
-                }
-                outputLock.handle = config_.output_stream;
-                const auto bytes = bass_.getData(config_.output_stream, nullptr, 0);
-                if (bytes < 0) {
-                    lastError_.store(bass_.error(), std::memory_order_relaxed);
-                    return false;
-                }
-                delayFrames = static_cast<std::uint32_t>(bytes / (config_.channels * sizeof(float)));
-                return true;
+        bool read;
+        if (config_.output_stream == 0) {
+            read = renderer_->sourcePositionSnapshot(remainingPlaybackDelayFrames(
+                endpointDelayFrames, timestampProvider_()), position);
+        } else {
+            if (!bass_.lockChannel(config_.output_stream, true)) {
+                lastError_.store(bass_.error(), std::memory_order_relaxed);
+                return YARG_AUDIO_ERROR_BASS;
             }
-            delayFrames = remainingPlaybackDelayFrames(
-                endpointDelayFrames, timestampProvider_());
-            return true;
-        };
-        auto read = renderer_->trySourcePositionSnapshot(source, position, delayProvider);
-        if (read == PositionRead::Busy) {
-            // Take the source lock before the output lock, as the worker does.
-            outputLock.release();
-            read = renderer_->sourcePositionSnapshotAfterLock(source, position, delayProvider)
-                ? PositionRead::Succeeded : PositionRead::Failed;
+            const auto bytes = bass_.getData(config_.output_stream, nullptr, 0);
+            if (bytes < 0) {
+                lastError_.store(bass_.error(), std::memory_order_relaxed);
+            }
+            read = bytes >= 0 && renderer_->sourcePositionSnapshot(
+                static_cast<std::uint32_t>(bytes / (config_.channels * sizeof(float))), position);
+            bass_.lockChannel(config_.output_stream, false);
         }
-        if (read == PositionRead::Failed) {
+        if (!read) {
+            if (const auto error = renderer_->positionError(); error != 0) {
+                lastError_.store(error, std::memory_order_relaxed);
+            }
             return YARG_AUDIO_ERROR_BASS;
         }
         if (consumerSequence_.load(std::memory_order_acquire) == sequence) {
@@ -397,7 +369,7 @@ bool ReadAheadStream::createRenderer(std::uint32_t bufferMilliseconds) noexcept 
             config_.bass_device_id, config_.source_mixer, config_.channels);
         auto renderer = std::make_unique<RenderAheadMixer>(std::move(source),
             config_.sample_rate, config_.channels, config_.minimum_block_frames,
-            bufferMilliseconds);
+            bufferMilliseconds, config_.position_source);
         renderer_ = std::move(renderer);
         minimumQueuedFrames_.store(
             static_cast<std::uint32_t>(renderer_->targetFrames()),

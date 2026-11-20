@@ -138,10 +138,10 @@ void testResetActiveVoiceBehavior() {
     source->render(first, 2);
     REQUIRE(source->activeVoiceCount() == 1);
     REQUIRE(source->reset(0.2, 2, false, true));
-    REQUIRE(source->activeVoiceCount() == 0);
     tail[0] = tail[1] = 9;
     source->render(tail, 2);
     REQUIRE(tail[0] == 0 && tail[1] == 0);
+    REQUIRE(source->activeVoiceCount() == 0);
 }
 
 void testRequestedResetAppliesOnRender() {
@@ -151,9 +151,9 @@ void testRequestedResetAppliesOnRender() {
     source->render(first, 2);
     REQUIRE(source->activeVoiceCount() == 1);
 
-    REQUIRE(!source->requestReset(0, 0, false, true));
-    REQUIRE(source->requestReset(0.2, 2, false, true));
-    REQUIRE(source->requestReset(0.2, 2, false, false));
+    REQUIRE(!source->reset(0, 0, false, true));
+    REQUIRE(source->reset(0.2, 2, false, true));
+    REQUIRE(source->reset(0.2, 2, false, false));
     REQUIRE(source->activeVoiceCount() == 1);
     REQUIRE(source->cursorFrame() == 2);
     float tail[2] = {9, 9};
@@ -166,7 +166,7 @@ void testRequestedResetAppliesOnRender() {
     source->render(future, 3);
     REQUIRE(future[0] == 0 && future[1] == 0 && future[2] == 1);
 
-    REQUIRE(source->requestReset(5, 1, false, true));
+    REQUIRE(source->reset(5, 1, false, true));
     REQUIRE(source->reset(0, 1, false, true));
     float restarted[2]{};
     source->render(restarted, 2);

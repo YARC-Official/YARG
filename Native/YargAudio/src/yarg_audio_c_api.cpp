@@ -17,7 +17,7 @@
 #include <limits>
 #include <memory>
 
-static_assert(sizeof(yarg_read_ahead_config) == 32);
+static_assert(sizeof(yarg_read_ahead_config) == 36);
 static_assert(sizeof(yarg_read_ahead_stats) == 104);
 static_assert(sizeof(yarg_read_ahead_position_snapshot) == 24);
 static_assert(sizeof(yarg_one_shot_config) == 24);
@@ -61,7 +61,8 @@ bool validOneShotConfig(const yarg_one_shot_config* config) noexcept {
 bool validReadAheadConfig(const yarg_read_ahead_config* config) noexcept {
     return config && config->size >= sizeof(yarg_read_ahead_config) &&
         config->source_mixer != 0 && config->sample_rate > 0 &&
-        config->channels > 0 && config->minimum_block_frames > 0;
+        config->channels > 0 && config->minimum_block_frames > 0 &&
+        config->position_source != 0;
 }
 
 bool validOneShotCounts(std::uint64_t pcmSampleCount,
@@ -482,26 +483,14 @@ int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_set_source_attribute(
         : YARG_AUDIO_ERROR_INVALID_ARGUMENT;
 }
 
-int64_t YARG_AUDIO_CALL yarg_read_ahead_stream_get_source_position(
-    yarg_read_ahead_stream* stream, uint32_t source,
-    uint32_t endpointDelayFrames, int32_t* error) {
-    if (!stream || !stream->value || !error) return -1;
-    int result = YARG_AUDIO_OK;
-    const auto position = stream->value->getSourcePosition(
-        source, endpointDelayFrames, result);
-    *error = result;
-    return position;
-}
-
 int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_get_position_snapshot(
-    yarg_read_ahead_stream* stream, uint32_t source,
-    uint32_t endpointDelayFrames, yarg_read_ahead_position_snapshot* snapshot) {
+    yarg_read_ahead_stream* stream, uint32_t endpointDelayFrames,
+    yarg_read_ahead_position_snapshot* snapshot) {
     if (!stream || !stream->value || !snapshot ||
         snapshot->size < sizeof(yarg_read_ahead_position_snapshot)) {
         return YARG_AUDIO_ERROR_INVALID_ARGUMENT;
     }
-    return stream->value->getPositionSnapshot(
-        source, endpointDelayFrames, *snapshot);
+    return stream->value->getPositionSnapshot(endpointDelayFrames, *snapshot);
 }
 
 int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_get_stats(

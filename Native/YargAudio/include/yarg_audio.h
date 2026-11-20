@@ -18,7 +18,7 @@
 extern "C" {
 #endif
 
-#define YARG_AUDIO_ABI_VERSION 29u
+#define YARG_AUDIO_ABI_VERSION 30u
 
 typedef struct yarg_stretch_stream yarg_stretch_stream;
 
@@ -92,6 +92,7 @@ typedef struct yarg_read_ahead_config {
     uint32_t minimum_block_frames;
     uint32_t buffer_milliseconds;
     uint32_t output_stream;
+    uint32_t position_source;
 } yarg_read_ahead_config;
 
 typedef struct yarg_read_ahead_stats {
@@ -258,12 +259,9 @@ YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_release_next_rende
     yarg_read_ahead_stream* stream);
 YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_set_source_attribute(
     yarg_read_ahead_stream* stream, uint32_t channel, uint32_t attribute, float value);
-YARG_AUDIO_API int64_t YARG_AUDIO_CALL yarg_read_ahead_stream_get_source_position(
-    yarg_read_ahead_stream* stream, uint32_t source_handle,
-    uint32_t endpoint_delay_frames, int32_t* error);
 YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_get_position_snapshot(
-    yarg_read_ahead_stream* stream, uint32_t source_handle,
-    uint32_t endpoint_delay_frames, yarg_read_ahead_position_snapshot* snapshot);
+    yarg_read_ahead_stream* stream, uint32_t endpoint_delay_frames,
+    yarg_read_ahead_position_snapshot* snapshot);
 YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_get_stats(
     yarg_read_ahead_stream* stream, yarg_read_ahead_stats* stats);
 YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_destroy(

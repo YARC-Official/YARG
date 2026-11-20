@@ -132,7 +132,7 @@ namespace YARG.Audio.BASS
                 return false;
             }
 
-            if (!BuildStemData(source, stemInfoList, _whammyFxEnabled, out var newStems))
+            if (!BuildStemData(source, stemInfoList, out var newStems))
             {
                 source.Dispose();
                 return false;
@@ -160,16 +160,15 @@ namespace YARG.Audio.BASS
             return true;
         }
 
-        public bool RealignChannels(double playbackDelay = 0)
+        public bool RealignChannels(double playbackDelay)
         {
             _mixer.RemoveAllChannels();
 
-            double requiredAlignment = AlignmentDelay;
             var channels = new List<BassMixerChannel>(_stemDatas.Count * 2);
 
             foreach (var data in _stemDatas)
             {
-                double delay = playbackDelay + requiredAlignment - data.WhammyLatencySeconds;
+                double delay = playbackDelay + AlignmentDelay - data.WhammyLatencySeconds;
                 channels.Add(new BassMixerChannel(data.StreamHandles.Stream, data.VolumeMatrix, delay));
                 channels.Add(new BassMixerChannel(data.ReverbHandles.Stream, data.VolumeMatrix, delay));
             }
@@ -250,8 +249,8 @@ namespace YARG.Audio.BASS
             _mixer.Dispose();
         }
 
-        private static bool BuildStemData(BassMixerSource source, IEnumerable<StemMixer.StemInfo> stemInfos,
-            bool whammyFxEnabled, out List<StemData> stemDatas)
+        private bool BuildStemData(BassMixerSource source, IEnumerable<StemMixer.StemInfo> stemInfos,
+            out List<StemData> stemDatas)
         {
             stemDatas = new List<StemData>();
 
@@ -268,7 +267,7 @@ namespace YARG.Audio.BASS
                 }
 
                 var (streamHandle, reverbHandle) = handles.Value;
-                double whammyLatencySeconds = whammyFxEnabled && AudioHelpers.PitchBendAllowedStems.Contains(stem)
+                double whammyLatencySeconds = _whammyFxEnabled && AudioHelpers.PitchBendAllowedStems.Contains(stem)
                     ? AttachPitchShift(streamHandle, reverbHandle)
                     : 0;
 
@@ -289,7 +288,7 @@ namespace YARG.Audio.BASS
         {
             var streamShift = BassPitchShiftDsp.Attach(streamHandle.Stream);
             var reverbShift = streamShift != null ? BassPitchShiftDsp.Attach(reverbHandle.Stream) : null;
-            if (streamShift == null || reverbShift == null || streamShift.LatencyFrames != reverbShift.LatencyFrames)
+            if (streamShift == null || reverbShift == null)
             {
                 YargLogger.LogError("Failed to set up whammy pitch shift. Whammy will not bend this stem.");
                 streamShift?.Dispose();

@@ -14,7 +14,6 @@ struct yarg_pitch_shift_dsp {
     const yarg::audio::BassCoreBindings& bass;
     std::uint32_t channel;
     std::uint32_t dsp = 0;
-    std::uint32_t channelCount = 0;
     std::atomic<std::uint32_t> ratioBits;
     std::atomic<std::uint32_t> resetRequested;
     yarg::audio::PitchShifter shifter;

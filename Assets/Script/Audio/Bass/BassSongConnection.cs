@@ -105,8 +105,8 @@ namespace YARG.Audio.BASS
                 return null;
             }
 
-            var readAhead = BassReadAheadStream.Create(output.Device.DeviceId, songMixer.Handle, output.SampleRate,
-                output.ChannelCount, output.MinimumBlockFrames, bufferLengthMilliseconds,
+            var readAhead = BassReadAheadStream.Create(output.Device.DeviceId, songMixer.Handle, tempoStreamHandle,
+                output.SampleRate, output.ChannelCount, output.MinimumBlockFrames, bufferLengthMilliseconds,
                 useIndependentClock: output.UsesIndependentClock,
                 outputStream: output.UsesIndependentClock ? 0 : output.OutputMixerHandle);
             if (readAhead == null)
@@ -269,7 +269,7 @@ namespace YARG.Audio.BASS
                 return true;
             }
 
-            if (!_readAhead.TryGetPositionSnapshot(TempoStreamHandle, _output.EndpointDelayFrames, out var native))
+            if (!_readAhead.TryGetPositionSnapshot(_output.EndpointDelayFrames, out var native))
             {
                 snapshot = default;
                 return false;

@@ -274,17 +274,13 @@ namespace YARG.Audio.BASS
             float effectiveSpeed = Math.Clamp(songSpeed + syncAdjustment, MIN_PLAYBACK_SPEED, MAX_PLAYBACK_SPEED);
             _songSpeed = songSpeed;
 
-            bool speedChanged = _speed != effectiveSpeed;
-            if (speedChanged)
-            {
-                _speed = effectiveSpeed;
-                _stemPipeline.SetSpeed(effectiveSpeed, shiftPitch);
-            }
-
-            if (!speedChanged)
+            if (_speed == effectiveSpeed)
             {
                 return;
             }
+
+            _speed = effectiveSpeed;
+            _stemPipeline.SetSpeed(effectiveSpeed, shiftPitch);
 
             var connection = _connection;
             bool heldNextRender = connection?.HoldNextRender() == true;
@@ -597,7 +593,8 @@ namespace YARG.Audio.BASS
 
             if (_connection?.TryGetPositionSnapshot(out var snapshot) != true)
             {
-                YargLogger.LogFormatError("Failed to get byte position: {0}!", Bass.LastError);
+                YargLogger.LogFormatError("Failed to get byte position: {0}!",
+                    _connection?.GetReadAheadStats().LastError);
                 return false;
             }
 

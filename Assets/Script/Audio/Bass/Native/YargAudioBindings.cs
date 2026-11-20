@@ -268,8 +268,8 @@ namespace YARG.Audio.BASS.Native
         internal static int ReadAheadStreamSetSourceAttribute(BassReadAheadStream stream, int channel, int attribute, float value) =>
             EnsureBound(ref _readAheadStreamSetSourceAttribute, "yarg_read_ahead_stream_set_source_attribute")(stream, channel, attribute, value);
 
-        internal static int ReadAheadStreamGetPositionSnapshot(BassReadAheadStream stream, int sourceHandle, int endpointDelayFrames, ref ReadAheadPositionSnapshot snapshot) =>
-            EnsureBound(ref _readAheadStreamGetPositionSnapshot, "yarg_read_ahead_stream_get_position_snapshot")(stream, sourceHandle, endpointDelayFrames, ref snapshot);
+        internal static int ReadAheadStreamGetPositionSnapshot(BassReadAheadStream stream, int endpointDelayFrames, ref ReadAheadPositionSnapshot snapshot) =>
+            EnsureBound(ref _readAheadStreamGetPositionSnapshot, "yarg_read_ahead_stream_get_position_snapshot")(stream, endpointDelayFrames, ref snapshot);
 
         internal static int ReadAheadStreamGetStats(BassReadAheadStream stream, ref ReadAheadStats stats) =>
             EnsureBound(ref _readAheadStreamGetStats, "yarg_read_ahead_stream_get_stats")(stream, ref stats);
@@ -589,7 +589,7 @@ namespace YARG.Audio.BASS.Native
         private delegate int ReadAheadStreamSetSourceAttributeDelegate(BassReadAheadStream stream, int channel, int attribute, float value);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate int ReadAheadStreamGetPositionSnapshotDelegate(BassReadAheadStream stream, int sourceHandle, int endpointDelayFrames, ref ReadAheadPositionSnapshot snapshot);
+        private delegate int ReadAheadStreamGetPositionSnapshotDelegate(BassReadAheadStream stream, int endpointDelayFrames, ref ReadAheadPositionSnapshot snapshot);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate int ReadAheadStreamGetStatsDelegate(BassReadAheadStream stream, ref ReadAheadStats stats);

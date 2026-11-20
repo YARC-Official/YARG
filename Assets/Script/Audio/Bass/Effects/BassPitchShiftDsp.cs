@@ -14,7 +14,6 @@ namespace YARG.Audio.BASS.Effects
         {
         }
 
-        internal uint LatencyFrames { get; private set; }
         internal double LatencySeconds { get; private set; }
 
         internal static BassPitchShiftDsp? Attach(int channelHandle, int priority = 0)
@@ -46,7 +45,6 @@ namespace YARG.Audio.BASS.Effects
                 return null;
             }
 
-            dsp.LatencyFrames = latency;
             dsp.LatencySeconds = latency / (double) frequency;
             return dsp;
         }

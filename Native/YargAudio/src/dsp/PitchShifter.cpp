@@ -52,7 +52,6 @@ bool PitchShifter::configure(std::uint32_t channels, std::uint32_t sampleRate) n
     if (channels == 0 || channels > MAX_CHANNELS || latencyFrames(sampleRate) == 0) return false;
 
     channels_ = channels;
-    sampleRate_ = sampleRate;
     nominalDelay_ = latencyFrames(sampleRate);
     fadeFrames_ = framesFor(FADE_SECONDS, sampleRate);
     halfJump_ = framesFor(HALF_JUMP_SECONDS, sampleRate);

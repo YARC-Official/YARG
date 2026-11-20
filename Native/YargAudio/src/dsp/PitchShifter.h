@@ -20,6 +20,7 @@ public:
     void process(float* interleaved, std::size_t frames) noexcept;
 
     std::uint32_t latency() const noexcept { return nominalDelay_; }
+    std::uint32_t channels() const noexcept { return channels_; }
     bool settled() const noexcept;
     double currentDelay() const noexcept { return delay_; }
     std::uint64_t spliceCount() const noexcept { return spliceCount_; }
@@ -37,7 +38,6 @@ private:
     float mono(std::int64_t frame) const noexcept;
 
     std::uint32_t channels_ = 0;
-    std::uint32_t sampleRate_ = 0;
     std::uint32_t nominalDelay_ = 0;
     std::uint32_t fadeFrames_ = 0;
     std::uint32_t halfJump_ = 0;

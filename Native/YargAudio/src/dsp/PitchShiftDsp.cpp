@@ -26,7 +26,7 @@ void YARG_BASS_CALLBACK pitchShiftDspProc(std::uint32_t, std::uint32_t,
     if (!buffer || !user || length == 0) return;
 
     auto* state = static_cast<yarg_pitch_shift_dsp*>(user);
-    const std::size_t frameBytes = sizeof(float) * state->channelCount;
+    const std::size_t frameBytes = sizeof(float) * state->shifter.channels();
     if (length % frameBytes != 0) return;
 
     state->shifter.setRatio(bitCast<float>(state->ratioBits.load(std::memory_order_relaxed)));
@@ -58,7 +58,6 @@ int pitchShiftDspAttach(const BassCoreBindings& bass, std::uint32_t channel, int
 
     auto* state = new (std::nothrow) yarg_pitch_shift_dsp(bass, channel);
     if (!state) return YARG_AUDIO_ERROR_INTERNAL;
-    state->channelCount = info.channels;
     if (!state->shifter.configure(info.channels, info.frequency)) {
         delete state;
         return YARG_AUDIO_ERROR_INTERNAL;
