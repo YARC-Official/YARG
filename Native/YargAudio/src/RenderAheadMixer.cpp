@@ -30,7 +30,8 @@ RenderAheadMixer::RenderAheadMixer(std::unique_ptr<IAudioSource> source,
       targetFrames_(bufferFrames(sampleRate, callbackFrames, bufferMilliseconds)),
       ring_(bufferFrames(sampleRate, callbackFrames,
           std::max(bufferMilliseconds, MAXIMUM_BUFFER_MILLISECONDS)) + RenderChunkFrames * 2, channels),
-      scratch_(RenderChunkFrames * channels) {
+      scratch_(RenderChunkFrames * channels),
+      positionHistory_(std::make_unique<PositionRecordSlot[]>(PositionHistorySize)) {
 }
 
 RenderAheadMixer::~RenderAheadMixer() { stop(); }
@@ -63,15 +64,22 @@ bool RenderAheadMixer::prefill(std::chrono::milliseconds timeout) {
 
 void RenderAheadMixer::stop() noexcept {
     {
-        std::lock_guard lock(mutex_);
-        if (!running_) return;
+        std::unique_lock lock(mutex_);
+        if (!running_) {
+            lock.unlock();
+            applyQueuedAttributes();
+            return;
+        }
         stopping_.store(true, std::memory_order_release);
     }
     wake_.notify_all();
     prefilled_.notify_all();
     if (worker_.joinable()) worker_.join();
-    std::lock_guard lock(mutex_);
-    running_ = false;
+    {
+        std::lock_guard lock(mutex_);
+        running_ = false;
+    }
+    applyQueuedAttributes();
 }
 
 bool RenderAheadMixer::clear() {
@@ -79,6 +87,8 @@ bool RenderAheadMixer::clear() {
     stop();
     ring_.clear();
     generationProducedFrames_.store(0, std::memory_order_relaxed);
+    generationConsumedFrames_.store(0, std::memory_order_relaxed);
+    resetPositionHistory();
     positionOutputFrame_.store(0, std::memory_order_relaxed);
     return true;
 }
@@ -97,6 +107,41 @@ bool RenderAheadMixer::setTargetFrames(std::size_t frames) noexcept {
     return true;
 }
 
+bool RenderAheadMixer::queueSourceAttribute(std::uint32_t channel,
+    std::uint32_t attribute, float value) noexcept {
+    std::lock_guard lock(attributeMutex_);
+    for (std::size_t i = 0; i < queuedAttributeCount_; ++i) {
+        auto& write = queuedAttributes_[i];
+        if (write.channel == channel && write.attribute == attribute) {
+            write.value = value;
+            return true;
+        }
+    }
+    if (queuedAttributeCount_ == queuedAttributes_.size()) {
+        return false;
+    }
+    queuedAttributes_[queuedAttributeCount_++] = AttributeWrite{channel, attribute, value};
+    attributesQueued_.store(true, std::memory_order_release);
+    return true;
+}
+
+void RenderAheadMixer::applyQueuedAttributes() noexcept {
+    if (!attributesQueued_.load(std::memory_order_acquire)) return;
+
+    std::array<AttributeWrite, MaximumQueuedAttributes> writes;
+    std::size_t count;
+    {
+        std::lock_guard lock(attributeMutex_);
+        writes = queuedAttributes_;
+        count = queuedAttributeCount_;
+        queuedAttributeCount_ = 0;
+        attributesQueued_.store(false, std::memory_order_relaxed);
+    }
+    for (std::size_t i = 0; i < count; ++i) {
+        source_->setAttribute(writes[i].channel, writes[i].attribute, writes[i].value);
+    }
+}
+
 std::size_t RenderAheadMixer::lowWatermarkFrames() const noexcept {
     const auto target = targetFrames();
     return target > RenderChunkFrames ? target - RenderChunkFrames : 0;
@@ -104,6 +149,7 @@ std::size_t RenderAheadMixer::lowWatermarkFrames() const noexcept {
 
 std::int64_t RenderAheadMixer::bufferedSourcePosition(
     std::uint32_t sourceHandle, std::uint32_t endpointDelayFrames) noexcept {
+    NextRenderHold access{*this};
     std::lock_guard lock(sourceMutex_);
     return bufferedSourcePositionLocked(sourceHandle, endpointDelayFrames);
 }
@@ -159,6 +205,7 @@ bool RenderAheadMixer::sourcePositionSnapshotLocked(
 std::size_t RenderAheadMixer::consume(float* samples, std::size_t frames) noexcept {
     const auto before = ring_.available();
     const auto consumed = ring_.read(samples, frames);
+    generationConsumedFrames_.fetch_add(consumed, std::memory_order_release);
     const auto lowWatermark = lowWatermarkFrames();
     if (before >= lowWatermark && ring_.available() <= lowWatermark) {
         wake_.notify_one();
@@ -193,17 +240,20 @@ void RenderAheadMixer::run() noexcept {
         int rendered;
         {
             std::lock_guard sourceLock(sourceMutex_);
+            applyQueuedAttributes();
             rendered = source_->read(scratch_.data(), requested);
             if (rendered > 0) {
                 const auto frames = std::min<std::size_t>(rendered, requested);
                 const auto written = ring_.write(scratch_.data(), frames);
                 producedFrames_.fetch_add(written, std::memory_order_relaxed);
                 generationProducedFrames_.fetch_add(written, std::memory_order_relaxed);
+                recordSourcePosition();
             }
         }
         const auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now() - started).count();
         updateMaximum(static_cast<std::uint64_t>(elapsed));
+        yieldWhileHeld();
 
         if (rendered < 0) {
             lastError_.store(source_->lastError());
@@ -218,6 +268,115 @@ void RenderAheadMixer::run() noexcept {
         }
 
         if (ring_.available() >= targetFrames()) prefilled_.notify_all();
+    }
+}
+
+void RenderAheadMixer::recordSourcePosition() noexcept {
+    const auto source = trackedSource_.load(std::memory_order_acquire);
+    if (source == 0) return;
+
+    const auto count = positionHistoryCount_.load(std::memory_order_relaxed);
+    if (source != positionHistorySource_.load(std::memory_order_relaxed)) {
+        positionHistoryStart_.store(count, std::memory_order_release);
+        positionHistorySource_.store(source, std::memory_order_release);
+    }
+
+    const auto position = source_->position(source, 0);
+    if (position < 0) {
+        positionHistoryStart_.store(count, std::memory_order_release);
+        return;
+    }
+
+    auto& slot = positionHistory_[count % PositionHistorySize];
+    slot.sequence.store(0, std::memory_order_relaxed);
+    std::atomic_thread_fence(std::memory_order_release);
+    slot.frame.store(generationProducedFrames_.load(std::memory_order_relaxed),
+        std::memory_order_relaxed);
+    slot.position.store(position, std::memory_order_relaxed);
+    slot.sequence.store(count + 1, std::memory_order_release);
+    positionHistoryCount_.store(count + 1, std::memory_order_release);
+}
+
+void RenderAheadMixer::resetPositionHistory() noexcept {
+    positionHistoryStart_.store(positionHistoryCount_.load(std::memory_order_relaxed),
+        std::memory_order_release);
+}
+
+bool RenderAheadMixer::readPositionRecord(std::uint64_t index,
+    PositionRecord& record) const noexcept {
+    const auto& slot = positionHistory_[index % PositionHistorySize];
+    const auto before = slot.sequence.load(std::memory_order_acquire);
+    record.frame = slot.frame.load(std::memory_order_relaxed);
+    record.position = slot.position.load(std::memory_order_relaxed);
+    std::atomic_thread_fence(std::memory_order_acquire);
+    const auto after = slot.sequence.load(std::memory_order_relaxed);
+    return before == index + 1 && after == before;
+}
+
+bool RenderAheadMixer::sourcePositionSnapshotFromHistory(std::uint32_t sourceHandle,
+    std::uint32_t endpointDelayFrames, SourcePositionSnapshot& snapshot) noexcept {
+    // Answers from positions the worker recorded after each chunk, so readers
+    // never wait for a chunk that is still rendering.
+    if (positionHistorySource_.load(std::memory_order_acquire) != sourceHandle) {
+        return false;
+    }
+
+    const auto count = positionHistoryCount_.load(std::memory_order_acquire);
+    const auto start = positionHistoryStart_.load(std::memory_order_acquire);
+    if (count <= start) return false;
+    const auto oldest = std::max(start,
+        count > PositionHistorySize ? count - PositionHistorySize : 0);
+
+    PositionRecord latest{};
+    if (!readPositionRecord(count - 1, latest)) return false;
+    const auto consumed = generationConsumedFrames_.load(std::memory_order_acquire);
+    if (consumed > latest.frame) return false;
+
+    const auto totalDelayFrames = latest.frame - consumed + endpointDelayFrames;
+    if (totalDelayFrames >= latest.frame) return false;
+    const auto outputFrame = latest.frame - totalDelayFrames;
+
+    auto low = oldest;
+    auto high = count - 1;
+    PositionRecord before{};
+    if (!readPositionRecord(low, before) || before.frame > outputFrame) return false;
+    while (low < high) {
+        const auto middle = low + (high - low + 1) / 2;
+        PositionRecord record{};
+        if (!readPositionRecord(middle, record)) return false;
+        if (record.frame <= outputFrame) {
+            low = middle;
+            before = record;
+        } else {
+            high = middle - 1;
+        }
+    }
+
+    auto heardPosition = before.position;
+    if (before.frame < outputFrame) {
+        PositionRecord after{};
+        if (low + 1 >= count || !readPositionRecord(low + 1, after)) return false;
+        if (after.position > before.position) {
+            heardPosition += static_cast<std::int64_t>(
+                static_cast<double>(after.position - before.position) *
+                static_cast<double>(outputFrame - before.frame) /
+                static_cast<double>(after.frame - before.frame));
+        }
+    }
+
+    const auto maximumFrames = UINT32_MAX / (channels_ * sizeof(float));
+    snapshot.totalDelayFrames = static_cast<std::uint32_t>(
+        std::min<std::uint64_t>(totalDelayFrames, maximumFrames));
+    snapshot.decodePosition = latest.position;
+    snapshot.heardPosition = heardPosition;
+    positionOutputFrame_.store(outputFrame, std::memory_order_relaxed);
+    return true;
+}
+
+void RenderAheadMixer::yieldWhileHeld() const noexcept {
+    while (nextRenderHolds_.load(std::memory_order_acquire) != 0 &&
+        !stopping_.load(std::memory_order_acquire)) {
+        std::this_thread::yield();
     }
 }
 

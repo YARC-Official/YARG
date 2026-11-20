@@ -41,24 +41,27 @@ namespace YARG.Audio.BASS
         private readonly BassNormalizer? _normalizer;
         private readonly List<StemData>  _stemDatas = new();
         private readonly BassTempoStream _tempoStream;
+        private readonly bool            _whammyFxEnabled;
         private          bool            _disposed;
         private          bool            _normalizationEnabled;
 
         private BassStemPipeline(BassMixer mixer, BassTempoStream tempoStream,
-            BassNormalizer? normalizer, BassGainDsp? gainDsp)
+            BassNormalizer? normalizer, BassGainDsp? gainDsp, bool whammyFxEnabled)
         {
             _mixer = mixer;
             _tempoStream = tempoStream;
             _normalizer = normalizer;
             _gainDsp = gainDsp;
             _normalizationEnabled = normalizer != null;
+            _whammyFxEnabled = whammyFxEnabled;
         }
 
         public int OutputHandle => _tempoStream.Handle;
+        public double AlignmentDelay { get; private set; }
         internal double CommandDelay => _tempoStream.CommandDelay;
 
         public static BassStemPipeline? Create(int sampleRate, int channelCount, BassFlags flags,
-            bool withCompressor = true, bool withNormalization = false, int processingThreads = 0)
+            bool withWhammyFx, bool withCompressor = true, bool withNormalization = false, int processingThreads = 0)
         {
             var mixer = BassMixer.Create(sampleRate, channelCount, flags, processingThreads);
             if (mixer == null)
@@ -103,14 +106,13 @@ namespace YARG.Audio.BASS
                 }
             }
 
-            return new BassStemPipeline(mixer, tempoStream, normalizer, gainDsp);
+            return new BassStemPipeline(mixer, tempoStream, normalizer, gainDsp, withWhammyFx);
         }
 
         public bool AddStems(Stream stream, IEnumerable<StemMixer.StemInfo> stemInfos,
-            out List<StemAudioHandles> createdStems, out double alignmentDelay)
+            out List<StemAudioHandles> createdStems)
         {
             createdStems = new List<StemAudioHandles>();
-            alignmentDelay = 0;
 
             if (_disposed)
             {
@@ -130,19 +132,21 @@ namespace YARG.Audio.BASS
                 return false;
             }
 
-            if (!BuildStemData(source, stemInfoList, out var newStems))
+            if (!BuildStemData(source, stemInfoList, _whammyFxEnabled, out var newStems))
             {
                 source.Dispose();
                 return false;
             }
 
             _stemDatas.AddRange(newStems);
+            UpdateAlignmentDelay();
 
-            if (!RealignChannels(0, out alignmentDelay))
+            if (!RealignChannels(0))
             {
                 _stemDatas.RemoveAll(data => data.Source == source);
                 source.Dispose();
-                RealignChannels(0, out _);
+                UpdateAlignmentDelay();
+                RealignChannels(0);
                 return false;
             }
 
@@ -156,25 +160,16 @@ namespace YARG.Audio.BASS
             return true;
         }
 
-        public bool RealignChannels(double playbackDelay, out double alignmentDelay)
+        public bool RealignChannels(double playbackDelay = 0)
         {
             _mixer.RemoveAllChannels();
 
-            double requiredAlignment = 0;
-            foreach (var data in _stemDatas)
-            {
-                if (data.PitchFxDelay > requiredAlignment)
-                {
-                    requiredAlignment = data.PitchFxDelay;
-                }
-            }
-
-            alignmentDelay = requiredAlignment;
+            double requiredAlignment = AlignmentDelay;
             var channels = new List<BassMixerChannel>(_stemDatas.Count * 2);
 
             foreach (var data in _stemDatas)
             {
-                double delay = playbackDelay + requiredAlignment - data.PitchFxDelay;
+                double delay = playbackDelay + requiredAlignment - data.WhammyLatencySeconds;
                 channels.Add(new BassMixerChannel(data.StreamHandles.Stream, data.VolumeMatrix, delay));
                 channels.Add(new BassMixerChannel(data.ReverbHandles.Stream, data.VolumeMatrix, delay));
             }
@@ -203,6 +198,7 @@ namespace YARG.Audio.BASS
 
             if (removed)
             {
+                UpdateAlignmentDelay();
                 UpdateThreading();
             }
 
@@ -210,6 +206,9 @@ namespace YARG.Audio.BASS
         }
 
         public void SetSpeed(float speed, bool shiftPitch) => _tempoStream.SetSpeed(speed, shiftPitch);
+
+        public void SetAttributeWriter(Func<int, ChannelAttribute, float, bool>? writer) =>
+            _tempoStream.SetAttributeWriter(writer);
 
         public bool TryGetPositionSeconds(long positionBytes, out double seconds) =>
             _tempoStream.TryGetPositionSeconds(positionBytes, out seconds);
@@ -244,6 +243,7 @@ namespace YARG.Audio.BASS
 
             _disposed = true;
             _stemDatas.Clear();
+            AlignmentDelay = 0;
             _normalizer?.Dispose();
             _gainDsp?.Dispose();
             _tempoStream.Dispose();
@@ -251,7 +251,7 @@ namespace YARG.Audio.BASS
         }
 
         private static bool BuildStemData(BassMixerSource source, IEnumerable<StemMixer.StemInfo> stemInfos,
-            out List<StemData> stemDatas)
+            bool whammyFxEnabled, out List<StemData> stemDatas)
         {
             stemDatas = new List<StemData>();
 
@@ -268,14 +268,12 @@ namespace YARG.Audio.BASS
                 }
 
                 var (streamHandle, reverbHandle) = handles.Value;
-                double pitchFxDelay = GetPitchDelay(stem, streamHandle);
-                if (pitchFxDelay < 0)
-                {
-                    return false;
-                }
+                double whammyLatencySeconds = whammyFxEnabled && AudioHelpers.PitchBendAllowedStems.Contains(stem)
+                    ? AttachPitchShift(streamHandle, reverbHandle)
+                    : 0;
 
                 float[,]? volumeMatrix = BassHelpers.BuildVolumeMatrix(group, indices.Length);
-                stemDatas.Add(new StemData(stem, source, volumeMatrix, streamHandle, reverbHandle, pitchFxDelay));
+                stemDatas.Add(new StemData(stem, source, volumeMatrix, streamHandle, reverbHandle, whammyLatencySeconds));
             }
 
             if (stemDatas.Count > 0)
@@ -287,20 +285,35 @@ namespace YARG.Audio.BASS
             return false;
         }
 
-        private static double GetPitchDelay(SongStem stem, StreamHandle streamHandle)
+        private static double AttachPitchShift(StreamHandle streamHandle, StreamHandle reverbHandle)
         {
-            if (!GlobalAudioHandler.UseWhammyFx || !AudioHelpers.PitchBendAllowedStems.Contains(stem))
+            var streamShift = BassPitchShiftDsp.Attach(streamHandle.Stream);
+            var reverbShift = streamShift != null ? BassPitchShiftDsp.Attach(reverbHandle.Stream) : null;
+            if (streamShift == null || reverbShift == null || streamShift.LatencyFrames != reverbShift.LatencyFrames)
             {
+                YargLogger.LogError("Failed to set up whammy pitch shift. Whammy will not bend this stem.");
+                streamShift?.Dispose();
+                reverbShift?.Dispose();
                 return 0;
             }
 
-            if (Bass.ChannelGetAttribute(streamHandle.Stream, ChannelAttribute.Frequency, out float frequency))
+            streamHandle.PitchShift = streamShift;
+            reverbHandle.PitchShift = reverbShift;
+            return streamShift.LatencySeconds;
+        }
+
+        private void UpdateAlignmentDelay()
+        {
+            double maxDelay = 0;
+            foreach (var data in _stemDatas)
             {
-                return GlobalAudioHandler.WHAMMY_FFT_DEFAULT / frequency;
+                if (data.WhammyLatencySeconds > maxDelay)
+                {
+                    maxDelay = data.WhammyLatencySeconds;
+                }
             }
 
-            YargLogger.LogFormatError("Failed to get frequency for channel {0}!", streamHandle.Stream);
-            return -1;
+            AlignmentDelay = maxDelay;
         }
 
         private void UpdateThreading()
@@ -320,17 +333,17 @@ namespace YARG.Audio.BASS
             public readonly float[,]?       VolumeMatrix;
             public readonly StreamHandle    StreamHandles;
             public readonly StreamHandle    ReverbHandles;
-            public readonly double          PitchFxDelay;
+            public readonly double          WhammyLatencySeconds;
 
             public StemData(SongStem stem, BassMixerSource source, float[,]? volumeMatrix,
-                StreamHandle streamHandles, StreamHandle reverbHandles, double pitchFxDelay)
+                StreamHandle streamHandles, StreamHandle reverbHandles, double whammyLatencySeconds)
             {
                 Stem = stem;
                 Source = source;
                 VolumeMatrix = volumeMatrix;
                 StreamHandles = streamHandles;
                 ReverbHandles = reverbHandles;
-                PitchFxDelay = pitchFxDelay;
+                WhammyLatencySeconds = whammyLatencySeconds;
             }
         }
     }

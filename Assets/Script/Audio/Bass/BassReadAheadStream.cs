@@ -148,6 +148,31 @@ namespace YARG.Audio.BASS
             return YargAudioBindings.ReadAheadStreamSetBufferLength(this, bufferMilliseconds) == 0;
         }
 
+        public bool HoldNextRender()
+        {
+            ThrowIfDisposed();
+            return YargAudioBindings.ReadAheadStreamHoldNextRender(this) == 0;
+        }
+
+        public void ReleaseNextRender()
+        {
+            ThrowIfDisposed();
+            if (YargAudioBindings.ReadAheadStreamReleaseNextRender(this) != 0)
+            {
+                YargLogger.LogError("Failed to release the read-ahead render hold. Read-ahead will stay paused.");
+            }
+        }
+
+        public bool SetSourceAttribute(int channel, ManagedBass.ChannelAttribute attribute, float value)
+        {
+            if (IsClosed || IsInvalid)
+            {
+                return false;
+            }
+
+            return YargAudioBindings.ReadAheadStreamSetSourceAttribute(this, channel, (int) attribute, value) == 0;
+        }
+
         public long GetSourcePosition(int sourceHandle, int endpointDelayFrames) =>
             TryGetPositionSnapshot(sourceHandle, endpointDelayFrames, out var snapshot)
                 ? snapshot.HeardPosition

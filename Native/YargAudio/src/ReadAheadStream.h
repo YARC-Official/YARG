@@ -30,6 +30,10 @@ public:
     int prefill(std::uint32_t timeoutMilliseconds) noexcept;
     int flush() noexcept;
     int setBufferLength(std::uint32_t bufferMilliseconds) noexcept;
+    int holdNextRender() noexcept;
+    int releaseNextRender() noexcept;
+    int setSourceAttribute(std::uint32_t channel, std::uint32_t attribute,
+        float value) noexcept;
     std::int64_t getSourcePosition(std::uint32_t source,
         std::uint32_t endpointDelayFrames, int& error) noexcept;
     int getPositionSnapshot(std::uint32_t source,

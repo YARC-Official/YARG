@@ -6,7 +6,7 @@ namespace YARG.Audio.BASS.Native
 {
     internal static class YargAudioNative
     {
-        internal static bool CheckAbi() => GetAbiVersion() == 27;
+        internal static bool CheckAbi() => GetAbiVersion() == 28;
 
         [DllImport("yarg_audio", EntryPoint = "yarg_audio_get_abi_version", CallingConvention = CallingConvention.Cdecl)]
         private static extern uint GetAbiVersion();
@@ -39,6 +39,12 @@ namespace YARG.Audio.BASS.Native
         [DllImport("yarg_audio", EntryPoint = "yarg_read_ahead_stream_set_buffer_length", CallingConvention = CallingConvention.Cdecl)]
         internal static extern int ReadAheadStreamSetBufferLength(BassReadAheadStream stream, int milliseconds);
 
+        [DllImport("yarg_audio", EntryPoint = "yarg_read_ahead_stream_hold_next_render", CallingConvention = CallingConvention.Cdecl)]
+        internal static extern int ReadAheadStreamHoldNextRender(BassReadAheadStream stream);
+
+        [DllImport("yarg_audio", EntryPoint = "yarg_read_ahead_stream_release_next_render", CallingConvention = CallingConvention.Cdecl)]
+        internal static extern int ReadAheadStreamReleaseNextRender(BassReadAheadStream stream);
+
         [DllImport("yarg_audio", EntryPoint = "yarg_read_ahead_stream_get_position_snapshot", CallingConvention = CallingConvention.Cdecl)]
         internal static extern int ReadAheadStreamGetPositionSnapshot(BassReadAheadStream stream, int source,
             int endpointDelayFrames, ref ReadAheadPositionSnapshot snapshot);
@@ -55,6 +61,9 @@ namespace YARG.Core.Logging
 {
     internal static class YargLogger
     {
+        internal static void LogError(string message) =>
+            throw new InvalidOperationException(message);
+
         internal static void LogFormatError(string format, params object[] arguments) =>
             throw new InvalidOperationException(string.Format(format, arguments));
 

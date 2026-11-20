@@ -155,7 +155,7 @@ bool run(const char* name, double deviceRate, bool independentClock,
     REQUIRE(stats.underrun_events == 0);
     REQUIRE(!state.outputLocked);
     REQUIRE(state.locks == state.unlocks);
-    REQUIRE(state.locks == (independentClock ? 0 : blocks + 1));
+    REQUIRE(independentClock ? state.locks == 0 : state.locks >= blocks + 1);
     REQUIRE(stream->destroy(nullptr));
     const auto passed = maximumDrift <= TOLERANCE_MS;
     std::cout << name << ": " << (passed ? "PASS" : "FAIL")

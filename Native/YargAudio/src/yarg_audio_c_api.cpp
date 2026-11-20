@@ -5,6 +5,7 @@
 #include "dsp/FreeverbDsp.h"
 #include "dsp/GainDsp.h"
 #include "dsp/NoiseGateDsp.h"
+#include "dsp/PitchShiftDsp.h"
 #include "dsp/SineSynthDsp.h"
 #include "one_shot/NativeOneShotStream.h"
 #include "stretch/StretchTempoStream.h"
@@ -274,6 +275,27 @@ void YARG_AUDIO_CALL yarg_noise_gate_dsp_destroy(yarg_noise_gate_dsp* dsp) {
     (void) yarg::audio::noiseGateDspDestroy(dsp);
 }
 
+int32_t YARG_AUDIO_CALL yarg_pitch_shift_dsp_attach(uint32_t channel, int32_t priority,
+    yarg_pitch_shift_dsp** dsp, int32_t* bass_error) {
+    return yarg::audio::pitchShiftDspAttach(coreBassBindings(), channel, priority, dsp, bass_error);
+}
+
+int32_t YARG_AUDIO_CALL yarg_pitch_shift_dsp_set_ratio(yarg_pitch_shift_dsp* dsp, float ratio) {
+    return yarg::audio::pitchShiftDspSetRatio(dsp, ratio);
+}
+
+int32_t YARG_AUDIO_CALL yarg_pitch_shift_dsp_reset(yarg_pitch_shift_dsp* dsp) {
+    return yarg::audio::pitchShiftDspRequestReset(dsp);
+}
+
+int32_t YARG_AUDIO_CALL yarg_pitch_shift_dsp_get_latency(yarg_pitch_shift_dsp* dsp, uint32_t* frames) {
+    return yarg::audio::pitchShiftDspGetLatency(dsp, frames);
+}
+
+void YARG_AUDIO_CALL yarg_pitch_shift_dsp_destroy(yarg_pitch_shift_dsp* dsp) {
+    (void) yarg::audio::pitchShiftDspDestroy(dsp);
+}
+
 int32_t YARG_AUDIO_CALL yarg_one_shot_stream_create(
     const yarg_one_shot_config* config, const float* pcm,
     uint64_t pcmSampleCount, const double* schedule, uint64_t scheduleCount,
@@ -436,6 +458,27 @@ int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_set_buffer_length(
     yarg_read_ahead_stream* stream, uint32_t bufferMilliseconds) {
     return stream && stream->value
         ? stream->value->setBufferLength(bufferMilliseconds)
+        : YARG_AUDIO_ERROR_INVALID_ARGUMENT;
+}
+
+int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_hold_next_render(
+    yarg_read_ahead_stream* stream) {
+    return stream && stream->value
+        ? stream->value->holdNextRender()
+        : YARG_AUDIO_ERROR_INVALID_ARGUMENT;
+}
+
+int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_release_next_render(
+    yarg_read_ahead_stream* stream) {
+    return stream && stream->value
+        ? stream->value->releaseNextRender()
+        : YARG_AUDIO_ERROR_INVALID_ARGUMENT;
+}
+
+int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_set_source_attribute(
+    yarg_read_ahead_stream* stream, uint32_t channel, uint32_t attribute, float value) {
+    return stream && stream->value
+        ? stream->value->setSourceAttribute(channel, attribute, value)
         : YARG_AUDIO_ERROR_INVALID_ARGUMENT;
 }
 

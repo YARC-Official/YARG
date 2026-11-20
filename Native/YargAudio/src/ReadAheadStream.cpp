@@ -76,6 +76,11 @@ public:
         return bassMix_.getPosition(sourceHandle, delayBytes);
     }
 
+    bool setAttribute(std::uint32_t channel, std::uint32_t attribute,
+        float value) noexcept override {
+        return bass_.setAttribute(channel, attribute, value);
+    }
+
 private:
     BassCoreBindings& bass_;
     BassMixBindings& bassMix_;
@@ -166,6 +171,25 @@ int ReadAheadStream::setBufferLength(std::uint32_t bufferMilliseconds) noexcept 
         ? YARG_AUDIO_OK : YARG_AUDIO_ERROR_INVALID_ARGUMENT;
 }
 
+int ReadAheadStream::holdNextRender() noexcept {
+    if (!renderer_) return YARG_AUDIO_ERROR_INVALID_STATE;
+    renderer_->holdNextRender();
+    return YARG_AUDIO_OK;
+}
+
+int ReadAheadStream::releaseNextRender() noexcept {
+    if (!renderer_) return YARG_AUDIO_ERROR_INVALID_STATE;
+    renderer_->releaseNextRender();
+    return YARG_AUDIO_OK;
+}
+
+int ReadAheadStream::setSourceAttribute(std::uint32_t channel,
+    std::uint32_t attribute, float value) noexcept {
+    if (!renderer_ || channel == 0) return YARG_AUDIO_ERROR_INVALID_ARGUMENT;
+    return renderer_->queueSourceAttribute(channel, attribute, value)
+        ? YARG_AUDIO_OK : YARG_AUDIO_ERROR_INVALID_STATE;
+}
+
 std::int64_t ReadAheadStream::getSourcePosition(std::uint32_t source,
     std::uint32_t endpointDelayFrames, int& error) noexcept {
     yarg_read_ahead_position_snapshot snapshot{
@@ -188,9 +212,11 @@ int ReadAheadStream::getPositionSnapshot(std::uint32_t source,
         struct OutputLock {
             BassCoreBindings& bass;
             std::uint32_t handle = 0;
-            ~OutputLock() {
+            ~OutputLock() { release(); }
+            void release() {
                 if (handle != 0) {
                     bass.lockChannel(handle, false);
+                    handle = 0;
                 }
             }
         } outputLock{bass_};
@@ -200,27 +226,33 @@ int ReadAheadStream::getPositionSnapshot(std::uint32_t source,
             continue;
         }
 
-        const auto succeeded = renderer_->sourcePositionSnapshotAfterLock(
-            source, position, [this, endpointDelayFrames, &outputLock](std::uint32_t& delayFrames) {
-                if (config_.output_stream != 0) {
-                    if (!bass_.lockChannel(config_.output_stream, true)) {
-                        lastError_.store(bass_.error(), std::memory_order_relaxed);
-                        return false;
-                    }
-                    outputLock.handle = config_.output_stream;
-                    const auto bytes = bass_.getData(config_.output_stream, nullptr, 0);
-                    if (bytes < 0) {
-                        lastError_.store(bass_.error(), std::memory_order_relaxed);
-                        return false;
-                    }
-                    delayFrames = static_cast<std::uint32_t>(bytes / (config_.channels * sizeof(float)));
-                    return true;
+        const auto delayProvider = [this, endpointDelayFrames, &outputLock](std::uint32_t& delayFrames) {
+            if (config_.output_stream != 0) {
+                if (!bass_.lockChannel(config_.output_stream, true)) {
+                    lastError_.store(bass_.error(), std::memory_order_relaxed);
+                    return false;
                 }
-                delayFrames = remainingPlaybackDelayFrames(
-                    endpointDelayFrames, timestampProvider_());
+                outputLock.handle = config_.output_stream;
+                const auto bytes = bass_.getData(config_.output_stream, nullptr, 0);
+                if (bytes < 0) {
+                    lastError_.store(bass_.error(), std::memory_order_relaxed);
+                    return false;
+                }
+                delayFrames = static_cast<std::uint32_t>(bytes / (config_.channels * sizeof(float)));
                 return true;
-            });
-        if (!succeeded) {
+            }
+            delayFrames = remainingPlaybackDelayFrames(
+                endpointDelayFrames, timestampProvider_());
+            return true;
+        };
+        auto read = renderer_->trySourcePositionSnapshot(source, position, delayProvider);
+        if (read == PositionRead::Busy) {
+            // Take the source lock before the output lock, as the worker does.
+            outputLock.release();
+            read = renderer_->sourcePositionSnapshotAfterLock(source, position, delayProvider)
+                ? PositionRead::Succeeded : PositionRead::Failed;
+        }
+        if (read == PositionRead::Failed) {
             return YARG_AUDIO_ERROR_BASS;
         }
         if (consumerSequence_.load(std::memory_order_acquire) == sequence) {

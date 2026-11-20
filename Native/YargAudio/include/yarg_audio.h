@@ -18,7 +18,7 @@
 extern "C" {
 #endif
 
-#define YARG_AUDIO_ABI_VERSION 27u
+#define YARG_AUDIO_ABI_VERSION 29u
 
 typedef struct yarg_stretch_stream yarg_stretch_stream;
 
@@ -27,6 +27,7 @@ typedef struct yarg_gain_dsp yarg_gain_dsp;
 typedef struct yarg_freeverb_dsp yarg_freeverb_dsp;
 typedef struct yarg_dattorro_reverb_dsp yarg_dattorro_reverb_dsp;
 typedef struct yarg_noise_gate_dsp yarg_noise_gate_dsp;
+typedef struct yarg_pitch_shift_dsp yarg_pitch_shift_dsp;
 typedef struct yarg_one_shot_stream yarg_one_shot_stream;
 typedef struct yarg_sine_synth_dsp yarg_sine_synth_dsp;
 
@@ -192,6 +193,15 @@ YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_noise_gate_dsp_reset(
 YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_noise_gate_dsp_set_params(
     yarg_noise_gate_dsp* dsp, const yarg_noise_gate_params* params);
 YARG_AUDIO_API void YARG_AUDIO_CALL yarg_noise_gate_dsp_destroy(yarg_noise_gate_dsp* dsp);
+YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_pitch_shift_dsp_attach(
+    uint32_t channel, int32_t priority, yarg_pitch_shift_dsp** dsp, int32_t* bass_error);
+YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_pitch_shift_dsp_set_ratio(
+    yarg_pitch_shift_dsp* dsp, float ratio);
+YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_pitch_shift_dsp_reset(
+    yarg_pitch_shift_dsp* dsp);
+YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_pitch_shift_dsp_get_latency(
+    yarg_pitch_shift_dsp* dsp, uint32_t* frames);
+YARG_AUDIO_API void YARG_AUDIO_CALL yarg_pitch_shift_dsp_destroy(yarg_pitch_shift_dsp* dsp);
 YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_one_shot_stream_create(
     const yarg_one_shot_config* config,
     const float* pcm, uint64_t pcm_sample_count,
@@ -242,6 +252,12 @@ YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_flush(
     yarg_read_ahead_stream* stream);
 YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_set_buffer_length(
     yarg_read_ahead_stream* stream, uint32_t buffer_milliseconds);
+YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_hold_next_render(
+    yarg_read_ahead_stream* stream);
+YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_release_next_render(
+    yarg_read_ahead_stream* stream);
+YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_set_source_attribute(
+    yarg_read_ahead_stream* stream, uint32_t channel, uint32_t attribute, float value);
 YARG_AUDIO_API int64_t YARG_AUDIO_CALL yarg_read_ahead_stream_get_source_position(
     yarg_read_ahead_stream* stream, uint32_t source_handle,
     uint32_t endpoint_delay_frames, int32_t* error);

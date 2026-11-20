@@ -9,6 +9,7 @@ int main() {
     runFreeverbDspTests();
     runDattorroReverbDspTests();
     runNoiseGateDspTests();
+    runPitchShifterTests();
     runNoiseMorphTests();
     runYargStretchTests();
     runSineSynthDspTests();

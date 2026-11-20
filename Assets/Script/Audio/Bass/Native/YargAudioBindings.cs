@@ -42,6 +42,11 @@ namespace YARG.Audio.BASS.Native
         private static NoiseGateDspResetDelegate? _noiseGateDspReset;
         private static NoiseGateDspSetParamsDelegate? _noiseGateDspSetParams;
         private static NoiseGateDspDestroyDelegate? _noiseGateDspDestroy;
+        private static PitchShiftDspAttachDelegate? _pitchShiftDspAttach;
+        private static PitchShiftDspSetRatioDelegate? _pitchShiftDspSetRatio;
+        private static PitchShiftDspResetDelegate? _pitchShiftDspReset;
+        private static PitchShiftDspGetLatencyDelegate? _pitchShiftDspGetLatency;
+        private static PitchShiftDspDestroyDelegate? _pitchShiftDspDestroy;
         private static OneShotStreamCreateDelegate? _oneShotStreamCreate;
         private static OneShotStreamAttachDelegate? _oneShotStreamAttach;
         private static OneShotStreamResyncDelegate? _oneShotStreamResync;
@@ -61,6 +66,9 @@ namespace YARG.Audio.BASS.Native
         private static ReadAheadStreamPrefillDelegate? _readAheadStreamPrefill;
         private static ReadAheadStreamFlushDelegate? _readAheadStreamFlush;
         private static ReadAheadStreamSetBufferLengthDelegate? _readAheadStreamSetBufferLength;
+        private static ReadAheadStreamHoldNextRenderDelegate? _readAheadStreamHoldNextRender;
+        private static ReadAheadStreamReleaseNextRenderDelegate? _readAheadStreamReleaseNextRender;
+        private static ReadAheadStreamSetSourceAttributeDelegate? _readAheadStreamSetSourceAttribute;
         private static ReadAheadStreamGetPositionSnapshotDelegate? _readAheadStreamGetPositionSnapshot;
         private static ReadAheadStreamGetStatsDelegate? _readAheadStreamGetStats;
         private static ReadAheadStreamDestroyDelegate? _readAheadStreamDestroy;
@@ -179,6 +187,21 @@ namespace YARG.Audio.BASS.Native
         internal static void NoiseGateDspDestroy(IntPtr dsp) =>
             EnsureBound(ref _noiseGateDspDestroy, "yarg_noise_gate_dsp_destroy")(dsp);
 
+        internal static int PitchShiftDspAttach(int channel, int priority, out BassPitchShiftDsp dsp, out int bassError) =>
+            EnsureBound(ref _pitchShiftDspAttach, "yarg_pitch_shift_dsp_attach")(channel, priority, out dsp, out bassError);
+
+        internal static int PitchShiftDspSetRatio(BassPitchShiftDsp dsp, float ratio) =>
+            EnsureBound(ref _pitchShiftDspSetRatio, "yarg_pitch_shift_dsp_set_ratio")(dsp, ratio);
+
+        internal static int PitchShiftDspReset(BassPitchShiftDsp dsp) =>
+            EnsureBound(ref _pitchShiftDspReset, "yarg_pitch_shift_dsp_reset")(dsp);
+
+        internal static int PitchShiftDspGetLatency(BassPitchShiftDsp dsp, out uint frames) =>
+            EnsureBound(ref _pitchShiftDspGetLatency, "yarg_pitch_shift_dsp_get_latency")(dsp, out frames);
+
+        internal static void PitchShiftDspDestroy(IntPtr dsp) =>
+            EnsureBound(ref _pitchShiftDspDestroy, "yarg_pitch_shift_dsp_destroy")(dsp);
+
         internal static int OneShotStreamCreate(in BassNativeOneShotStream.NativeConfig config, IntPtr pcm, ulong pcmSampleCount, IntPtr schedule, ulong scheduleCount, out BassNativeOneShotStream stream, out int bassError) =>
             EnsureBound(ref _oneShotStreamCreate, "yarg_one_shot_stream_create")(in config, pcm, pcmSampleCount, schedule, scheduleCount, out stream, out bassError);
 
@@ -236,6 +259,15 @@ namespace YARG.Audio.BASS.Native
         internal static int ReadAheadStreamSetBufferLength(BassReadAheadStream stream, int bufferMilliseconds) =>
             EnsureBound(ref _readAheadStreamSetBufferLength, "yarg_read_ahead_stream_set_buffer_length")(stream, bufferMilliseconds);
 
+        internal static int ReadAheadStreamHoldNextRender(BassReadAheadStream stream) =>
+            EnsureBound(ref _readAheadStreamHoldNextRender, "yarg_read_ahead_stream_hold_next_render")(stream);
+
+        internal static int ReadAheadStreamReleaseNextRender(BassReadAheadStream stream) =>
+            EnsureBound(ref _readAheadStreamReleaseNextRender, "yarg_read_ahead_stream_release_next_render")(stream);
+
+        internal static int ReadAheadStreamSetSourceAttribute(BassReadAheadStream stream, int channel, int attribute, float value) =>
+            EnsureBound(ref _readAheadStreamSetSourceAttribute, "yarg_read_ahead_stream_set_source_attribute")(stream, channel, attribute, value);
+
         internal static int ReadAheadStreamGetPositionSnapshot(BassReadAheadStream stream, int sourceHandle, int endpointDelayFrames, ref ReadAheadPositionSnapshot snapshot) =>
             EnsureBound(ref _readAheadStreamGetPositionSnapshot, "yarg_read_ahead_stream_get_position_snapshot")(stream, sourceHandle, endpointDelayFrames, ref snapshot);
 
@@ -291,6 +323,11 @@ namespace YARG.Audio.BASS.Native
             _noiseGateDspReset = GetFunction<NoiseGateDspResetDelegate>(handle, "yarg_noise_gate_dsp_reset");
             _noiseGateDspSetParams = GetFunction<NoiseGateDspSetParamsDelegate>(handle, "yarg_noise_gate_dsp_set_params");
             _noiseGateDspDestroy = GetFunction<NoiseGateDspDestroyDelegate>(handle, "yarg_noise_gate_dsp_destroy");
+            _pitchShiftDspAttach = GetFunction<PitchShiftDspAttachDelegate>(handle, "yarg_pitch_shift_dsp_attach");
+            _pitchShiftDspSetRatio = GetFunction<PitchShiftDspSetRatioDelegate>(handle, "yarg_pitch_shift_dsp_set_ratio");
+            _pitchShiftDspReset = GetFunction<PitchShiftDspResetDelegate>(handle, "yarg_pitch_shift_dsp_reset");
+            _pitchShiftDspGetLatency = GetFunction<PitchShiftDspGetLatencyDelegate>(handle, "yarg_pitch_shift_dsp_get_latency");
+            _pitchShiftDspDestroy = GetFunction<PitchShiftDspDestroyDelegate>(handle, "yarg_pitch_shift_dsp_destroy");
             _oneShotStreamCreate = GetFunction<OneShotStreamCreateDelegate>(handle, "yarg_one_shot_stream_create");
             _oneShotStreamAttach = GetFunction<OneShotStreamAttachDelegate>(handle, "yarg_one_shot_stream_attach");
             _oneShotStreamResync = GetFunction<OneShotStreamResyncDelegate>(handle, "yarg_one_shot_stream_resync_ex");
@@ -310,6 +347,9 @@ namespace YARG.Audio.BASS.Native
             _readAheadStreamPrefill = GetFunction<ReadAheadStreamPrefillDelegate>(handle, "yarg_read_ahead_stream_prefill");
             _readAheadStreamFlush = GetFunction<ReadAheadStreamFlushDelegate>(handle, "yarg_read_ahead_stream_flush");
             _readAheadStreamSetBufferLength = GetFunction<ReadAheadStreamSetBufferLengthDelegate>(handle, "yarg_read_ahead_stream_set_buffer_length");
+            _readAheadStreamHoldNextRender = GetFunction<ReadAheadStreamHoldNextRenderDelegate>(handle, "yarg_read_ahead_stream_hold_next_render");
+            _readAheadStreamReleaseNextRender = GetFunction<ReadAheadStreamReleaseNextRenderDelegate>(handle, "yarg_read_ahead_stream_release_next_render");
+            _readAheadStreamSetSourceAttribute = GetFunction<ReadAheadStreamSetSourceAttributeDelegate>(handle, "yarg_read_ahead_stream_set_source_attribute");
             _readAheadStreamGetPositionSnapshot = GetFunction<ReadAheadStreamGetPositionSnapshotDelegate>(handle, "yarg_read_ahead_stream_get_position_snapshot");
             _readAheadStreamGetStats = GetFunction<ReadAheadStreamGetStatsDelegate>(handle, "yarg_read_ahead_stream_get_stats");
             _readAheadStreamDestroy = GetFunction<ReadAheadStreamDestroyDelegate>(handle, "yarg_read_ahead_stream_destroy");
@@ -468,6 +508,21 @@ namespace YARG.Audio.BASS.Native
         private delegate void NoiseGateDspDestroyDelegate(IntPtr dsp);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate int PitchShiftDspAttachDelegate(int channel, int priority, out BassPitchShiftDsp dsp, out int bassError);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate int PitchShiftDspSetRatioDelegate(BassPitchShiftDsp dsp, float ratio);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate int PitchShiftDspResetDelegate(BassPitchShiftDsp dsp);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate int PitchShiftDspGetLatencyDelegate(BassPitchShiftDsp dsp, out uint frames);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void PitchShiftDspDestroyDelegate(IntPtr dsp);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate int OneShotStreamCreateDelegate(in BassNativeOneShotStream.NativeConfig config, IntPtr pcm, ulong pcmSampleCount, IntPtr schedule, ulong scheduleCount, out BassNativeOneShotStream stream, out int bassError);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -523,6 +578,15 @@ namespace YARG.Audio.BASS.Native
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate int ReadAheadStreamSetBufferLengthDelegate(BassReadAheadStream stream, int bufferMilliseconds);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate int ReadAheadStreamHoldNextRenderDelegate(BassReadAheadStream stream);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate int ReadAheadStreamReleaseNextRenderDelegate(BassReadAheadStream stream);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate int ReadAheadStreamSetSourceAttributeDelegate(BassReadAheadStream stream, int channel, int attribute, float value);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate int ReadAheadStreamGetPositionSnapshotDelegate(BassReadAheadStream stream, int sourceHandle, int endpointDelayFrames, ref ReadAheadPositionSnapshot snapshot);
