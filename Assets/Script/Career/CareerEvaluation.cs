@@ -31,6 +31,8 @@ namespace YARG.Career
             public float Stars;
             // Sum of the tier's songs' best stars (used for StarCount unlocks)
             public int StarSum;
+            // Number of the tier's songs that have been completed (used for CompletionCount display)
+            public int CompletedSongs;
             public int RemainingToUnlock;
             public List<SongResult> Songs = new();
         }
@@ -91,6 +93,7 @@ namespace YARG.Career
 
                 result.Completed = result.Songs.Count > 0 && result.Songs.All(song => song.Completed);
                 result.StarSum = result.Songs.Sum(song => song.BestStars);
+                result.CompletedSongs = result.Songs.Count(song => song.Completed);
                 result.Stars = result.Songs.Count == 0 ? 0 : (float) result.StarSum / result.Songs.Count;
 
                 // The first tier is always unlocked. Otherwise, the previous *regular* tier must meet
