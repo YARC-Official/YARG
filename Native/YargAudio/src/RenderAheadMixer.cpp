@@ -64,15 +64,22 @@ bool RenderAheadMixer::prefill(std::chrono::milliseconds timeout) {
 
 void RenderAheadMixer::stop() noexcept {
     {
-        std::lock_guard lock(mutex_);
-        if (!running_) return;
+        std::unique_lock lock(mutex_);
+        if (!running_) {
+            lock.unlock();
+            applyQueuedAttributes();
+            return;
+        }
         stopping_.store(true, std::memory_order_release);
     }
     wake_.notify_all();
     prefilled_.notify_all();
     if (worker_.joinable()) worker_.join();
-    std::lock_guard lock(mutex_);
-    running_ = false;
+    {
+        std::lock_guard lock(mutex_);
+        running_ = false;
+    }
+    applyQueuedAttributes();
 }
 
 bool RenderAheadMixer::clear() {
@@ -98,6 +105,41 @@ bool RenderAheadMixer::setTargetFrames(std::size_t frames) noexcept {
     wake_.notify_one();
     prefilled_.notify_all();
     return true;
+}
+
+bool RenderAheadMixer::queueSourceAttribute(std::uint32_t channel,
+    std::uint32_t attribute, float value) noexcept {
+    std::lock_guard lock(attributeMutex_);
+    for (std::size_t i = 0; i < queuedAttributeCount_; ++i) {
+        auto& write = queuedAttributes_[i];
+        if (write.channel == channel && write.attribute == attribute) {
+            write.value = value;
+            return true;
+        }
+    }
+    if (queuedAttributeCount_ == queuedAttributes_.size()) {
+        return false;
+    }
+    queuedAttributes_[queuedAttributeCount_++] = AttributeWrite{channel, attribute, value};
+    attributesQueued_.store(true, std::memory_order_release);
+    return true;
+}
+
+void RenderAheadMixer::applyQueuedAttributes() noexcept {
+    if (!attributesQueued_.load(std::memory_order_acquire)) return;
+
+    std::array<AttributeWrite, MaximumQueuedAttributes> writes;
+    std::size_t count;
+    {
+        std::lock_guard lock(attributeMutex_);
+        writes = queuedAttributes_;
+        count = queuedAttributeCount_;
+        queuedAttributeCount_ = 0;
+        attributesQueued_.store(false, std::memory_order_relaxed);
+    }
+    for (std::size_t i = 0; i < count; ++i) {
+        source_->setAttribute(writes[i].channel, writes[i].attribute, writes[i].value);
+    }
 }
 
 std::size_t RenderAheadMixer::lowWatermarkFrames() const noexcept {
@@ -198,6 +240,7 @@ void RenderAheadMixer::run() noexcept {
         int rendered;
         {
             std::lock_guard sourceLock(sourceMutex_);
+            applyQueuedAttributes();
             rendered = source_->read(scratch_.data(), requested);
             if (rendered > 0) {
                 const auto frames = std::min<std::size_t>(rendered, requested);

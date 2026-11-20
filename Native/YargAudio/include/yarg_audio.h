@@ -18,7 +18,7 @@
 extern "C" {
 #endif
 
-#define YARG_AUDIO_ABI_VERSION 28u
+#define YARG_AUDIO_ABI_VERSION 29u
 
 typedef struct yarg_stretch_stream yarg_stretch_stream;
 
@@ -256,6 +256,8 @@ YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_hold_next_render(
     yarg_read_ahead_stream* stream);
 YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_release_next_render(
     yarg_read_ahead_stream* stream);
+YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_set_source_attribute(
+    yarg_read_ahead_stream* stream, uint32_t channel, uint32_t attribute, float value);
 YARG_AUDIO_API int64_t YARG_AUDIO_CALL yarg_read_ahead_stream_get_source_position(
     yarg_read_ahead_stream* stream, uint32_t source_handle,
     uint32_t endpoint_delay_frames, int32_t* error);

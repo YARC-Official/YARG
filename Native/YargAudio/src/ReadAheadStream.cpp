@@ -76,6 +76,11 @@ public:
         return bassMix_.getPosition(sourceHandle, delayBytes);
     }
 
+    bool setAttribute(std::uint32_t channel, std::uint32_t attribute,
+        float value) noexcept override {
+        return bass_.setAttribute(channel, attribute, value);
+    }
+
 private:
     BassCoreBindings& bass_;
     BassMixBindings& bassMix_;
@@ -176,6 +181,13 @@ int ReadAheadStream::releaseNextRender() noexcept {
     if (!renderer_) return YARG_AUDIO_ERROR_INVALID_STATE;
     renderer_->releaseNextRender();
     return YARG_AUDIO_OK;
+}
+
+int ReadAheadStream::setSourceAttribute(std::uint32_t channel,
+    std::uint32_t attribute, float value) noexcept {
+    if (!renderer_ || channel == 0) return YARG_AUDIO_ERROR_INVALID_ARGUMENT;
+    return renderer_->queueSourceAttribute(channel, attribute, value)
+        ? YARG_AUDIO_OK : YARG_AUDIO_ERROR_INVALID_STATE;
 }
 
 std::int64_t ReadAheadStream::getSourcePosition(std::uint32_t source,

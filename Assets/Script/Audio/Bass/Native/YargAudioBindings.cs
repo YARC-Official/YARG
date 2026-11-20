@@ -68,6 +68,7 @@ namespace YARG.Audio.BASS.Native
         private static ReadAheadStreamSetBufferLengthDelegate? _readAheadStreamSetBufferLength;
         private static ReadAheadStreamHoldNextRenderDelegate? _readAheadStreamHoldNextRender;
         private static ReadAheadStreamReleaseNextRenderDelegate? _readAheadStreamReleaseNextRender;
+        private static ReadAheadStreamSetSourceAttributeDelegate? _readAheadStreamSetSourceAttribute;
         private static ReadAheadStreamGetPositionSnapshotDelegate? _readAheadStreamGetPositionSnapshot;
         private static ReadAheadStreamGetStatsDelegate? _readAheadStreamGetStats;
         private static ReadAheadStreamDestroyDelegate? _readAheadStreamDestroy;
@@ -264,6 +265,9 @@ namespace YARG.Audio.BASS.Native
         internal static int ReadAheadStreamReleaseNextRender(BassReadAheadStream stream) =>
             EnsureBound(ref _readAheadStreamReleaseNextRender, "yarg_read_ahead_stream_release_next_render")(stream);
 
+        internal static int ReadAheadStreamSetSourceAttribute(BassReadAheadStream stream, int channel, int attribute, float value) =>
+            EnsureBound(ref _readAheadStreamSetSourceAttribute, "yarg_read_ahead_stream_set_source_attribute")(stream, channel, attribute, value);
+
         internal static int ReadAheadStreamGetPositionSnapshot(BassReadAheadStream stream, int sourceHandle, int endpointDelayFrames, ref ReadAheadPositionSnapshot snapshot) =>
             EnsureBound(ref _readAheadStreamGetPositionSnapshot, "yarg_read_ahead_stream_get_position_snapshot")(stream, sourceHandle, endpointDelayFrames, ref snapshot);
 
@@ -345,6 +349,7 @@ namespace YARG.Audio.BASS.Native
             _readAheadStreamSetBufferLength = GetFunction<ReadAheadStreamSetBufferLengthDelegate>(handle, "yarg_read_ahead_stream_set_buffer_length");
             _readAheadStreamHoldNextRender = GetFunction<ReadAheadStreamHoldNextRenderDelegate>(handle, "yarg_read_ahead_stream_hold_next_render");
             _readAheadStreamReleaseNextRender = GetFunction<ReadAheadStreamReleaseNextRenderDelegate>(handle, "yarg_read_ahead_stream_release_next_render");
+            _readAheadStreamSetSourceAttribute = GetFunction<ReadAheadStreamSetSourceAttributeDelegate>(handle, "yarg_read_ahead_stream_set_source_attribute");
             _readAheadStreamGetPositionSnapshot = GetFunction<ReadAheadStreamGetPositionSnapshotDelegate>(handle, "yarg_read_ahead_stream_get_position_snapshot");
             _readAheadStreamGetStats = GetFunction<ReadAheadStreamGetStatsDelegate>(handle, "yarg_read_ahead_stream_get_stats");
             _readAheadStreamDestroy = GetFunction<ReadAheadStreamDestroyDelegate>(handle, "yarg_read_ahead_stream_destroy");
@@ -579,6 +584,9 @@ namespace YARG.Audio.BASS.Native
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate int ReadAheadStreamReleaseNextRenderDelegate(BassReadAheadStream stream);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate int ReadAheadStreamSetSourceAttributeDelegate(BassReadAheadStream stream, int channel, int attribute, float value);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate int ReadAheadStreamGetPositionSnapshotDelegate(BassReadAheadStream stream, int sourceHandle, int endpointDelayFrames, ref ReadAheadPositionSnapshot snapshot);

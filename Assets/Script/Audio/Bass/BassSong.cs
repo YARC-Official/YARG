@@ -113,6 +113,7 @@ namespace YARG.Audio.BASS
             }
 
             _connection = connection;
+            _stemPipeline.SetAttributeWriter(connection.SetSourceAttribute);
             return true;
         }
 
@@ -150,6 +151,7 @@ namespace YARG.Audio.BASS
                 channel.DetachOutput();
             }
 
+            _stemPipeline.SetAttributeWriter(null);
             _connection?.Dispose();
             _connection = null;
         }

@@ -163,6 +163,16 @@ namespace YARG.Audio.BASS
             }
         }
 
+        public bool SetSourceAttribute(int channel, ManagedBass.ChannelAttribute attribute, float value)
+        {
+            if (IsClosed || IsInvalid)
+            {
+                return false;
+            }
+
+            return YargAudioBindings.ReadAheadStreamSetSourceAttribute(this, channel, (int) attribute, value) == 0;
+        }
+
         public long GetSourcePosition(int sourceHandle, int endpointDelayFrames) =>
             TryGetPositionSnapshot(sourceHandle, endpointDelayFrames, out var snapshot)
                 ? snapshot.HeardPosition

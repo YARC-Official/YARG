@@ -207,6 +207,9 @@ namespace YARG.Audio.BASS
 
         public void SetSpeed(float speed, bool shiftPitch) => _tempoStream.SetSpeed(speed, shiftPitch);
 
+        public void SetAttributeWriter(Func<int, ChannelAttribute, float, bool>? writer) =>
+            _tempoStream.SetAttributeWriter(writer);
+
         public bool TryGetPositionSeconds(long positionBytes, out double seconds) =>
             _tempoStream.TryGetPositionSeconds(positionBytes, out seconds);
 

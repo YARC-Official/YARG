@@ -475,6 +475,13 @@ int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_release_next_render(
         : YARG_AUDIO_ERROR_INVALID_ARGUMENT;
 }
 
+int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_set_source_attribute(
+    yarg_read_ahead_stream* stream, uint32_t channel, uint32_t attribute, float value) {
+    return stream && stream->value
+        ? stream->value->setSourceAttribute(channel, attribute, value)
+        : YARG_AUDIO_ERROR_INVALID_ARGUMENT;
+}
+
 int64_t YARG_AUDIO_CALL yarg_read_ahead_stream_get_source_position(
     yarg_read_ahead_stream* stream, uint32_t source,
     uint32_t endpointDelayFrames, int32_t* error) {

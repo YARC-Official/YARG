@@ -30,6 +30,8 @@ public:
     // The BASS mixer lock provides that exclusion in the native integration.
     bool reset(double anchorSongPosition, float playbackSpeed, bool paused,
         bool clearActiveVoices) noexcept;
+    bool requestReset(double anchorSongPosition, float playbackSpeed, bool paused,
+        bool clearActiveVoices) noexcept;
     void setPaused(bool paused) noexcept;
     bool setGain(float gain) noexcept;
 
@@ -52,6 +54,9 @@ private:
         std::vector<float>&& pcm, std::vector<double>&& schedule,
         double leadTime) noexcept;
 
+    void applyReset(double anchorSongPosition, float playbackSpeed,
+        bool clearActiveVoices) noexcept;
+    void applyRequestedReset() noexcept;
     void clearOutput(float* output, std::size_t outputFrames) const noexcept;
     void mixActiveVoices(float* output, std::size_t outputFrames,
         float gain) noexcept;
@@ -82,6 +87,13 @@ private:
 
     std::atomic<std::uint32_t> gainBits_;
     std::atomic<std::uint32_t> pausedBits_{0};
+
+    std::atomic<std::uint64_t> resetSequence_{0};
+    std::atomic<std::uint64_t> requestedAnchorBits_{0};
+    std::atomic<std::uint32_t> requestedSpeedBits_{0};
+    std::atomic<std::uint64_t> requestedClears_{0};
+    std::uint64_t appliedResetSequence_ = 0;
+    std::uint64_t appliedClears_ = 0;
 };
 
 } // namespace yarg::audio

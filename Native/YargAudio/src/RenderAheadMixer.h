@@ -2,6 +2,7 @@
 
 #include "AudioRingBuffer.h"
 
+#include <array>
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
@@ -22,6 +23,9 @@ public:
     virtual int lastError() const noexcept = 0;
     virtual std::int64_t position(std::uint32_t sourceHandle,
         std::uint32_t delayBytes) noexcept = 0;
+    virtual bool setAttribute(std::uint32_t, std::uint32_t, float) noexcept {
+        return false;
+    }
 };
 
 struct SourcePositionSnapshot {
@@ -40,6 +44,7 @@ class RenderAheadMixer {
 public:
     static constexpr std::size_t RenderChunkFrames = 128;
     static constexpr std::size_t PositionHistorySize = 8192;
+    static constexpr std::size_t MaximumQueuedAttributes = 8;
     static std::size_t bufferFrames(std::uint32_t sampleRate,
         std::uint32_t callbackFrames, std::uint32_t milliseconds);
 
@@ -55,6 +60,8 @@ public:
     void stop() noexcept;
     bool clear();
     bool setTargetFrames(std::size_t frames) noexcept;
+    bool queueSourceAttribute(std::uint32_t channel, std::uint32_t attribute,
+        float value) noexcept;
     std::size_t consume(float* samples, std::size_t frames) noexcept;
     std::int64_t bufferedSourcePosition(std::uint32_t sourceHandle,
         std::uint32_t endpointDelayFrames) noexcept;
@@ -130,8 +137,15 @@ private:
         std::int64_t position;
     };
 
+    struct AttributeWrite {
+        std::uint32_t channel;
+        std::uint32_t attribute;
+        float value;
+    };
+
     void yieldWhileHeld() const noexcept;
     void recordSourcePosition() noexcept;
+    void applyQueuedAttributes() noexcept;
     void resetPositionHistory() noexcept;
     bool readPositionRecord(std::uint64_t index, PositionRecord& record) const noexcept;
     bool sourcePositionSnapshotFromHistory(std::uint32_t sourceHandle,
@@ -166,6 +180,10 @@ private:
     std::atomic<std::uint64_t> positionHistoryCount_{0};
     std::atomic<std::uint32_t> positionHistorySource_{0};
     std::atomic<std::uint32_t> trackedSource_{0};
+    std::mutex attributeMutex_;
+    std::array<AttributeWrite, MaximumQueuedAttributes> queuedAttributes_{};
+    std::size_t queuedAttributeCount_ = 0;
+    std::atomic<bool> attributesQueued_{false};
     std::atomic<std::uint64_t> maximumRenderNs_{0};
     std::atomic<std::uint64_t> positionOutputFrame_{0};
     std::atomic<std::uint32_t> nextRenderHolds_{0};

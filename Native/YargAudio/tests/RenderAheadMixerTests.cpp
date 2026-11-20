@@ -6,11 +6,14 @@
 #include <chrono>
 #include <cstddef>
 #include <memory>
+#include <mutex>
 #include <thread>
 #include <vector>
 
 using namespace std::chrono_literals;
 using yarg::audio::IAudioSource;
+using yarg::audio::PositionRead;
+using yarg::audio::SourcePositionSnapshot;
 using yarg::audio::RenderAheadMixer;
 
 namespace {
@@ -91,6 +94,47 @@ public:
     }
 private:
     std::size_t produced_ = 0;
+};
+
+class AttributeSource final : public IAudioSource {
+public:
+    struct Write {
+        std::uint32_t channel;
+        std::uint32_t attribute;
+        float value;
+        bool duringRead;
+    };
+
+    bool prepareThread() noexcept override { return true; }
+    int read(float* samples, std::size_t frames) noexcept override {
+        reading_.store(true);
+        while (blocked_.load()) {
+            std::this_thread::yield();
+        }
+        reading_.store(false);
+        std::fill_n(samples, frames, 0.0f);
+        return static_cast<int>(frames);
+    }
+    int lastError() const noexcept override { return 0; }
+    std::int64_t position(std::uint32_t, std::uint32_t) noexcept override { return 0; }
+    bool setAttribute(std::uint32_t channel, std::uint32_t attribute,
+        float value) noexcept override {
+        std::lock_guard lock(writesMutex_);
+        writes_.push_back(Write{channel, attribute, value, reading_.load()});
+        return true;
+    }
+    std::vector<Write> writes() {
+        std::lock_guard lock(writesMutex_);
+        return writes_;
+    }
+    void block() noexcept { blocked_.store(true); }
+    void release() noexcept { blocked_.store(false); }
+    bool reading() const noexcept { return reading_.load(); }
+private:
+    std::atomic<bool> blocked_{false};
+    std::atomic<bool> reading_{false};
+    std::mutex writesMutex_;
+    std::vector<Write> writes_;
 };
 
 } // namespace
@@ -245,5 +289,105 @@ void runRenderAheadMixerTests() {
         REQUIRE(heldFrames > 0);
         REQUIRE(framesWhileHeld == heldFrames);
         REQUIRE(resumed);
+    }
+
+    {
+        auto source = std::make_unique<BlockingSource>();
+        auto* sourcePointer = source.get();
+        RenderAheadMixer renderer(std::move(source), 48000, 1, 64, 10);
+        const auto noDelay = [](std::uint32_t& delayFrames) {
+            delayFrames = 0;
+            return true;
+        };
+        SourcePositionSnapshot snapshot{};
+        REQUIRE(renderer.trySourcePositionSnapshot(1, snapshot, noDelay) == PositionRead::Succeeded);
+        REQUIRE(renderer.prefill(2s));
+        REQUIRE(renderer.producedFrames() == 512);
+
+        sourcePointer->block();
+        std::vector<float> output(200);
+        const auto consumed = renderer.consume(output.data(), output.size());
+
+        const auto readDeadline = std::chrono::steady_clock::now() + 2s;
+        while (!sourcePointer->reading() && std::chrono::steady_clock::now() < readDeadline) {
+            std::this_thread::yield();
+        }
+        const auto startedReading = sourcePointer->reading();
+
+        SourcePositionSnapshot busySnapshot{};
+        const auto busyRead = renderer.trySourcePositionSnapshot(1, busySnapshot, noDelay);
+        SourcePositionSnapshot uncoveredSnapshot{};
+        const auto uncoveredRead = renderer.trySourcePositionSnapshot(1, uncoveredSnapshot,
+            [](std::uint32_t& delayFrames) {
+                delayFrames = 400;
+                return true;
+            });
+        sourcePointer->release();
+        renderer.stop();
+
+        REQUIRE(consumed == 200);
+        REQUIRE(startedReading);
+        REQUIRE(busyRead == PositionRead::Succeeded);
+        REQUIRE(busySnapshot.heardPosition == 200 * sizeof(float));
+        REQUIRE(busySnapshot.decodePosition == 512 * sizeof(float));
+        REQUIRE(busySnapshot.totalDelayFrames == 312);
+        REQUIRE(uncoveredRead == PositionRead::Busy);
+    }
+
+    {
+        auto source = std::make_unique<AttributeSource>();
+        auto* sourcePointer = source.get();
+        RenderAheadMixer renderer(std::move(source), 48000, 1, 64, 10);
+        REQUIRE(renderer.prefill(2s));
+
+        sourcePointer->block();
+        std::vector<float> output(200);
+        renderer.consume(output.data(), output.size());
+        const auto readDeadline = std::chrono::steady_clock::now() + 2s;
+        while (!sourcePointer->reading() && std::chrono::steady_clock::now() < readDeadline) {
+            std::this_thread::yield();
+        }
+        const auto startedReading = sourcePointer->reading();
+
+        const auto queueStarted = std::chrono::steady_clock::now();
+        const auto queuedTempo = renderer.queueSourceAttribute(5, 0x10000, 10.0f);
+        const auto replacedTempo = renderer.queueSourceAttribute(5, 0x10000, 20.0f);
+        const auto queuedPitch = renderer.queueSourceAttribute(5, 0x10001, 3.0f);
+        const auto queueElapsed = std::chrono::steady_clock::now() - queueStarted;
+        std::this_thread::sleep_for(5ms);
+        const auto writesWhileBlocked = sourcePointer->writes().size();
+
+        sourcePointer->release();
+        const auto applyDeadline = std::chrono::steady_clock::now() + 2s;
+        while (sourcePointer->writes().size() < 2 && std::chrono::steady_clock::now() < applyDeadline) {
+            std::this_thread::sleep_for(1ms);
+        }
+        renderer.stop();
+        const auto writes = sourcePointer->writes();
+
+        REQUIRE(startedReading);
+        REQUIRE(queuedTempo && replacedTempo && queuedPitch);
+        REQUIRE(queueElapsed < 5ms);
+        REQUIRE(writesWhileBlocked == 0);
+        REQUIRE(writes.size() == 2);
+        REQUIRE(writes[0].channel == 5 && writes[0].attribute == 0x10000 && writes[0].value == 20.0f);
+        REQUIRE(writes[1].attribute == 0x10001 && writes[1].value == 3.0f);
+        REQUIRE(!writes[0].duringRead && !writes[1].duringRead);
+    }
+
+    {
+        auto source = std::make_unique<AttributeSource>();
+        auto* sourcePointer = source.get();
+        RenderAheadMixer renderer(std::move(source), 48000, 1, 64, 10);
+        for (std::uint32_t attribute = 0; attribute < RenderAheadMixer::MaximumQueuedAttributes; ++attribute) {
+            REQUIRE(renderer.queueSourceAttribute(1, attribute, 1.0f));
+        }
+        REQUIRE(!renderer.queueSourceAttribute(1, 99, 1.0f));
+        REQUIRE(renderer.queueSourceAttribute(1, 0, 2.0f));
+        renderer.stop();
+        const auto writes = sourcePointer->writes();
+        REQUIRE(writes.size() == RenderAheadMixer::MaximumQueuedAttributes);
+        REQUIRE(writes[0].value == 2.0f);
+        REQUIRE(renderer.queueSourceAttribute(1, 99, 1.0f));
     }
 }

@@ -284,6 +284,9 @@ namespace YARG.Audio.BASS
 
         public void ReleaseNextRender() => _readAhead.ReleaseNextRender();
 
+        public bool SetSourceAttribute(int channel, ChannelAttribute attribute, float value) =>
+            _readAhead.SetSourceAttribute(channel, attribute, value);
+
         public double GetCommandDelay()
         {
             var stats = _readAhead.GetStats();
