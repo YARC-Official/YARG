@@ -15,6 +15,9 @@ namespace YARG.Career
             public int SongIndex;
             public bool Completed;
             public int BestStars;
+            // Set when the song can no longer improve unlock criteria for its tier
+            // (e.g. finished for CompletionCount, or 5+ stars for StarCount).
+            public bool CriteriaSatisfied;
         }
 
         public class TierResult
@@ -70,21 +73,20 @@ namespace YARG.Career
                 for (var songIndex = 0; songIndex < tier.Songs.Length; songIndex++)
                 {
                     var song = tier.Songs[songIndex];
+                    var completed = bestStarsBySong.ContainsKey(song.Id);
+                    var bestStars = bestStarsBySong.GetValueOrDefault(song.Id);
                     var songResult = new SongResult
                     {
                         CareerSongId = song.Id,
                         SongIndex = songIndex,
-                        Completed = bestStarsBySong.ContainsKey(song.Id),
-                        BestStars = bestStarsBySong.GetValueOrDefault(song.Id),
+                        Completed = completed,
+                        BestStars = bestStars,
+                        CriteriaSatisfied =
+                            tier.UnlockType == UnlockType.CompletionCount && completed ||
+                            tier.UnlockType == UnlockType.StarCount && bestStars >= 5,
                     };
 
                     result.Songs.Add(songResult);
-
-                    if (tier.UnlockType == UnlockType.CompletionCount && songResult.Completed
-                        || tier.UnlockType == UnlockType.StarCount && songResult.BestStars >= 5)
-                    {
-                        song.IsCompleted = true;
-                    }
                 }
 
                 result.Completed = result.Songs.Count > 0 && result.Songs.All(song => song.Completed);

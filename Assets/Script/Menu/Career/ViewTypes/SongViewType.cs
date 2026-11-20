@@ -70,7 +70,7 @@ namespace YARG.Menu.Career
 
         private string AddStrikethrough(string text)
         {
-            if (_song.IsCompleted)
+            if (_result is { CriteriaSatisfied: true })
             {
                 return ZString.Format("<color=white><s>{0}</s></color>", text);
             }
