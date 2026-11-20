@@ -23,6 +23,8 @@ namespace YARG.Menu.Persistent
             // Refresh player list to display "No controller" instrument icon correctly.
             InputManager.DeviceAdded += (device) => UpdatePlayerList();
             InputManager.DeviceRemoved += (device) => UpdatePlayerList();
+            MicrophoneWatcher.MicrophoneAdded += (id) => UpdatePlayerList();
+            MicrophoneWatcher.MicrophoneRemoved += (id) => UpdatePlayerList();
         }
 
         public void UpdatePlayerList()
