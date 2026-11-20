@@ -292,6 +292,14 @@ namespace YARG.Settings
 
                 settingType.ForceInvokeCallback();
             }
+
+#if UNITY_ANDROID && !UNITY_EDITOR
+            // Android song folders (first run): register the user-visible
+            // /storage/emulated/0/YARG/songs folder as primary and keep the
+            // app-private folder as fallback. Best-effort: a failure here
+            // must never break settings loading.
+            SongFolderHelper.RegisterSongFolders();
+#endif
         }
 
         public static void SaveSettings()

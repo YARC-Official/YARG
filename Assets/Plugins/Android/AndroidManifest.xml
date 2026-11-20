@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Custom Android manifest for YARG Android (sideloaded personal build).
+     Based on JordanSanchez06/YARG (YARG-Android branch), with the package
+     name fixed to com.YARC.YARG (the fork's manifest said com.yarc.yarg)
+     and storage permissions for the primary song folder
+     /storage/emulated/0/YARG/songs (see SongFolderHelper).
+     Place at Assets/Plugins/Android/AndroidManifest.xml.
+     MANAGE_EXTERNAL_STORAGE is only usable in a sideloaded build; a Play
+     Store release would need a declaration and would likely be rejected. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:tools="http://schemas.android.com/tools"
+          package="com.YARC.YARG">
+
+    <!-- All-files access (Android 11+): read the primary song folder outside
+         the app-private directory. Requested at runtime on first launch. -->
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" tools:ignore="ScopedStorage" />
+    <!-- Legacy storage permissions (Android 10 and below only). -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+
+    <application
+        android:extractNativeLibs="true"
+        android:requestLegacyExternalStorage="true">
+        <activity
+            android:name="com.unity3d.player.UnityPlayerActivity"
+            android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|screenLayout|uiMode|screenSize|smallestScreenSize|fontScale|layoutDirection|density"
+            android:exported="true"
+            android:hardwareAccelerated="false"
+            android:launchMode="singleTask"
+            android:resizeableActivity="false"
+            android:screenOrientation="fullUser"
+            android:theme="@style/UnityThemeSelector">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data android:name="unityplayer.UnityActivity" android:value="true" />
+            <meta-data android:name="android.notch_support" android:value="true" />
+        </activity>
+
+        <meta-data android:name="unity.splash-mode" android:value="0" />
+        <meta-data android:name="unity.splash-enable" android:value="True" />
+        <meta-data android:name="unity.launch-fullscreen" android:value="True" />
+        <meta-data android:name="notch.config" android:value="portrait|landscape" />
+        <meta-data android:name="unity.auto-report-fully-drawn" android:value="true" />
+    </application>
+</manifest>

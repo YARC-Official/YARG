@@ -126,3 +126,4 @@ reload_lock~.meta
 
 # Unity crash dumps
 mono_crash.mem.*.blob
+Assets/StreamingAssets/StreamingAssets.zip

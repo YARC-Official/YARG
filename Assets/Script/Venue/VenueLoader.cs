@@ -19,7 +19,7 @@ namespace YARG.Venue
     public static class VenueLoader
     {
         private static readonly string _venueFolder = Path.Combine(PathHelper.PersistentDataPath, "venue");
-        private static readonly string _defaultVenue = Path.Combine(Application.streamingAssetsPath, "venue", "default.yarground");
+        private static readonly string _defaultVenue = Path.Combine(PathHelper.StreamingAssetsPath, "venue", "default.yarground");
         public static string VenueFolder
         {
             get

@@ -7,8 +7,13 @@ using ManagedBass.Mix;
 using UnityEngine;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
+using YARG.Helpers;
 using YARG.Menu.Persistent;
 using YARG.Settings;
+
+#if UNITY_ANDROID
+using System.Runtime.InteropServices;
+#endif
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -102,10 +107,22 @@ namespace YARG.Audio.BASS
         public BassAudioManager()
         {
             YargLogger.LogInfo("Initializing BASS...");
+#if UNITY_ANDROID && !UNITY_EDITOR
+            // On Android there is no Plugins folder on disk: Application.dataPath
+            // is the APK itself, so the old path-based load can never find
+            // bassopus. Load it by name instead — Unity extracts the .so files
+            // from Assets/Plugins/Android/libs/<abi>/ into the app's native
+            // library directory at install time, where dlopen can find them.
+            // (See run3-port NATIVE_PLUGINS.md for which .so files must exist.
+            // Without this, .opus songs — e.g. kyouran-3up's song.opus — fail
+            // to load on Android.)
+            _opusHandle = Bass.PluginLoad("bassopus");
+#else
             string bassPath = GetBassDirectory();
             string opusLibDirectory = Path.Combine(bassPath, "bassopus");
 
             _opusHandle = Bass.PluginLoad(opusLibDirectory);
+#endif
             if (_opusHandle == 0) YargLogger.LogFormatError("Failed to load .opus plugin: {0}!", Bass.LastError);
 
             Bass.Configure(Configuration.IncludeDefaultDevice, true);
@@ -394,7 +411,7 @@ namespace YARG.Audio.BASS
 
             SfxSamples = new SampleChannel[AudioHelpers.SfxSamples.Count];
 
-            string sfxFolder = Path.Combine(Application.streamingAssetsPath, "sfx");
+            string sfxFolder = Path.Combine(PathHelper.StreamingAssetsPath, "sfx");
 
             foreach (var sample in AudioHelpers.SfxSamples)
             {
@@ -434,7 +451,7 @@ namespace YARG.Audio.BASS
 
             DrumSfxSamples = new DrumSampleChannel[AudioHelpers.DrumSamples.Count];
 
-            string sfxFolder = Path.Combine(Application.streamingAssetsPath, "drumSfx");
+            string sfxFolder = Path.Combine(PathHelper.StreamingAssetsPath, "drumSfx");
 
             foreach (var sample in AudioHelpers.DrumSamples)
             {
@@ -472,7 +489,7 @@ namespace YARG.Audio.BASS
 
             VoxSamples = new VoxSampleChannel[AudioHelpers.VoxSamples.Count];
 
-            string voxFolder = Path.Combine(Application.streamingAssetsPath, "vox");
+            string voxFolder = Path.Combine(PathHelper.StreamingAssetsPath, "vox");
 
             foreach (var sample in AudioHelpers.VoxSamples)
             {
@@ -512,7 +529,7 @@ namespace YARG.Audio.BASS
 
             MetronomeSamples = new MetronomeSampleChannel[AudioHelpers.MetronomeSamples.Count];
 
-            string metronomeFolder = Path.Combine(Application.streamingAssetsPath, "metronome");
+            string metronomeFolder = Path.Combine(PathHelper.StreamingAssetsPath, "metronome");
 
             foreach (var sample in AudioHelpers.MetronomeSamples)
             {
@@ -630,6 +647,25 @@ namespace YARG.Audio.BASS
             // https://www.un4seen.com/forum/?topic=20148.msg140872#msg140872
             const BassFlags streamFlags = BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile | (BassFlags) 64;
 
+#if UNITY_ANDROID
+            // IL2CPP cannot marshal the instance delegates that
+            // BassStreamProcedures used to install (its lambdas capture `this`).
+            // The procedures are now static methods; the instance is recovered
+            // from the GCHandle passed as the user pointer. The handle is freed
+            // by BassStreamProcedures.StaticClose when BASS closes the stream,
+            // or here if stream creation fails. (No debug logs left behind —
+            // the fork's leftover debug logging is dropped.)
+            var procs = new BassStreamProcedures(stream);
+            var handle = GCHandle.Alloc(procs);
+            streamHandle = Bass.CreateStream(StreamSystem.NoBuffer, streamFlags, procs, GCHandle.ToIntPtr(handle));
+            if (streamHandle == 0)
+            {
+                YargLogger.LogFormatError("Failed to create source stream: {0}!", Bass.LastError);
+                handle.Free();
+                return false;
+            }
+            return true;
+#else
             streamHandle = Bass.CreateStream(StreamSystem.NoBuffer, streamFlags, new BassStreamProcedures(stream));
             if (streamHandle == 0)
             {
@@ -637,6 +673,7 @@ namespace YARG.Audio.BASS
                 return false;
             }
             return true;
+#endif
         }
 
         internal static bool GetSpeed(int streamHandle, out float speed)

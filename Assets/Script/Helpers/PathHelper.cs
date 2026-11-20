@@ -119,7 +119,28 @@ namespace YARG.Helpers
             // Get other paths that are only allowed on the main thread
             ApplicationDataPath = SanitizePath(Application.dataPath);
             ExecutablePath = Directory.GetParent(ApplicationDataPath)?.FullName;
+#if UNITY_ANDROID && !UNITY_EDITOR
+            // On Android, Application.streamingAssetsPath points inside the APK
+            // (a compressed jar: URL) and cannot be read as files. Extract the
+            // bundled StreamingAssets once, synchronously and version-checked,
+            // BEFORE anything reads StreamingAssetsPath — this runs at
+            // BeforeSplashScreen, earlier than any scene or song scan, so there
+            // is no race (the fork's async-void extractor could still be
+            // running when the first scene loaded). A failure here must never
+            // crash startup: the game continues and the affected readers log
+            // their own errors.
+            try
+            {
+                StreamingAssetsExtractor.EnsureExtracted(PersistentDataPath);
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+            StreamingAssetsPath = SanitizePath(Path.Combine(PersistentDataPath, "StreamingAssets"));
+#else
             StreamingAssetsPath = SanitizePath(Application.streamingAssetsPath);
+#endif
 
             // Get song scanning paths
             SongCachePath = Path.Combine(PersistentDataPath, "songcache.bin");

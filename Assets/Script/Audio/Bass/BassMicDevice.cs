@@ -11,6 +11,10 @@ using YARG.Core.IO;
 using YARG.Input;
 using YARG.Settings;
 
+#if UNITY_ANDROID
+using AOT;
+#endif
+
 namespace YARG.Audio.BASS
 {
     internal class MonitorPlaybackHandle : IDisposable
@@ -75,6 +79,11 @@ namespace YARG.Audio.BASS
             _applyGain = applyGain;
         }
 
+        // Already static (no captured state), but IL2CPP still needs the
+        // reverse-P/Invoke wrapper marker for any delegate handed to native code.
+#if UNITY_ANDROID
+        [MonoPInvokeCallback(typeof(DSPProcedure))]
+#endif
         private static void ApplyGain(int handle, int channel, IntPtr buffer, int length, IntPtr user)
         {
             BassHelpers.ApplyGain(1.3f, buffer, length);
@@ -110,10 +119,17 @@ namespace YARG.Audio.BASS
         public static RecordingHandle? CreateRecordingHandle(RecordProcedure procedure)
 #nullable disable
         {
+            return CreateRecordingHandle(procedure, IntPtr.Zero);
+        }
+
+#nullable enable
+        public static RecordingHandle? CreateRecordingHandle(RecordProcedure procedure, IntPtr user)
+#nullable disable
+        {
             var devPeriod = Bass.GetConfig(Configuration.DevicePeriod);
             foreach (int sampleRate in _sampleRates)
             {
-                int handle = Bass.RecordStart(sampleRate, 1, BassFlags.Default, devPeriod, procedure, IntPtr.Zero);
+                int handle = Bass.RecordStart(sampleRate, 1, BassFlags.Default, devPeriod, procedure, user);
                 if (handle == 0)
                 {
                     YargLogger.LogFormatTrace("Failed to start clean recording at {0} Hz: {1}!", sampleRate, Bass.LastError);
@@ -193,9 +209,26 @@ namespace YARG.Audio.BASS
             }
 
             var device = new BassMicDevice(deviceId, name);
+#if UNITY_ANDROID
+            // IL2CPP cannot marshal the instance method ProcessRecordData, so
+            // record through the static trampoline below and recover the device
+            // from the GCHandle. The handle is freed in
+            // DisposeUnmanagedResources (after Bass.RecordFree) and on every
+            // early-return path below that does not call Dispose().
+            device._recordGCHandle = GCHandle.Alloc(device);
+            device._recordHandle = RecordingHandle.CreateRecordingHandle(StaticRecordCallback,
+                GCHandle.ToIntPtr(device._recordGCHandle));
+#else
             device._recordHandle = RecordingHandle.CreateRecordingHandle(device.ProcessRecordData);
+#endif
             if (device._recordHandle == null)
             {
+#if UNITY_ANDROID
+                if (device._recordGCHandle.IsAllocated)
+                {
+                    device._recordGCHandle.Free();
+                }
+#endif
                 FreeDevice(deviceId);
                 return null;
             }
@@ -206,6 +239,12 @@ namespace YARG.Audio.BASS
             if (monitorPlayback == null)
             {
                 device._recordHandle.Dispose();
+#if UNITY_ANDROID
+                if (device._recordGCHandle.IsAllocated)
+                {
+                    device._recordGCHandle.Free();
+                }
+#endif
                 FreeDevice(deviceId);
                 return null;
             }
@@ -253,6 +292,11 @@ namespace YARG.Audio.BASS
         private readonly int _deviceId;
 
         private RecordingHandle _recordHandle;
+
+#if UNITY_ANDROID
+        // Pins `this` for the static record callback (see Create()).
+        private GCHandle _recordGCHandle;
+#endif
 
         private int _timeAccumulated;
         private int _processedBufferLength;
@@ -338,6 +382,23 @@ namespace YARG.Audio.BASS
         {
             _deviceId = deviceId;
         }
+
+#if UNITY_ANDROID
+        [MonoPInvokeCallback(typeof(RecordProcedure))]
+        private static bool StaticRecordCallback(int handle, IntPtr buffer, int length, IntPtr user)
+        {
+            try
+            {
+                var device = (BassMicDevice) GCHandle.FromIntPtr(user).Target;
+                return device.ProcessRecordData(handle, buffer, length, user);
+            }
+            catch (Exception e)
+            {
+                YargLogger.LogException(e, "Error in static record callback");
+                return false;
+            }
+        }
+#endif
 
         private bool ProcessRecordData(int handle, IntPtr buffer, int length, IntPtr user)
         {
@@ -452,6 +513,14 @@ namespace YARG.Audio.BASS
             _recordHandle.Dispose();
             Bass.CurrentRecordingDevice = _deviceId;
             Bass.RecordFree();
+#if UNITY_ANDROID
+            // Recording is stopped above, so BASS can no longer invoke the
+            // record callback; the handle it was pinned with can now be freed.
+            if (_recordGCHandle.IsAllocated)
+            {
+                _recordGCHandle.Free();
+            }
+#endif
         }
     }
 }

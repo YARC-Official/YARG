@@ -153,6 +153,22 @@ namespace YARG.Input
             FireInputEvent(ref input);
         }
 
+        /// <summary>
+        /// Injects a synthetic button input (e.g. from the Android touch
+        /// controls) into the same pipeline as a physical control.
+        /// The event flows through <see cref="FireInputEvent(ref GameInput)"/>
+        /// so it is calibrated, queued by the engine and recorded in replays
+        /// exactly like hardware input. Fret buttons send <c>true</c> on
+        /// press and <c>false</c> on release; strum sends <c>true</c> on press.
+        /// </summary>
+        /// <param name="time">
+        /// Must be <see cref="InputManager.CurrentInputTime"/>, NOT
+        /// <c>Time.time</c> — the gameplay layer re-bases this time with the
+        /// input calibration offset.
+        /// </param>
+        public void InjectInput(double time, bool value)
+            => FireInputEvent(time, value);
+
         protected void FireInputEvent(ref GameInput input)
         {
             if (!Enabled) return;

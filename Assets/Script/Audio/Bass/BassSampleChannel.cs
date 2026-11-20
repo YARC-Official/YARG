@@ -5,6 +5,11 @@ using YARG.Core.Audio;
 using YARG.Core.Logging;
 using YARG.Input;
 
+#if UNITY_ANDROID
+using System.Runtime.InteropServices;
+using AOT;
+#endif
+
 namespace YARG.Audio.BASS
 {
     public sealed class BassSampleChannel : SampleChannel
@@ -54,6 +59,13 @@ namespace YARG.Audio.BASS
         private double _volumeSetting = 1;
 
         private int _syncHandle;
+
+#if UNITY_ANDROID
+        // Pins `this` for the static end callback (IL2CPP cannot marshal the
+        // instance method EndCallback). Allocated when the sync is registered,
+        // freed in DisposeUnmanagedResources after the sample is freed.
+        private GCHandle _endCallbackGCHandle;
+#endif
 
 #nullable enable
         private BassSampleChannel(int handle, int channel, SfxSample sample, string path, int playbackCount, OutputChannel? outputChannel)
@@ -203,12 +215,45 @@ namespace YARG.Audio.BASS
                 return;
             }
 
+#if UNITY_ANDROID
+            // IL2CPP cannot marshal the instance method EndCallback, so use a
+            // static trampoline and recover this channel from the GCHandle.
+            if (!_endCallbackGCHandle.IsAllocated)
+            {
+                _endCallbackGCHandle = GCHandle.Alloc(this);
+            }
+            _syncHandle = Bass.ChannelSetSync(_channel, SyncFlags.End, 0,
+                StaticEndCallback, GCHandle.ToIntPtr(_endCallbackGCHandle));
+#else
             _syncHandle = Bass.ChannelSetSync(_channel, SyncFlags.End, 0, EndCallback);
+#endif
             if (_syncHandle == 0)
             {
+#if UNITY_ANDROID
+                if (_endCallbackGCHandle.IsAllocated)
+                {
+                    _endCallbackGCHandle.Free();
+                }
+#endif
                 YargLogger.LogFormatError("Failed to set {0} end callback: {1}!", Sample, Bass.LastError);
             }
         }
+
+#if UNITY_ANDROID
+        [MonoPInvokeCallback(typeof(SyncProcedure))]
+        private static void StaticEndCallback(int handle, int channel, int data, IntPtr user)
+        {
+            try
+            {
+                var sampleChannel = (BassSampleChannel) GCHandle.FromIntPtr(user).Target;
+                sampleChannel.EndCallback(handle, channel, data, user);
+            }
+            catch (Exception e)
+            {
+                YargLogger.LogException(e, "Error in static SFX end callback");
+            }
+        }
+#endif
 
 #nullable enable
         protected override void SetOutputChannel_Internal(OutputChannel? channel)
@@ -226,6 +271,14 @@ namespace YARG.Audio.BASS
         protected override void DisposeUnmanagedResources()
         {
             Bass.SampleFree(_sfxHandle);
+#if UNITY_ANDROID
+            // The sample is freed above, so BASS can no longer invoke the end
+            // sync; the handle it was pinned with can now be freed.
+            if (_endCallbackGCHandle.IsAllocated)
+            {
+                _endCallbackGCHandle.Free();
+            }
+#endif
         }
     }
 }

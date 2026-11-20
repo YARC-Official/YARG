@@ -14,6 +14,10 @@ using YARG.Menu.Persistent;
 using YARG.Player;
 using YARG.Settings;
 
+#if UNITY_ANDROID
+using YARG.Helpers;
+#endif
+
 namespace YARG.Menu.Calibrator
 {
     // TODO: Redo this
@@ -146,7 +150,13 @@ namespace YARG.Menu.Calibrator
 
                     const float SPEED = 1f;
                     const double VOLUME = 1.0;
+#if UNITY_ANDROID
+                    // On Android the calibration music lives in the extracted
+                    // StreamingAssets folder (see StreamingAssetsExtractor).
+                    var file = Path.Combine(PathHelper.StreamingAssetsPath, "calibration_music.ogg");
+#else
                     var file = Path.Combine(Application.streamingAssetsPath, "calibration_music.ogg");
+#endif
 
                     //Temporarily disable whammy so we don't have to deal with pitch shift delay
                     SettingsManager.Settings.UseWhammyFx.Value = false;

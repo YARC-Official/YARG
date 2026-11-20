@@ -1,0 +1,80 @@
+# Build YARG Android APK (Unity 6000.3.5f1, GameCI)
+#
+# Kenapa file ini ada: Unity Editor tidak bisa jalan di container kerja
+# (RAM 7,7 GB < minimum 8 GB; Unity tidak mendukung container).
+# Build dilakukan GitHub Actions di runner ubuntu-latest (4 vCPU / 16 GB RAM)
+# memakai image resmi GameCI unityci/editor:ubuntu-6000.3.5f1-android-3.
+#
+# Prasyarat (sekali saja):
+#   1. Repo ini = fork YARG dengan patch touch controls sudah di-apply
+#      (lihat BUILD_GUIDE_ID.md) + PlayerSettings Android sudah diisi
+#      (patch/PlayerSettings-Android.md).
+#   2. Jalankan workflow "Acquire Unity License" (activation.yml) -> unduh
+#      .alf -> tukar ke .ulf di https://license.unity3d.com/manual
+#      -> simpan isi .ulf sebagai secret UNITY_LICENSE, plus
+#      UNITY_EMAIL dan UNITY_PASSWORD (akun Unity personal, gratis).
+name: Build YARG Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "android-v*"
+
+jobs:
+  build:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - name: Checkout (dengan LFS + submodules YARG)
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: recursive
+          fetch-depth: 0
+
+      # YARG butuh Blender untuk import model .blend (lihat README upstream).
+      - name: Install Blender (untuk import model)
+        run: sudo apt-get update && sudo apt-get install -y blender
+
+      # Build Android IL2CPP rakus disk di runner standar.
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
+
+      - name: Cache Unity Library
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-Android-6000.3.5f1-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          restore-keys: |
+            Library-Android-6000.3.5f1-
+            Library-Android-
+
+      - name: Build Unity project (Android APK)
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          unityVersion: 6000.3.5f1
+          targetPlatform: Android
+          androidExportType: androidPackage
+          buildName: YARG-Android
+          allowDirtyBuild: true
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: YARG-Android-APK
+          path: build/Android
+          retention-days: 30

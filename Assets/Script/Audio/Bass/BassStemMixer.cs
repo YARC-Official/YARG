@@ -12,6 +12,11 @@ using YARG.Core.Song;
 using YARG.Helpers;
 using YARG.Settings;
 
+#if UNITY_ANDROID
+using AOT;
+using System.Runtime.InteropServices;
+#endif
+
 namespace YARG.Audio.BASS
 {
     public sealed class BassStemMixer : StemMixer
@@ -55,12 +60,32 @@ namespace YARG.Audio.BASS
         private          int            _gainDspHandle;
         private          float          _gain = 1.0f;
 
+#if UNITY_ANDROID
+        // Pins `this` for the static SongEnd callback (IL2CPP cannot marshal
+        // the instance delegate the upstream code used). Allocated when the
+        // sync is registered, freed in DisposeUnmanagedResources.
+        private GCHandle _songEndGCHandle;
+
+        // Pins `this` for the static gain DSP callback (same reason).
+        // Allocated in AddGainDSP, freed in DisposeManagedResources after
+        // the DSP is removed.
+        private GCHandle _gainDspGCHandle;
+#endif
+
         public override event Action SongEnd
         {
             add
             {
                 if (_songEndHandle == 0)
                 {
+#if UNITY_ANDROID
+                    if (!_songEndGCHandle.IsAllocated)
+                    {
+                        _songEndGCHandle = GCHandle.Alloc(this);
+                    }
+                    _songEndHandle = BassMix.ChannelSetSync(_longestHandle, SyncFlags.End, 0,
+                        StaticSongEndCallback, GCHandle.ToIntPtr(_songEndGCHandle));
+#else
                     void sync(int _, int __, int ___, IntPtr _____)
                     {
                         // Prevent potential race conditions by caching the value as a local
@@ -71,6 +96,7 @@ namespace YARG.Audio.BASS
                         }
                     }
                     _songEndHandle = BassMix.ChannelSetSync(_longestHandle, SyncFlags.End, 0, sync);
+#endif
                 }
 
                 _songEnd += value;
@@ -80,6 +106,27 @@ namespace YARG.Audio.BASS
                 _songEnd -= value;
             }
         }
+
+#if UNITY_ANDROID
+        [MonoPInvokeCallback(typeof(SyncProcedure))]
+        private static void StaticSongEndCallback(int handle, int channel, int data, IntPtr user)
+        {
+            try
+            {
+                var mixer = (BassStemMixer) GCHandle.FromIntPtr(user).Target;
+                // Prevent potential race conditions by caching the value as a local
+                var end = mixer._songEnd;
+                if (end != null)
+                {
+                    UnityMainThreadCallback.QueueEvent(end.Invoke);
+                }
+            }
+            catch (Exception e)
+            {
+                YargLogger.LogException(e, "Error in static SongEnd callback");
+            }
+        }
+#endif
 
 #nullable enable
         internal BassStemMixer(string name, BassAudioManager manager, float speed, double volume, int handle,
@@ -112,16 +159,50 @@ namespace YARG.Audio.BASS
 
         private void AddGainDSP()
         {
+#if UNITY_ANDROID
+            // The upstream lambda captures `this` (_gain), which IL2CPP cannot
+            // marshal to native code. Use the static callback below and recover
+            // the mixer from the GCHandle passed as the user pointer.
+            if (!_gainDspGCHandle.IsAllocated)
+            {
+                _gainDspGCHandle = GCHandle.Alloc(this);
+            }
+            _gainDspHandle = Bass.ChannelSetDSP(_mixerHandle, StaticGainDSP,
+                GCHandle.ToIntPtr(_gainDspGCHandle));
+#else
             _gainDspHandle = Bass.ChannelSetDSP(_mixerHandle, (handle, channel, buffer, length, user) =>
             {
                 BassHelpers.ApplyGain(_gain, buffer, length);
             });
+#endif
 
             if (_gainDspHandle == 0)
             {
+#if UNITY_ANDROID
+                if (_gainDspGCHandle.IsAllocated)
+                {
+                    _gainDspGCHandle.Free();
+                }
+#endif
                 YargLogger.LogFormatError("Failed to add gain DSP: {0}!", Bass.LastError);
             }
         }
+
+#if UNITY_ANDROID
+        [MonoPInvokeCallback(typeof(DSPProcedure))]
+        private static void StaticGainDSP(int handle, int channel, IntPtr buffer, int length, IntPtr user)
+        {
+            try
+            {
+                var mixer = (BassStemMixer) GCHandle.FromIntPtr(user).Target;
+                BassHelpers.ApplyGain(mixer._gain, buffer, length);
+            }
+            catch (Exception e)
+            {
+                YargLogger.LogException(e, "Error in static gain DSP");
+            }
+        }
+#endif
 
 
         protected override int Play_Internal()
@@ -570,6 +651,16 @@ namespace YARG.Audio.BASS
                 Bass.ChannelRemoveDSP(_mixerHandle, _gainDspHandle);
             }
 
+#if UNITY_ANDROID
+            // The DSP is removed above, so BASS can no longer invoke the
+            // static gain callback; the handle it was pinned with can now
+            // be freed.
+            if (_gainDspGCHandle.IsAllocated)
+            {
+                _gainDspGCHandle.Free();
+            }
+#endif
+
 
             _normalizer.OnGainAdjusted -= OnGainAdjusted;
             _normalizer.Dispose();
@@ -590,6 +681,17 @@ namespace YARG.Audio.BASS
 
         protected override void DisposeUnmanagedResources()
         {
+#if UNITY_ANDROID
+            // The sync channel (_longestHandle, a split stream of a source
+            // handle) is freed with the source handles in
+            // DisposeManagedResources, so BASS can no longer invoke the
+            // SongEnd callback after this point.
+            if (_songEndGCHandle.IsAllocated)
+            {
+                _songEndGCHandle.Free();
+            }
+#endif
+
             if (_mixerHandle != 0)
             {
                 if (!Bass.StreamFree(_mixerHandle))
