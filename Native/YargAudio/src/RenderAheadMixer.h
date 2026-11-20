@@ -30,9 +30,16 @@ struct SourcePositionSnapshot {
     std::uint32_t totalDelayFrames;
 };
 
+enum class PositionRead {
+    Failed,
+    Succeeded,
+    Busy,
+};
+
 class RenderAheadMixer {
 public:
     static constexpr std::size_t RenderChunkFrames = 128;
+    static constexpr std::size_t PositionHistorySize = 8192;
     static std::size_t bufferFrames(std::uint32_t sampleRate,
         std::uint32_t callbackFrames, std::uint32_t milliseconds);
 
@@ -69,6 +76,22 @@ public:
         }
         return sourcePositionSnapshotLocked(sourceHandle, delayFrames, snapshot);
     }
+    template <typename DelayProvider>
+    PositionRead trySourcePositionSnapshot(std::uint32_t sourceHandle,
+        SourcePositionSnapshot& snapshot, DelayProvider delayProvider) noexcept {
+        trackedSource_.store(sourceHandle, std::memory_order_release);
+        std::unique_lock lock(sourceMutex_, std::try_to_lock);
+        std::uint32_t delayFrames;
+        if (!delayProvider(delayFrames)) {
+            return PositionRead::Failed;
+        }
+        if (lock.owns_lock()) {
+            return sourcePositionSnapshotLocked(sourceHandle, delayFrames, snapshot)
+                ? PositionRead::Succeeded : PositionRead::Failed;
+        }
+        return sourcePositionSnapshotFromHistory(sourceHandle, delayFrames, snapshot)
+            ? PositionRead::Succeeded : PositionRead::Busy;
+    }
 
     void holdNextRender() noexcept {
         nextRenderHolds_.fetch_add(1, std::memory_order_acq_rel);
@@ -96,7 +119,23 @@ private:
         NextRenderHold& operator=(const NextRenderHold&) = delete;
     };
 
+    struct PositionRecordSlot {
+        std::atomic<std::uint64_t> sequence{0};
+        std::atomic<std::uint64_t> frame{0};
+        std::atomic<std::int64_t> position{0};
+    };
+
+    struct PositionRecord {
+        std::uint64_t frame;
+        std::int64_t position;
+    };
+
     void yieldWhileHeld() const noexcept;
+    void recordSourcePosition() noexcept;
+    void resetPositionHistory() noexcept;
+    bool readPositionRecord(std::uint64_t index, PositionRecord& record) const noexcept;
+    bool sourcePositionSnapshotFromHistory(std::uint32_t sourceHandle,
+        std::uint32_t endpointDelayFrames, SourcePositionSnapshot& snapshot) noexcept;
     std::int64_t bufferedSourcePositionLocked(std::uint32_t sourceHandle,
         std::uint32_t endpointDelayFrames) noexcept;
     bool sourcePositionSnapshotLocked(std::uint32_t sourceHandle,
@@ -121,6 +160,12 @@ private:
     std::atomic<int> lastError_{0};
     std::atomic<std::uint64_t> producedFrames_{0};
     std::atomic<std::uint64_t> generationProducedFrames_{0};
+    std::atomic<std::uint64_t> generationConsumedFrames_{0};
+    std::unique_ptr<PositionRecordSlot[]> positionHistory_;
+    std::atomic<std::uint64_t> positionHistoryStart_{0};
+    std::atomic<std::uint64_t> positionHistoryCount_{0};
+    std::atomic<std::uint32_t> positionHistorySource_{0};
+    std::atomic<std::uint32_t> trackedSource_{0};
     std::atomic<std::uint64_t> maximumRenderNs_{0};
     std::atomic<std::uint64_t> positionOutputFrame_{0};
     std::atomic<std::uint32_t> nextRenderHolds_{0};
