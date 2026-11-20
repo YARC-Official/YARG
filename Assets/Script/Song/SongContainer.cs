@@ -755,6 +755,7 @@ namespace YARG.Song
                 : GetSortIntensityComparer(instrument);
             string[] bucketKeys =
             {
+                Localize.Key("Menu.MusicLibrary.Sort.Percentage.FullCombo"),
                 Localize.Key("Menu.MusicLibrary.Sort.Percentage.100"),
                 Localize.Key("Menu.MusicLibrary.Sort.Percentage.90"),
                 Localize.Key("Menu.MusicLibrary.Sort.Percentage.80"),
@@ -808,15 +809,15 @@ namespace YARG.Song
                 }
 
                 float percent = record.GetPercent() * 100f;
-                int bucketIndex = percent switch
+                int bucketIndex = record.IsFc ? 0 : percent switch
                 {
-                    >= 100f => 0,
-                    >= 90f  => 1,
-                    >= 80f  => 2,
-                    >= 70f  => 3,
-                    >= 60f  => 4,
-                    >= 50f  => 5,
-                    _       => 6,
+                    >= 100f => 1,
+                    >= 90f  => 2,
+                    >= 80f  => 3,
+                    >= 70f  => 4,
+                    >= 60f  => 5,
+                    >= 50f  => 6,
+                    _       => 7,
                 };
                 percentageRecords[song] = record;
                 buckets[bucketIndex].Add(song);

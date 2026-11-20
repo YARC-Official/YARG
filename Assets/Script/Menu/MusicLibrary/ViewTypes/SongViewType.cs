@@ -89,21 +89,7 @@ namespace YARG.Menu.MusicLibrary
         public override ScoreInfo? GetScoreInfo()
         {
             FetchHighScores();
-
-            // Never played!
-            if (_playerScoreRecord is null)
-            {
-                return null;
-            }
-
-            return new ScoreInfo
-            {
-                Score = _playerScoreRecord.Score,
-                Difficulty = _playerScoreRecord.Difficulty,
-                Percent = _playerScoreRecord.GetPercent(),
-                Instrument = _playerScoreRecord.Instrument,
-                IsFc = _playerScoreRecord.IsFc
-            };
+            return CreateScoreInfo(_playerScoreRecord);
         }
 
         public override StarAmount? GetStarAmount()
@@ -120,6 +106,12 @@ namespace YARG.Menu.MusicLibrary
             return GetStarAmount(playerScoreRecord, bandScoreRecord);
         }
 
+        public static ScoreInfo? GetScoreInfoForSong(SongEntry songEntry)
+        {
+            FetchHighScores(songEntry, out var playerScoreRecord, out _);
+            return CreateScoreInfo(playerScoreRecord);
+        }
+
 #nullable enable
         private static StarAmount? GetStarAmount(
             PlayerScoreRecord? playerScoreRecord,
@@ -132,6 +124,23 @@ namespace YARG.Menu.MusicLibrary
             }
 
             return playerScoreRecord?.Stars;
+        }
+
+        private static ScoreInfo? CreateScoreInfo(PlayerScoreRecord playerScoreRecord)
+        {
+            if (playerScoreRecord is null)
+            {
+                return null;
+            }
+
+            return new ScoreInfo
+            {
+                Score = playerScoreRecord.Score,
+                Difficulty = playerScoreRecord.Difficulty,
+                Percent = playerScoreRecord.GetPercent(),
+                Instrument = playerScoreRecord.Instrument,
+                IsFc = playerScoreRecord.IsFc,
+            };
         }
 
         public override FavoriteInfo GetFavoriteInfo()

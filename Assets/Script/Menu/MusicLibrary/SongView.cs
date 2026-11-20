@@ -60,6 +60,10 @@ namespace YARG.Menu.MusicLibrary
         [SerializeField]
         private Image _starsObtainedIcon;
         [SerializeField]
+        private GameObject _fullComboView;
+        [SerializeField]
+        private GameObject _headerSongCount;
+        [SerializeField]
         private TextMeshProUGUI _scoreText;
         [SerializeField]
         private TextMeshProUGUI _buttonHelpText;
@@ -114,10 +118,13 @@ namespace YARG.Menu.MusicLibrary
 
             // Set score and instrument display
             var scoreInfo = viewType.GetScoreInfo();
-            _instrumentDifficultyViewContainer.SetActive(scoreInfo is not null);
+            bool isHeader = viewType is SortHeaderViewType or SecondaryHeaderViewType;
+            _instrumentDifficultyViewContainer.SetActive(isHeader || scoreInfo is not null);
+            _instrumentDifficultyView.gameObject.SetActive(scoreInfo is not null);
             if (scoreInfo is not null)
             {
                 _instrumentDifficultyView.SetInfo(scoreInfo.Value);
+                _instrumentDifficultyView.SetHeaderMode(isHeader);
             }
 
             // Set star view
@@ -148,6 +155,9 @@ namespace YARG.Menu.MusicLibrary
                 };
                 _starsObtainedIcon.sprite = hasGoldStars ? _starGoldSprite : _starWhiteSprite;
             }
+
+            _fullComboView.SetActive(isHeader && scoreInfo is { IsFc: true });
+            _headerSongCount.SetActive(isHeader || viewType is PlaylistViewType);
 
             // Set help text for button views
             _buttonHelpText.gameObject.SetActive(viewType is ButtonViewType);

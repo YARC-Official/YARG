@@ -26,6 +26,7 @@ namespace YARG.Menu.MusicLibrary
         private readonly int    _songCount;
         public           int    TotalStarsCount { get; set; }
         public           bool   HasGoldStars { get; set; }
+        public ScoreInfo? FullComboScoreInfo { get; set; }
         public readonly  bool   Collapsed;
         private readonly Action _onClicked;
 
@@ -96,6 +97,8 @@ namespace YARG.Menu.MusicLibrary
 
             return ZString.Concat(obtainedStars, totalStars);
         }
+
+        public override ScoreInfo? GetScoreInfo() => FullComboScoreInfo;
 
         private static string Pluralize(string item, int count)
         {
