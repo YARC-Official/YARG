@@ -54,6 +54,19 @@ namespace YARG.Menu.Navigation
             var selectedBounds = RectTransformUtility.CalculateRelativeRectTransformBounds(
                 _viewportTransform, selectedTransform);
 
+            // If this is the first selectable row after a heading, keep that heading in view
+            // as well. This lets headings remain display-only without losing their context
+            // while navigating through a long list.
+            int siblingIndex = selectedTransform.GetSiblingIndex();
+            if (siblingIndex > 0 &&
+                selectedTransform.parent.GetChild(siblingIndex - 1) is RectTransform previousSibling &&
+                previousSibling.GetComponent<NavigatableBehaviour>() == null)
+            {
+                var previousBounds = RectTransformUtility.CalculateRelativeRectTransformBounds(
+                    _viewportTransform, previousSibling);
+                selectedBounds.Encapsulate(previousBounds);
+            }
+
             var newPos = _contentTransform.anchoredPosition.y;
             if (selectedBounds.max.y > viewportBounds.max.y)
             {
