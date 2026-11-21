@@ -19,6 +19,7 @@ using YARG.Helpers.Extensions;
 using YARG.Playback;
 using YARG.Player;
 using YARG.Settings;
+using YARG.Settings.Types;
 using YARG.Themes;
 using Random = UnityEngine.Random;
 
@@ -84,6 +85,37 @@ namespace YARG.Gameplay.Player
         }
 
         public override bool ShouldUpdateInputsOnResume => true;
+
+        /// <inheritdoc/>
+        /// <remarks>
+        /// Read once at song end from the live chart's <see cref="Note{TNote}.WasHit"/> flags (set by
+        /// the same <c>HitNote</c> call that records each offset sample), so this needs no engine-side
+        /// tracking during play. <see cref="Notes"/> and the engine's offset samples are both populated
+        /// strictly in chart order, so filtering to hit, non-lane notes lines up 1:1 with
+        /// <see cref="Engine.BaseStats.GetOffsetSamples"/>.
+        /// </remarks>
+        public override IReadOnlyList<bool> GetOffsetSampleFilterCategory()
+        {
+            var result = new List<bool>(BaseStats.GetOffsetSamples().Count);
+            foreach (var note in Notes)
+            {
+                if (note.IsLane || note.IsBigRockEnding || !note.WasHit)
+                {
+                    continue;
+                }
+
+                result.Add(note.IsStrum);
+            }
+
+            return result;
+        }
+
+        /// <inheritdoc/>
+        protected override DropdownSetting<OffsetCalibrationFilter> OffsetFilterCalibrationSetting =>
+            SettingsManager.Settings.UseStrumOnlyOffsetForCalibration;
+
+        /// <inheritdoc/>
+        protected override bool? IsNoteInOffsetFilterCategory(GuitarNote note) => note.IsStrum;
 
         /// See <see cref="StarMultiplierThresholds"/>
         private static float[] GuitarStarMultiplierThresholds => new[]
