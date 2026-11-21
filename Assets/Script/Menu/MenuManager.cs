@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using YARG.Playlists;
 
 namespace YARG.Menu
 {
@@ -65,6 +66,8 @@ namespace YARG.Menu
 
         private void OnDisable()
         {
+            Setlist.SetLibraryOpen(false);
+
             _lastOpenMenu = Menu.None;
 
             // Set the last open menu to the first instance of the allowed menu
@@ -108,6 +111,7 @@ namespace YARG.Menu
 
             // ... and push it onto the stack
             _openMenus.Push(menu);
+            Setlist.SetLibraryOpen(menu == Menu.MusicLibrary);
 
             return newMenu;
         }
@@ -131,6 +135,7 @@ namespace YARG.Menu
                 _menus.TryGetValue(newMenuEnum, out var newMenu))
             {
                 newMenu.gameObject.SetActive(true);
+                Setlist.SetLibraryOpen(newMenuEnum == Menu.MusicLibrary);
             }
             else
             {
