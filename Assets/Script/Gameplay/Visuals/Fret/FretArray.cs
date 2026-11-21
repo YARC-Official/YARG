@@ -161,6 +161,17 @@ namespace YARG.Gameplay.Visuals
                 }
 
                 _frets[noteType] = fretComp;
+
+                // Circular reuses the guitar fret's hit particles for drum hits (no themed
+                // drum particle set of its own) - give tom/cymbal hits a small boost there so
+                // they read more clearly. Matched only by particle name (see
+                // Fret.ApplyCircularDrumHitEffectTuning), so this is a no-op for every other
+                // theme/style.
+                if (style is VisualStyle.FourLaneDrums or VisualStyle.FiveLaneDrums
+                    && themePreset.AssetBundleThemePath == "Themes/Circular")
+                {
+                    fretComp.ApplyCircularDrumHitEffectTuning();
+                }
             }
 
             _kickFrets.Clear();
@@ -294,6 +305,19 @@ namespace YARG.Gameplay.Visuals
             _frets[index].PlayHitParticles();
         }
 
+        /// <summary>
+        /// Extra scale "pop" layered on top of a tom/cymbal hit's own Animator-driven jump -
+        /// see Fret.PlayDrumJumpBoost. Used only by Circular drums (see DrumsPlayer's
+        /// AnimateAction/AnimateFret), since Circular's shared FretHitGuitar.anim clip (used by
+        /// both guitar and drums) has too subtle a jump on its own to safely amplify without
+        /// also affecting guitar.
+        /// </summary>
+        public void PlayDrumJumpBoost(int index)
+        {
+            _frets[index].PlayDrumJumpBoost();
+        }
+
+
         public void PlayFullWidthHitAnimation()
         {
             foreach (var (_, fret) in _frets)
@@ -312,6 +336,54 @@ namespace YARG.Gameplay.Visuals
             }
         }
 
+        /// <summary>
+        /// Used by Circular drums for a genuine overhit (pressing a pad with no note there at
+        /// all to hit - see DrumsPlayer.OnPadHit). Rather than the dedicated Miss Animator
+        /// trigger (which reads as far too subtle/invisible on Circular's shared controller),
+        /// this reuses the exact same Hit/CymbalHit trigger a genuine hit gets (see
+        /// DrumsPlayer.AnimateFret) so the player still gets clear movement feedback on
+        /// whichever pad they actually pressed - but deliberately skips the HitEffect flame
+        /// burst a real hit gets (<paramref name="isCymbal"/> only picks which Animator trigger
+        /// to use, never calls PlayHitParticles) and, via <paramref name="playParticles"/>,
+        /// optionally the separate MissEffect indicator particle too - so an overhit still reads
+        /// as clearly distinct from a correct hit.
+        /// </summary>
+        public void PlayOverhitAnimation(int index, bool isCymbal, bool playParticles)
+        {
+            if (!_frets.TryGetValue(index, out var fret))
+            {
+                return;
+            }
+
+            if (isCymbal)
+            {
+                fret.PlayCymbalHitAnimation();
+            }
+            else
+            {
+                fret.PlayHitAnimation();
+            }
+
+            if (playParticles)
+            {
+                fret.PlayMissParticles();
+            }
+        }
+
+        /// <summary>
+        /// Dimly lights up (or turns off) a single fret's inner part - see
+        /// Fret.SetOverhitPressed. Driven every frame by DrumsPlayer's own continuous
+        /// time-tracking (mirroring SetPressedImpulse's own correct-hit light-up), for a
+        /// tom/cymbal overhit (wrong pad) or wrong-timing kick hit.
+        /// </summary>
+        public void SetOverhitPressed(int index, bool pressed)
+        {
+            if (_frets.TryGetValue(index, out var fret))
+            {
+                fret.SetOverhitPressed(pressed);
+            }
+        }
+
         public void PlayFullWidthMissAnimation()
         {
             foreach (var (_, fret) in _frets)
@@ -327,6 +399,99 @@ namespace YARG.Gameplay.Visuals
             {
                 kick.PlayHitAnimation();
             }
+        }
+
+        /// <summary>
+        /// Makes every regular button fret jump (the same per-pad hit animation used for a
+        /// normal note hit), without any light-up/particle burst. Used by Circular's kick
+        /// animation on its own - both for a correct kick hit (layered under the full
+        /// PlayKickButtonBurst below) and, on its own, for a wrong-timing kick overhit, which
+        /// should show the same jump but skip the light-up/particles a correct hit gets.
+        /// </summary>
+        public void PlayKickButtonJump()
+        {
+            foreach (var (_, fret) in _frets)
+            {
+                fret.PlayHitAnimation();
+                fret.PlayCymbalHitAnimation();
+            }
+        }
+
+        /// <summary>
+        /// Makes every regular button fret jump (see PlayKickButtonJump above) and briefly flash
+        /// its own (dimmed/flattened) Sustain Effect. Used by Circular's kick animation to give
+        /// a whole-kit flash across the row, on top of the dedicated kick lane/flash arc.
+        /// Triggers both the tom and cymbal hit animations - a given fret only has one of the
+        /// two model variants active at a time (see Player.Profile.UseCymbalModels), so this
+        /// makes every fret jump regardless of which variant it's currently showing, without
+        /// FretArray needing to track each index's configured pad type.
+        /// </summary>
+        public void PlayKickButtonBurst(float duration)
+        {
+            PlayKickButtonJump();
+
+            foreach (var (_, fret) in _frets)
+            {
+                fret.PlayTimedEffectBurst(fret.ThemeBind.SustainEffect, duration);
+            }
+        }
+
+        /// <summary>
+        /// Combined world-space bounds of every button's own visible mesh(es). Used by Circular
+        /// to position its kick flash from the buttons' actual rendered geometry instead of a
+        /// guessed offset, since "underneath the buttons" means something different depending on
+        /// each theme's authored button scale/pivot, which this sidesteps entirely.
+        /// </summary>
+        public Bounds GetFretButtonWorldBounds()
+        {
+            var bounds = new Bounds();
+            var hasBounds = false;
+
+            foreach (var (_, fret) in _frets)
+            {
+                // MeshRenderer only - deliberately excludes ParticleSystemRenderer (the hit/
+                // sustain effect particles also living under the same fret), whose bounds only
+                // cover currently-alive particles and would otherwise skew/degenerate the result
+                // when idle, since no effect is playing while this is being measured at init.
+                foreach (var renderer in fret.GetComponentsInChildren<MeshRenderer>())
+                {
+                    if (!hasBounds)
+                    {
+                        bounds = renderer.bounds;
+                        hasBounds = true;
+                    }
+                    else
+                    {
+                        bounds.Encapsulate(renderer.bounds);
+                    }
+                }
+            }
+
+            return bounds;
+        }
+
+        /// <summary>
+        /// The material used by one of the fret's own hit-effect particles, for reuse as a
+        /// known-good template by other runtime-created effects (e.g. Circular's kick ring
+        /// pulse). This guarantees an already-correctly-configured transparent/glowing shader
+        /// setup for whatever theme is active, instead of guessing at a brand new material/
+        /// shader from scratch with no Editor access to verify it renders as intended.
+        /// </summary>
+        public Material GetHitEffectTemplateMaterial()
+        {
+            foreach (var (_, fret) in _frets)
+            {
+                foreach (var particle in fret.ThemeBind.HitEffect.EffectParticles)
+                {
+                    var renderer = particle.GetComponent<ParticleSystemRenderer>();
+                    if (renderer != null && renderer.sharedMaterial != null)
+                    {
+                        return renderer.sharedMaterial;
+                    }
+                }
+            }
+
+            return null;
         }
 
         public void ResetAll()
