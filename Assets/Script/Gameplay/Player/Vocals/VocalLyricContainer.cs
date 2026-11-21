@@ -42,6 +42,9 @@ namespace YARG.Gameplay.Player
         private TextMeshPro[] _scrollingWidthTesters;
         private TextMeshPro[] _staticWidthTesters;
 
+        private static float VocalFontScale =>
+            1f + SettingsManager.Settings.VocalFontScaling.Value / 100f;
+
         public static int GetLaneIndex(int totalHarms, int harmIndex)
         {
             var combineHarmonyLyrics = !SettingsManager.Settings.UseThreeLaneLyricsInHarmony.Value;
@@ -78,15 +81,17 @@ namespace YARG.Gameplay.Player
             string displayText = lyric.HarmonyHidden && allowHiding ? string.Empty : lyric.Text;
 
             float width = 0f;
+            float fontScale = VocalFontScale;
             if (!string.IsNullOrEmpty(displayText))
             {
                 var tester = GetScrollingWidthTester(GetLaneIndex(totalHarms, harmIndex));
                 tester.fontStyle = lyric.NonPitched ? FontStyles.Italic : FontStyles.Normal;
                 tester.text = displayText;
-                width = tester.GetPreferredValues().x;
+                width = tester.GetPreferredValues().x * fontScale;
             }
 
-            return new VocalScrollingLyricSyllableElement.PreparedLyric(lyric, allowHiding, width);
+            return new VocalScrollingLyricSyllableElement.PreparedLyric(
+                lyric, allowHiding, width, fontScale);
         }
 
         public VocalStaticLyricPhraseElement.PreparedPhrase PrepareStaticLyricPhrase(
@@ -100,9 +105,10 @@ namespace YARG.Gameplay.Player
             var tester = GetStaticWidthTester(GetLaneIndex(totalHarms, harmIndex));
             tester.fontStyle = FontStyles.Normal;
             tester.text = preparedPhrase.FutureText;
-            var width = tester.GetPreferredValues().x;
+            float fontScale = VocalFontScale;
+            var width = tester.GetPreferredValues().x * fontScale;
 
-            return preparedPhrase.WithWidth(width);
+            return preparedPhrase.WithLayout(width, fontScale);
         }
 
         public LyricSpawnResult TrySpawnScrollingLyric(VocalScrollingLyricSyllableElement.PreparedLyric preparedLyric,
