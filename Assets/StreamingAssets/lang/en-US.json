@@ -1,4 +1,4 @@
-{
+﻿{
     "Language": {
         "Name": "English",
         "Region": "United States",
@@ -2266,6 +2266,14 @@
             "SaveScoresWithBots": {
                 "Name": "Save Scores with Bots",
                 "Description": "Allows score saving when playing with bots. Only human scores are recorded. Bot scores are excluded."
+            },
+            "StreakCounter": {
+                "Name": "Enable Streak Counter",
+                "Description": "Displays the current streak count during gameplay."
+            },
+            "Judgement": {
+                "Name": "Enable Judgement Display",
+                "Description": "Displays the judgement during gameplay."
             },
             "SfxVolume": {
                 "Name": "SFX Volume",
