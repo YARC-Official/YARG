@@ -51,7 +51,7 @@ namespace YARG.Input.Bindings
 
         public override void UpdateState(double time, float value)
         {
-            _debounceTimer.UpdateValue(Control.value * _invertSign);
+            _debounceTimer.UpdateValue(value * _invertSign);
 
             if (!_debounceTimer.HasElapsed(time))
                 return;
