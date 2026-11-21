@@ -51,6 +51,20 @@ namespace YARG.Menu.MusicLibrary
             _percentText.color = scoreInfo.IsFc ? FcGold : Color.white;
         }
 
+        public void SetHeaderMode(bool headerMode)
+        {
+            // Header FC badges only need the overlapping instrument/difficulty circles.
+            // Keep the backing object active because it also owns the difficulty icon.
+            _difficultyIcon.transform.parent.GetComponent<Image>().enabled = !headerMode;
+            _percentText.gameObject.SetActive(!headerMode);
+
+            if (headerMode)
+            {
+                var rect = GetComponent<RectTransform>();
+                rect.sizeDelta = new Vector2(70, rect.sizeDelta.y);
+            }
+        }
+
         private static Sprite GetSprite(string assetKey)
         {
             if (!SpriteCache.TryGetValue(assetKey, out var sprite))

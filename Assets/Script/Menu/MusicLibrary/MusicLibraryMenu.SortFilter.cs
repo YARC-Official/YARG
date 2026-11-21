@@ -35,6 +35,10 @@ namespace YARG.Menu.MusicLibrary
         [SerializeField]
         private Image _sortInfoHeaderStarIcon;
         [SerializeField]
+        private GameObject _sortInfoHeaderFullComboContainer;
+        [SerializeField]
+        private GameObject _sortInfoHeaderFullComboLaurels;
+        [SerializeField]
         private Sprite _starGoldSprite;
         [SerializeField]
         private Sprite _starWhiteSprite;
@@ -42,6 +46,7 @@ namespace YARG.Menu.MusicLibrary
         private int _totalSongCountUnfiltered = 0;
         private int _totalStarCount = 0;
         private bool _allVisibleSongsGold = false;
+        private ViewType.ScoreInfo? _allVisibleSongsFullComboScoreInfo;
         private int _numPlaylists = 0;
 
         public bool HasSortHeaders { get; private set; }
@@ -385,6 +390,19 @@ namespace YARG.Menu.MusicLibrary
 
         private void UpdateSortInformationHeader()
         {
+            bool showFullCombo = MenuState != MenuState.PlaylistSelect &&
+                _allVisibleSongsFullComboScoreInfo is { IsFc: true };
+            _sortInfoHeaderFullComboContainer.SetActive(showFullCombo);
+            _sortInfoHeaderFullComboLaurels.SetActive(showFullCombo);
+            if (showFullCombo)
+            {
+                var fullComboView = _sortInfoHeaderFullComboContainer
+                    .GetComponentInChildren<InstrumentDifficultyView>(true);
+                fullComboView.gameObject.SetActive(true);
+                fullComboView.SetInfo(_allVisibleSongsFullComboScoreInfo.Value);
+                fullComboView.SetHeaderMode(true);
+            }
+
             if (MenuState == MenuState.Library)
             {
                 if (_searchField.IsSearching)

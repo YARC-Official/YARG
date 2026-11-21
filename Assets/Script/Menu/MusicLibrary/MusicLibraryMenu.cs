@@ -583,6 +583,7 @@ namespace YARG.Menu.MusicLibrary
             _totalSongCount = 0;
             _totalStarCount = 0;
             _allVisibleSongsGold = false;
+            _allVisibleSongsFullComboScoreInfo = null;
 
             // If `_sortedSongs` is null, then this function is being called during very first initialization,
             // which means the song list hasn't been constructed yet.
@@ -600,6 +601,7 @@ namespace YARG.Menu.MusicLibrary
             bool allowdupes = SettingsManager.Settings.AllowDuplicateSongs.Value;
             int songCount = 0;
             bool hasNonGoldSong = false;
+            bool hasNonFullComboSong = false;
             foreach (var section in _sortedSongs)
             {
                 if (allowdupes)
@@ -730,6 +732,8 @@ namespace YARG.Menu.MusicLibrary
 
                 int sectionTotalStars = 0;
                 bool sectionHasNonGoldSong = false;
+                ViewType.ScoreInfo? sectionFullComboScoreInfo = null;
+                bool sectionHasNonFullComboSong = false;
                 bool includeSongs = _sortedSongs.Length <= 1 || !_collapsedHeaders[SettingsManager.Settings.LibrarySort].Contains(section);
 
                 var displayedSongs = section.Songs
@@ -759,6 +763,12 @@ namespace YARG.Menu.MusicLibrary
                     bool isNotGold = starAmount != StarAmount.StarGold;
                     sectionHasNonGoldSong |= isNotGold;
                     hasNonGoldSong |= isNotGold;
+
+                    var scoreInfo = SongViewType.GetScoreInfoForSong(song);
+                    sectionHasNonFullComboSong |= scoreInfo is not { IsFc: true };
+                    sectionFullComboScoreInfo ??= scoreInfo;
+                    hasNonFullComboSong |= scoreInfo is not { IsFc: true };
+                    _allVisibleSongsFullComboScoreInfo ??= scoreInfo;
                 }
 
                 var secondaryAlbumSort = SettingsManager.Settings.SecondaryAlbumSort.Value;
@@ -804,14 +814,22 @@ namespace YARG.Menu.MusicLibrary
                         list.Add(intensityHeader);
                         int starsBeforeIntensity = sectionTotalStars;
                         bool intensityHasNonGoldSong = false;
+                        ViewType.ScoreInfo? intensityFullComboScoreInfo = null;
+                        bool intensityHasNonFullComboSong = false;
                         foreach (var song in songs)
                         {
                             AddSong(song);
                             intensityHasNonGoldSong |=
                                 SongViewType.GetStarAmountForSong(song) != StarAmount.StarGold;
+                            var scoreInfo = SongViewType.GetScoreInfoForSong(song);
+                            intensityHasNonFullComboSong |= scoreInfo is not { IsFc: true };
+                            intensityFullComboScoreInfo ??= scoreInfo;
                         }
                         intensityHeader.TotalStarsCount = sectionTotalStars - starsBeforeIntensity;
                         intensityHeader.HasGoldStars = !intensityHasNonGoldSong;
+                        intensityHeader.FullComboScoreInfo = intensityHasNonFullComboSong
+                            ? null
+                            : intensityFullComboScoreInfo;
                     }
                 }
                 else if (includeSecondaryGroups && SettingsManager.Settings.LibrarySort >= SortAttribute.Instrument &&
@@ -845,14 +863,22 @@ namespace YARG.Menu.MusicLibrary
                         list.Add(sourceHeader);
                         int starsBeforeSource = sectionTotalStars;
                         bool sourceHasNonGoldSong = false;
+                        ViewType.ScoreInfo? sourceFullComboScoreInfo = null;
+                        bool sourceHasNonFullComboSong = false;
                         foreach (var song in songs)
                         {
                             AddSong(song);
                             sourceHasNonGoldSong |=
                                 SongViewType.GetStarAmountForSong(song) != StarAmount.StarGold;
+                            var scoreInfo = SongViewType.GetScoreInfoForSong(song);
+                            sourceHasNonFullComboSong |= scoreInfo is not { IsFc: true };
+                            sourceFullComboScoreInfo ??= scoreInfo;
                         }
                         sourceHeader.TotalStarsCount = sectionTotalStars - starsBeforeSource;
                         sourceHeader.HasGoldStars = !sourceHasNonGoldSong;
+                        sourceHeader.FullComboScoreInfo = sourceHasNonFullComboSong
+                            ? null
+                            : sourceFullComboScoreInfo;
                     }
                 }
                 else if (includeSecondaryGroups &&
@@ -898,14 +924,22 @@ namespace YARG.Menu.MusicLibrary
                         list.Add(albumHeader);
                         int starsBeforeAlbum = sectionTotalStars;
                         bool albumHasNonGoldSong = false;
+                        ViewType.ScoreInfo? albumFullComboScoreInfo = null;
+                        bool albumHasNonFullComboSong = false;
                         foreach (var song in albumSongs)
                         {
                             AddSong(song);
                             albumHasNonGoldSong |=
                                 SongViewType.GetStarAmountForSong(song) != StarAmount.StarGold;
+                            var scoreInfo = SongViewType.GetScoreInfoForSong(song);
+                            albumHasNonFullComboSong |= scoreInfo is not { IsFc: true };
+                            albumFullComboScoreInfo ??= scoreInfo;
                         }
                         albumHeader.TotalStarsCount = sectionTotalStars - starsBeforeAlbum;
                         albumHeader.HasGoldStars = !albumHasNonGoldSong;
+                        albumHeader.FullComboScoreInfo = albumHasNonFullComboSong
+                            ? null
+                            : albumFullComboScoreInfo;
                     }
                 }
                 else
@@ -921,11 +955,18 @@ namespace YARG.Menu.MusicLibrary
                 {
                     sortHeader.TotalStarsCount = sectionTotalStars;
                     sortHeader.HasGoldStars = !sectionHasNonGoldSong;
+                    sortHeader.FullComboScoreInfo = sectionHasNonFullComboSong
+                        ? null
+                        : sectionFullComboScoreInfo;
                 }
             }
 
             _totalSongCount = songCount;
             _allVisibleSongsGold = songCount > 0 && !hasNonGoldSong;
+            if (songCount == 0 || hasNonFullComboSong)
+            {
+                _allVisibleSongsFullComboScoreInfo = null;
+            }
             CalculateCategoryHeaderIndices(list);
             return list;
         }

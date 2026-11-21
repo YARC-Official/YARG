@@ -25,6 +25,7 @@ namespace YARG.Menu.MusicLibrary
         public override string StableId => $"SecondaryHeader:{_text}";
         public int TotalStarsCount { get; set; }
         public bool HasGoldStars { get; set; }
+        public ScoreInfo? FullComboScoreInfo { get; set; }
 
         public SecondaryHeaderViewType(string text, int songCount, string iconPath = null)
         {
@@ -90,5 +91,7 @@ namespace YARG.Menu.MusicLibrary
 
             return ZString.Concat(obtainedStars, totalStars);
         }
+
+        public override ScoreInfo? GetScoreInfo() => FullComboScoreInfo;
     }
 }

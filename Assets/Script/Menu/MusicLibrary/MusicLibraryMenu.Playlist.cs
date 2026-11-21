@@ -100,6 +100,7 @@ namespace YARG.Menu.MusicLibrary
             SetNavigationScheme(true);
             var list = new List<ViewType>{};
             _allVisibleSongsGold = false;
+            _allVisibleSongsFullComboScoreInfo = null;
 
             if (SelectedPlaylist.Ephemeral)
             {
@@ -128,6 +129,7 @@ namespace YARG.Menu.MusicLibrary
             _totalSongCount = 0;
             _totalStarCount = 0;
             bool hasNonGoldSong = false;
+            bool hasNonFullComboSong = false;
 
             // Add songs in the playlist
             foreach (var section in _sortedSongs)
@@ -143,11 +145,18 @@ namespace YARG.Menu.MusicLibrary
                         var starAmount = songView.GetStarAmount();
                         _totalStarCount += starAmount is null ? 0 : StarAmountHelper.GetStarCount(starAmount.Value);
                         hasNonGoldSong |= starAmount != StarAmount.StarGold;
+                        var scoreInfo = songView.GetScoreInfo();
+                        hasNonFullComboSong |= scoreInfo is not { IsFc: true };
+                        _allVisibleSongsFullComboScoreInfo ??= scoreInfo;
                     }
                 }
             }
 
             _allVisibleSongsGold = _totalSongCount > 0 && !hasNonGoldSong;
+            if (_totalSongCount == 0 || hasNonFullComboSong)
+            {
+                _allVisibleSongsFullComboScoreInfo = null;
+            }
             AddPlaylistManagementButtons(list);
             return list;
         }
@@ -282,7 +291,9 @@ namespace YARG.Menu.MusicLibrary
             _totalSongCount = 0;
             _totalStarCount = 0;
             _allVisibleSongsGold = false;
+            _allVisibleSongsFullComboScoreInfo = null;
             bool hasNonGoldSong = false;
+            bool hasNonFullComboSong = false;
 
             var list = new List<ViewType>
             {
@@ -300,9 +311,16 @@ namespace YARG.Menu.MusicLibrary
                 var starAmount = songView.GetStarAmount();
                 _totalStarCount += starAmount is null ? 0 : StarAmountHelper.GetStarCount(starAmount.Value);
                 hasNonGoldSong |= starAmount != StarAmount.StarGold;
+                var scoreInfo = songView.GetScoreInfo();
+                hasNonFullComboSong |= scoreInfo is not { IsFc: true };
+                _allVisibleSongsFullComboScoreInfo ??= scoreInfo;
             }
 
             _allVisibleSongsGold = _totalSongCount > 0 && !hasNonGoldSong;
+            if (_totalSongCount == 0 || hasNonFullComboSong)
+            {
+                _allVisibleSongsFullComboScoreInfo = null;
+            }
             AddSetlistManagementButtons(list, DeleteShowSetlist);
 
             return list;
