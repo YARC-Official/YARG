@@ -57,7 +57,7 @@ namespace YARG.Menu.History
         {
             GlobalVariables.State = PersistentState.Default;
 
-            GlobalVariables.State.CurrentSong = song;
+            GlobalVariables.State.SetPlaybackSong(song);
             GlobalVariables.State.CurrentReplay = replay;
             GlobalVariables.State.PlayingWithReplay = true;
 
@@ -69,7 +69,7 @@ namespace YARG.Menu.History
         {
             GlobalVariables.State = PersistentState.Default;
 
-            GlobalVariables.State.CurrentSong = song;
+            GlobalVariables.State.SetPlaybackSong(song);
             GlobalVariables.State.CurrentReplay = replay;
 
             GlobalVariables.State.SongSpeed = replay.SongSpeed;

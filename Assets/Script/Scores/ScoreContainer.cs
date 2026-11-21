@@ -210,6 +210,27 @@ namespace YARG.Scores
                 return;
             }
 
+            // Verify completion is valid for this career context
+            var contextTier = career.Tiers.FirstOrDefault(tier => tier.Id == context.TierId);
+            if (contextTier is null ||
+                context.SongIndex < 0 ||
+                context.SongIndex >= contextTier.Songs.Length ||
+                contextTier.Songs[context.SongIndex].Id != context.CareerSongId)
+            {
+                YargLogger.LogFormatError("Career: context does not match career content (tier {0}), skipping completion.",
+                    context.TierId);
+                return;
+            }
+
+            var careerSong = contextTier.Songs[context.SongIndex];
+            if (careerSong.SongEntry is null ||
+                !careerSong.SongEntry.Hash.HashBytes.SequenceEqual(gameRecord.SongChecksum))
+            {
+                YargLogger.LogFormatError("Career: played song does not match career song {0}, skipping completion.",
+                    context.CareerSongId);
+                return;
+            }
+
             // The save belongs to the set of players who actually played this song.
             var saveId = Careers.GetOrCreateSave(career.Id, career.Version, participants);
 

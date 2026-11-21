@@ -110,8 +110,7 @@ namespace YARG.Menu.Career
                 return;
             }
 
-            GlobalVariables.State.CurrentSong = _songEntry;
-            GlobalVariables.State.CurrentCareer = new CareerContext
+            GlobalVariables.State.SetPlaybackSong(_songEntry, new CareerContext
             {
                 CareerId = _careerId,
                 TierId = _tierId,
@@ -119,7 +118,7 @@ namespace YARG.Menu.Career
                 VenueHint = _tierVenueHint,
                 CareerSongId = _song.Id,
                 SongIndex = _songIndex,
-            };
+            });
 
             _onPlay?.Invoke();
 

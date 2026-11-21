@@ -458,7 +458,7 @@ namespace YARG.Menu.ScoreScreen
                         if (Setlist.TryAdvance(out var nextSong))
                         {
                             // Reset CurrentSong and launch back into the Gameplay scene
-                            GlobalVariables.State.CurrentSong = nextSong;
+                            GlobalVariables.State.SetPlaybackSong(nextSong);
                             GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
                         }
                         else
