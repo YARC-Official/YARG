@@ -9,8 +9,24 @@ namespace YARG.Audio.BASS
 {
     internal sealed class BassMicManager
     {
+        private readonly struct DeviceKey : IEquatable<DeviceKey>
+        {
+            public readonly int    Id;
+            public readonly string Name;
+
+            public DeviceKey(int id, string name)
+            {
+                Id = id;
+                Name = name;
+            }
+
+            public bool Equals(DeviceKey other) => Id == other.Id && string.Equals(Name, other.Name, StringComparison.Ordinal);
+            public override bool Equals(object? obj) => obj is DeviceKey other && Equals(other);
+            public override int GetHashCode() => HashCode.Combine(Id, StringComparer.Ordinal.GetHashCode(Name));
+        }
+
         private readonly Dictionary<int, BassMicrophoneCapture> _captures             = new();
-        private readonly Dictionary<(int Id, string Name), int> _channelCountByDevice = new();
+        private readonly Dictionary<DeviceKey, int>             _channelCountByDevice = new();
         private readonly object                                 _lock                 = new();
         private readonly BassAudioRouter                        _router;
 
@@ -42,9 +58,9 @@ namespace YARG.Audio.BASS
 
             RemoveMissingDevices(devices);
             WarmChannelCounts(devices);
-            SnapshotState(out var channelCounts, out var claimedChannels);
+            var channelCounts = SnapshotChannelCounts();
 
-            return BuildAvailableInputs(devices, channelCounts, claimedChannels);
+            return BuildAvailableInputs(devices, channelCounts);
         }
 
         private MicDevice? TryCreateClaimedMic(InputDeviceInfo device, int channelCount)
@@ -141,16 +157,16 @@ namespace YARG.Audio.BASS
 
         private void RemoveMissingDevices(List<(int Id, DeviceInfo Info)> devices)
         {
-            var present = new HashSet<(int Id, string Name)>();
+            var present = new HashSet<DeviceKey>();
 
             foreach (var device in devices)
             {
-                present.Add((device.Id, device.Info.Name));
+                present.Add(new DeviceKey(device.Id, device.Info.Name));
             }
 
             lock (_lock)
             {
-                var keys = new List<(int Id, string Name)>(_channelCountByDevice.Keys);
+                var keys = new List<DeviceKey>(_channelCountByDevice.Keys);
 
                 foreach (var key in keys)
                 {
@@ -164,7 +180,7 @@ namespace YARG.Audio.BASS
 
         private int GetChannelCount(int deviceId, string name)
         {
-            var key = (deviceId, name);
+            var key = new DeviceKey(deviceId, name);
 
             lock (_lock)
             {
@@ -199,24 +215,11 @@ namespace YARG.Audio.BASS
             }
         }
 
-        private void SnapshotState(out Dictionary<(int Id, string Name), int> channelCounts,
-            out HashSet<(int DeviceId, int Channel)> claimedChannels)
+        private Dictionary<DeviceKey, int> SnapshotChannelCounts()
         {
             lock (_lock)
             {
-                channelCounts = new Dictionary<(int Id, string Name), int>(_channelCountByDevice);
-                claimedChannels = new HashSet<(int DeviceId, int Channel)>();
-
-                foreach (var entry in _captures)
-                {
-                    for (int channel = 0; channel < entry.Value.Channels; channel++)
-                    {
-                        if (entry.Value.IsChannelClaimed(channel))
-                        {
-                            claimedChannels.Add((entry.Key, channel));
-                        }
-                    }
-                }
+                return new Dictionary<DeviceKey, int>(_channelCountByDevice);
             }
         }
 
@@ -337,24 +340,19 @@ namespace YARG.Audio.BASS
         }
 
         private static List<InputDeviceInfo> BuildAvailableInputs(List<(int Id, DeviceInfo Info)> devices,
-            Dictionary<(int Id, string Name), int> channelCounts, HashSet<(int DeviceId, int Channel)> claimedChannels)
+            Dictionary<DeviceKey, int> channelCounts)
         {
             var available = new List<InputDeviceInfo>();
 
             foreach (var device in devices)
             {
-                if (!channelCounts.TryGetValue((device.Id, device.Info.Name), out int channels))
+                if (!channelCounts.TryGetValue(new DeviceKey(device.Id, device.Info.Name), out int channels))
                 {
                     continue;
                 }
 
                 for (int channel = 0; channel < channels; channel++)
                 {
-                    if (claimedChannels.Contains((device.Id, channel)))
-                    {
-                        continue;
-                    }
-
                     available.Add(new InputDeviceInfo(device.Id, device.Info.Name, channel, channels));
                 }
             }

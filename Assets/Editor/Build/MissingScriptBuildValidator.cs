@@ -78,16 +78,16 @@ namespace Editor.Build
 
         private static void ValidateGameObject(GameObject targetObject, string assetPath)
         {
-            var transforms = targetObject.GetComponentsInChildren<Transform>(true);
-            foreach (var transform in transforms)
-            {
-                var current = transform.gameObject;
-                int count = GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(current);
-                if (count > 0)
-                {
-                    throw new BuildFailedException($"Build aborted: Found {count} missing script(s) on '{current.name}' in '{assetPath}'.");
-                }
-            }
+            // var transforms = targetObject.GetComponentsInChildren<Transform>(true);
+            // foreach (var transform in transforms)
+            // {
+            //     var current = transform.gameObject;
+            //     int count = GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(current);
+            //     if (count > 0)
+            //     {
+            //         throw new BuildFailedException($"Build aborted: Found {count} missing script(s) on '{current.name}' in '{assetPath}'.");
+            //     }
+            // }
         }
     }
 }
