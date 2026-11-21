@@ -151,14 +151,14 @@ namespace YARG.Audio.BASS
             return YargAudioBindings.ReadAheadStreamSetBufferLength(this, bufferMilliseconds) == 0;
         }
 
-        public bool SetSourceAttribute(int channel, ManagedBass.ChannelAttribute attribute, float value)
+        public bool SetSourceAttribute(int channel, int attribute, float value)
         {
             if (IsClosed || IsInvalid)
             {
                 return false;
             }
 
-            return YargAudioBindings.ReadAheadStreamSetSourceAttribute(this, channel, (int) attribute, value) == 0;
+            return YargAudioBindings.ReadAheadStreamSetSourceAttribute(this, channel, attribute, value) == 0;
         }
 
         public bool TryGetPositionSnapshot(int endpointDelayFrames, out ReadAheadPositionSnapshot snapshot)

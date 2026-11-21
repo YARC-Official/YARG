@@ -281,7 +281,7 @@ namespace YARG.Audio.BASS
         }
 
         public bool SetSourceAttribute(int channel, ChannelAttribute attribute, float value) =>
-            _readAhead.SetSourceAttribute(channel, attribute, value);
+            _readAhead.SetSourceAttribute(channel, (int) attribute, value);
 
         public double GetCommandDelay()
         {
