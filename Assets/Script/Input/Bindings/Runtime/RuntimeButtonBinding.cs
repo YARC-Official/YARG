@@ -65,14 +65,15 @@ namespace YARG.Input.Bindings
                 state |= other.IsPressed;
             }
 
+            // Ignore presses/releases within the debounce threshold
+            _debounceTimer.UpdateValue(state);
+
             // Ignore if state is unchanged
             if (state == State)
             {
                 return;
             }
 
-            // Ignore presses/releases within the debounce threshold
-            _debounceTimer.UpdateValue(state);
             if (!_debounceTimer.HasElapsed(time))
             {
                 return;
