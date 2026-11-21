@@ -21,6 +21,8 @@ namespace YARG.Menu
             CareerList,
             Career,
             GameModes,
+            // Keep new entries at the end: menu objects store this value as a number
+            Roguelike,
         }
 
         /// <summary>
@@ -33,6 +35,7 @@ namespace YARG.Menu
             Menu.History,
             Menu.Content,
             Menu.Career,
+            Menu.Roguelike,
         };
 
         /// <summary>

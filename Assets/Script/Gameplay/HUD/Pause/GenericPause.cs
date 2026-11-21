@@ -4,6 +4,7 @@ using YARG.Core.Logging;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Replays;
+using YARG.Roguelike;
 
 namespace YARG.Gameplay.HUD
 {
@@ -21,6 +22,8 @@ namespace YARG.Gameplay.HUD
 
         protected virtual void OnEnable()
         {
+            RoguelikePauseOptions.HideBlockedOptions(this);
+
             if (Navigator.Instance == null)
             {
                 return;
@@ -62,6 +65,11 @@ namespace YARG.Gameplay.HUD
 
         public void TogglePractice()
         {
+            if (RoguelikeSession.IsRoguelikeSong)
+            {
+                return;
+            }
+
             GlobalVariables.State.IsPractice = !GlobalVariables.State.IsPractice;
             GlobalVariables.State.SavedInputTime = GameManager.InputTime;
             PauseMenuManager.Restart();

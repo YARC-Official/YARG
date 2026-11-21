@@ -8,6 +8,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using YARG.Helpers.Extensions;
 using YARG.Playlists;
+using YARG.Roguelike;
 using YARG.Song;
 
 namespace YARG.Gameplay.HUD
@@ -169,6 +170,12 @@ namespace YARG.Gameplay.HUD
 
         public void Restart()
         {
+            if (RoguelikeSession.IsRoguelikeSong)
+            {
+                // Restarting would retry a roguelike round for free; the option is hidden, this is a backstop
+                return;
+            }
+
             if (GameManager.IsPractice && GlobalVariables.State.IsPractice)
             {
                 PopMenu();
