@@ -120,6 +120,7 @@ namespace YARG.ContentBrowser.CharacterSelect
 
         public void ClearCharacter()
         {
+            CharacterInfo = null;
             Name = string.Empty;
             Credits = string.Empty;
             DestroyCharacter();

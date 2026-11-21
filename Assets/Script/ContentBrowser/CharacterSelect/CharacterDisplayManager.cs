@@ -65,10 +65,27 @@ namespace YARG.ContentBrowser.CharacterSelect
             public AsyncOperationHandle<GameObject> Handle;
         }
 
-        private List<CharacterInfo> _characters;
+        private enum SlotState
+        {
+            Pending,
+            Loaded,
+            Failed,
+        }
+
+        // A position in the carousel. Slots are created up front in a deterministic order so
+        // that the order of finished loads can never reorder the carousel.
+        private sealed class CharacterSlot
+        {
+            public SlotState State = SlotState.Pending;
+            public CharacterInfo Info;
+        }
+
+        private readonly List<CharacterSlot> _slots = new();
         private int _currentCharacterIndex = 0;
 
         private bool _loadingFinished = false;
+        private bool _loadingOverlayDismissed = false;
+        private bool _isWaitingForSlot = false;
 
         // The character currently at the front of the carousel
         private CharacterInfo _primaryCharacter;
@@ -88,19 +105,25 @@ namespace YARG.ContentBrowser.CharacterSelect
             _characterName.text = string.Empty;
             _characterCredits.text = string.Empty;
 
-            _characters = new List<CharacterInfo>();
             var loading = new LoadingContext();
             loading.SetLoadingText("Loading characters...");
 
-            // Kick off background loading and wait for a minimum of 5 (or all if total < 5)
+            // Kick off background loading and wait until either everything is loaded, or the
+            // slots we are about to display are. The remaining slots keep loading in the background.
             var cts = this.GetCancellationTokenOnDestroy();
             _ = LoadAllCharacters(loading, cts);
-            // We preload 5 in an effort to avoid weirdness when loading is slow
-            await UniTask.WaitUntil(() => _characters.Count >= 5 || _loadingFinished, cancellationToken: cts);
-            loading.Dispose();
+            try
+            {
+                await UniTask.WaitUntil(AreInitialSlotsReady, cancellationToken: cts);
+            }
+            finally
+            {
+                _loadingOverlayDismissed = true;
+                loading.Dispose();
+            }
 
             // Set a navigation scheme
-            if (_characters.Count > 0)
+            if (_slots.Count > 0)
             {
                 _ = Navigator.Instance.PushScheme(new NavigationScheme(new()
                 {
@@ -115,47 +138,57 @@ namespace YARG.ContentBrowser.CharacterSelect
                 _ = Navigator.Instance.PushScheme(new NavigationScheme(new()
                 {
                     new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Exit),
-                    new NavigationScheme.Entry(MenuAction.Left, "Menu.Common.Scroll", Left),
-                    new NavigationScheme.Entry(MenuAction.Right, "Menu.Common.Scroll", Right),
                 }, true));
                 _characterName.SetText(Localize.Key("Menu.Content.CharacterSelect.NoCharacters"));
                 _characterCredits.SetText(Localize.Key("Menu.Content.CharacterSelect.NoCharactersSubtext"));
             }
 
-            // Instantiate some CharacterDisplays,
-            // index 0 being _currentCharacterIndex - 1 (wrapping if necessary)
-            // index 1 being _currentCharacterIndex
-            // index 2 being _currentCharacterIndex + 1 (wrapping if necessary)
-            // index 3 being _currentCharacterIndex + 2 (wrapping if necessary) (starts disabled)
-            var offset = -1;
-            var assignedCharacters = new HashSet<CharacterInfo>();
+            // Instantiate all CharacterDisplays first, then assign them front-first so that the
+            // layout matches the rotation direction (Left = +1, Right = -1):
+            // index 0 (Left)  = _currentCharacterIndex + 1 (wrapping if necessary)
+            // index 1 (Front) = _currentCharacterIndex
+            // index 2 (Right) = _currentCharacterIndex - 1 (wrapping if necessary)
+            // index 3 (Hidden) is left empty and is only populated while rotating
             for (int i = 0; i < _podiums.Length; i++)
             {
-                var characterInfo = GetUniqueCharacterInfo(offset, assignedCharacters);
-                offset++;
-
-                var displayLocation = GetDisplayLocation(i);
-                var instance = Instantiate(_displayPrefab, displayLocation);
-                var characterDisplay = instance.GetComponent<Podium>();
-
-                if (displayLocation == _hiddenLocation)
-                {
-                    instance.gameObject.SetActive(false);
-                }
-                else
-                {
-                    characterDisplay.SetCharacter(characterInfo);
-                }
-
-                _podiums[i] = characterDisplay;
+                var instance = Instantiate(_displayPrefab, GetDisplayLocation(i));
+                _podiums[i] = instance.GetComponent<Podium>();
             }
+
+            var assignedCharacters = new HashSet<CharacterInfo>();
+            _podiums[1].SetCharacter(GetUniqueCharacterInfo(0, assignedCharacters));
+            _podiums[0].SetCharacter(GetUniqueCharacterInfo(1, assignedCharacters));
+            _podiums[2].SetCharacter(GetUniqueCharacterInfo(-1, assignedCharacters));
+
+            _podiums[3].gameObject.SetActive(false);
 
             UpdatePrimaryCharacter();
         }
 
+        private bool AreInitialSlotsReady()
+        {
+            if (_loadingFinished)
+            {
+                return true;
+            }
+
+            int count = _slots.Count;
+            if (count < 5)
+            {
+                return false;
+            }
+
+            // The front podium and its direct neighbours, plus the first hidden candidates
+            return _slots[0].State == SlotState.Loaded
+                && _slots[1].State == SlotState.Loaded
+                && _slots[2].State == SlotState.Loaded
+                && _slots[count - 2].State == SlotState.Loaded
+                && _slots[count - 1].State == SlotState.Loaded;
+        }
+
         private void UpdateNavigationScheme()
         {
-            if (_characters.Count == 0)
+            if (_slots.Count == 0)
             {
                 return;
             }
@@ -220,58 +253,67 @@ namespace YARG.ContentBrowser.CharacterSelect
 
         private CharacterInfo GetCharacterInfo(int offset)
         {
-            var index = WrapCharacterIndex(_currentCharacterIndex + offset);
-            if (_characters.Count == 0 || index >= _characters.Count)
+            if (_slots.Count == 0)
             {
                 return null;
             }
 
-            return _characters[index];
+            var index = WrapCharacterIndex(_currentCharacterIndex + offset);
+            if (index >= _slots.Count || _slots[index].State != SlotState.Loaded)
+            {
+                return null;
+            }
+
+            return _slots[index].Info;
         }
 
         private int WrapCharacterIndex(int index)
         {
-            if (_characters.Count == 0)
+            int count = _slots.Count;
+            if (count == 0)
             {
                 return 0;
             }
 
-            return (index + _characters.Count) % _characters.Count;
+            return ((index % count) + count) % count;
         }
 
         private void UpdatePrimaryCharacter()
         {
+            if (_slots.Count == 0)
+            {
+                return;
+            }
+
             var selectedPodium = _podiums[1];
 
-            if (selectedPodium != null)
+            if (selectedPodium == null || selectedPodium.CharacterInfo == null)
             {
-                // This is here instead of combined with the above to prevent the text from getting overwritten
-                if (selectedPodium.CharacterInfo == null)
-                {
-                    return;
-                }
-                _primaryCharacter = selectedPodium.CharacterInfo;
-                _characterName.SetText(selectedPodium.Name);
-                _characterCredits.SetText(selectedPodium.Credits);
-
-                if (IsSelected(_primaryCharacter))
-                {
-                    _spotlight.color = Color.gold;
-                }
-                else if (IsHidden(_primaryCharacter))
-                {
-                    _spotlight.color = Color.darkRed;
-                }
-                else
-                {
-                    _spotlight.color = Color.white;
-                }
-            }
-            else
-            {
+                // An empty podium is in front, so nothing can be confirmed/hidden/unselected
                 _primaryCharacter = null;
                 _characterName.SetText(string.Empty);
                 _characterCredits.SetText(string.Empty);
+                _spotlight.color = Color.white;
+
+                UpdateNavigationScheme();
+                return;
+            }
+
+            _primaryCharacter = selectedPodium.CharacterInfo;
+            _characterName.SetText(selectedPodium.Name);
+            _characterCredits.SetText(selectedPodium.Credits);
+
+            if (IsSelected(_primaryCharacter))
+            {
+                _spotlight.color = Color.gold;
+            }
+            else if (IsHidden(_primaryCharacter))
+            {
+                _spotlight.color = Color.darkRed;
+            }
+            else
+            {
+                _spotlight.color = Color.white;
             }
 
             UpdateNavigationScheme();
@@ -279,6 +321,11 @@ namespace YARG.ContentBrowser.CharacterSelect
 
         private void Select()
         {
+            if (_primaryCharacter == null)
+            {
+                return;
+            }
+
             var characterInfo = new CustomCharacterInfo
             {
                 Source = _primaryCharacter.IsAddressable
@@ -312,6 +359,11 @@ namespace YARG.ContentBrowser.CharacterSelect
 
         private void Unselect()
         {
+            if (_primaryCharacter == null)
+            {
+                return;
+            }
+
             SettingsManager.Settings.CustomCharacters.Remove(VenueCharacter.CharacterType.Vocals);
 
             _spotlight.DOColor(Color.white, MOVE_DURATION * 0.333f);
@@ -322,6 +374,11 @@ namespace YARG.ContentBrowser.CharacterSelect
 
         private void Hide()
         {
+            if (_primaryCharacter == null)
+            {
+                return;
+            }
+
             var characterInfo = new CustomCharacterInfo
             {
                 Source = _primaryCharacter.IsAddressable
@@ -343,6 +400,11 @@ namespace YARG.ContentBrowser.CharacterSelect
 
         private void Unhide()
         {
+            if (_primaryCharacter == null)
+            {
+                return;
+            }
+
             var characterInfo = new CustomCharacterInfo
             {
                 Source = _primaryCharacter.IsAddressable
@@ -364,51 +426,81 @@ namespace YARG.ContentBrowser.CharacterSelect
 
         private void Right()
         {
-            if (_rotationTween != null && _rotationTween.IsPlaying())
-            {
-                return;
-            }
-
-            _currentCharacterIndex = WrapCharacterIndex(_currentCharacterIndex - 1);
-
-            var oldRight = _podiums[2];
-            var hidden = _podiums[3];
-
-            if (_characters.Count > _podiums.Length)
-            {
-                hidden.SetCharacter(GetCharacterInfo(-1));
-            }
-
-            hidden.gameObject.SetActive(true);
-
-            Rotate(false, oldRight.CharacterInfo, () =>
-            {
-                OnRotateComplete(false);
-            });
+            RotateStepAsync(false).Forget();
         }
 
         private void Left()
         {
-            if (_rotationTween != null && _rotationTween.IsPlaying())
+            RotateStepAsync(true).Forget();
+        }
+
+        private async UniTaskVoid RotateStepAsync(bool clockwise)
+        {
+            if (_slots.Count == 0 || _isWaitingForSlot || (_rotationTween != null && _rotationTween.IsPlaying()))
             {
                 return;
             }
 
-            _currentCharacterIndex = WrapCharacterIndex(_currentCharacterIndex + 1);
+            var step = clockwise ? 1 : -1;
+            var hiddenIndex = -1;
 
-            var oldLeft = _podiums[0];
-            var hidden = _podiums[3];
-
-            if (_characters.Count > _podiums.Length)
+            if (_slots.Count >= _podiums.Length)
             {
-                hidden.SetCharacter(GetCharacterInfo(1));
+                var ct = this.GetCancellationTokenOnDestroy();
+
+                _isWaitingForSlot = true;
+                try
+                {
+                    while (_slots.Count >= _podiums.Length)
+                    {
+                        var slotIndex = WrapCharacterIndex(_currentCharacterIndex + (step * 2));
+                        var slot = _slots[slotIndex];
+
+                        if (slot.State == SlotState.Loaded)
+                        {
+                            hiddenIndex = slotIndex;
+                            break;
+                        }
+
+                        // The user scrolled faster than loading; wait for the hidden slot
+                        await UniTask.WaitUntil(() => slot.State != SlotState.Pending, cancellationToken: ct);
+
+                        if (ct.IsCancellationRequested)
+                        {
+                            return;
+                        }
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    return;
+                }
+                finally
+                {
+                    _isWaitingForSlot = false;
+                }
             }
 
+            _currentCharacterIndex = WrapCharacterIndex(_currentCharacterIndex + step);
+            var nextPrimary = clockwise ? _podiums[0].CharacterInfo : _podiums[2].CharacterInfo;
+
+            var hidden = _podiums[3];
+
+            // Activate before assigning the character, otherwise the Animator trigger is dropped
             hidden.gameObject.SetActive(true);
 
-            Rotate(true, oldLeft.CharacterInfo, () =>
+            if (hiddenIndex >= 0)
             {
-                OnRotateComplete(true);
+                var targetInfo = _slots[hiddenIndex].Info;
+                if (hidden.CharacterInfo != targetInfo)
+                {
+                    hidden.SetCharacter(targetInfo);
+                }
+            }
+
+            Rotate(clockwise, nextPrimary, () =>
+            {
+                OnRotateComplete(clockwise);
             });
         }
 
@@ -451,55 +543,105 @@ namespace YARG.ContentBrowser.CharacterSelect
 
         private async UniTask LoadAllCharacters(LoadingContext context, CancellationToken ct)
         {
+            AsyncOperationHandle<IList<IResourceLocation>> locationsHandle = default;
+
             try
             {
                 // Enumerate local files
                 var folder = Path.Combine(CustomContentManager.CustomizationDirectory, "characters");
                 string[] files = Directory.Exists(folder) ? Directory.GetFiles(folder, "*.yargchar") : Array.Empty<string>();
+                Array.Sort(files, StringComparer.OrdinalIgnoreCase);
 
                 // Ask addressables if there are any remote characters
-                var locationsHandle = Addressables.LoadResourceLocationsAsync("character");
+                locationsHandle = Addressables.LoadResourceLocationsAsync("character");
                 await locationsHandle.Task;
-                var locations = locationsHandle.Status == AsyncOperationStatus.Succeeded ? locationsHandle.Result : null;
+                if (ct.IsCancellationRequested) return;
 
-                var totalFiles = files.Length;
-                var totalRemote = locations?.Count ?? 0;
-                var totalCount = totalFiles + totalRemote;
+                var locations = new List<IResourceLocation>();
+                if (locationsHandle.Status == AsyncOperationStatus.Succeeded && locationsHandle.Result != null)
+                {
+                    locations.AddRange(locationsHandle.Result);
+                    locations.Sort((a, b) => StringComparer.OrdinalIgnoreCase.Compare(a.PrimaryKey, b.PrimaryKey));
+                }
+
+                var totalCount = files.Length + locations.Count;
+
+                var slots = new CharacterSlot[totalCount];
+                _slots.Clear();
+                for (int i = 0; i < totalCount; i++)
+                {
+                    slots[i] = new CharacterSlot();
+                    _slots.Add(slots[i]);
+                }
 
                 var loadedCount = 0;
-                var tasks = new List<UniTask>();
 
-                async UniTask LoadingTask(UniTask<CharacterInfo> loadTask)
+                async UniTask LoadSlotAsync(CharacterSlot slot, int index)
                 {
-                    var info = await loadTask;
+                    var loadTask = index < files.Length
+                        ? LoadLocalCharacter(files[index], ct)
+                        : LoadRemoteCharacter(locations[index - files.Length], ct);
+
+                    CharacterInfo info;
+                    try
+                    {
+                        info = await loadTask;
+                    }
+                    catch (Exception e)
+                    {
+                        YargLogger.LogError($"Error loading character: {e.Message}");
+                        info = null;
+                    }
+
                     if (ct.IsCancellationRequested)
                     {
+                        ReleaseCharacterInfo(info);
                         return;
                     }
 
-                    if (info != null)
+                    if (info == null)
                     {
-                        _characters.Add(info);
+                        slot.State = SlotState.Failed;
+
+                        var removedIndex = _slots.IndexOf(slot);
+                        if (removedIndex >= 0)
+                        {
+                            _slots.RemoveAt(removedIndex);
+
+                            if (removedIndex < _currentCharacterIndex)
+                            {
+                                _currentCharacterIndex--;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        slot.Info = info;
+                        slot.State = SlotState.Loaded;
                     }
 
                     int current = Interlocked.Increment(ref loadedCount);
-                    if (!_loadingFinished)
+                    if (!_loadingOverlayDismissed && !_loadingFinished)
                     {
                         context.SetSubText($"Loading characters ({current}/{totalCount})");
                     }
                 }
 
-                // Kick off all loads concurrently
-                foreach (var file in files)
+                var tasks = new List<UniTask>(totalCount);
+
+                if (totalCount > 0)
                 {
-                    tasks.Add(LoadingTask(LoadLocalCharacter(file)));
+                    tasks.Add(LoadSlotAsync(slots[0], 0));
                 }
 
-                if (locations != null)
+                // This ensures that async calls are dispatched in an order that doesn't cause unnecessary waiting for
+                // the initially visible set of characters
+                for (int left = 1, right = totalCount - 1; left <= right; left++, right--)
                 {
-                    foreach (var location in locations)
+                    tasks.Add(LoadSlotAsync(slots[left], left));
+                    if (right != left)
                     {
-                        tasks.Add(LoadingTask(LoadRemoteCharacter(location)));
+                        tasks.Add(LoadSlotAsync(slots[right], right));
                     }
                 }
 
@@ -512,24 +654,36 @@ namespace YARG.ContentBrowser.CharacterSelect
             finally
             {
                 _loadingFinished = true;
+
+                if (locationsHandle.IsValid())
+                {
+                    Addressables.Release(locationsHandle);
+                }
             }
         }
 
-        private async UniTask<CharacterInfo> LoadLocalCharacter(string file)
+        private async UniTask<CharacterInfo> LoadLocalCharacter(string file, CancellationToken ct)
         {
             var bundle = await AssetBundle.LoadFromFileAsync(file);
             if (bundle == null) return null;
 
-            var request = bundle.LoadAssetAsync<GameObject>(BackgroundHelper.CHARACTER_PREFAB_PATH.ToLowerInvariant());
-            var prefab = await request as GameObject;
-
-            BackgroundHelper.LoadMetalShaders(bundle, prefab, BackgroundHelper.ExportType.Character);
-
-            if (prefab == null)
+            if (ct.IsCancellationRequested)
             {
                 bundle.Unload(true);
                 return null;
             }
+
+            var request = bundle.LoadAssetAsync<GameObject>(BackgroundHelper.CHARACTER_PREFAB_PATH.ToLowerInvariant());
+            var prefab = await request as GameObject;
+
+            // Bail out before doing any shader work if we are shutting down or the prefab is missing
+            if (ct.IsCancellationRequested || prefab == null)
+            {
+                bundle.Unload(true);
+                return null;
+            }
+
+            BackgroundHelper.LoadMetalShaders(bundle, prefab, BackgroundHelper.ExportType.Character);
 
             var instance = Instantiate(prefab);
             instance.gameObject.SetActive(false);
@@ -570,53 +724,111 @@ namespace YARG.ContentBrowser.CharacterSelect
             };
         }
 
-        private async UniTask<CharacterInfo> LoadRemoteCharacter(IResourceLocation result)
+        private async UniTask<CharacterInfo> LoadRemoteCharacter(IResourceLocation result, CancellationToken ct)
         {
             var key = result.PrimaryKey;
             var handle = Addressables.LoadAssetAsync<GameObject>(result);
             var prefab = await handle.Task;
-            if (handle.Status != AsyncOperationStatus.Succeeded)
+
+            if (ct.IsCancellationRequested || handle.Status != AsyncOperationStatus.Succeeded)
             {
+                if (handle.IsValid())
+                {
+                    Addressables.Release(handle);
+                }
+
                 return null;
             }
 
-            var instance = await Addressables.InstantiateAsync(key);
-            instance.gameObject.SetActive(false);
+            GameObject instance = null;
 
-            string name;
-            string author;
+            // The handle only transfers ownership to the returned CharacterInfo on success
+            var handleTransferred = false;
 
-            var vrmInstance = instance.GetComponent<Vrm10Instance>();
-            if (vrmInstance != null && vrmInstance.Vrm != null && vrmInstance.Vrm.Meta != null)
+            try
             {
-                name = vrmInstance.Vrm.Meta.Name;
-                var authors = vrmInstance.Vrm.Meta.Authors;
-
-                author = authors.Count switch
+                instance = await Addressables.InstantiateAsync(key);
+                if (instance == null)
                 {
-                    0 => "",
-                    1 => authors[0],
-                    _ => string.Join(", ", authors)
+                    YargLogger.LogError($"Error loading character: failed to instantiate '{key}'");
+                    return null;
+                }
+
+                instance.gameObject.SetActive(false);
+
+                string name;
+                string author;
+
+                var vrmInstance = instance.GetComponent<Vrm10Instance>();
+                if (vrmInstance != null && vrmInstance.Vrm != null && vrmInstance.Vrm.Meta != null)
+                {
+                    name = vrmInstance.Vrm.Meta.Name;
+                    var authors = vrmInstance.Vrm.Meta.Authors;
+
+                    author = authors.Count switch
+                    {
+                        0 => "",
+                        1 => authors[0],
+                        _ => string.Join(", ", authors)
+                    };
+                }
+                else
+                {
+                    // Name fallback is the last component
+                    var index = key.LastIndexOf('/');
+                    name = key[(index + 1)..];
+                    author = string.Empty;
+                }
+
+                if (ct.IsCancellationRequested)
+                {
+                    return null;
+                }
+
+                var info = new CharacterInfo {
+                    Prefab = prefab,
+                    Identifier = key,
+                    Name = name,
+                    Author = author,
+                    IsAddressable = true,
+                    Handle = handle
                 };
+
+                handleTransferred = true;
+                return info;
             }
-            else
+            catch (Exception e)
             {
-                // Name fallback is the last component
-                var index = key.LastIndexOf('/');
-                name = key[(index + 1)..];
-                author = string.Empty;
+                YargLogger.LogError($"Error loading character: {e.Message}");
+                return null;
+            }
+            finally
+            {
+                if (instance != null)
+                {
+                    Addressables.ReleaseInstance(instance);
+                }
+
+                if (!handleTransferred && handle.IsValid())
+                {
+                    Addressables.Release(handle);
+                }
+            }
+        }
+
+        private static void ReleaseCharacterInfo(CharacterInfo info)
+        {
+            if (info == null)
+            {
+                return;
             }
 
-            Addressables.ReleaseInstance(instance);
+            if (info.IsAddressable && info.Handle.IsValid())
+            {
+                Addressables.Release(info.Handle);
+            }
 
-            return new CharacterInfo {
-                Prefab = prefab,
-                Identifier = key,
-                Name = name,
-                Author = author,
-                IsAddressable = true,
-                Handle = handle
-            };
+            info.Prefab = null;
         }
 
         private void Rotate(bool clockwise, CharacterInfo nextPrimary, Action onRotationComplete)
@@ -638,7 +850,7 @@ namespace YARG.ContentBrowser.CharacterSelect
                     UpdatePodiumPositions(_currentAngle);
 
                     var progress = _rotationTween.ElapsedPercentage();
-                    if (_characters.Count > 0)
+                    if (_slots.Count > 0)
                     {
                         if (!textHidden && progress > 0.2f)
                         {
@@ -717,14 +929,10 @@ namespace YARG.ContentBrowser.CharacterSelect
         private void OnDestroy()
         {
             _rotationTween?.Kill();
-            foreach (var character in _characters)
-            {
-                if (character.IsAddressable && character.Handle.IsValid())
-                {
-                    Addressables.Release(character.Handle);
-                }
 
-                character.Prefab = null;
+            foreach (var slot in _slots)
+            {
+                ReleaseCharacterInfo(slot.Info);
             }
 
             foreach (var podium in _podiums)
