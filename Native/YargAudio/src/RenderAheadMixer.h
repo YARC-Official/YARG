@@ -58,13 +58,6 @@ public:
     bool sourcePositionSnapshot(std::uint32_t endpointDelayFrames,
         SourcePositionSnapshot& snapshot) noexcept;
 
-    void holdNextRender() noexcept {
-        nextRenderHolds_.fetch_add(1, std::memory_order_acq_rel);
-    }
-    void releaseNextRender() noexcept {
-        nextRenderHolds_.fetch_sub(1, std::memory_order_acq_rel);
-    }
-
     std::size_t queuedFrames() const noexcept { return ring_.available(); }
     std::size_t targetFrames() const noexcept { return targetFrames_.load(std::memory_order_acquire); }
     bool failed() const noexcept { return failed_.load(std::memory_order_acquire); }
@@ -92,7 +85,6 @@ private:
         float value;
     };
 
-    void yieldWhileHeld() const noexcept;
     void recordSourcePosition(std::uint64_t frame) noexcept;
     void applyQueuedAttributes() noexcept;
     bool readPositionRecord(std::uint64_t index, PositionRecord& record) const noexcept;
@@ -125,10 +117,8 @@ private:
     std::mutex attributeMutex_;
     std::array<AttributeWrite, MaximumQueuedAttributes> queuedAttributes_{};
     std::size_t queuedAttributeCount_ = 0;
-    std::atomic<bool> attributesQueued_{false};
     std::atomic<std::uint64_t> maximumRenderNs_{0};
     std::atomic<std::uint64_t> positionOutputFrame_{0};
-    std::atomic<std::uint32_t> nextRenderHolds_{0};
 };
 
 } // namespace yarg::audio

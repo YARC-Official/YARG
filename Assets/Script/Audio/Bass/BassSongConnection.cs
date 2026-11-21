@@ -280,10 +280,6 @@ namespace YARG.Audio.BASS
             return true;
         }
 
-        public bool HoldNextRender() => _readAhead.HoldNextRender();
-
-        public void ReleaseNextRender() => _readAhead.ReleaseNextRender();
-
         public bool SetSourceAttribute(int channel, ChannelAttribute attribute, float value) =>
             _readAhead.SetSourceAttribute(channel, attribute, value);
 

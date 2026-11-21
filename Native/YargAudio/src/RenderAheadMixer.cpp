@@ -119,13 +119,10 @@ bool RenderAheadMixer::queueSourceAttribute(std::uint32_t channel,
         return false;
     }
     queuedAttributes_[queuedAttributeCount_++] = AttributeWrite{channel, attribute, value};
-    attributesQueued_.store(true, std::memory_order_release);
     return true;
 }
 
 void RenderAheadMixer::applyQueuedAttributes() noexcept {
-    if (!attributesQueued_.load(std::memory_order_acquire)) return;
-
     std::array<AttributeWrite, MaximumQueuedAttributes> writes;
     std::size_t count;
     {
@@ -133,7 +130,6 @@ void RenderAheadMixer::applyQueuedAttributes() noexcept {
         writes = queuedAttributes_;
         count = queuedAttributeCount_;
         queuedAttributeCount_ = 0;
-        attributesQueued_.store(false, std::memory_order_relaxed);
     }
     for (std::size_t i = 0; i < count; ++i) {
         source_->setAttribute(writes[i].channel, writes[i].attribute, writes[i].value);
@@ -197,7 +193,6 @@ void RenderAheadMixer::run() noexcept {
         const auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now() - started).count();
         updateMaximum(static_cast<std::uint64_t>(elapsed));
-        yieldWhileHeld();
 
         if (rendered < 0) {
             lastError_.store(source_->lastError());
@@ -303,13 +298,6 @@ bool RenderAheadMixer::sourcePositionSnapshot(std::uint32_t endpointDelayFrames,
     snapshot.heardPosition = heardPosition;
     positionOutputFrame_.store(outputFrame, std::memory_order_relaxed);
     return true;
-}
-
-void RenderAheadMixer::yieldWhileHeld() const noexcept {
-    while (nextRenderHolds_.load(std::memory_order_acquire) != 0 &&
-        !stopping_.load(std::memory_order_acquire)) {
-        std::this_thread::yield();
-    }
 }
 
 void RenderAheadMixer::updateMaximum(std::uint64_t nanoseconds) noexcept {

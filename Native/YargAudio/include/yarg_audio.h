@@ -253,10 +253,6 @@ YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_flush(
     yarg_read_ahead_stream* stream);
 YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_set_buffer_length(
     yarg_read_ahead_stream* stream, uint32_t buffer_milliseconds);
-YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_hold_next_render(
-    yarg_read_ahead_stream* stream);
-YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_release_next_render(
-    yarg_read_ahead_stream* stream);
 YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_set_source_attribute(
     yarg_read_ahead_stream* stream, uint32_t channel, uint32_t attribute, float value);
 YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_get_position_snapshot(

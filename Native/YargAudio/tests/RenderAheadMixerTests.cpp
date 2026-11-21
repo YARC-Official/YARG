@@ -251,33 +251,6 @@ void runRenderAheadMixerTests() {
     }
 
     {
-        RenderAheadMixer renderer(std::make_unique<SlowSource>(), 48000, 1, 64, 5000, 1);
-        REQUIRE(renderer.start());
-        std::this_thread::sleep_for(5ms);
-
-        renderer.holdNextRender();
-        // A read already in flight may finish after holdNextRender returns. Wait longer than the
-        // slowest timer slice (Windows can sleep ~15 ms) before sampling the held frame count.
-        std::this_thread::sleep_for(100ms);
-        const auto heldFrames = renderer.producedFrames();
-        std::this_thread::sleep_for(20ms);
-        const auto framesWhileHeld = renderer.producedFrames();
-        renderer.releaseNextRender();
-
-        const auto deadline = std::chrono::steady_clock::now() + 2s;
-        while (renderer.producedFrames() == framesWhileHeld &&
-               std::chrono::steady_clock::now() < deadline) {
-            std::this_thread::sleep_for(1ms);
-        }
-        const auto resumed = renderer.producedFrames() > framesWhileHeld;
-        renderer.stop();
-
-        REQUIRE(heldFrames > 0);
-        REQUIRE(framesWhileHeld == heldFrames);
-        REQUIRE(resumed);
-    }
-
-    {
         auto source = std::make_unique<BlockingSource>();
         auto* sourcePointer = source.get();
         RenderAheadMixer renderer(std::move(source), 48000, 1, 64, 10, 1);

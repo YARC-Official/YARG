@@ -282,23 +282,11 @@ namespace YARG.Audio.BASS
             _speed = effectiveSpeed;
             _stemPipeline.SetSpeed(effectiveSpeed, shiftPitch);
 
-            var connection = _connection;
-            bool heldNextRender = connection?.HoldNextRender() == true;
-            try
-            {
-                RefreshToneChannels();
+            RefreshToneChannels();
 
-                foreach (var oneShot in _oneShots)
-                {
-                    oneShot.ResetAfterSpeedChange();
-                }
-            }
-            finally
+            foreach (var oneShot in _oneShots)
             {
-                if (heldNextRender)
-                {
-                    connection!.ReleaseNextRender();
-                }
+                oneShot.ResetAfterSpeedChange();
             }
         }
 
