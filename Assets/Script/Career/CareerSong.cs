@@ -56,11 +56,6 @@ namespace YARG.Career
         public SongEntry SongEntry;
         [NonSerialized]
         public CareerTier Parent;
-        // Should be set when song can no longer improve unlock criteria
-        // e.g. if next tier criteria is completion, when song has been finished, or if next tier criteria is
-        // stars, when player has achieved 5 stars on this song
-        [NonSerialized]
-        public bool IsCompleted;
 
         public CareerSong()
         {

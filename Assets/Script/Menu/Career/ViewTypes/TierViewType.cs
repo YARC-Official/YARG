@@ -62,7 +62,7 @@ namespace YARG.Menu.Career
                 text = _tier.UnlockType switch
                 {
                     UnlockType.StarCount => Localize.KeyFormat("Menu.Career.StarProgress", _result?.StarSum ?? 0, _tier.Songs?.Length * STARS_PER_SONG ?? 0),
-                    UnlockType.CompletionCount => Localize.KeyFormat("Menu.Career.StarProgress", _result?.RemainingToUnlock ?? 0, _tier.Songs?.Length ?? 0),
+                    UnlockType.CompletionCount => Localize.KeyFormat("Menu.Career.StarProgress", _result?.CompletedSongs ?? 0, _tier.Songs?.Length ?? 0),
                     _ => "Unknown Unlock Type (how?)"
                 };
             }
