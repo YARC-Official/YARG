@@ -523,6 +523,8 @@ namespace YARG.ContentBrowser.CharacterSelect
             var request = bundle.LoadAssetAsync<GameObject>(BackgroundHelper.CHARACTER_PREFAB_PATH.ToLowerInvariant());
             var prefab = await request as GameObject;
 
+            BackgroundHelper.LoadMetalShaders(bundle, prefab, BackgroundHelper.ExportType.Character);
+
             if (prefab == null)
             {
                 bundle.Unload(true);
