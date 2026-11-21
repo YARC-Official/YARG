@@ -458,6 +458,11 @@ namespace YARG.Menu.ProfileList
         public void RefreshControllers()
         {
             var player = PlayerContainer.GetPlayerFromProfile(Profile);
+            if (player is null)
+            {
+                return;
+            }
+
             var openControllers = _controllersList.GetComponentsInChildren<ControllerEntryView>()
                 .Where(e => e.DrawerOpen)
                 .Select(e => e.Controller)
