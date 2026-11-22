@@ -22,6 +22,7 @@ using YARG.Menu.Filters;
 using YARG.Menu.MusicLibrary;
 using YARG.Player;
 using YARG.Playlists;
+using YARG.Roguelike;
 using YARG.Song;
 
 namespace YARG.Menu.DifficultySelect
@@ -1025,17 +1026,28 @@ namespace YARG.Menu.DifficultySelect
 
         }
 
+        private static bool MustSitOut(YargPlayer player)
+        {
+            if (RoguelikeSession.IsRoguelikeSong)
+            {
+                return player.Profile.IsBot || player.Profile.Id != RoguelikeSession.ProfileId;
+            }
+
+            return player.Profile.IsBot;
+        }
+
         private void ChangePlayer(int add)
         {
             _playerIndex += add;
             _menuState = State.Main;
 
-            if (GlobalVariables.State.CurrentCareer is not null)
+            if (GlobalVariables.State.CurrentCareer is not null || RoguelikeSession.IsRoguelikeSong)
             {
                 // A career run never includes bots - a game played with them cannot commit career
                 // progress at all - so they are forced to sit out and never get a selection screen.
+                // A roguelike run belongs to a single profile, so everyone else sits out the same way.
                 while (_playerIndex >= 0 && _playerIndex < PlayerContainer.Players.Count &&
-                       PlayerContainer.Players[_playerIndex].Profile.IsBot)
+                       MustSitOut(PlayerContainer.Players[_playerIndex]))
                 {
                     PlayerContainer.Players[_playerIndex].SittingOut = true;
                     _playerIndex += add >= 0 ? 1 : -1;
@@ -1089,6 +1101,11 @@ namespace YARG.Menu.DifficultySelect
                 // The max speed that the game can keep up with is 5000%
                 float speed = float.Parse(_speedInput.text.TrimEnd('%')) / 100f;
                 speed = Mathf.Clamp(speed, 0.1f, 50.0f);
+                if (RoguelikeSession.IsRoguelikeSong && speed < 1.0f)
+                {
+                    // Slowed-down scores are invalid, which would fail the round, so don't allow it
+                    speed = 1.0f;
+                }
                 _songSpeed = speed;
                 GlobalVariables.State.SongSpeed = speed;
 
@@ -1123,6 +1140,14 @@ namespace YARG.Menu.DifficultySelect
                 {
                     _possibleInstruments.Add(instrument);
                 }
+            }
+
+            // In a roguelike run, only offer the parts the run allows: the preferred part if the song
+            // charts it, otherwise the substitutes (see RoguelikeParts)
+            if (RoguelikeSession.IsRoguelikeSong && RoguelikeSession.Current is { } run)
+            {
+                var roguelikeParts = RoguelikeLibrary.GetAllowedInstruments(run, song);
+                _possibleInstruments.RemoveAll(instrument => !roguelikeParts.Contains(instrument));
             }
 
             // If the player's preferred instrument is available, set CurrentInstrument to that

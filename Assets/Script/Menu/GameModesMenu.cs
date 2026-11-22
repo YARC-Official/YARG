@@ -36,6 +36,11 @@ namespace YARG.Menu
             menu.gameObject.SetActive(true);
         }
 
+        public void Roguelike()
+        {
+            MenuManager.Instance.PushMenu(MenuManager.Menu.Roguelike);
+        }
+
         public void Practice()
         {
             var menu = MenuManager.Instance.PushMenu(MenuManager.Menu.MusicLibrary, false);

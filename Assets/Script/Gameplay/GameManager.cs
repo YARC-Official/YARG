@@ -27,6 +27,7 @@ using YARG.Playback;
 using YARG.Player;
 using YARG.Playlists;
 using YARG.Replays;
+using YARG.Roguelike;
 using YARG.Scores;
 using YARG.Settings;
 using YARG.Settings.Types;
@@ -706,6 +707,7 @@ namespace YARG.Gameplay
             };
 
             RecordScores(replayInfo);
+            RecordRoguelikeResult();
 
             // Go to the score screen
             GlobalVariables.Instance.LoadScene(SceneIndex.Score);
@@ -827,8 +829,27 @@ namespace YARG.Gameplay
             }, playerEntries);
         }
 
+        private void RecordRoguelikeResult()
+        {
+            var context = GlobalVariables.State.CurrentRoguelike;
+            if (context is null || GlobalVariables.State.IsReplay)
+            {
+                return;
+            }
+
+            bool scoreValid = ScoreContainer.IsBandScoreValid(SongSpeed, ActivePlayers.Select(player => player.Player));
+            var runPlayer = _players.FirstOrDefault(player => player.Player.Profile.Id == RoguelikeSession.ProfileId);
+
+            RoguelikeSession.RecordSongEnd(context, runPlayer?.Player.Profile.CurrentInstrument, (int) BandStars, scoreValid);
+        }
+
         public void ForceQuitSong()
         {
+            if (!GlobalVariables.State.IsReplay)
+            {
+                RoguelikeSession.RecordQuit(GlobalVariables.State.CurrentRoguelike);
+            }
+
             GlobalVariables.State = PersistentState.Default;
             GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
         }
