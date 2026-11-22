@@ -25,8 +25,19 @@
             "FiveLaneDrums": "Perkusja (5-ścieżkowa)",
             "ProGuitar": "Pro Gitara (17-progowa, 22-progowa)",
             "ProKeys": "Klawisze (5-ścieżkowe, Pro)",
-            "Menu": "Menu",
-            "Vocals": "Wokal"
+            "Menu": "Menu Navigation",
+            "Vocals": "Wokal",
+            "Short": {
+                "FiveFretGuitar": "5F Guitar",
+                "SixFretGuitar": "6F Guitar",
+                "EliteDrums": "Drums",
+                "FourLaneDrums": "4L Drums",
+                "FiveLaneDrums": "5L Drums",
+                "ProGuitar": "Pro Guitar",
+                "ProKeys": "Keys",
+                "Vocals": "Vocals",
+                "Menu": "menu navigation"
+            }
         },
         "Instrument": {
             "FiveFretGuitar": "Gitara",
@@ -34,10 +45,10 @@
             "FiveFretRhythm": "Gitara Rytmiczna",
             "FiveFretCoopGuitar": "Gitara Co-op",
             "Keys": "Klawisze",
-            "SixFretGuitar": "Gitara",
-            "SixFretBass": "Bas",
-            "SixFretRhythm": "Gitara Rytmiczna",
-            "SixFretCoopGuitar": "Gitara Co-op",
+            "SixFretGuitar": "Guitar (6-Fret)",
+            "SixFretBass": "Bass (6-Fret)",
+            "SixFretRhythm": "Rhythm (6-Fret)",
+            "SixFretCoopGuitar": "Co-op (6-Fret)",
             "FourLaneDrums": "4-Ścieżkowa Perkusja",
             "ProDrums": "Pro Perkusja",
             "FiveLaneDrums": "5-Ścieżkowa Perkusja",
@@ -49,6 +60,7 @@
             "ProKeys": "Pro Klawisze",
             "Vocals": "Wokal",
             "Harmony": "Harmonia",
+            "PartyVocals": "Free Harmonies",
             "Dj": "DJ",
             "Band": "Zespół"
         },
@@ -79,6 +91,8 @@
             "Source": "Źródło",
             "Subgenre": "Podgatunek",
             "Stars": "Gwiazdki",
+            "Percentage": "Percentage",
+            "Score": "Score",
             "Unspecified": "Brak",
             "Year": "Rok",
             "DateAdded": "Data dodania",
@@ -96,6 +110,7 @@
             "ProDrums": "Pro Perkusja",
             "FiveLaneDrums": "Perkusja (5-ścieżkowa)",
             "EliteDrums": "Elitarna Perkusja",
+            "AggregateDrums": "Aggregate Drums",
             "ProGuitar_17": "Pro Gitara (17-progowa)",
             "ProGuitar_22": "Pro Gitara (22-progowa)",
             "ProBass_17": "Pro Bas (17-progowy)",
@@ -103,6 +118,7 @@
             "ProKeys": "Pro Klawisze",
             "Vocals": "Wokal",
             "Harmony": "Harmonia",
+            "FreeHarmony": "Free Harmony",
             "Band": "Zespół",
             "Playcount": "Ilość zagrań",
             "Random": "Losowo"
@@ -117,6 +133,64 @@
             "Never": "Nigdy",
             "Always": "Zawsze",
             "IfChartContainsOpens": "Tylko gdy utwór zawiera puste struny"
+        },
+        "ControllerFamily": {
+            "SingularTitle": {
+                "FiveFretGuitar": "5F Guitar",
+                "SixFretGuitar": "6F Guitar",
+                "FourLaneDrumkit": "4L Drumkit",
+                "FiveLaneDrumkit": "5L Drumkit",
+                "ProKeyboard": "Pro Keyboard",
+                "ProGuitar": "Pro Guitar",
+                "Turntable": "Turntable",
+                "MidiDevice": "MIDI Device",
+                "ComputerKeyboard": "Computer Keyboard",
+                "Mouse": "Computer Mouse",
+                "Gamepad": "Gamepad",
+                "Other": "Misc. Input Device"
+            },
+            "SingularSentence": {
+                "FiveFretGuitar": "5F guitar",
+                "SixFretGuitar": "6F guitar",
+                "FourLaneDrumkit": "4L drumkit",
+                "FiveLaneDrumkit": "5L drumkit",
+                "ProKeyboard": "pro keyboard",
+                "ProGuitar": "pro guitar",
+                "Turntable": "turntable",
+                "MidiDevice": "MIDI device",
+                "ComputerKeyboard": "computer keyboard",
+                "Mouse": "computer mouse",
+                "Gamepad": "gamepad",
+                "Other": "misc. input device"
+            },
+            "PluralTitle": {
+                "FiveFretGuitar": "5-Fret Guitar Controllers",
+                "SixFretGuitar": "6-Fret Guitar Controllers",
+                "FourLaneDrumkit": "Stock 4-Lane Drumkit Controllers",
+                "FiveLaneDrumkit": "Stock 5-Lane Drumkit Controllers",
+                "ProKeyboard": "Pro Keyboard Controllers",
+                "ProGuitar": "Pro Guitar Controllers",
+                "Turntable": "Turntable Controllers",
+                "MidiDevice": "MIDI Devices",
+                "ComputerKeyboard": "Computer Keyboards",
+                "Mouse": "Computer Mice",
+                "Gamepad": "Gamepads",
+                "Other": "Other Input Devices"
+            },
+            "PluralSentence": {
+                "FiveFretGuitar": "5-fret guitar controllers",
+                "SixFretGuitar": "6-fret guitar controllers",
+                "FourLaneDrumkit": "stock 4-Lane drumkit controllers",
+                "FiveLaneDrumkit": "stock 5-lane drumkit controllers",
+                "ProKeyboard": "pro keyboard controllers",
+                "ProGuitar": "pro guitar controllers",
+                "Turntable": "turntable controllers",
+                "MidiDevice": "MIDI devices",
+                "ComputerKeyboard": "computer keyboards",
+                "Mouse": "computer mice",
+                "Gamepad": "gamepads",
+                "Other": "misc. input devices"
+            }
         }
     },
     "Menu": {
@@ -128,12 +202,14 @@
             "Apply": "Zastosuj",
             "Back": "Wróć",
             "Cancel": "Anuluj",
+            "DontApply": "Don't Apply",
             "Close": "Zamknij",
             "Confirm": "Potwierdź",
             "Continue": "Kontynuuj",
             "Toggle": "Przełącz",
             "On": "Wł.",
             "Off": "Wył.",
+            "Skip": "Skip",
             "Start": "Rozpocznij",
             "Up": "W górę",
             "Down": "W dół",
@@ -161,6 +237,7 @@
             "Repos": {
                 "Community": "Społeczność",
                 "OpenSource": "OpenSource",
+                "YALCY": "YALCY",
                 "YARC-Charters": "Oficjalna Setlista YARG",
                 "YARC-Launcher": "Launcher YARC",
                 "YARG": "YARG"
@@ -193,6 +270,7 @@
                 "AlbumCover": "Okładka albumu: {0}",
                 "ChartedBy": "Chartowane przez: {0}",
                 "License": "Licencja: {0}",
+                "Background": "Tło stworzone przez: {0}",
                 "Written": "Autor",
                 "Composed": "Kompozytor",
                 "Arranged": "Aranż",
@@ -209,10 +287,10 @@
         },
         "Toast": {
             "AutoCalibrationScore": "Wyłączono zapisywanie wyników: automatyczna kalibracja jest aktywna.",
-            "NoFailScore": "Wyłączono zapisywanie wyników: Tryb bezporażkowy zresetował poziom Rockometru.",
+            "NoFailScore": "Score saving disabled: No fail was toggled.",
             "ResumeAfterFailInvalidate": "Score saving disabled: Resuming after failure invalidated score.",
-            "ProfileCreated": "Utworzono profil dla nowego urządzenia: {0}\nCzas na YARGowanie!",
             "TooManyPauses": "Wyłączono zapisywanie wyników: Menu pauzy zostało otwarte zbyt wiele razy.",
+            "ProfileLoadWarning": "{0} profile(s) could not be loaded by this version of YARG. They are kept and will be retried after an update, or can be removed from the profile list.",
             "UnsupportedDevice": "Automatyczne tworzenie profili nie jest obsługiwane dla urządzenia: {0}!"
         },
         "Dialog": {
@@ -234,11 +312,6 @@
                 "Message": "Czy na pewno chcesz usunąć <b>{0}</b>?\n\n{1}",
                 "Confirm": "Napisz tutaj <b>{0}</b> aby potwierdzić"
             },
-            "EngineInconsistency": {
-                "Title": "Powtórki są w fazie beta",
-                "Description": "Aktualnie system powtórek jest w fazie wczesnego dostępu, <b>i <i>może</i> dawać sprzeczne wyniki/statystyki</b>, zwłaszcza dla gitary.\n\nOstatecznym celem jest stworzenie dokładnych i wiarygodnych powtórek. Pracujemy nad naprawieniem tych problemów!",
-                "Confirm": "Rozumiem"
-            },
             "Experimental": {
                 "Title": "Funkcje eksperymentalne",
                 "Description": "Zaraz zostaną wyświetlone ustawienia, nad którymi nadal trwają prace. Funkcje te mogą się zmienić, mogą zawierać błędy, i <b>mogą nawet spowodować duże problemy, gdy zostaną włączone</b>.",
@@ -250,19 +323,51 @@
             },
             "FriendlyBindingDialog": {
                 "Skip": "Pomiń"
+            },
+            "ReplayMenu": {
+                "EngineInconsistency": {
+                    "Title": "Replays Are In Beta",
+                    "Description": "Currently, the replay system is in beta, <b>and <i>may</i> provide inconsistent scores/stats</b>, especially for guitar.\n\nThe end goal is for replays to be reliable and accurate, and we're working on fixing these problems!",
+                    "Confirm": "I Understand"
+                },
+                "ReplayLoadFail": {
+                    "Title": "Failed to Load Replay",
+                    "Description": "The replay data could not be loaded. It may be corrupted or out of date."
+                },
+                "UnavailableSong": {
+                    "Title": "Unavailable Song",
+                    "Description": "A song compatible with the selected play is not present in your library! Most likely deleted!"
+                }
             }
         },
         "DifficultySelect": {
             "Instrument": "Instrument",
             "Difficulty": "Poziom trudności",
             "Harmony": "Harmonia",
+            "Adjustments": "Adjustments",
             "Modifiers": "Modyfikatory",
+            "Accessibility": "Accessibility",
+            "LeftyFlip": "Lefty Flip",
+            "NoRangeShifts": "No Range Shifts",
+            "DedicatedOpenLane": "Open Note Lane",
+            "OpenLaneAlways": "Open Lane Always",
+            "OpenLaneWhenCharted": "Open Lane When Charted",
             "Ready": "Gotowe",
             "SitOut": "Przeczekaj",
             "Disconnect": "Rozłącz",
             "Done": "Zrobione",
             "WarningPlayerNoInputDevice": "Ten gracz nie ma przypisanego urządzenia wejściowego! Wybierz jedno z menu Profili.",
             "WarningVocalistNoMicrophone": "Ten wokalista nie ma przypisanego mikrofonu! Wybierz jeden z menu Profili."
+        },
+        "GameModes": {
+            "Options": {
+                "Name": "Game Modes",
+                "CareerList": "Careers",
+                "Practice": "Practice",
+                "History": "History",
+                "Back": "Main Menu"
+            },
+            "MessageOfTheDay": "Check the careers menu for the included careers and any custom careers you have created or imported from the presets tab in the settings menu."
         },
         "History": {
             "Name": "Historia",
@@ -276,15 +381,34 @@
                 "MoreThanYear": "Ponad rok temu"
             },
             "Analyze": "Analizuj",
+            "ViewScoreCard": "View Results",
             "PlayWithReplay": "Graj z powtórką"
         },
+        "Career": {
+            "StarProgress": "{0} / {1}",
+            "UnlockStars": "Earn {0} more stars to unlock",
+            "UnlockSongs": "Complete {0} more songs to unlock",
+            "Locked": "Locked",
+            "SongMissing": "Not Found In Library",
+            "SongArtistAlbum": "{0} - {1}",
+            "HeaderPlayers": "Players: {0}",
+            "HeaderTier": "Current tier: {0}",
+            "NoPlayers": "No eligible players",
+            "Reset": "(Hold) Reset Progress",
+            "ResetDone": "Career progress has been reset.",
+            "NothingToReset": "This career has no progress to reset yet.",
+            "UnlockTitle": "Tier Unlocked",
+            "UnlockMessage": "New tier available: {0}",
+            "UnknownTier": "Unknown tier",
+            "BonusTier": "Bonus: {0}"
+        },
         "Main": {
-            "MessageOfTheDay": "<align=center><size=32><b>Witaj w v0.15 nightly!</b></size></align>\n\nv0.15 dodaje wsparcie do ścieżek tremolo/tryli, dostosowywalne tło toru (oraz wsparcie dla przezroczystych teł), możliwość zmiany wokalisty na scenie, zaawansowane śledzenie wykonania utworu przez gracza, możliwość zmieniania pozycji torów na ekranie, nowe narzędzia do kalibracji, i więcej! Poza tym, jest tu też nowa odsłona biblioteki muzyki, wraz z zaawansowanymi filtrami, więc możesz teraz szybko przeszukiwać nawet największe biblioteki! :D\n\n<b>Jeśli masz jakieś sugestie lub znajdziesz jakieś błędy, daj nam znać na Discordzie lub na GitHubie.</b>\n\nMiłego YARGowania!",
+            "MessageOfTheDay": "<align=center><size=32><b>Witaj w v0.15!</b></size></align>\n\nv0.15 to aktualizacja, która dodaje wiele pożądanych elementów rozgrywki, takich jak ścieżki tryli/tremolo i sekcje Big \"YARG\" Ending, oraz wprowadza nowy interfejs w bibliotece utworów, możliwość zmiany kolejności ścieżek na perkusji, system automatycznej kategoryzacji gatunków muzyki, eksperymentalna funkcja dostosowywania wokalisty na scenie, i wiele więcej.\n\n<b>Jeśli napotkałaś/napotkałeś błąd, lub masz jakąś informację zwrotną, daj nam znać na Discordzie lub GitHubie.</b>\n\nMiłego YARG'owania!",
             "Options": {
                 "Quickplay": "Szybka gra",
-                "Practice": "Ćwicz",
+                "GameModes": "Game Modes",
                 "Profiles": "Profile",
-                "History": "Historia",
+                "Content": "Content",
                 "Settings": "Ustawienia",
                 "Credits": "Twórcy",
                 "Exit": "Wyjdź"
@@ -300,51 +424,92 @@
                 "Singular": "REKOMENDOWANY UTWÓR",
                 "Plural": "REKOMENDOWANE UTWORY"
             },
-            "RecommendedSongsHelp": "Refresh List of Recommended Songs",
+            "RecommendedSongsHelp": "Odśwież listę rekomendowanych utworów",
             "PlayableSongs": "DOSTĘPNE UTWORY",
             "RandomSong": "LOSOWY UTWÓR",
-            "Playlists": "PLAYLIST MANAGER",
-            "PlaylistsHelp": "Create, View, and Edit Custom Playlists",
+            "Sort": {
+                "Intensity": "Intensity: {0}",
+                "Unplayed": "Unplayed Songs",
+                "PlayCount": {
+                    "Singular": "1 Play",
+                    "Plural": "{0:N0} Plays",
+                    "Bucket": "{0:N0}+ Plays"
+                },
+                "NoPart": "No Part",
+                "Percentage": {
+                    "100": "100%",
+                    "90": "90 - 99%",
+                    "80": "80 - 89%",
+                    "70": "70 - 79%",
+                    "60": "60 - 69%",
+                    "50": "50 - 59%",
+                    "Below50": "Below 50%"
+                },
+                "Score": {
+                    "500000": "500,000+ Points",
+                    "400000": "400,000+ Points",
+                    "300000": "300,000+ Points",
+                    "200000": "200,000+ Points",
+                    "150000": "150,000+ Points",
+                    "100000": "100,000+ Points",
+                    "75000": "75,000+ Points",
+                    "50000": "50,000+ Points",
+                    "30000": "30,000+ Points",
+                    "10000": "10,000+ Points",
+                    "1": "1+ Points"
+                }
+            },
+            "Playlists": "MENEDŻER PLAYLIST",
+            "PlaylistsHelp": "Utwórz, wyświetl i edytuj swoje playlisty",
             "Favorites": "Ulubione",
             "YourPlaylists": "TWOJE PLAYLISTY",
             "Popup": {
                 "Header": {
                     "SortBy": "Sortuj...",
-                    "GoTo": "Idź do...",
-                    "SelectPlaylists": "Select Playlists"
+                    "GoToSection": "Przejdź do sekcji...",
+                    "AddToPlaylist": "Dodaj do playlisty..."
                 },
                 "Item": {
                     "RandomSong": "Losowy utwór",
                     "BackToTop": "Wróć do góry",
                     "ScanSongs": "Skanuj utwory",
-                    "SortBy": "Sortuj: {0}",
+                    "SortBy": "Sortuj według...",
                     "GoToSection": "Idź do sekcji...",
+                    "StartTheSet": "Start The Set",
+                    "Filters": "Filters",
+                    "PlayShow": "Play A Show",
                     "AddToFavorites": "Dodaj do ulubionych",
-                    "RemoveFromFavorites": "Usuń z ulubionych",
+                    "AddToSetlist": "Add To Setlist",
                     "AddToPlaylist": "Dodaj do playlisty...",
+                    "AddPlaylistToSetlist": "Add Playlist to Setlist",
+                    "SaveSetlistToPlaylist": "Save Setlist to Playlist",
+                    "RemoveFromFavorites": "Usuń z ulubionych",
+                    "RemoveFromSetlist": "Usuń z setlisty",
                     "RemoveFromPlaylist": "Usuń z playlisty",
-                    "RemoveFromSetlist": "Remove From Setlist",
                     "CreateNewPlaylist": "Dodaj nową...",
-                    "RenamePlaylist": "Rename Playlist",
-                    "DeletePlaylist": "Delete Playlist",
-                    "DeleteSetlist": "Delete Setlist",
+                    "RenamePlaylist": "Zmień nazwę playlisty",
+                    "DeleteSetlist": "Usuń setlistę",
+                    "DeletePlaylist": "Usuń playlistę",
+                    "CollapseAll": "Zwiń wszystkie",
+                    "ExpandAll": "Rozwiń wszystkie",
                     "ViewSongFolder": "Pokaż folder utworu",
-                    "CopySongChecksum": "Skopiuj sumę kontrolną utworu",
-                    "CollapseAll": "Collapse All",
-                    "ExpandAll": "Expand All"
+                    "CopySongChecksum": "Skopiuj sumę kontrolną utworu"
                 }
             },
             "Back": "WRÓĆ",
             "NoPlayersConnected": "Nie podłączono graczy! Idź do menu Profili, aby podłączyć graczy.",
             "Play": "Zagraj",
-            "PlayHoldAddToSet": "<align=left>Play Song<br><size=67%>(Hold) Add To Setlist</size></align>",
-            "AddHoldStartSet": "<align=left>Add to Setlist<br><size=67%>(Hold) Start The Set</size></align>",
-            "ExpandHeaderHoldAddToSet": "<align=left>Expand Header</align>",
-            "CollapseHeaderHoldAddToSet": "<align=left>Collapse Header</align>",
-            "ExpandHeaderHoldStartSet": "<align=left>Expand Header<br><size=67%>(Hold) Start The Set</size></align>",
-            "CollapseHeaderHoldStartSet": "<align=left>Collapse Header<br><size=67%>(Hold) Start The Set</size></align>",
+            "PlayHoldAddToSet": "<align=left>Zagraj utwór<br><size=67%>(Przytrzymaj) Dodaj do kolejki</size></align>",
+            "AddHoldStartSet": "<align=left>Dodaj do kolejki<br><size=67%>(Przytrzymaj) Rozpocznij kolejkę</size></align>",
+            "ExpandHeaderHoldAddToSet": "<align=left>Rozwiń sekcję</align>",
+            "CollapseHeaderHoldAddToSet": "<align=left>Zwiń sekcję</align>",
+            "ExpandHeaderHoldStartSet": "<align=left>Rozwiń sekcję<br><size=67%>(Przytrzymaj) Rozpocznij kolejkę</size></align>",
+            "CollapseHeaderHoldStartSet": "<align=left>Zwiń sekcję<br><size=67%>(Przytrzymaj) Rozpocznij kolejkę</size></align>",
             "Search": "Wyszukaj",
+            "SelectArtist": "Select Current Artist",
+            "ExitSearchHold": "(Hold) Exit Search",
             "SkipSection": "<align=left>Szybka nawigacja</align>",
+            "SkipPage": "<align=left>Navigate Pages</align>",
             "MoveInPlaylist": "Przenieś utwór",
             "CurrentSetlist": "Aktualna setlista",
             "AddToSet": "Dodaj do setlisty",
@@ -352,13 +517,17 @@
             "PlaylistAddedToSet": "Dodano {0:N0} utworów z playllisty do setlisty",
             "StartSet": "Rozpocznij set",
             "PlayShow": "Zagraj koncert",
+            "HoldPlayShow": "(Przytrzymaj) Zagraj koncert",
             "Filters": "Filtry",
+            "HoldFilters": "(Hold) Filters",
+            "SortAndFilter": "<align=left>Sort By...<br><size=80%>(Hold) Filters</size></align>",
             "NoSongsInPlaylist": "Brak utworów w playliście",
             "CannotAddToSelf": "Nie, nie stworzę dla ciebie Uroborosa. Niezła próba, Jaden.",
             "AddToShow": "Dodaj do koncertu",
             "AddedToShow": "Dodano do koncertu",
             "StartShow": "Rozpocznij koncert",
-            "MoreOptions": "<align=left><size=80%>Więcej opcji<br>(Przytrzymaj) Szybka nawigacja</size></align>",
+            "MoreOptionsAndGoToSection": "<align=left>More Options<br><size=80%>(Hold) Go to Section...</size></align>",
+            "MoreOptions": "More Options",
             "PlayAShow": {
                 "LongSong": "Długi utwór",
                 "RandomSong": "Losowy utwór",
@@ -443,31 +612,31 @@
                 "SynthpopElectropop": "Synthpop/Electropop",
                 "Techno": "Techno",
                 "ThrashSpeedMetal": "Thrash/Speed metal",
-                "Traditional": "Traditional",
+                "Traditional": "Tradycyjna",
                 "Trance": "Trance",
                 "Trap": "Trap",
                 "World": "World",
                 "Other": "Inny",
                 "UnknownGenre": "Nieznany gatunek",
                 "Broad": {
-                    "Alternative": "Alternative",
-                    "CountryFolk": "Country/Folk",
-                    "ClassicalTraditional": "Classical/Traditional",
-                    "DanceElectronic": "Dance/Electronic",
+                    "Alternative": "Alternatywna",
+                    "CountryFolk": "Country/Ludowa",
+                    "ClassicalTraditional": "Klasyczna/Tradycyjna",
+                    "DanceElectronic": "Taneczna/Elektroniczna",
                     "HipHop": "Hip-Hop",
                     "JazzBlues": "Jazz/Blues",
                     "Metal": "Metal",
-                    "Pop": "Pop",
+                    "Pop": "Popularna",
                     "PunkSceneCore": "Punk/Scene/Core",
                     "RnbSoulFunk": "R&B/Soul/Funk",
                     "Rock": "Rock",
                     "World": "World",
-                    "Other": "Other"
+                    "Other": "Inna"
                 }
             }
         },
         "ProfileInfo": {
-            "Name": "Edytuj Profil",
+            "Name": "Profile Overview",
             "Stats": {
                 "SongPlays": "{0:N0} zagrań",
                 "TotalScore": "punktów łącznie",
@@ -476,23 +645,542 @@
             }
         },
         "ProfileList": {
-            "Name": "Profile",
+            "Name": "Profiles\n& Devices",
             "ActiveProfiles": "Aktywne Profile",
             "AddBot": "Dodaj Bota",
             "AddProfile": "Dodaj Profil",
+            "Overview": "Overview",
+            "ImportBindingSet": "Import Binding Set",
+            "ExportBindingSet": "Export",
             "Bots": "Boty",
-            "Players": "Gracze"
+            "Players": "Gracze",
+            "CouldNotLoad": "Couldn't Load",
+            "UnloadedEntry": "{0} <alpha=#66>— could not be loaded by this version of YARG",
+            "UnloadedDeleteTitle": "Delete Profile?",
+            "UnloadedDelete": "Deleting it is permanent.",
+            "BotDelete": "Deleting this bot is permanent.",
+            "PressPoint": "Press Point",
+            "VelocityThreshold": "Velocity Threshold",
+            "StealDevice": "{0} <i>(steal from <color=#2DD9FE>{1}</color>)</i>",
+            "AddBindingSet": "ADD",
+            "AddOtherBindingSet": "ADD OTHER",
+            "AddOtherBindingSetNotRecommended": "ADD OTHER (<i>Not Recommended</i>)",
+            "QuickBind": "Quick Bind",
+            "DescriptiveBindingSetName": {
+                "Format": "{0}{1} {2} {3}",
+                "Gameplay": " gameplay",
+                "With": "with",
+                "On": "on"
+            },
+            "Record": {
+                "Waiting": "Waiting for Input\n<color=#2A5B87><size=24>Press any button on</color> <color=#5A8BB7>{0}</color></size>",
+                "Select": "Select Input"
+            },
+            "DeleteBindingSet": {
+                "Zero": "No profiles are currently using it.",
+                "OneActive": "It's currently being used by <color=#2DD9FE>{0}</color>! They will revert to default bindings.",
+                "OneInactive": "It's used by <color=#00A6D1>{0}</color>! They will revert to default bindings when they next connect.",
+                "Multiple": "It's used by <color=yellow>{0} profiles</color>! They will all revert to default bindings."
+            },
+            "BindingsIndicator": {
+                "Gameplay": "G",
+                "Menu": "M"
+            },
+            "BindingsTitle": {
+                "FiveFretGuitar": "5-Fret Guitar Gameplay Bindings",
+                "SixFretGuitar": "6-Fret Guitar Gameplay Bindings",
+                "FourLaneDrums": "4-Lane Drums Gameplay Bindings",
+                "FiveLaneDrums": "5-Lane Drums Gameplay Bindings",
+                "EliteDrums": "Drums Gameplay Bindings",
+                "ProKeys": "Keys Gameplay Bindings",
+                "ProGuitar": "Pro Guitar Gameplay Bindings",
+                "Vocals": "Vocals Gameplay Bindings",
+                "Menu": "Menu Navigation Bindings"
+            },
+            "UserCount": {
+                "Zero": "Used by no profiles",
+                "OneActive": "Used by <color=#2DD9FE>{0}</color>",
+                "OneInactive": "Used by <color=#00A6D1>{0}</color>",
+                "MultipleLocked": "<color=black>Used by {0} profiles</color>",
+                "MultipleUnlocked": "Used by <color=yellow>{0} profiles</color>"
+            },
+            "Tooltip": {
+                "Header": {
+                    "Back": {
+                        "Title": "Back",
+                        "Text": "Return to the Main Menu."
+                    },
+                    "AddProfile": {
+                        "Title": "Add Profile",
+                        "Text": "Create a new profile for a real person."
+                    },
+                    "AddBot": {
+                        "Title": "Add Bot",
+                        "Text": "Create a new profile for a bot."
+                    },
+                    "ImportBindingSet": {
+                        "Title": "Import Binding Set",
+                        "Text": "Opens a file browser that you can use to select and import an exported binding set file."
+                    }
+                },
+                "Profiles": {
+                    "Name": {
+                        "Title": "Profile Name",
+                        "Text": "The name of this profile."
+                    },
+                    "Header": {
+                        "Rename": {
+                            "Title": "Rename",
+                            "Text": "Edit the name of this profile."
+                        },
+                        "Overview": {
+                            "Title": "Profile Overview",
+                            "Text": "Open an overview of this profile's lifetime statistics."
+                        },
+                        "ProfilePicture": {
+                            "Title": "Profile Picture",
+                            "Text": "A custom image associated with this profile. It appears in various locations associated with this profile, such as over the player's highway at the start of a song. If no picture is provided, the game uses an icon based on the player's choice of instrument instead."
+                        },
+                        "EditProfilePicture": {
+                            "Title": "Edit Profile Picture",
+                            "Text": "Choose an image to use as a profile picture."
+                        }
+                    },
+                    "List": {
+                        "Connect": {
+                            "Title": "Connect Profile",
+                            "Text": "Connect this profile as an active player."
+                        },
+                        "Disconnect": {
+                            "Title": "Connect Profile",
+                            "Text": "Set this profile as inactive."
+                        },
+                        "Delete": {
+                            "Title": "Delete Profile",
+                            "Text": "Permanently delete this profile. <b><color=red>This cannot be undone!</color></b>"
+                        },
+                        "MoveUp": {
+                            "Title": "Move Up",
+                            "Text": "Move this profile up in the list.\n\nFor non-Vocals profiles, this affects the arrangement of the highways on the screen.\n\nFor Vocals profiles, the highest profile in the list is the one who gets to choose between Vocals and Harmonies and whose visual settings are applied to the vocal highway."
+                        },
+                        "MoveDown": {
+                            "Title": "Move Down",
+                            "Text": "Move this profile down in the list.\n\nFor non-Vocals profiles, this affects the arrangement of the highways on the screen.\n\nFor Vocals profiles, the highest profile in the list is the one who gets to choose between Vocals and Harmonies and whose visual settings are applied to the vocal highway."
+                        },
+                        "Header": {
+                            "Title": "{0}",
+                            "Text": "{0}",
+                            "ActiveProfiles": "Profiles that are currently connected, including bots and real people.",
+                            "Players": "Real-person profiles that are not currently connected.",
+                            "Bots": "Bot profiles that are not currently connected.",
+                            "CouldNotLoad": "Profiles that failed to load properly. A future update might fix a bug that makes them readable again, or they might just be corrupted."
+                        }
+                    },
+                    "Settings": {
+                        "InputMode": {
+                            "Title": "Input Mode",
+                            "Text": "Represents what type of device you'll be using to play songs. Determines which playable parts will be available to you, what engine you'll use to play them, and what gameplay bindings you can configure.\n\nThis profile's input mode is set to {0}, {1}",
+                            "FiveFretGuitar": "which is meant for guitar game controllers with fret buttons in a 1x5 arrangement.",
+                            "SixFretGuitar": "which is meant for guitar game controllers with fret buttons in a 2x3 arrangement.",
+                            "FourLaneDrums": "which is meant for drumkit game controllers with 4 drum pads, 1 or 2 kick pedals, and optionally up to 3 cymbal pads.",
+                            "FiveLaneDrums": "which is meant for drumkit game controllers with 3 drum pads, 1 or 2 kick pedals, and 2 cymbal pads.",
+                            "EliteDrums": "which is meant for MIDI drumkits with 4 drum pads, 1 or 2 kick pedals, a hi-hat pedal, and 3 or 4 cymbal pads. It's recommended that you also attach a gamepad or other controller to use for menu navigation.",
+                            "ProKeys": "which is meant for keyboard game controllers and MIDI keyboards with at least 2 octaves of keys. If you're using a MIDI keyboard, it's recommended that you also attach a gamepad or other controller to use for menu navigation.",
+                            "Vocals": "which is meant for 1 or more microphones. It's recommended that you also attach a gamepad or other controller to use for menu navigation."
+                        },
+                        "Controllers": {
+                            "Title": "Controllers",
+                            "Text": "A controller is any device that provides button and/or axis inputs to <i>YARG</i>. Use controllers to play most game modes (excluding Vocals and Harmonies) and to navigate menus. If your primary controller does not provide every input you need for gameplay and menu navigation, you can set up multiple controllers with additional and/or redundant bindings."
+                        },
+                        "AttachController": {
+                            "Title": "Attach Controller",
+                            "Text": "Attach a new controller to this profile. If that controller is currently attached to another profile, it will be detached from there."
+                        },
+                        "DetachController": {
+                            "Title": "Detach Controller",
+                            "Text": "Detach {0} from this profile."
+                        },
+                        "ControllerName": {
+                            "Title": "{0}",
+                            "Text": "This is a {0} that is connected to your setup."
+                        },
+                        "ExpandController": {
+                            "Title": "Expand Controller",
+                            "Text": "Expand this controller listing to view and edit its gameplay and menu binding sets."
+                        },
+                        "JumpTo": {
+                            "Title": "{0}",
+                            "Text": "{0}",
+                            "Populated": {
+								"Title": "Jump to Binding Set",
+								"Text": "Open the <b>Bindings</b> tab and view this binding set. {0} will automatically become the dummy controller, so you can use it to test and edit bindings."
+                            },
+                            "Unpopulated": {
+								"Title": "Jump to Bindings Tab",
+								"Text": "Open the {0} category on <b>Bindings</b> tab. From there, you can create a binding set for {1}.",
+								"GameplaySuffix": "gameplay",
+								"MenuSuffix": "menu navigation"
+                            }
+                        },
+                        "Microphones": {
+                            "Title": "Microphones",
+                            "Text": "A microphone is any device that provides an audio signal to <i>YARG</i>. Use microphones to play Vocals and Harmonies. To navigate menus as a vocalist, set up a controller."
+                        },
+                        "AttachMicrophone": {
+                            "Title": "Attach Microphone",
+                            "Text": "Attach a new microphone to this profile. If that microphone is currently attached to another profile, it will be detached from there."
+                        },
+                        "DetachMicrophone": {
+                            "Title": "Detach Microphone",
+                            "Text": "Detach this microphone from this profile."
+                        },
+                        "MicrophoneName": {
+                            "Title": "{0}",
+                            "Text": "This is a microphone (or other audio source) that is connected to your setup."
+                        },
+                        "GameplayBindingsIndicator": {
+                            "Title": "Gameplay Bindings",
+                            "Text": "{0}",
+                            "Lit": "This controller is configured with gameplay bindings for your current Input Mode. To change them, expand the controller listing and use the <b>Gameplay Bindings</b> dropdown.",
+                            "Unlit": "This controller is not configured with gameplay bindings. To assign a binding set, expand the controller listing and use the <b>Gameplay Bindings</b> dropdown."
+                        },
+                        "MenuBindingsIndicator": {
+                            "Title": "Menu Bindings",
+                            "Text": "{0}",
+                            "Lit": "This controller is configured with menu navigation bindings. To change them, expand the controller listing and use the <b>Menu Bindings</b> dropdown.",
+                            "Unlit": "This controller is not configured with menu navigation bindings. To assign a binding set, expand the controller listing and use the <b>Menu Bindings</b> dropdown."
+                        },
+                        "GameplayBindings": {
+                            "Title": "Gameplay Bindings",
+                            "Text": "{0} {1}.{2}",
+                            "Exist": {
+								"Prefix": "Select from all binding sets for",
+								"Suffix": ""
+                            },
+                            "NoneExist": {
+								"Prefix": "You don't have any binding sets for",
+								"Suffix": " If you want to make one, click the eye button to go to the appropriate section of the <b>Bindings</b> tab."
+                            }
+                        },
+                        "MenuBindings": {
+                            "Title": "Menu Bindings",
+                            "Text": "{0} binding sets for menu navigation on {1}.{2}",
+                            "Exist": {
+								"Prefix": "Select from all",
+								"Suffix": ""
+                            },
+                            "NoneExist": {
+								"Prefix": "You don't have any",
+								"Suffix": " If you want to make one, click the eye button to go to the appropriate section of the <b>Bindings</b> tab."
+                            }
+                        },
+                        "NoteSpeed": {
+                            "Title": "Note Speed",
+                            "Text": "Adjust the scrolling speed of the highway. At faster speeds, the gems are visually further apart.\n\nDefault value is 5.0. Higher values produce higher speeds."
+                        },
+                        "HighwayLength": {
+                            "Title": "Track Length",
+                            "Text": "Adjust the length of the highway.\n\nDefault value is 1.0. Higher values produce longer highways."
+                        },
+                        "LeftyFlip": {
+                            "Title": "Lefty Flip",
+                            "Text": "Reorient guitar and drum charts for left-handed gameplay."
+                        },
+                        "EnginePreset": {
+                            "Title": "Engine Preset",
+                            "Text": "Select a set of parameters to control gameplay engine behavior. The available options depend on your Input Mode."
+                        },
+                        "NoteTheme": {
+                            "Title": "Note Theme",
+                            "Text": "Select a set of models to use for gems on the highway during gameplay. Don't eat any of them."
+                        },
+                        "ColorProfile": {
+                            "Title": "Color Profile",
+                            "Text": "Select a set of colors to apply to gems and other gameplay graphics."
+                        },
+                        "CameraPreset": {
+                            "Title": "Camera Preset",
+                            "Text": "Select a configuration for how your note highway is projected onto the screen."
+                        },
+                        "HighwayPreset": {
+                            "Title": "Highway Preset",
+                            "Text": "Select a visual texture for your note highway."
+                        },
+                        "RockMeterPreset": {
+                            "Title": "Rock Meter Preset",
+                            "Text": "Configure how harshly the crowd judges your musicianship."
+                        },
+                        "InputCalibration": {
+                            "Title": "Input Calibration",
+                            "Text": "Apply a global timing offset to all of your gameplay inputs. Higher values mean your inputs are treated as if they occurred earlier."
+                        },
+                        "ConfigureFourLaneDrumsHighway": {
+                            "Title": "4-Lane Drums Highway Configuration",
+                            "Text": "Configure how the note highway is arranged when you play 4-Lane Drums (not Pro Drums). You can rearrange the order of the highway lanes and enable dedicated kick lanes."
+                        },
+                        "ConfigureProDrumsHighway": {
+                            "Title": "Pro Drums Highway Configuration",
+                            "Text": "Configure how the note highway is arranged when you play Pro Drums. You can rearrange the order of the highway lanes, split tom and cymbal lanes, and enable dedicated kick lanes."
+                        },
+                        "ConfigureFiveLaneDrumsHighway": {
+                            "Title": "5-Lane Drums Highway Configuration",
+                            "Text": "Configure how the note highway is arranged when you play 5-Lane Drums. You can rearrange the order of the highway lanes and enable dedicated kick lanes."
+                        },
+                        "DedicatedOpenNoteLane": {
+                            "Title": "Dedicated Open Note Lane",
+                            "Text": "Configure whether the note highway has a dedicated lane for open notes or if open notes appear as full-width bar gems."
+                        },
+                        "RangeDisable": {
+                            "Title": "Range Shift Markers",
+                            "Text": "Some Easy and Medium 5-Fret Guitar charts include visual annotations that tell you when to move your hand to a new position. Use this setting to disable those visuals.\n\nNote that this setting does not change the content of the chart; to disable the position shifts themselves, select the <b>No Range Shifts</b> gameplay modifier when starting a song."
+                        },
+                        "UseCymbalModels": {
+                            "Title": "Use Cymbal Models",
+                            "Text": "Toggles whether 5-Lane Drums uses cymbal gem models for cymbal notes. If disabled, cymbals use the same models as toms."
+                        },
+                        "StarPowerActivationType": {
+                            "Title": "Star Power Activation Type",
+                            "Text": "Choose how you want to activate star power during drums gameplay.\n\n<b>Note:</b> the \"Rightmost Gem\" option applies to the rightmost gem in terms of the default highway ordering, not your custom ordering. If <b>Lefty Flip</b> is enabled, it applies to the leftmost gem instead."
+                        }
+                    }
+                },
+                "Bindings": {
+                    "Name": {
+                        "Title": "Binding Set Name",
+                        "Text": "The name of this binding set."
+                    },
+                    "List": {
+                        "Add": {
+                            "Title": "Add New Binding Set",
+                            "Text": "Add a new, blank binding set for {0}."
+                        },
+                        "Delete": {
+                            "Title": "Delete Binding Set",
+                            "Text": "Permanently delete this binding set. <b><color=\"red\">If anyone is using this binding set, they'll revert to the default bindings!</color></b>"
+                        },
+                        "Duplicate": {
+                            "Title": "Duplicate Binding Set",
+                            "Text": "Create a copy of this binding set."
+                        },
+                        "Filter": {
+                            "Title": "Binding Sets Filter",
+                            "Text": "Pick a type of controller for which to show binding sets. Any controller can be used with any mode, but most controller types are intended for a particular mode."
+                        },
+                        "AddOtherBindingSet": {
+                            "Title": "Add Other Binding Set",
+                            "Text": "{0}",
+                            "Generic": "Create a binding set for use with miscellaneous input devices in a mode that isn't already listed here.\n\n<b><color=yellow>Note:</color></b> Because this is for unknown devices, we can't populate dropdowns with controls for you to pick from. You'll have to create this binding set by using the <b>Record</b> and/or <b>Quick Bind</b> buttons with a controller connected.",
+                            "Flexible": "Create a binding set for use with {0} in a mode that isn't already listed here.",
+                            "NotRecommended": "Create a binding set for use with {0} in a mode that isn't already listed here. <b><color=\"yellow\">Only use this if you know what you're doing!</color></b> This controller type wasn't designed for other modes."
+                        }
+                    },
+                    "Header": {
+                        "EditName": {
+                            "Title": "Rename",
+                            "Text": "Edit the name of this binding set."
+                        },
+                        "Export": {
+                            "Title": "Export Binding Set",
+                            "Text": "Export this binding set as a file that you can transfer to other <i>YARG</i> setups.\n\nNot applicable to built-in binding sets."
+                        },
+                        "QuickBind": {
+                            "Title": "Quick Bind",
+                            "Text": "Use the dummy controller to quickly provide bindings for this binding set. Quick Bind is currently supported for only drums and keys modes."
+                        },
+                        "DummyController": {
+                            "Title": "Dummy Controller",
+                            "Text": "Select from all currently-attached {0}. You can use the selected controller to record binding controls and to test your binding parameters against live input data. If this controller has menu bindings, they will be disabled until you leave this menu or unassign it from the dummy controller dropdown."
+                        },
+                        "UserCount": {
+                            "Title": "User Count",
+                            "Text": "{0}",
+                            "Zero": "No profiles currently use this binding set.",
+                            "OneActive": "One profile (<color=#2DD9FE>{0}</color>) is currently using this binding set. If you edit these bindings, your changes will affect that profile immediately.",
+                            "OneInactive": "One profile (<color=#00A6D1>{0}</color>) defaults to this binding set, but that profile is not currently connected. If you edit these bindings, your changes will affect that profile in the future.",
+                            "MultipleLocked": "Multiple profiles use this binding set. <color=yellow>To prevent unintentionally editing someone else's bindings, you must click the <b>Unlock</b> button to enable editing this binding set.</color>",
+                            "MultipleUnlocked": "Multiple profiles use this binding set. <color=yellow>Editing this binding set will affect all of them! If you're making these changes just for yourself, consider making and editing a duplicate.</color>"
+                        },
+                        "UnlockBindingSet": {
+                            "Title": "Unlock Binding Set",
+                            "Text": "Enables editing this binding set's bindings. <color=yellow>Any changes you make will apply to all profiles that use this binding set! If you're making these changes just for yourself, consider making and editing a duplicate."
+                        },
+                        "ShowLeftyFlipNames": {
+                            "Title": "Show Lefty Flip Names",
+                            "Text": "Display action names as they relate to lefty-flipped gameplay."
+                        }
+                    },
+                    "Group": {
+                        "AddNew": {
+                            "Title": "Add New Binding",
+                            "Text": "Add a new binding for this action. If you have a dummy controller, you will be prompted to provide an input to bind to. Otherwise, you can assign the binding manually."
+                        },
+                        "Expand": {
+                            "Title": "Toggle Bindings List",
+                            "Text": "Toggles the list of all individual bindings assigned to this action."
+                        },
+                        "Button": {
+                            "Header": {
+								"Title": "{0}",
+								"Text": "{0}",
+								"Regular": "This is a button action; its state is either \"on\" or \"off\", representing the logical OR of all the controls bound to it. If at least one of them is on, then this action is considered on. Otherwise, it is off.",
+								"Impulse": "This is an impulse action; it fires \"pressed\" events whenever you press any of its bound controls. It supports velocity information, but can also be bound with digital buttons; they will be treated as always sending maximum velocity."
+                            },
+                            "Settings": {
+								"Title": "Configure/Test Effective Value",
+								"Text": "Toggles a configuration panel where you can view the effective value of this binding, aggregated from all of its bindings, based on live input from your dummy controller. You can also configure an aggregate debounce value for this action, which applies across all of its bindings."
+                            },
+                            "EffectiveValue": {
+								"Title": "Effective Value",
+								"Text": "View aggregated live input from your dummy controller. The effective state of a button action represents the logical OR of all of its bindings. That is, if any one of those bindings is pressed, then the button action is considered pressed. Otherwise, it is not pressed."
+                            },
+                            "DebounceThreshold": {
+								"Title": "Debounce Threshold",
+								"Text": "Length of the debounce window, measured in milliseconds, for this action. Once a press is registered from any of this control's bindings, further inputs within this timeframe from any of its bindings are ignored.\n\nIn most cases, this can be left at 0. Consider using a positive value for situations where multiple bindings for an action might crosstalk with each other, such as if you have bound multiple zones of a MIDI drum pad to a single action."
+                            }
+                        },
+                        "Axis": {
+                            "Header": {
+								"Title": "{0}",
+								"Text": "This is an axis action; its state ranges from -1.0 to 1.0 (inclusive). If you bind multiple controls, the effective value will reflect whichever control's value has the greatest magnitude. For example, if one control reports 0.2 and another reports -0.8, the effective value is -0.8 because its magnitude (0.8) is greater than the other control's magnitude (0.2)."
+                            },
+                            "Settings": {
+								"Title": "Test Effective Value",
+								"Text": "Toggles a configuration panel where you can view the effective value of this binding, aggregated from all of its bindings, based on live input from your dummy controller."
+                            },
+                            "EffectiveValue": {
+								"Title": "Effective Value",
+								"Text": "View aggregated live input from your dummy controller. The effective state of an axis action represents the highest-value magnitude of all of its bindings. For example, if one binding reports 0.2 and another reports -0.8, the effective value is -0.8 because its magnitude (0.8) is greater than the other control's magnitude (0.2)."
+                            }
+                        },
+                        "Integer": {
+                            "Header": {
+								"Title": "{0}",
+								"Text": "This is an integer action; its state can be any nonnegative integer. If you bind multiple controls, the effective value will reflect the highest value from among those controls."
+                            },
+                            "Settings": {
+								"Title": "Test Effective Value",
+								"Text": "Toggles a configuration panel where you can view the effective value of this binding, aggregated from all of its bindings, based on live input from your dummy controller."
+                            },
+                            "EffectiveValue": {
+								"Title": "Effective Value",
+								"Text": "View aggregated live input from your dummy controller. The effective state of an integer action represents the maximum of all of its bindings."
+                            }
+                        }
+                    },
+                    "Single": {
+                        "Record": {
+                            "Title": "Record Binding",
+                            "Text": "Opens a dialog where you can capture an input on your dummy controller and assign it to this binding. You must have a dummy controller selected in order to do so."
+                        },
+                        "Delete": {
+                            "Title": "Delete Binding",
+                            "Text": "Removes this control from this action binding."
+                        },
+                        "Expand": {
+                            "Title": "Expand Binding",
+                            "Text": "Toggles a configuration panel where you can calibrate this binding and view live input data from the dummy controller."
+                        },
+                        "Dropdown": {
+                            "Title": "Select Input",
+                            "Text": "Select from applicable inputs supported by {0}."
+                        },
+                        "Button": {
+                            "CurrentValue": {
+								"Title": "Current Value",
+								"Text": "View live input from your dummy controller. The axis represents the internal state, which must surpass the <b>Press Point</b> to register as a press. The <b>Pressed</b> light indicates the final \"pressed or not\" boolean state of the button."
+                            },
+                            "Invert": {
+								"Title": "Invert",
+								"Text": "Inverts the internal axis state. Note that this does not necessarily correspond to flipping the \"on\" and \"off\" external state. To invert the external state of a digital button control, also set <b>Press Point</b> to a negative value."
+                            },
+                            "PressPoint": {
+								"Title": "Press Point",
+								"Text": "The button's internal axis state is measured from -1 to 1 (inclusive); it is considered \"on\" if that value is at least the <b>Press Point</b> value. Actual button inputs typically send 0 or 1, so any positive value should work for them. If you're binding an axis input to a button action, use the <b>Press Point</b> to calibrate how sensitive that input is."
+                            },
+                            "Debounce": {
+								"Title": "Debounce",
+								"Text": "Discards repeated inputs from this control that occur in quick succession. Calibrate the debounce of a control if it frequently registers \"phantom\" extra hits.",
+								"Mode": {
+                                    "Title": "Debounce Mode",
+                                    "Text": "Determines whether to start tracking the debounce timer when an input is pressed, released, or either."
+								},
+								"Threshold": {
+                                    "Title": "Debounce Threshold",
+                                    "Text": "Length of the debounce window, measured in milliseconds. Once an input is registered, further inputs within this timeframe are ignored (this does not restart the timer)."
+								}
+                            }
+                        },
+                        "Axis": {
+                            "RawValue": {
+								"Title": "Raw Value",
+								"Text": "View live input from your dummy controller, before applying the parameters below. This display overlays your <b>Minimum</b>, <b>Maximum</b>, and <b>Upper/Lower Deadzone</b> parameters for reference.",
+								"Deadzone": {
+                                    "Title": "Deadzone ({0}–{1})",
+                                    "Text": "If the raw value falls within this range, the calibrated value is treated as 0. Configure with the <b>Upper Deadzone</b> and <b>Lower Deadzone</b> parameters below."
+								},
+								"Minimum": {
+                                    "Title": "Minimum ({0})",
+                                    "Text": "If the raw value falls within this range, the calibrated value is treated as {0}."
+								},
+								"Maximum": {
+                                    "Title": "Maximum ({0})",
+                                    "Text": "If the raw value falls within this range, the calibrated value is treated as {0}."
+								}
+                            },
+                            "CalibratedValue": {
+								"Title": "Calibrated Value",
+								"Text": "View live input from your dummy controller, as affected by the parameters below."
+                            },
+                            "Invert": {
+								"Title": "Invert",
+								"Text": "Inverts the raw input. For example, if the raw value is 0.1, the calibrated value is treated as -0.1."
+                            },
+                            "Maximum": {
+								"Title": "Maximum",
+								"Text": "If the raw value is higher than this value, the calibrated value is clamped to this value."
+                            },
+                            "Minimum": {
+								"Title": "Minimum",
+								"Text": "If the raw value is lower than this value, the calibrated value is clamped to this value."
+                            },
+                            "UpperDeadzone": {
+								"Title": "Upper Deadzone",
+								"Text": "If the raw value is greater than 0 and less than or equal to this value, the calibrated value is treated as 0."
+                            },
+                            "LowerDeadzone": {
+								"Title": "Upper Deadzone",
+								"Text": "If the raw value is less than 0 and greater than or equal to this value, the calibrated value is treated as 0."
+                            }
+                        },
+                        "Integer": {
+                            "CurrentValue": {
+								"Title": "Current Value",
+								"Text": "View live input from your dummy controller."
+                            }
+                        }
+                    }
+                }
+            }
         },
         "ScoreScreen": {
-            "BandScoreNotSaved": "Score not saved",
+            "BandScoreNotSaved": "Wynik nie został zapisany",
+            "InconsistentReplay": "Inconsistent Replay",
             "RestartSong": "Spróbuj ponownie",
             "ShowAdvanced": "Pokaż zaawansowane",
             "HideAdvanced": "Ukryj zaawansowane",
-            "EndSetlistEarly": "Zakończ setlistę"
+            "EndSetlistEarly": "Zakończ setlistę",
+            "AddSongOffset": "(Hold) Save song offset",
+            "RemoveSongOffset": "(Hold) Undo offset save",
+            "ViewReplay": "View Replay"
         },
         "Settings": {
-            "ShowAdvanced": "Show Advanced",
-            "HideAdvanced": "Hide Advanced",
+            "ShowAdvanced": "Pokaż zaawansowane ustawienia",
+            "HideAdvanced": "Ukryj zaawansowane ustawienia",
+            "HoldMoveTier": "(Hold) Move Tier",
+            "HoldMoveSong": "(Hold) Move Song",
+            "MoveTier": "Move Tier",
+            "HoldDeleteTier": "(Hold) Delete Tier",
+            "HoldDeleteSong": "(Hold) Delete Song",
             "NoFolder": "<i>Brak folderu</i>",
             "SearchHeader": {
                 "AllCategories": "Wszystkie kategorie",
@@ -502,12 +1190,28 @@
             "ScanNeeded": "<alpha=#60>Potrzebny skan",
             "DMXInfo": "Wartości kanałów DMX do zmiany rodzaju oświetlenia i zmiany efektów postprocessingu:\n\n<b>Rodzaj oświetlenia:</b>\n\n0 - Brak rodzaju oświetlenia\n10 - Menu\n20 - Wyniki\n30 - Intro\n40 - Zwrotka\n50 - Refren\n60 - Chłodne (automatyczne)\n70 - Ciepłe (automatyczne\n80 - Chłodne (ręczne)\n90 - Ciepłe (ręczne)\n100 - Dysonans\n110 - Tupnięcie\n120 - Domyślne\n130 - Harmonia\n140 - Szaleństwo\n150 - Sylwetki\n160 - Sylwetki (reflektor)\n170 - Reflektory\n180 - Sweep\n190 - Zaciemnienie (szybkie)\n200 - Zaciemnienie (powolne)\n210 - Zaciemnienie (reflektor)\n220 - Błysk (szybki)\n230 - Błysk (powolny)\n240 - Wielkie Rockowe Zakończenie\n\nAby otrzymać status oświetlenia stroboskopowego oraz status mgły należy nasłuchiwać odpowiadające im kanały.\n\n<b>Postprocessing:</b>\n\n0 - Domyślne\n\nPodstawowe efekty\n4 - Bloom\n14 - Jasność\n24 - Kontrast\n34 - Lustro\n44 - Negatyw\n54 - Posterize\n\nFiltry i efekty kolorów\n64 - Czarno-biały\n74 - Sepia\n84 - Srebrne odcienie\n94 - Czarno-biały (poszarpany)\n104 - Negatyw (czerwony i czarny)\n114 - Polaryzacja (czarny i biały)\n124 - Polaryzacja (czerwony i niebieski)\n134 - Desaturowany czerwony\n144 - Desaturowany niebieski\n154 - Kontrast czerwony\n164 - Kontrast zielony\n174 - Kontrast niebieski\n\nZiarno\n184 - Ziarno\n194 - Ziarno i aberracja chromatyczna\n\nLinie skanowania\n204 - Linie skanowania\n214 - Linie skanowania (czarno-biały)\n224 - Linie skanowania (niebieski)\n234 - Linie skanowania (monitoring)\n\nSzlaki\n244 - Szlaki\n252 - Długie szlaki\n253 - Desaturowane szlaki\n254 - Migające szlaki\n255 - Kosmiczne szlaki\n\nWięcej informacji w dokumentacji YARG: https://wiki.yarg.in/wiki/DMX"
         },
+        "Content": {
+            "CharacterSelect": {
+                "NoCharacters": "No characters available",
+                "NoCharactersSubtext": "Go online or download some .yargchar files",
+                "UnspecifiedAuthor": "Unspecified Author",
+                "Hide": "Hide",
+                "Unhide": "Unhide",
+                "Unset": "Unset"
+            },
+            "Options": {
+                "Character": "Characters",
+                "Back": "Main Menu"
+            },
+            "MessageOfTheDay": "Here you can set your content preferences and preview certain available custom content. For now, you can only select a custom vocal character, but in the future you will be able to select venues and possibly some other things.\n\nAs always, feedback is welcome and appreciated!"
+        },
         "Filters": {
             "OptionsHeader": "Opcje",
             "FiltersHeader": "Filtry",
             "ShowAnyOfHeader": "Show Any Of",
             "SortedBy": "Sortuj po",
             "ShowRecommendations": "Pokaż rekomendacje",
+            "OnlyShowPlayableSongs": "Only Show Playable Songs",
             "ResetAllFilters": "(Przytrzymaj) Resetuj wszystkie filtry",
             "SelectAll": "Zaznacz wszystko",
             "DeselectAll": "Odznacz wszystko",
@@ -522,23 +1226,32 @@
             "VocalParts": {
                 "Name": "Ilość partii wokalnych",
                 "Solo": "Solo",
-                "Duet": "Duet / 2-Part Harmony",
-                "Trio": "Trio / 3-Part Harmony",
+                "Duet": "Duet / 2-głosowa harmonia",
+                "Trio": "Trio / 3-głosowa harmonia",
                 "Instrumental": "Instrumental"
+            },
+            "VocalistGender": {
+                "Name": "Vocalist Gender",
+                "Woman": "Woman",
+                "Man": "Man",
+                "NonBinary": "Non-Binary",
+                "Other": "Other",
+                "Unspecified": "Unspecified"
             },
             "Sources": "Źródła utworów",
             "Charters": "Charterzy",
             "Intensities": {
-                "Name": "Intensities",
-                "WarmUp": "Warm Up",
-                "Apprentice": "Apprentice",
-                "Solid": "Solid",
-                "Moderate": "Moderate",
-                "Challenging": "Challenging",
-                "Nightmare": "Nightmare",
-                "Impossible": "Impossible",
-                "Unknown": "Unknown",
-                "NoPart": "No Part"
+                "Name": "Poziom intensywności",
+                "FourLaneProDrums": "4-Lane/Pro Drums",
+                "WarmUp": "Rozgrzewka",
+                "Apprentice": "Uczeń",
+                "Solid": "Solidny",
+                "Moderate": "Umiarkowany",
+                "Challenging": "Wymagający",
+                "Nightmare": "Koszmarny",
+                "Impossible": "Niemożliwy",
+                "Unknown": "Nieznany",
+                "NoPart": "Brak partii"
             },
             "Length": {
                 "Name": "Długość utworów",
@@ -547,33 +1260,77 @@
                 "Long": "Długie (5-7 minut)",
                 "Epic": "Epickie (ponad 7 minut)"
             },
-            "Playlists": "Playlists"
+            "Playlists": "Playlisty"
         },
         "HighwayOrdering": {
-            "Red": "Red",
-            "RedCymbal": "Red Cymbal",
-            "RedDrum": "Red Drum",
-            "Yellow": "Yellow",
-            "YellowCymbal": "Yellow Cymbal",
-            "YellowDrum": "Yellow Drum",
-            "Blue": "Blue",
-            "BlueCymbal": "Blue Cymbal",
-            "BlueDrum": "Blue Drum",
-            "Green": "Green",
-            "GreenCymbal": "Green Cymbal",
-            "GreenDrum": "Green Drum",
-            "Orange": "Orange",
-            "CreateDedicatedLane": "Create Dedicated Lane",
-            "RemoveDedicatedLane": "Remove Dedicated Lane",
-            "RemoveDedicatedLanes": "Remove Dedicated Lanes",
-            "Kick": "Kick",
-            "RightKick": "Right Kick*",
-            "LeftKick": "Left Kick*",
-            "SplitKicksWarning": "* Split kicks can still be hit with either pedal and may not correspond to the most comfortable footing for double-kick patterns.",
-            "ExpertPlusOnly": "Expert+ Only",
-            "4LaneHeader": "4-Lane Drums Highway Configuration",
-            "ProHeader": "Pro Drums Highway Configuration",
-            "5LaneHeader": "5-Lane Drums Highway Configuration"
+            "Red": "Czerwony",
+            "RedCymbal": "Czerwony talerz",
+            "RedDrum": "Czerwony bęben",
+            "Yellow": "Żółty",
+            "YellowCymbal": "Żółty talerz",
+            "YellowDrum": "Żółty bęben",
+            "Blue": "Niebieski",
+            "BlueCymbal": "Niebieski talerz",
+            "BlueDrum": "Niebieski bęben",
+            "Green": "Zielony",
+            "GreenCymbal": "Zielony talerz",
+            "GreenDrum": "Zielony bęben",
+            "Orange": "Pomarańczowy",
+            "CreateDedicatedLane": "Utwórz dedykowaną ścieżkę",
+            "RemoveDedicatedLane": "Usuń dedykowaną ścieżkę",
+            "RemoveDedicatedLanes": "Usuń dedykowane ścieżki",
+            "Kick": "Stopa",
+            "RightKick": "Prawa stopa*",
+            "LeftKick": "Lewa stopa*",
+            "SplitKicksWarning": "* Nuty podzielone na dwie stopy wciąż mogą być złapane obydwiema stopami i czasem mogą pokazywać niewygodny sposób wykonania utworu.",
+            "ExpertPlusOnly": "Tylko Ekspert+",
+            "4LaneHeader": "Konfiguracja ścieżek dla perkusji 4-ścieżkowej",
+            "ProHeader": "Konfiguracja ścieżek dla perkusji Pro",
+            "5LaneHeader": "Konfiguracja ścieżek dla perkusji 5-ścieżkowej"
+        },
+        "Pause": {
+            "Generic": {
+                "Resume": "Wznów",
+                "Restart": "Zacznij od nowa",
+                "BackToLibrary": "Wróć do biblioteki",
+                "Settings": "Ustawienia",
+                "Practice": "Tryb ćwiczenia",
+                "DropOut": "Drop Out",
+                "ChangeDifficulty": "Change Difficulty"
+            },
+            "Fail": {
+                "EnableNoFailandResume": "Kontynuuj rozgrywkę z trybem bezporażkowym",
+                "EnableNoFailandRestart": "Spróbuj ponownie z trybem bezporażkowym"
+            },
+            "Practice": {
+                "SetAPosition": "Ustaw punkt początkowy",
+                "SetBPosition": "Ustaw punkt końcowy",
+                "ClearAB": "Usuń punkt początkowy/końcowy",
+                "SelectNewSections": "Wybierz inne sekcje",
+                "Quickplay": "Szybka gra"
+            },
+            "Quickplay": {
+                "SaveReplay": "Zapisz powtórkę"
+            },
+            "Replay": {
+                "SaveColorProfile": "Zapisz profil kolorów"
+            },
+            "Setlist": {
+                "Skip": "Pomiń utwór"
+            },
+            "QuickSettings": {
+                "AudioSettings": "Ustawienia audio",
+                "EditHud": "Edytuj interfejs HUD",
+                "NoFail": {
+                    "Enable": "Włącz tryb bezporażkowy",
+                    "Disable": "Wyłącz tryb bezporażkowy"
+                },
+                "VenuePP": {
+                    "Enable": "Włącz postprocessing tła",
+                    "Disable": "Wyłącz postprocessing tła"
+                },
+                "Calibration": "Ustawienia kalibracji"
+            }
         }
     },
     "Gameplay": {
@@ -762,10 +1519,16 @@
                 "LetterSection": "Sekcja {0}",
                 "WithNumber": "{0} {1}",
                 "PercentageBased": "{0}% - {1}%"
-            }
+            },
+            "GuidePitch": "Guide Pitch",
+            "GuidePitchToggle": "Toggle"
+        },
+        "UnisonDisplay": {
+            "Header": "Bonus unisono"
         }
     },
     "Preview": {
+        "Title": "Preview",
         "Experimental": {
             "Notice": "WAŻNE\n\nTo opcje, nad którymi nadal trwają prace. Funkcje te mogą się zmienić, mogą zawierać błędy, i mogą nawet spowodować duże problemy, gdy zostaną włączone."
         }
@@ -798,7 +1561,9 @@
             "Left": "Lewo",
             "Right": "Prawo",
             "Start": "Start (Pauza)",
-            "Select": "Select"
+            "Select": "Select",
+            "Search": "Search",
+            "SelectArtist": "Select Current Artist"
         },
         "FiveFret": {
             "Green": "Zielony Próg (Pierwszy)",
@@ -810,7 +1575,16 @@
             "SoloRed": "Czerwony Próg Solo",
             "SoloYellow": "Żółty Próg Solo",
             "SoloBlue": "Niebieski Próg Solo",
-            "SoloOrange": "Pomarańczowy Próg Solo"
+            "SoloOrange": "Pomarańczowy Próg Solo",
+            "FxSwitch": "FX Switch"
+        },
+        "SixFret": {
+            "Black1": "Black Fret 1 (First)",
+            "Black2": "Black Fret 2 (Second)",
+            "Black3": "Black Fret 3 (Third)",
+            "White1": "White Fret 1 (Fourth)",
+            "White2": "White Fret 2 (Fifth)",
+            "White3": "White Fret 3 (Sixth)"
         },
         "Guitar": {
             "StrumUp": "Bicie do góry",
@@ -859,7 +1633,7 @@
         },
         "Vocals": {
             "StarPower": "Aktywuj Star Power",
-            "Hit": "Percussion Hit"
+            "Hit": "Uderzenie perkusyjne"
         },
         "FiveDrums": {
             "RedPad": "Czerwony Pad (Pierwszy)",
@@ -902,7 +1676,26 @@
             "OrangeKey": "Pomarańczowy klawisz (piąty) (5-ścieżkowy)",
             "StarPower": "Aktywuj Star Power",
             "TouchEffects": "Efekty Dotykowe"
-        }
+        },
+        "Headers": {
+            "Menu": "For Menu Navigation",
+            "FiveFretGuitar": "For 5-Fret Guitar Gameplay",
+            "SixFretGuitar": "For 6-Fret Guitar Gameplay",
+            "FourLaneDrums": "For 4-Lane Drums Gameplay",
+            "FiveLaneDrums": "For 5-Lane Drums Gameplay",
+            "EliteDrums": "For All Kinds of Drums Gameplay",
+            "ProKeys": "For Keys Gameplay",
+            "ProGuitar": "For Pro Guitar Gameplay",
+            "Vocals": "For Vocal Gameplay",
+            "NotRecommended": "Not Recommended"
+        },
+        "Hardcoded": "Built-In",
+        "Custom": "Custom {0}",
+        "ModeOnController": "{0} on {1}",
+        "VocalsWithController": "{0} with {1}",
+        "MidiKeyboard": "MIDI Keyboard",
+        "MidiDrumkit": "MIDI Drumkit",
+        "GeneralDrums": "Drums"
     },
     "Settings": {
         "Tab": {
@@ -917,6 +1710,7 @@
             "LightingPeripherals": "Urządzenia świetlne",
             "Debug": "Debugowanie",
             "FileManagement": "Zarządzanie plikami",
+            "ToastHistory": "Toast History",
             "Experimental": "Eksperymentalne"
         },
         "Header": {
@@ -925,11 +1719,13 @@
             "Volume": "Głośność",
             "Graphics": "Grafika",
             "Camera": "Kamera",
+            "Visuals": "Visuals",
             "SongFolders": "Foldery utworów",
             "SongUpgrades": "Ulepszenia utworów",
             "Cache": "Cache",
             "Venues": "Sceny/Tła",
             "Calibration": "Kalibracja",
+            "OffsetCalibration": "Offset Calibration",
             "Input": "Wejście",
             "PresetSettings": "Ustawienia presetów",
             "Debug": "Debugowanie",
@@ -938,7 +1734,10 @@
             "LightingGeneral": "Ogólne oświetlenie",
             "ExportSongs": "Eksportuj listę utworów",
             "PathsAndFolders": "Ścieżki i foldery",
+            "CacheManagement": "Cache Management",
             "MusicLibrary": "Biblioteka",
+            "LibraryDisplay": "Library Display",
+            "SortingAndFiltering": "Sorting and Filtering",
             "PlayAShow": "Zagraj występ",
             "ScanningOptions": "Ustawienia skanowania",
             "RB3E": "Ustawienia RB3E",
@@ -950,8 +1749,13 @@
             "Experimental": "Eksperymentalne",
             "HUD": "Interfejs HUD",
             "Gameplay": "Rozgrywka",
+            "CrowdFX": "Crowd FX",
             "OutputConfiguration": "Konfiguracja wyjścia",
-            "Accessibility": "Dostępność"
+            "Accessibility": "Dostępność",
+            "CareerInformation": "Career Information",
+            "CareerSetlist": "Career Setlist",
+            "NoTiers": "  (No tiers created. Click '+ Add Tier' above)",
+            "ToastHistory": "Toast History"
         },
         "Button": {
             "CopyCurrentSongJsonFilePath": "Skopiuj ścieżkę do pliku JSON z aktualnym utworem",
@@ -959,12 +1763,15 @@
             "ExportSongsJson": "Ouvert (JSON)",
             "ExportSongsText": "Format .txt",
             "ExportSongsCsv": "Format .csv",
+            "ExportSongsWeb": "Web Page",
             "OpenCalibrator": "Otwórz ekran kalibracji",
             "OpenVenueFolder": "Otwórz folder z tłami/scenami",
             "AddFolder": "Dodaj folder",
             "RefreshCache": "Skanuj utwory",
             "OpenExecutablePath": "Otwórz folder pliku wykonywalnego",
-            "OpenPersistentDataPath": "Otwórz folder z trwałymi danymi"
+            "OpenPersistentDataPath": "Otwórz folder z trwałymi danymi",
+            "RemoveRemoteContent": "Remove Cached Content",
+            "OpenAsioControlPanel": "Open ASIO Control Panel"
         },
         "Setting": {
             "AllowDuplicateSongs": {
@@ -998,6 +1805,15 @@
                     "Disabled": "Wyłączone"
                 }
             },
+            "UnisonDisplay": {
+                "Name": "Unison Display",
+                "Description": "Choose how unison bonuses should be displayed during a song.",
+                "Dropdown": {
+                    "Always": "Always",
+                    "MultiplayerOnly": "Multiplayer Only",
+                    "Disabled": "Disabled"
+                }
+            },
             "OverstrumAndOverhitSoundEffects": {
                 "Name": "Dźwięki zbędnego uderzania",
                 "Description": "Włącza efekt dźwiękowy, który gra, kiedy gracz niepotrzebnie brzdąka na gitarze lub uderza w bębny na perkusji, podczas gdy nie ma nut do złapania."
@@ -1026,6 +1842,14 @@
                 "Dropdown": {
                     "Classic": "Klasyczny",
                     "Expanded": "Rozszerzony"
+                }
+            },
+            "NavigationJumpDistance": {
+                "Name": "Navigation Jump Distance",
+                "Description": "Choose whether navigation jumps between sections or by one screen of library content.",
+                "Dropdown": {
+                    "Sections": "Sections",
+                    "Pages": "Pages"
                 }
             },
             "DisableBloom": {
@@ -1114,6 +1938,10 @@
                 "Name": "Limit FPS",
                 "Description": "Limit klatek na sekundę. <color=white>NIE MUSISZ MIEĆ 1000 FPS, ABY GRAĆ W YARG.</color> Rekomendowane jest włącznie synchronizacji pionowej."
             },
+            "BackgroundFpsCap": {
+                "Name": "Limit FPS w tle",
+                "Description": "Ustawia limit klatek na sekundę, gdy YARG jest zminimalizowany, aby zmniejszyć użycie CPU/GPU. Ustaw na 0, aby wyłączyć."
+            },
             "FpsStats": {
                 "Name": "Pokaż licznik FPS",
                 "Description": "Pokazuje licznik klatek na sekundę na Pasku Stanu."
@@ -1145,6 +1973,10 @@
                 "Name": "Graficzny postęp na liczniku punktów",
                 "Description": "Włącza niebieskie obramowanie na liczniku punktów, wskazujące postęp utworu."
             },
+            "GraphicalSongProgressTint": {
+                "Name": "Graphical Progress Tint",
+                "Description": "Adjust the tint on the song progress, if enabled."
+            },
             "GuitarVolume": {
                 "Name": "Głośność gitary",
                 "PauseName": "Gitara",
@@ -1169,8 +2001,26 @@
                 "Dropdown": {
                     "HighestPercentageOverall": "Best percentage across all difficulties",
                     "HighestPercentageDifficulty": "Best percentage on highest-played difficulty",
+                    "HighestPercentageCurrentDifficulty": "Best percentage on current difficulty",
                     "HighestScoreOverall": "Highest score across all difficulties",
-                    "HighestScoreDifficulty": "Highest score on highest-played difficulty"
+                    "HighestScoreDifficulty": "Highest score on highest-played difficulty",
+                    "HighestScoreCurrentDifficulty": "Highest score on current difficulty"
+                }
+            },
+            "SongLengthLabels": {
+                "Name": "Song Duration Labels",
+                "Description": "Choose how song durations are grouped in the music library and filters menu.",
+                "Dropdown": {
+                    "RangeLabels": "2:00, 5:00, 10:00, 15:00, 20:00",
+                    "LegacyLabels": "Short, Medium, Long, Epic"
+                }
+            },
+            "DateAddedSort": {
+                "Name": "Date Added Sort",
+                "Description": "Choose which date is used when sorting the music library by Date Added. Songs without release date metadata use the chart file date.",
+                "Dropdown": {
+                    "ChartFileDate": "Chart File Date",
+                    "ReleaseDate": "Release Date"
                 }
             },
             "HighwayTiltMultiplier": {
@@ -1213,6 +2063,10 @@
                     "Transparent": "Przejrzyste tło"
                 }
             },
+            "KeepLyricBar": {
+                "Name": "Keep Lyric Bar",
+                "Description": "Displays the karaoke lyric bar below the vocal track while singers are playing."
+            },
             "MasterMusicVolume": {
                 "Name": "Główna głośność",
                 "PauseName": "Głośność",
@@ -1222,12 +2076,35 @@
                 "Name": "Maximum Song Rating",
                 "Description": "Hide any song with a rating higher than the specified value. Note that this is a best-effort filter that does not apply to the Playlist Manager. Custom songs may not be rated correctly.",
                 "Dropdown": {
+                    "Family_Friendly": "Odpowiednie dla dzieci",
+                    "Supervision_Recommended": "Zalecany nadzór",
+                    "Mature": "Nieodpowiednie dla dzieci",
+                    "Sensitive_Content": "Wrażliwe treści",
+                    "None": "Brak"
+                }
+            },
+            "UnratedSongRating": {
+                "Name": "Treat Unrated Songs As",
+                "Description": "Treat songs with no rating metadata as the selected rating when applying the maximum song rating filter.",
+                "Dropdown": {
                     "Family_Friendly": "Family Friendly",
                     "Supervision_Recommended": "Supervision Recommended",
                     "Mature": "Mature",
                     "Sensitive_Content": "Sensitive Content",
                     "None": "None"
                 }
+            },
+            "CensorMatureContent": {
+                "Name": "Censor Mature Content",
+                "Description": "On supported songs, mutes and censors mature content in lyrics and vocals, and downgrades the song's rating to \"Supervision Recommended\"."
+            },
+            "RememberFilters": {
+                "Name": "Remember Filters",
+                "Description": "Saves your Filters Menu selections so they are restored the next time you start the game."
+            },
+            "NumberOfRecommendations": {
+                "Name": "Number of Recommendations",
+                "Description": "Sets how many recommended songs appear in the Music Library. Recommendations are hidden when the library or filtered results contain no more songs than this value."
             },
             "MetronomeVolume": {
                 "Name": "Głośność metronomu",
@@ -1276,17 +2153,21 @@
                     "On": "Zawsze - wycisz do 50%"
                 }
             },
+            "MuteOnlyWhenAllPlayersMiss": {
+                "Name": "Mute Only When All Players Miss",
+                "Description": "When several players share an instrument, only mute its stem if all of them are missing. Otherwise the stem's volume is divided between them. Has no effect on songs without a separate stem for the instrument."
+            },
             "NoKicks": {
                 "Name": "Bez stopy",
                 "Description": "Usuwa wszystkie nuty stopki (tylko perkusja)."
             },
             "NoFail": {
-                "Name": "No Fail Mode",
+                "Name": "Tryb bezporażkowy",
                 "Description": "Disables ending a song early when crowd happiness is too low.",
                 "Dropdown": {
-                    "Off": "Off",
-                    "On": "On",
-                    "NoMeter": "On + No Meter"
+                    "Off": "Wyłączony",
+                    "On": "Włączony",
+                    "NoMeter": "Włączony + brak Rockometru"
                 }
             },
             "NoteStreakFrequency": {
@@ -1323,9 +2204,30 @@
                 "Mono": "{0}",
                 "Stereo": "{0} i {1}"
             },
+            "OutputMode": {
+                "Name": "Output Mode",
+                "Description": "Select standard system audio, ASIO, or WASAPI Exclusive.",
+                "Dropdown": {
+                    "Shared": "Shared Audio",
+                    "Asio": "ASIO",
+                    "WasapiExclusive": "WASAPI Exclusive"
+                }
+            },
+            "AsioBufferSize": {
+                "Name": "ASIO Buffer Size",
+                "Description": "Smaller buffers reduce output latency but require more reliable audio processing.",
+                "DriverDefault": "Driver Default",
+                "DriverDefaultWithSize": "Driver Default ({0} samples)",
+                "DriverControlledWithSize": "Driver controlled ({0} samples)",
+                "Samples": "{0} samples"
+            },
             "OutputDevice": {
                 "Name": "Urządzenie wyjściowe",
                 "Description": "Interfejs używany do odtwarzania dźwięków."
+            },
+            "EnablePlayAShow": {
+                "Name": "Enable Play A Show",
+                "Description": "Enable or disable play a show feature from the library"
             },
             "PlayAShowTimeout": {
                 "Name": "Czas na wybór utworu",
@@ -1347,6 +2249,14 @@
                 "Name": "Rozdzielczość",
                 "Description": "Wybierz rozdzielczość ekranu. \"Domyślna\" jest rekomendowana.",
                 "Default": "<i>Domyślna ({0})</i>"
+            },
+            "EffectsMode": {
+                "Name": "High quality audio effects",
+                "Description": "Uses improved reverb and time stretching effects, with increased CPU usage.",
+                "Dropdown": {
+                    "Performance": "Performance",
+                    "Quality": "Quality"
+                }
             },
             "RhythmVolume": {
                 "Name": "Głośność gitary rytmicznej",
@@ -1373,6 +2283,33 @@
             "ShowFavoriteButton": {
                 "Name": "Pokaż przycisk \"Dodaj do ulubionych\"",
                 "Description": "Pokazuje przycisk \"Dodaj do ulubionych\" (w kształcie serca) w bibliotece. Nawet gdy przycisk jest ukryty, utwory mogą być dodane do ulubionych przy użyciu menu \"Więcej opcji\"."
+            },
+            "SecondaryAlbumSort": {
+                "Name": "Secondary Artist Sort",
+                "Description": "Groups albums with at least three songs under secondary headers when sorting the Music Library by artist.",
+                "Dropdown": {
+                    "AlbumsByTitleSongsByTitle": "Albums by Title / Songs by Title",
+                    "AlbumsByTitleSongsByTrack": "Albums by Title / Songs by Track",
+                    "AlbumsByYearSongsByTitle": "Albums by Year / Songs by Title",
+                    "AlbumsByYearSongsByTrack": "Albums by Year / Songs by Track",
+                    "Off": "Off"
+                }
+            },
+            "SecondarySourceSort": {
+                "Name": "Secondary Source Sort",
+                "Description": "Groups songs by intensity under secondary headers when sorting the Music Library by source.",
+                "Dropdown": {
+                    "Off": "Off",
+                    "Intensity": "Intensity"
+                }
+            },
+            "SecondaryIntensitySort": {
+                "Name": "Secondary Intensity Sort",
+                "Description": "Groups songs by source under secondary headers when sorting the Music Library by intensity.",
+                "Dropdown": {
+                    "Off": "Off",
+                    "Source": "Source"
+                }
             },
             "ShowHitWindow": {
                 "Name": "Pokaż okno trafienia",
@@ -1429,14 +2366,25 @@
                     "On": "Włączone"
                 }
             },
-            "UseCrowdFx": {
-                "Name": "Dźwięki publiczności",
-                "Description": "Gdy włączone, publiczność będzie wydawać dźwięki, takie jak klaskanie.",
-                "Dropdown": {
-                    "Disabled": "Wyłączone",
-                    "StarpowerClapsOnly": "Tylko podczas Star Power",
-                    "Enabled": "Włączone"
-                }
+            "UseCrowdCheering": {
+                "Name": "Crowd Cheering",
+                "Description": "Play crowd cheering sound effects at the start, during Star Power, at the end of songs, and on score screens."
+            },
+            "UseCrowdIdle": {
+                "Name": "Crowd Idle",
+                "Description": "Play the crowd's idle background noise during the song."
+            },
+            "UseStarPowerClaps": {
+                "Name": "Star Power Claps",
+                "Description": "Play crowd claps along to the beat while Star Power is active."
+            },
+            "UsePerformanceClaps": {
+                "Name": "Performance Claps",
+                "Description": "Play crowd claps along to the beat when performing well."
+            },
+            "UseVenueSfx": {
+                "Name": "Use Venue SFX",
+                "Description": "If enabled, venues will be allowed to play custom sound effects."
             },
             "UseWhammyFx": {
                 "Name": "Efekty dźwiękowe wajchy",
@@ -1480,6 +2428,10 @@
                     "UltraPerformance": "Ultra Wydajność"
                 }
             },
+            "VenueSfxVolume": {
+                "Name": "Venue SFX Volume",
+                "Description": "Adjusts the volume of custom venue sound effects."
+            },
             "VideoCalibration": {
                 "Name": "Kalibracja wideo (ms)",
                 "PauseName": "Kalibracja wideo (ms)",
@@ -1495,10 +2447,38 @@
                 "PauseName": "Auto-kalibracja wideo",
                 "Description": "Obecnie nic nie robi."
             },
+            "AutoCalibrateOffset": {
+                "Name": "Auto Calibrate Offset",
+                "PauseName": "Auto Calibrate Offset",
+                "Description": "Automatically adjusts this song's specific offset during gameplay based on your input timing."
+            },
+            "SongOffset": {
+                "Name": "Specific Song Delay (ms)",
+                "PauseName": "Specific Song Delay (ms)",
+                "Description": "This song's specific offset in milliseconds, on top of audio/video calibration. Saved per-song."
+            },
+            "ShowMeanSongOffsetCalibration": {
+                "Name": "Show Average Song Offset",
+                "Description": "Shows an option on the advanced stats screen to save average song offset.",
+                "Dropdown": {
+                    "Off": "Off",
+                    "OnlyOnePlayer": "Solo Only",
+                    "Always": "Always"
+                }
+            },
+            "UseSongOffsetCalibration": {
+                "Name": "Use Average Song Offset",
+                "Description": "Use the saved song average offset to adjust song audio delay."
+            },
             "VocalMonitoring": {
                 "Name": "Głośność mikrofonu",
                 "PauseName": "Mikrofon",
-                "Description": "Dostosowuje głośność monitorowania dźwięku z mikrofonu kiedy śpiewasz."
+                "Description": "Adjusts the feedback you hear when singing. Values above 1 add extra gain for quiet microphones."
+            },
+            "VocalReverb": {
+                "Name": "Vocal Reverb",
+                "PauseName": "Reverb",
+                "Description": "Adjusts the amount of reverb applied to vocal monitoring. 0 is dry, 1.0 is maximum."
             },
             "VocalStreakFrequency": {
                 "Name": "Częstotliwość powiadomień (wokal)",
@@ -1528,15 +2508,23 @@
             },
             "PauseOnFocusLoss": {
                 "Name": "Pauza po zmianie okna",
-                "Description": "Pauzuje grę, gdy okno gry przestanie być aktywne podczas gry."
+                "Description": "Pauses the game if it's tabbed out/loses focus in the middle of a song."
+            },
+            "PauseOnMenuOpen": {
+                "Name": "Pause On Menu Open",
+                "Description": "Pauses the game when the track menu is opened."
             },
             "MuteOnFocusLoss": {
                 "Name": "Mute On Focus Loss",
-                "Description": "Mutes all game audio when the game is tabbed out/loses focus, including menu music. Audio is restored when focus returns."
+                "Description": "Mutes all game audio if the game is tabbed out/loses focus, including menu music. Audio is restored when focus returns."
             },
             "ApplyVolumesInMusicLibrary": {
                 "Name": "Zastosuj ustawienia głośności do podglądów w bibliotece",
-                "Description": "Ustawienia głośności poszczególnych instrumentów będą zastosowane również do odtwarzanych podglądów w Bibliotece."
+                "Description": "Volume settings for specific instruments will be applied in the Music Library as well."
+            },
+            "ApplyVolumesInMusicPlayer": {
+                "Name": "Apply Volume Settings to Music Player",
+                "Description": "Volume settings for specific instruments will be applied to the menu music as well. Takes effect on the next song."
             },
             "DataStreamEnable": {
                 "Name": "Włącz strumień danych UDP",
@@ -1594,9 +2582,13 @@
                 "Name": "DMX Pulse Duration (MS)",
                 "Description": "How long a DMX channel stays on after receiving a trigger, in milliseconds. Increase this value if lights are not firing reliably. Set to 0 to disable pulse stretching entirely."
             },
+            "AutomaticPlaybackBuffer": {
+                "Name": "Automatic Buffer Setting",
+                "Description": "Automatically increases the playback buffer by 1 millisecond for each audio underrun."
+            },
             "PlaybackBufferLength": {
                 "Name": "Długość bufora (ms)",
-                "Description": "The size of the playback buffer, in milliseconds. Set to 0 to disable. Larger buffers provide more stability, but increase the latency of sound effects."
+                "Description": "The size of the song playback read-ahead buffer, in milliseconds. Set to 0 to use the minimum size. Larger buffers provide more stability, but increase latency."
             },
             "ShowTime": {
                 "Name": "Pokaż zegar",
@@ -1622,13 +2614,13 @@
                 "Name": "DMX — wszechświat nadawania",
                 "Description": "To jest wszechświat, w którym YARG będzie nadawał pakiety sACN. Domyślnie to \"1\". Maksymalna wartość to \"65535\"."
             },
+            "DMXLocalIP": {
+                "Name": "sACN Local IP",
+                "Description": "The local IPv4 address used to send sACN packets. Leave blank to automatically select the first available Ethernet or Wi-Fi address."
+            },
             "ReconnectProfiles": {
                 "Name": "Podłącz ponownie profile",
                 "Description": "Przy uruchomieniu gry, podłącz ponownie poprzednio używane profile."
-            },
-            "AutoCreateProfiles": {
-                "Name": "Utwórz profile automatycznie",
-                "Description": "Automatycznie stwórz profile do nowo przyłączonych urządzeń plastikowego zespołu."
             },
             "DMXDimmerValues": {
                 "Name": "DMX — wartości głównego ściemniacza",
@@ -1641,6 +2633,10 @@
             "WaitForSongVideo": {
                 "Name": "Poczekaj na tło wideo podczas przewijania",
                 "Description": "Jeśli tło wideo jest dołączone do utworu, czeka na przewinięcie wideo podczas restartowania, zmieniania sekcji do ćwiczenia, lub przewijania powtórki."
+            },
+            "AllowRemoteContent": {
+                "Name": "Allow Remote Content",
+                "Description": "Allows YARG to download and use content from remote sources. (Does not affect OpenSource and Genrelizer, requires restart to take effect)"
             },
             "WrapAroundNavigation": {
                 "Name": "Nawigacja dookoła",
@@ -1687,14 +2683,127 @@
                 "Description": "Wybierz swoją postać wokalisty, która będzie pokazywana na scenie."
             }
         },
+        "Dropdown": {
+            "Select": "(Select)",
+            "RefineSearch": "(Refine Search for More)",
+            "Search": "Search: {0}"
+        },
         "PresetType": {
             "CameraSettingsContainer": "Presety Kamery",
             "ColorProfileContainer": "Profile Kolorów",
             "EnginePresetContainer": "Presety Silnika",
             "HighwayPresetContainer": "Presety Toru",
-            "RockMeterPresetContainer": "Ustawienia Rockometru"
+            "RockMeterPresetContainer": "Ustawienia Rockometru",
+            "CareerContainer": "Career Presets"
         },
         "PresetSetting": {
+            "CareerEditor": {
+                "AddTier": "Add Tier",
+                "AddSong": "Add Song",
+                "Clear": "Clear",
+                "TierTitle": "Tier {0}: {1}",
+                "TierDetails": " [{0}{1} {2} | {3} | {4}]",
+                "BonusSummary": "Bonus | ",
+                "SongSummary": "      {0}. {1} - {2} [{3}]",
+                "EmptySongSummary": "      {0}. ... [{1}]",
+                "UnknownSong": "Unknown Song",
+                "UnknownArtist": "Unknown Artist",
+                "Fields": {
+                    "Name": "Name",
+                    "Description": "Description",
+                    "UnlockCriteria": "Unlock Criteria",
+                    "UnlockThreshold": "Unlock Threshold",
+                    "UnlockText": "Unlock Text",
+                    "IsBonusTier": "Is Bonus Tier",
+                    "SessionLength": "Session Length",
+                    "VenueSize": "Venue Size",
+                    "VenueHint": "Venue Hint",
+                    "BonusMediaType": "Bonus Media Type",
+                    "BonusMediaFile": "Bonus Media File",
+                    "BonusMediaText": "Bonus Media Text",
+                    "Song": "Song",
+                    "Artist": "Artist",
+                    "Source": "Source",
+                    "Charter": "Charter",
+                    "Identifier": "Identifier",
+                    "FallbackDescription": "Fallback Description"
+                },
+                "Enums": {
+                    "UnlockType": {
+                        "StarCount": "Star Count",
+                        "CompletionCount": "Completion Count"
+                    },
+                    "CareerCompletionMode": {
+                        "SingleSong": "Individual Songs",
+                        "FullTierPlaylist": "Tier Setlist",
+                        "FullCareerPlaylist": "Career Setlist"
+                    },
+                    "VenueSize": {
+                        "NotSpecified": "Not Specified",
+                        "Starter": "Starter",
+                        "Small": "Small",
+                        "Medium": "Medium",
+                        "Large": "Large",
+                        "Epic": "Epic"
+                    },
+                    "CompletionBonusType": {
+                        "None": "None",
+                        "Image": "Image",
+                        "Sound": "Sound",
+                        "Video": "Video"
+                    },
+                    "CareerSongIdentifier": {
+                        "SongId": "Song ID",
+                        "SongHash": "Song Hash",
+                        "ShortName": "Short Name",
+                        "SongTuple": "Song Tuple"
+                    }
+                }
+            },
+            "PreviewVisuals": {
+                "Instrument": {
+                    "Name": "Instrument"
+                },
+                "Visuals": {
+                    "Name": "Preview Options"
+                },
+                "StarPowerNotes": {
+                    "Name": "Star Power Notes"
+                },
+                "StarPowerActive": {
+                    "Name": "Star Power Active"
+                },
+                "Groove": {
+                    "Name": "Groove"
+                },
+                "LeftyFlip": {
+                    "Name": "Lefty Flip"
+                }
+            },
+            "ColorGroups": {
+                "Green": "Green",
+                "Red": "Red",
+                "Yellow": "Yellow",
+                "Blue": "Blue",
+                "Orange": "Orange",
+                "Open": "Open",
+                "Kick": "Kick",
+                "General": "General",
+                "Notes": "Notes",
+                "Fret": "Fret",
+                "Lane": "{0} Lane"
+            },
+            "Dialog": {
+                "CopyFromNote": {
+                    "Button": "Copy from note",
+                    "Title": "Copy From Note",
+                    "Message": "Apply base note color to all fret and particle fields?"
+                },
+                "DeletePreset": {
+                    "Title": "Delete Preset",
+                    "Message": "Delete preset \"{0}\"?"
+                }
+            },
             "CameraPreset": {
                 "CurveFactor": {
                     "Name": "Zakrzywienie",
@@ -1723,6 +2832,28 @@
                 "Rotation": {
                     "Name": "Obrót kamery",
                     "Description": "Obrót kamery w osi pochylenia (w górę i w dół)."
+                },
+                "Orthographic": {
+                    "Name": "Orthographic Camera",
+                    "Description": "Use an orthographic projection instead of perspective."
+                },
+                "OrthographicSize": {
+                    "Name": "Orthographic Size",
+                    "Description": "The orthographic view size (half the vertical view height in world units). Only used when Orthographic Camera is enabled."
+                }
+            },
+            "CareerPreset": {
+                "Description": {
+                    "Name": "Description",
+                    "Description": "The long text description of the career."
+                },
+                "BackgroundImageName": {
+                    "Name": "Background Image",
+                    "Description": "The filename of the background image for this career."
+                },
+                "Source": {
+                    "Name": "Source",
+                    "Description": "The source of the career, in the same format as an ini source tag"
                 }
             },
             "ColorProfile": {
@@ -1730,10 +2861,15 @@
                     "Name": "Instrument",
                     "Dropdown": {
                         "FiveFretGuitar": "Gitara (5-progowa)",
+                        "SixFretGuitar": "Guitar (6-Fret)",
                         "FiveLaneDrums": "Perkusja (5-ścieżkowa)",
                         "FourLaneDrums": "Perkusja (4-ścieżkowa)",
-                        "ProKeys": "Pro Klawisze"
+                        "ProKeys": "Pro Klawisze",
+                        "Vocals": "Vocals"
                     }
+                },
+                "FiveLaneKeys": {
+                    "Name": "5 Lane Keys"
                 },
                 "ActivationNote": {
                     "Name": "Nuta aktywacji"
@@ -2055,6 +3191,47 @@
                 },
                 "BlackNoteStarPower": {
                     "Name": "Czarna nuta (Star Power)"
+                },
+                "Fret": {
+                    "Name": "Fret"
+                },
+                "BlackFretInner": {
+                    "Name": "Black Fret Inner"
+                },
+                "WhiteFretInner": {
+                    "Name": "White Fret Inner"
+                },
+                "BlackParticles": {
+                    "Name": "Black Particles"
+                },
+                "WhiteParticles": {
+                    "Name": "White Particles"
+                },
+                "TapStripEmission": {
+                    "Name": "Tap Strip Emission",
+                    "Description": "Controls the brightness of the center strip on tap notes. At 0, the strip appears dark; at 100, it glows with the note color."
+                },
+                "GhostStripEmission": {
+                    "Name": "Ghost Strip Emission",
+                    "Description": "Controls the brightness of the center strip on ghost/grace notes. At 0, the strip appears dark; at 100, it glows with the note color."
+                },
+                "OpenHopoNote": {
+                    "Name": "Open HOPO Note"
+                },
+                "OpenHopoNoteStarPower": {
+                    "Name": "Open HOPO Note Star Power"
+                },
+                "LeadVocals": {
+                    "Name": "Lead Vocals"
+                },
+                "Harmony1": {
+                    "Name": "HARM1"
+                },
+                "Harmony2": {
+                    "Name": "HARM2"
+                },
+                "Harmony3": {
+                    "Name": "HARM3"
                 }
             },
             "EnginePreset": {
@@ -2188,7 +3365,11 @@
                 },
                 "EnableLanes": {
                     "Name": "Włącz ścieżki trylu/tremolo",
-                    "Description": "Jeżeli włączone, gra będzie wczytywać ścieżki trylu/tremolo z utworów."
+                    "Description": "If enabled, the game honors charted trill/tremolo lanes."
+                },
+                "ReleaseKeysCanHitNotes": {
+                    "Name": "Hit Notes On Lift",
+                    "Description": "5LK Only: If enabled, releasing keys can hit notes."
                 }
             },
             "HighwayPreset": {
