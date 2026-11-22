@@ -202,7 +202,7 @@ namespace YARG
         {
 #if UNITY_EDITOR
             return LoadVersionFromGit();
-#elif YARG_TEST_BUILD || YARG_NIGHTLY_BUILD
+#elif YARG_DEV_BUILD || YARG_TEST_BUILD || YARG_NIGHTLY_BUILD
             var versionFile = Resources.Load<TextAsset>("version");
             if (versionFile != null)
             {
@@ -253,9 +253,10 @@ namespace YARG
         public static string GetReleaseType()
         {
             string kind = null;
-#if UNITY_EDITOR || YARG_TEST_BUILD
+#if UNITY_EDITOR || YARG_DEV_BUILD
             kind = "dev";
-#elif YARG_NIGHTLY_BUILD
+// For this particular use, testing and nightly are the same..may need to change on an ad-hoc basis in the future
+#elif YARG_TEST_BUILD || YARG_NIGHTLY_BUILD
             kind = "nightly";
 #else
             kind = "release";

@@ -30,5 +30,14 @@ namespace YARG
         public          bool    PlayingWithReplay;
         public          double? SavedInputTime;
         public          bool    CrowdSfxVenueOverride;
+
+        /// <summary>
+        /// Selects the song to play. Clears CurrentCareer when called from outside a career, avoiding possible leakage
+        /// </summary>
+        public void SetPlaybackSong(SongEntry song, CareerContext career = null)
+        {
+            CurrentSong = song;
+            CurrentCareer = career;
+        }
     }
 }

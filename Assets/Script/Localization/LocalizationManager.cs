@@ -187,8 +187,10 @@ namespace YARG.Localization
         {
             // Parse remote_json and update localization for any keys found
             var version_key = string.Empty;
-#if UNITY_EDITOR || YARG_TEST_BUILD
+#if UNITY_EDITOR || YARG_DEV_BUILD
             version_key = "dev";
+#elif YARG_TEST_BUILD
+            version_key = "testing";
 #elif YARG_NIGHTLY_BUILD
             version_key = "nightly";
 #else
