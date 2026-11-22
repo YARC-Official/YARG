@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using ManagedBass;
 using ManagedBass.Mix;
+using YARG.Audio.BASS.Effects;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
 
@@ -28,12 +29,16 @@ namespace YARG.Audio.BASS
     /// </summary>
     internal sealed class BassSongConnection : IDisposable
     {
-        private const int PREFILL_TIMEOUT_MILLISECONDS = 2000;
+        private const int   PREFILL_TIMEOUT_MILLISECONDS = 2000;
+        private const float LIMITER_CEILING              = 0.966f;
+        private const float LIMITER_RELEASE_MILLISECONDS = 100f;
+        private const int   LIMITER_PRIORITY             = int.MinValue;
 
         private readonly BassOutput          _output;
         private readonly BassReadAheadStream _readAhead;
         private readonly BassMixer           _songMixer;
         private readonly BassMixer           _volumeMixer;
+        private readonly BassPeakLimiterDsp? _peakLimiter;
         private readonly int                 _sampleRate;
         private          int                 _bufferLengthMilliseconds;
         private          bool                _bufferNeedsPrefill = true;
@@ -45,12 +50,14 @@ namespace YARG.Audio.BASS
         private BassSourcePositionSnapshot _pausedPosition;
 
         private BassSongConnection(BassOutput output, int tempoStreamHandle, BassMixer songMixer,
-            BassMixer volumeMixer, BassReadAheadStream readAhead, int sampleRate, int bufferLengthMilliseconds)
+            BassMixer volumeMixer, BassPeakLimiterDsp? peakLimiter, BassReadAheadStream readAhead, int sampleRate,
+            int bufferLengthMilliseconds)
         {
             _output = output;
             _readAhead = readAhead;
             _songMixer = songMixer;
             _volumeMixer = volumeMixer;
+            _peakLimiter = peakLimiter;
             _sampleRate = sampleRate;
             _bufferLengthMilliseconds = bufferLengthMilliseconds;
             TempoStreamHandle = tempoStreamHandle;
@@ -81,6 +88,7 @@ namespace YARG.Audio.BASS
             _output.DetachSong(_volumeMixer.Handle);
             _readAhead.Dispose();
             _volumeMixer.Dispose();
+            _peakLimiter?.Dispose();
 
             _songMixer.RemoveChannel(TempoStreamHandle);
             _songMixer.Dispose();
@@ -141,7 +149,9 @@ namespace YARG.Audio.BASS
                 return null;
             }
 
-            var connection = new BassSongConnection(output, tempoStreamHandle, songMixer, volumeMixer,
+            var peakLimiter = BassPeakLimiterDsp.Attach(songMixer.Handle, LIMITER_CEILING,
+                LIMITER_RELEASE_MILLISECONDS, LIMITER_PRIORITY);
+            var connection = new BassSongConnection(output, tempoStreamHandle, songMixer, volumeMixer, peakLimiter,
                 readAhead, output.SampleRate, bufferLengthMilliseconds);
             connection.UpdateMixerLatency();
             connection.SetVolume(volume);

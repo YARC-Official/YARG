@@ -24,6 +24,7 @@ typedef struct yarg_stretch_stream yarg_stretch_stream;
 
 typedef struct yarg_read_ahead_stream yarg_read_ahead_stream;
 typedef struct yarg_gain_dsp yarg_gain_dsp;
+typedef struct yarg_peak_limiter_dsp yarg_peak_limiter_dsp;
 typedef struct yarg_freeverb_dsp yarg_freeverb_dsp;
 typedef struct yarg_dattorro_reverb_dsp yarg_dattorro_reverb_dsp;
 typedef struct yarg_noise_gate_dsp yarg_noise_gate_dsp;
@@ -140,6 +141,10 @@ YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_gain_dsp_attach(
 YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_gain_dsp_set_gain(
     yarg_gain_dsp* dsp, float gain);
 YARG_AUDIO_API void YARG_AUDIO_CALL yarg_gain_dsp_destroy(yarg_gain_dsp* dsp);
+YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_peak_limiter_dsp_attach(
+    uint32_t channel, float ceiling, float release_ms, int32_t priority,
+    yarg_peak_limiter_dsp** dsp, int32_t* bass_error);
+YARG_AUDIO_API void YARG_AUDIO_CALL yarg_peak_limiter_dsp_destroy(yarg_peak_limiter_dsp* dsp);
 YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_freeverb_dsp_attach(
     uint32_t channel, float dry_mix, float wet_mix, float room_size,
     float damp, float width, int32_t priority,

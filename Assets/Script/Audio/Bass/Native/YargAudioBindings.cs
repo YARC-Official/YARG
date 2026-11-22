@@ -30,6 +30,8 @@ namespace YARG.Audio.BASS.Native
         private static GainDspAttachDelegate? _gainDspAttach;
         private static GainDspSetGainDelegate? _gainDspSetGain;
         private static GainDspDestroyDelegate? _gainDspDestroy;
+        private static PeakLimiterDspAttachDelegate? _peakLimiterDspAttach;
+        private static PeakLimiterDspDestroyDelegate? _peakLimiterDspDestroy;
         private static FreeverbDspAttachDelegate? _freeverbDspAttach;
         private static FreeverbDspResetDelegate? _freeverbDspReset;
         private static FreeverbDspSetParamsDelegate? _freeverbDspSetParams;
@@ -148,6 +150,12 @@ namespace YARG.Audio.BASS.Native
 
         internal static void GainDspDestroy(IntPtr dsp) =>
             EnsureBound(ref _gainDspDestroy, "yarg_gain_dsp_destroy")(dsp);
+
+        internal static int PeakLimiterDspAttach(int channel, float ceiling, float releaseMs, int priority, out BassPeakLimiterDsp dsp, out int bassError) =>
+            EnsureBound(ref _peakLimiterDspAttach, "yarg_peak_limiter_dsp_attach")(channel, ceiling, releaseMs, priority, out dsp, out bassError);
+
+        internal static void PeakLimiterDspDestroy(IntPtr dsp) =>
+            EnsureBound(ref _peakLimiterDspDestroy, "yarg_peak_limiter_dsp_destroy")(dsp);
 
         internal static int FreeverbDspAttach(int channel, float dryMix, float wetMix, float roomSize, float damp, float width, int priority, out BassFreeverbDsp dsp, out int bassError) =>
             EnsureBound(ref _freeverbDspAttach, "yarg_freeverb_dsp_attach")(channel, dryMix, wetMix, roomSize, damp, width, priority, out dsp, out bassError);
@@ -303,6 +311,8 @@ namespace YARG.Audio.BASS.Native
             _gainDspAttach = GetFunction<GainDspAttachDelegate>(handle, "yarg_gain_dsp_attach");
             _gainDspSetGain = GetFunction<GainDspSetGainDelegate>(handle, "yarg_gain_dsp_set_gain");
             _gainDspDestroy = GetFunction<GainDspDestroyDelegate>(handle, "yarg_gain_dsp_destroy");
+            _peakLimiterDspAttach = GetFunction<PeakLimiterDspAttachDelegate>(handle, "yarg_peak_limiter_dsp_attach");
+            _peakLimiterDspDestroy = GetFunction<PeakLimiterDspDestroyDelegate>(handle, "yarg_peak_limiter_dsp_destroy");
             _freeverbDspAttach = GetFunction<FreeverbDspAttachDelegate>(handle, "yarg_freeverb_dsp_attach");
             _freeverbDspReset = GetFunction<FreeverbDspResetDelegate>(handle, "yarg_freeverb_dsp_reset");
             _freeverbDspSetParams = GetFunction<FreeverbDspSetParamsDelegate>(handle, "yarg_freeverb_dsp_set_params");
@@ -460,6 +470,12 @@ namespace YARG.Audio.BASS.Native
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate void GainDspDestroyDelegate(IntPtr dsp);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate int PeakLimiterDspAttachDelegate(int channel, float ceiling, float releaseMs, int priority, out BassPeakLimiterDsp dsp, out int bassError);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void PeakLimiterDspDestroyDelegate(IntPtr dsp);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate int FreeverbDspAttachDelegate(int channel, float dryMix, float wetMix, float roomSize, float damp, float width, int priority, out BassFreeverbDsp dsp, out int bassError);

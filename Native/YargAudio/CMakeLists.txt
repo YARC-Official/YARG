@@ -18,6 +18,7 @@ set(YARG_AUDIO_SOURCES
     src/dsp/GainDsp.cpp
     src/dsp/FreeverbDsp.cpp
     src/dsp/NoiseGateDsp.cpp
+    src/dsp/PeakLimiterDsp.cpp
     src/dsp/PitchShiftDsp.cpp
     src/dsp/PitchShifter.cpp
     src/dsp/SineSynthDsp.cpp
@@ -112,6 +113,7 @@ if(YARG_AUDIO_BUILD_TESTS)
         src/dsp/GainDsp.cpp
         src/dsp/FreeverbDsp.cpp
         src/dsp/NoiseGateDsp.cpp
+        src/dsp/PeakLimiterDsp.cpp
         src/dsp/PitchShiftDsp.cpp
         src/dsp/PitchShifter.cpp
         src/dsp/SineSynthDsp.cpp

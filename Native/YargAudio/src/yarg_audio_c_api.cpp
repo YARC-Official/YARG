@@ -4,6 +4,7 @@
 #include "dsp/DattorroReverbDsp.h"
 #include "dsp/FreeverbDsp.h"
 #include "dsp/GainDsp.h"
+#include "dsp/PeakLimiterDsp.h"
 #include "dsp/NoiseGateDsp.h"
 #include "dsp/PitchShiftDsp.h"
 #include "dsp/SineSynthDsp.h"
@@ -176,6 +177,16 @@ int32_t YARG_AUDIO_CALL yarg_gain_dsp_set_gain(yarg_gain_dsp* dsp, float gain) {
 
 void YARG_AUDIO_CALL yarg_gain_dsp_destroy(yarg_gain_dsp* dsp) {
     (void) yarg::audio::gainDspDestroy(dsp);
+}
+
+int32_t YARG_AUDIO_CALL yarg_peak_limiter_dsp_attach(uint32_t channel, float ceiling,
+    float release_ms, int32_t priority, yarg_peak_limiter_dsp** dsp, int32_t* bass_error) {
+    return yarg::audio::peakLimiterDspAttach(coreBassBindings(), channel, ceiling,
+        release_ms, priority, dsp, bass_error);
+}
+
+void YARG_AUDIO_CALL yarg_peak_limiter_dsp_destroy(yarg_peak_limiter_dsp* dsp) {
+    (void) yarg::audio::peakLimiterDspDestroy(dsp);
 }
 
 int32_t YARG_AUDIO_CALL yarg_sine_synth_dsp_create(
