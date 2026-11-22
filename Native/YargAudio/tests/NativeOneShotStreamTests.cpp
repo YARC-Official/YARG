@@ -167,7 +167,9 @@ void testResyncActiveVoiceBehavior() {
     REQUIRE(stream->attach(7, 0, 1, false, nullptr) == YARG_AUDIO_OK);
     REQUIRE(state.callbackFirstSample == 1);
 
+    state.events.clear();
     REQUIRE(stream->resync(7, 0.1, 2, false, nullptr) == YARG_AUDIO_OK);
+    REQUIRE(state.events.empty());
     float output = 0;
     state.callback(19, &output, sizeof(output), state.callbackUser);
     REQUIRE(output == 2);

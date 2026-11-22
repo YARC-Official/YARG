@@ -12,6 +12,7 @@ namespace YARG.Audio.BASS
     internal sealed class StreamHandle
     {
         public readonly int Stream;
+        public BassPitchShiftDsp PitchShift;
 
         internal StreamHandle(int stream)
         {
@@ -20,6 +21,9 @@ namespace YARG.Audio.BASS
 
         internal void Free()
         {
+            PitchShift?.Dispose();
+            PitchShift = null;
+
             if (!Bass.StreamFree(Stream) && Bass.LastError != Errors.Handle)
             {
                 YargLogger.LogFormatError("Failed to free channel stream (THIS WILL LEAK MEMORY): {0}!",
@@ -29,7 +33,6 @@ namespace YARG.Audio.BASS
 
 #pragma warning disable CS0649
         public int CompressorFX;
-        public int PitchFX;
         public int LowEQ;
         public int MidEQ;
         public int HighEQ;
@@ -38,7 +41,7 @@ namespace YARG.Audio.BASS
 
     public static class BassHelpers
     {
-        public const uint YARG_AUDIO_ABI_VERSION = 27;
+        public const uint YARG_AUDIO_ABI_VERSION = 30;
 
         /// <summary>
         /// Floor applied to the playback speed before it is used as a divisor or to scale a
@@ -148,9 +151,6 @@ namespace YARG.Audio.BASS
         public static int AddEqToChannel(int handle, IEffectParameter eqParams) =>
             FXAddParameters(handle, EffectType.PeakEQ, eqParams);
 
-        public static int AddPitchShiftToChannel(int handle, IEffectParameter pitchParams) =>
-            FXAddParameters(handle, EffectType.PitchShift, pitchParams);
-
 #nullable enable
         public static IBassReverbDsp? CreateReverb(ReverbMode mode, int streamHandle, float dryMix, float wetMix,
             float roomSize, float damp, float width = 1f, int priority = 0)
@@ -169,35 +169,6 @@ namespace YARG.Audio.BASS
             Bass.GetInfo(out var info);
 
             return info.SpeakerCount;
-        }
-
-        internal static PitchShiftParametersStruct SetPitchParams(SongStem stem, StreamHandle streamHandles,
-            StreamHandle reverbHandles)
-        {
-            PitchShiftParametersStruct pitchParams = new(1, 0, GlobalAudioHandler.WHAMMY_FFT_DEFAULT,
-                GlobalAudioHandler.WHAMMY_OVERSAMPLE_DEFAULT);
-            if (GlobalAudioHandler.UseWhammyFx && AudioHelpers.PitchBendAllowedStems.Contains(stem))
-            {
-                pitchParams.OversampleFactor = GlobalAudioHandler.WhammyOversampleFactor;
-                if (SetupPitchBend(pitchParams, streamHandles))
-                {
-                    SetupPitchBend(pitchParams, reverbHandles);
-                }
-            }
-
-            return pitchParams;
-        }
-
-        internal static bool SetupPitchBend(in PitchShiftParametersStruct pitchParams, StreamHandle handles)
-        {
-            handles.PitchFX = FXAddParameters(handles.Stream, EffectType.PitchShift, pitchParams);
-            if (handles.PitchFX == 0)
-            {
-                YargLogger.LogError("Failed to set up pitch bend for main stream!");
-                return false;
-            }
-
-            return true;
         }
 
         internal static double GetLengthInSeconds(int handle)

@@ -115,11 +115,11 @@ During this delay, the controller sees that the error remains uncorrected. On th
 
 YARG measures both ends of the rendered output pipeline in one native snapshot:
 
-1. **Decode Head:** `BASS_Mixer_ChannelGetPositionEx` with zero delay reports the source position represented by the newest decoded PCM.
-2. **Heard Position:** The same query with queued read-ahead frames plus remaining endpoint frames reports the source position reaching the listener.
-3. **Output Delay:** The snapshot returns the exact output-frame delay used by the heard-position query.
+1. **Decode Head:** After each rendered chunk, the read-ahead worker records `BASS_Mixer_ChannelGetPositionEx` for the tempo stream with zero delay, paired with the chunk's end frame. The newest record is the source position represented by the newest decoded PCM.
+2. **Heard Position:** The snapshot finds the output frame reaching the listener (consumed frames minus remaining endpoint frames) and interpolates between the two records around it. Each generation also records its starting position at frame 0, so a delay reaching back past the start reports that origin.
+3. **Output Delay:** The snapshot returns the frame delay between the decode head and the heard frame.
 
-The native snapshot holds the source lock and retries if callback consumption overlaps the query. Both positions and the frame delay therefore describe one queue state.
+Only the worker queries the source, so a position read never waits for a chunk that is still rendering. The snapshot retries if callback consumption overlaps the read. Both positions and the frame delay therefore describe one queue state.
 
 The synchronizer converts the decode head into a delay-free **Control Position**:
 
@@ -172,7 +172,7 @@ Where:
 - `PlaybackStartOffset` is the full preparation advance: `OutputLatency` + `PlaybackStartDelay` + `AlignmentDelay`.
 - `OutputLatency` is the calibrated target offset (including device hardware latency when automatic hardware-latency compensation is enabled).
 - `PlaybackStartDelay` is the output-specific transport delay before prepared audio reaches the endpoint.
-- `AlignmentDelay` is the processing delay introduced by DSP effects (like pitch shift/whammy) on the audio stems.
+- `AlignmentDelay` is the processing delay introduced by DSP effects (like the whammy pitch shifter) on the audio stems.
 - `SongSpeed` (represented by `_songSpeed`) is the current playback speed rate.
 
 Depending on whether the resulting `PreparedPosition` is positive or negative, the system handles synchronization using one of two mathematical branches:

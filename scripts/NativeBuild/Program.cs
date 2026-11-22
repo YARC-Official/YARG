@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Globalization;
+using System.Text;
 
 internal static class Program
 {
@@ -299,8 +300,8 @@ internal static class ProcessRunner
             FileName = fileName,
             WorkingDirectory = workingDirectory,
             UseShellExecute = false,
-            RedirectStandardOutput = captureOutput,
-            RedirectStandardError = captureOutput,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
             CreateNoWindow = true,
         };
 
@@ -326,19 +327,30 @@ internal static class ProcessRunner
                 exception.Message);
         }
 
-        if (!captureOutput)
-        {
-            await process.WaitForExitAsync();
-            return new CommandResult(process.ExitCode, string.Empty, string.Empty);
-        }
-
-        Task<string> stdoutTask = process.StandardOutput.ReadToEndAsync();
-        Task<string> stderrTask = process.StandardError.ReadToEndAsync();
+        TextWriter? stdoutEcho = captureOutput ? null : Console.Out;
+        TextWriter? stderrEcho = captureOutput ? null : Console.Error;
+        Task<string> stdoutTask = RelayAsync(process.StandardOutput, stdoutEcho);
+        Task<string> stderrTask = RelayAsync(process.StandardError, stderrEcho);
         await process.WaitForExitAsync();
         await Task.WhenAll(stdoutTask, stderrTask);
 
         return new CommandResult(
             process.ExitCode, stdoutTask.Result, stderrTask.Result);
+    }
+
+    private static async Task<string> RelayAsync(StreamReader reader, TextWriter? echo)
+    {
+        var builder = new StringBuilder();
+        while (await reader.ReadLineAsync() is { } line)
+        {
+            builder.AppendLine(line);
+            if (echo != null)
+            {
+                echo.WriteLine(line);
+            }
+        }
+
+        return builder.ToString();
     }
 
     private static string FormatCommand(string fileName, IReadOnlyList<string> arguments)
