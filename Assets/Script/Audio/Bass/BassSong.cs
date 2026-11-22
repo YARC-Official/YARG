@@ -5,12 +5,9 @@ using System.IO;
 using System.Linq;
 using ManagedBass;
 using ManagedBass.Mix;
-using UnityEngine;
-using YARG.Audio.BASS.Effects;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
 using YARG.Core.Song;
-using YARG.Helpers;
 using YARG.Settings;
 
 namespace YARG.Audio.BASS
@@ -21,16 +18,14 @@ namespace YARG.Audio.BASS
     /// </summary>
     public sealed class BassSong : StemMixer
     {
-        private const float WHAMMY_SYNC_INTERVAL_SECONDS = 1f;
-        private const float MIN_PLAYBACK_SPEED           = 0.05f;
-        private const float MAX_PLAYBACK_SPEED           = 51f;
+        private const float MIN_PLAYBACK_SPEED = 0.05f;
+        private const float MAX_PLAYBACK_SPEED = 51f;
 
         private readonly BassStemPipeline            _stemPipeline;
         private readonly HashSet<BassOneShotChannel> _oneShots     = new();
         private readonly HashSet<BassToneChannel>    _toneChannels = new();
 
-        private readonly Timer _whammySyncTimer;
-        private          int   _bufferLength;
+        private int _bufferLength;
 
         private BassSongConnection? _connection;
         private bool           _hasConnectedOutput;
@@ -55,15 +50,11 @@ namespace YARG.Audio.BASS
         {
             _stemPipeline = stemPipeline;
 
-            _whammySyncTimer = new Timer();
-
             SetOutputChannel_Internal(outputChannel);
             SetVolume_Internal(volume);
             SetPlaybackSpeed_Internal(speed, 0f, true);
             SetBufferLength_Internal(SettingsManager.Settings.PlaybackBufferLength.Value);
         }
-
-        private static bool IsWhammyEnabled => GlobalAudioHandler.UseWhammyFx;
 
         private bool IsOutputPlaying => _connection?.IsPlaying == true;
 
@@ -72,7 +63,7 @@ namespace YARG.Audio.BASS
         {
             bool enableNormalization = normalize && SettingsManager.Settings.EnableNormalization.Value;
             var stemPipeline = BassStemPipeline.Create(44100, 2, BassFlags.Float | BassFlags.Decode,
-                withCompressor: true, withNormalization: enableNormalization);
+                withWhammyFx: GlobalAudioHandler.UseWhammyFx, withCompressor: true, withNormalization: enableNormalization);
             if (stemPipeline == null)
             {
                 return null;
@@ -122,6 +113,7 @@ namespace YARG.Audio.BASS
             }
 
             _connection = connection;
+            _stemPipeline.SetAttributeWriter(connection.SetSourceAttribute);
             return true;
         }
 
@@ -159,6 +151,7 @@ namespace YARG.Audio.BASS
                 channel.DetachOutput();
             }
 
+            _stemPipeline.SetAttributeWriter(null);
             _connection?.Dispose();
             _connection = null;
         }
@@ -175,11 +168,6 @@ namespace YARG.Audio.BASS
                 {
                     return -1;
                 }
-            }
-
-            if (IsWhammyEnabled)
-            {
-                _whammySyncTimer.Start(WHAMMY_SYNC_INTERVAL_SECONDS, SyncWhammyDrift);
             }
 
             return 0;
@@ -237,18 +225,7 @@ namespace YARG.Audio.BASS
             _connection?.FadeTo(0, (int) (duration * SongMetadata.MILLISECOND_FACTOR));
         }
 
-        private void SyncWhammyDrift()
-        {
-            foreach (var channel in Channels)
-            {
-                if (Mathf.Approximately(channel.GetWhammyPitch(), 1f))
-                {
-                    channel.SetWhammyPitch(0f);
-                }
-            }
-        }
-
-        public double AlignmentDelay { get; private set; }
+        public double AlignmentDelay => _stemPipeline.AlignmentDelay;
 
         private double TotalStreamDelay => AlignmentDelay + _playbackDelay;
 
@@ -297,17 +274,13 @@ namespace YARG.Audio.BASS
             float effectiveSpeed = Math.Clamp(songSpeed + syncAdjustment, MIN_PLAYBACK_SPEED, MAX_PLAYBACK_SPEED);
             _songSpeed = songSpeed;
 
-            bool speedChanged = _speed != effectiveSpeed;
-            if (speedChanged)
-            {
-                _speed = effectiveSpeed;
-                _stemPipeline.SetSpeed(effectiveSpeed, shiftPitch);
-            }
-
-            if (!speedChanged)
+            if (_speed == effectiveSpeed)
             {
                 return;
             }
+
+            _speed = effectiveSpeed;
+            _stemPipeline.SetSpeed(effectiveSpeed, shiftPitch);
 
             RefreshToneChannels();
 
@@ -329,9 +302,9 @@ namespace YARG.Audio.BASS
 
             _connection?.PrepareForSeek();
 
-            if (!_stemPipeline.RealignChannels(playbackDelay, out double alignmentDelay))
+            if (!_stemPipeline.RealignChannels(playbackDelay))
             {
-                _stemPipeline.RealignChannels(0, out _);
+                _stemPipeline.RealignChannels(0);
                 return;
             }
 
@@ -340,7 +313,7 @@ namespace YARG.Audio.BASS
                 channel.SetPosition(seekPosition);
             }
 
-            ResetPosition(seekPosition, alignmentDelay, playbackDelay);
+            ResetPosition(seekPosition, playbackDelay);
 
             _connection?.ResetAfterSeek();
 
@@ -359,12 +332,14 @@ namespace YARG.Audio.BASS
 
         protected override bool AddChannels_Internal(Stream stream, params StemInfo[] stemInfos)
         {
-            if (!_stemPipeline.AddStems(stream, stemInfos, out var createdStems, out double delay))
+            double previousAlignmentDelay = AlignmentDelay;
+            if (!_stemPipeline.AddStems(stream, stemInfos, out var createdStems))
             {
                 return false;
             }
 
-            SetAlignmentDelay(delay);
+            _lastSongPosition -= AlignmentDelay - previousAlignmentDelay;
+            RefreshToneChannels();
 
             foreach (var stem in createdStems)
             {
@@ -377,8 +352,7 @@ namespace YARG.Audio.BASS
         private void CreateChannel(SongStem stem, int sourceHandle, StreamHandle streamHandles,
             StreamHandle reverbHandles)
         {
-            var pitch = BassHelpers.SetPitchParams(stem, streamHandles, reverbHandles);
-            var channel = new BassStemChannel(_manager, stem, _clampStemVolume, sourceHandle, pitch, streamHandles,
+            var channel = new BassStemChannel(_manager, stem, _clampStemVolume, sourceHandle, streamHandles,
                 reverbHandles);
 
             double length = BassHelpers.GetLengthInSeconds(streamHandles.Stream);
@@ -562,8 +536,6 @@ namespace YARG.Audio.BASS
 
         protected override void DisposeManagedResources()
         {
-            _whammySyncTimer.Stop();
-
             _stemPipeline.StopNormalization();
 
             foreach (var channel in Channels)
@@ -609,7 +581,8 @@ namespace YARG.Audio.BASS
 
             if (_connection?.TryGetPositionSnapshot(out var snapshot) != true)
             {
-                YargLogger.LogFormatError("Failed to get byte position: {0}!", Bass.LastError);
+                YargLogger.LogFormatError("Failed to get byte position: {0}!",
+                    _connection?.GetReadAheadStats().LastError);
                 return false;
             }
 
@@ -648,7 +621,7 @@ namespace YARG.Audio.BASS
             return succeeded;
         }
 
-        private void ResetPosition(double seekPosition, double alignmentDelay, double playbackDelay)
+        private void ResetPosition(double seekPosition, double playbackDelay)
         {
             _positionBeforeSeek = _connection?.GetPosition() ?? -1;
             if (_positionBeforeSeek < 0)
@@ -658,16 +631,8 @@ namespace YARG.Audio.BASS
 
             _seekPending = _positionBeforeSeek > 0;
             _seekPosition = seekPosition;
-            AlignmentDelay = alignmentDelay;
             _playbackDelay = playbackDelay;
             _lastSongPosition = seekPosition - TotalStreamDelay;
-            RefreshToneChannels();
-        }
-
-        private void SetAlignmentDelay(double delay)
-        {
-            _lastSongPosition -= delay - AlignmentDelay;
-            AlignmentDelay = delay;
             RefreshToneChannels();
         }
     }

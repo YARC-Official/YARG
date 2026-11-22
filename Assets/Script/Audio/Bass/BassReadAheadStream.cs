@@ -31,6 +31,7 @@ namespace YARG.Audio.BASS
         public uint MinimumBlockFrames;
         public uint BufferMilliseconds;
         public uint OutputStream;
+        public uint PositionSource;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -76,11 +77,12 @@ namespace YARG.Audio.BASS
 
         public int StreamHandle { get; private set; }
 
-        public static BassReadAheadStream? Create(int bassDeviceId, int sourceMixer, int sampleRate, int channels,
-            int minimumBlockFrames, int bufferMilliseconds, bool useIndependentClock = false, int outputStream = 0)
+        public static BassReadAheadStream? Create(int bassDeviceId, int sourceMixer, int positionSource, int sampleRate,
+            int channels, int minimumBlockFrames, int bufferMilliseconds, bool useIndependentClock = false,
+            int outputStream = 0)
         {
-            if (sourceMixer == 0 || sampleRate <= 0 || channels <= 0 || minimumBlockFrames <= 0 ||
-                bufferMilliseconds < 0)
+            if (sourceMixer == 0 || positionSource == 0 || sampleRate <= 0 || channels <= 0 ||
+                minimumBlockFrames <= 0 || bufferMilliseconds < 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(sourceMixer));
             }
@@ -102,6 +104,7 @@ namespace YARG.Audio.BASS
                     MinimumBlockFrames = checked((uint) minimumBlockFrames),
                     BufferMilliseconds = checked((uint) bufferMilliseconds),
                     OutputStream = unchecked((uint) outputStream),
+                    PositionSource = unchecked((uint) positionSource),
                 };
 
                 int result = YargAudioBindings.ReadAheadStreamCreate(in config, out var stream, out int streamHandle, out int bassError);
@@ -148,21 +151,25 @@ namespace YARG.Audio.BASS
             return YargAudioBindings.ReadAheadStreamSetBufferLength(this, bufferMilliseconds) == 0;
         }
 
-        public long GetSourcePosition(int sourceHandle, int endpointDelayFrames) =>
-            TryGetPositionSnapshot(sourceHandle, endpointDelayFrames, out var snapshot)
-                ? snapshot.HeardPosition
-                : -1;
+        public bool SetSourceAttribute(int channel, int attribute, float value)
+        {
+            if (IsClosed || IsInvalid)
+            {
+                return false;
+            }
 
-        public bool TryGetPositionSnapshot(int sourceHandle, int endpointDelayFrames,
-            out ReadAheadPositionSnapshot snapshot)
+            return YargAudioBindings.ReadAheadStreamSetSourceAttribute(this, channel, attribute, value) == 0;
+        }
+
+        public bool TryGetPositionSnapshot(int endpointDelayFrames, out ReadAheadPositionSnapshot snapshot)
         {
             ThrowIfDisposed();
             snapshot = new ReadAheadPositionSnapshot
             {
                 Size = (uint) Marshal.SizeOf<ReadAheadPositionSnapshot>(),
             };
-            return YargAudioBindings.ReadAheadStreamGetPositionSnapshot(this, sourceHandle,
-                Math.Max(0, endpointDelayFrames), ref snapshot) == 0;
+            return YargAudioBindings.ReadAheadStreamGetPositionSnapshot(this, Math.Max(0, endpointDelayFrames),
+                ref snapshot) == 0;
         }
 
         public ReadAheadStats GetStats()

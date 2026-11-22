@@ -4,7 +4,9 @@
 #include "dsp/DattorroReverbDsp.h"
 #include "dsp/FreeverbDsp.h"
 #include "dsp/GainDsp.h"
+#include "dsp/PeakLimiterDsp.h"
 #include "dsp/NoiseGateDsp.h"
+#include "dsp/PitchShiftDsp.h"
 #include "dsp/SineSynthDsp.h"
 #include "one_shot/NativeOneShotStream.h"
 #include "stretch/StretchTempoStream.h"
@@ -16,7 +18,7 @@
 #include <limits>
 #include <memory>
 
-static_assert(sizeof(yarg_read_ahead_config) == 32);
+static_assert(sizeof(yarg_read_ahead_config) == 36);
 static_assert(sizeof(yarg_read_ahead_stats) == 104);
 static_assert(sizeof(yarg_read_ahead_position_snapshot) == 24);
 static_assert(sizeof(yarg_one_shot_config) == 24);
@@ -60,7 +62,8 @@ bool validOneShotConfig(const yarg_one_shot_config* config) noexcept {
 bool validReadAheadConfig(const yarg_read_ahead_config* config) noexcept {
     return config && config->size >= sizeof(yarg_read_ahead_config) &&
         config->source_mixer != 0 && config->sample_rate > 0 &&
-        config->channels > 0 && config->minimum_block_frames > 0;
+        config->channels > 0 && config->minimum_block_frames > 0 &&
+        config->position_source != 0;
 }
 
 bool validOneShotCounts(std::uint64_t pcmSampleCount,
@@ -176,6 +179,16 @@ void YARG_AUDIO_CALL yarg_gain_dsp_destroy(yarg_gain_dsp* dsp) {
     (void) yarg::audio::gainDspDestroy(dsp);
 }
 
+int32_t YARG_AUDIO_CALL yarg_peak_limiter_dsp_attach(uint32_t channel, float ceiling,
+    float release_ms, int32_t priority, yarg_peak_limiter_dsp** dsp, int32_t* bass_error) {
+    return yarg::audio::peakLimiterDspAttach(coreBassBindings(), channel, ceiling,
+        release_ms, priority, dsp, bass_error);
+}
+
+void YARG_AUDIO_CALL yarg_peak_limiter_dsp_destroy(yarg_peak_limiter_dsp* dsp) {
+    (void) yarg::audio::peakLimiterDspDestroy(dsp);
+}
+
 int32_t YARG_AUDIO_CALL yarg_sine_synth_dsp_create(
     const yarg_sine_synth_config* config, yarg_sine_synth_dsp** dsp) {
     return yarg::audio::sineSynthDspCreate(coreBassBindings(), config, dsp);
@@ -272,6 +285,27 @@ int32_t YARG_AUDIO_CALL yarg_noise_gate_dsp_set_params(yarg_noise_gate_dsp* dsp,
 
 void YARG_AUDIO_CALL yarg_noise_gate_dsp_destroy(yarg_noise_gate_dsp* dsp) {
     (void) yarg::audio::noiseGateDspDestroy(dsp);
+}
+
+int32_t YARG_AUDIO_CALL yarg_pitch_shift_dsp_attach(uint32_t channel, int32_t priority,
+    yarg_pitch_shift_dsp** dsp, int32_t* bass_error) {
+    return yarg::audio::pitchShiftDspAttach(coreBassBindings(), channel, priority, dsp, bass_error);
+}
+
+int32_t YARG_AUDIO_CALL yarg_pitch_shift_dsp_set_ratio(yarg_pitch_shift_dsp* dsp, float ratio) {
+    return yarg::audio::pitchShiftDspSetRatio(dsp, ratio);
+}
+
+int32_t YARG_AUDIO_CALL yarg_pitch_shift_dsp_reset(yarg_pitch_shift_dsp* dsp) {
+    return yarg::audio::pitchShiftDspRequestReset(dsp);
+}
+
+int32_t YARG_AUDIO_CALL yarg_pitch_shift_dsp_get_latency(yarg_pitch_shift_dsp* dsp, uint32_t* frames) {
+    return yarg::audio::pitchShiftDspGetLatency(dsp, frames);
+}
+
+void YARG_AUDIO_CALL yarg_pitch_shift_dsp_destroy(yarg_pitch_shift_dsp* dsp) {
+    (void) yarg::audio::pitchShiftDspDestroy(dsp);
 }
 
 int32_t YARG_AUDIO_CALL yarg_one_shot_stream_create(
@@ -439,26 +473,21 @@ int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_set_buffer_length(
         : YARG_AUDIO_ERROR_INVALID_ARGUMENT;
 }
 
-int64_t YARG_AUDIO_CALL yarg_read_ahead_stream_get_source_position(
-    yarg_read_ahead_stream* stream, uint32_t source,
-    uint32_t endpointDelayFrames, int32_t* error) {
-    if (!stream || !stream->value || !error) return -1;
-    int result = YARG_AUDIO_OK;
-    const auto position = stream->value->getSourcePosition(
-        source, endpointDelayFrames, result);
-    *error = result;
-    return position;
+int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_set_source_attribute(
+    yarg_read_ahead_stream* stream, uint32_t channel, uint32_t attribute, float value) {
+    return stream && stream->value
+        ? stream->value->setSourceAttribute(channel, attribute, value)
+        : YARG_AUDIO_ERROR_INVALID_ARGUMENT;
 }
 
 int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_get_position_snapshot(
-    yarg_read_ahead_stream* stream, uint32_t source,
-    uint32_t endpointDelayFrames, yarg_read_ahead_position_snapshot* snapshot) {
+    yarg_read_ahead_stream* stream, uint32_t endpointDelayFrames,
+    yarg_read_ahead_position_snapshot* snapshot) {
     if (!stream || !stream->value || !snapshot ||
         snapshot->size < sizeof(yarg_read_ahead_position_snapshot)) {
         return YARG_AUDIO_ERROR_INVALID_ARGUMENT;
     }
-    return stream->value->getPositionSnapshot(
-        source, endpointDelayFrames, *snapshot);
+    return stream->value->getPositionSnapshot(endpointDelayFrames, *snapshot);
 }
 
 int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_get_stats(

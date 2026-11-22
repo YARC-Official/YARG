@@ -25,6 +25,8 @@ struct BassCoreFunctions {
         std::uint32_t, std::uint32_t) = nullptr;
     double (YARG_BASS_CALL* channelBytes2Seconds)(
         std::uint32_t, std::uint64_t) = nullptr;
+    int (YARG_BASS_CALL* channelSetAttribute)(
+        std::uint32_t, std::uint32_t, float) = nullptr;
 };
 
 class BassCoreBindings {
@@ -43,6 +45,8 @@ public:
         void* user, int priority) const noexcept;
     bool removeDsp(std::uint32_t channel, std::uint32_t dsp) const noexcept;
     bool lockChannel(std::uint32_t channel, bool lock) const noexcept;
+    bool setAttribute(std::uint32_t channel, std::uint32_t attribute,
+        float value) const noexcept;
     bool getChannelInfo(std::uint32_t channel, BassChannelInfo& info) const noexcept;
     std::uint32_t getConfig(std::uint32_t option) const noexcept;
     bool oneShotValid() const noexcept;

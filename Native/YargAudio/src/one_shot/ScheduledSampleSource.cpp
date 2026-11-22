@@ -10,6 +10,7 @@
 #include <utility>
 
 static_assert(std::atomic<std::uint32_t>::is_always_lock_free);
+static_assert(std::atomic<std::uint64_t>::is_always_lock_free);
 
 namespace yarg::audio {
 namespace {
@@ -82,14 +83,39 @@ bool ScheduledSampleSource::reset(double anchorSongPosition,
         return false;
     }
 
-    anchorSongPosition_ = anchorSongPosition;
-    playbackSpeed_ = playbackSpeed;
-    cursorFrame_ = 0;
-    if (clearActiveVoices) activeVoiceCount_ = 0;
-    nextScheduledVoice_ = findNextSchedule();
-    droppedVoiceCount_ = 0;
+    const auto sequence = resetSequence_.load(std::memory_order_relaxed);
+    resetSequence_.store(sequence + 1, std::memory_order_relaxed);
+    std::atomic_thread_fence(std::memory_order_release);
+    requestedAnchorBits_.store(yarg::audio::bitCast<std::uint64_t>(anchorSongPosition),
+        std::memory_order_relaxed);
+    requestedSpeedBits_.store(yarg::audio::bitCast<std::uint32_t>(playbackSpeed),
+        std::memory_order_relaxed);
+    if (clearActiveVoices) {
+        requestedClears_.fetch_add(1, std::memory_order_relaxed);
+    }
+    resetSequence_.store(sequence + 2, std::memory_order_release);
     pausedBits_.store(paused ? 1u : 0u, std::memory_order_relaxed);
     return true;
+}
+
+void ScheduledSampleSource::applyRequestedReset() noexcept {
+    const auto sequence = resetSequence_.load(std::memory_order_acquire);
+    if (sequence == appliedResetSequence_ || (sequence & 1u) != 0) return;
+
+    const auto anchorBits = requestedAnchorBits_.load(std::memory_order_relaxed);
+    const auto speedBits = requestedSpeedBits_.load(std::memory_order_relaxed);
+    const auto clears = requestedClears_.load(std::memory_order_relaxed);
+    std::atomic_thread_fence(std::memory_order_acquire);
+    if (resetSequence_.load(std::memory_order_relaxed) != sequence) return;
+
+    appliedResetSequence_ = sequence;
+    anchorSongPosition_ = yarg::audio::bitCast<double>(anchorBits);
+    playbackSpeed_ = yarg::audio::bitCast<float>(speedBits);
+    cursorFrame_ = 0;
+    if (clears != appliedClears_) activeVoiceCount_ = 0;
+    appliedClears_ = clears;
+    nextScheduledVoice_ = findNextSchedule();
+    droppedVoiceCount_ = 0;
 }
 
 void ScheduledSampleSource::setPaused(bool paused) noexcept {
@@ -105,6 +131,7 @@ bool ScheduledSampleSource::setGain(float gain) noexcept {
 void ScheduledSampleSource::render(float* output, std::size_t outputFrames) noexcept {
     if (!output || outputFrames == 0) return;
 
+    applyRequestedReset();
     clearOutput(output, outputFrames);
     if (pausedBits_.load(std::memory_order_relaxed) != 0) return;
 

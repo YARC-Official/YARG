@@ -13,20 +13,19 @@ namespace YARG.Audio.BASS
         private readonly int                        _sourceHandle;
         private          StreamHandle               _streamHandles;
         private          StreamHandle               _reverbHandles;
-        private          PitchShiftParametersStruct _pitchParams;
         private          IBassReverbDsp              _reverbDsp;
+        private          float                      _pitchRatio = 1f;
 
         private          double _volume;
         private          bool   _isReverbing;
         private readonly long   _length;
 
-        internal BassStemChannel(AudioManager manager, SongStem stem, bool clampStemVolume, int sourceStream, in PitchShiftParametersStruct pitchParams, in StreamHandle streamHandles, in StreamHandle reverbHandles)
+        internal BassStemChannel(AudioManager manager, SongStem stem, bool clampStemVolume, int sourceStream, in StreamHandle streamHandles, in StreamHandle reverbHandles)
             : base(manager, stem, clampStemVolume)
         {
             _sourceHandle = sourceStream;
             _streamHandles = streamHandles;
             _reverbHandles = reverbHandles;
-            _pitchParams = pitchParams;
 
             _length = Bass.ChannelGetLength(_streamHandles.Stream);
             if (_length < 0)
@@ -44,34 +43,27 @@ namespace YARG.Audio.BASS
 
         protected override void SetWhammyPitch_Internal(float percent)
         {
-            // Calculate shift
-            float shift = Mathf.Pow(2, -(GlobalAudioHandler.WhammyPitchShiftAmount * percent) / 12);
-            _pitchParams.fPitchShift = shift;
-
             // If we have pitch effect, pitch
-            if (_streamHandles.PitchFX != 0)
+            if (_streamHandles.PitchShift == null)
             {
-                if (!BassHelpers.FXSetParameters(_streamHandles.PitchFX, _pitchParams))
-                {
-                    YargLogger.LogFormatError("Failed to set pitch on stream: {0}", Bass.LastError);
-                }
+                return;
             }
-            if (_reverbHandles.PitchFX != 0)
+
+            // Calculate shift
+            _pitchRatio = Mathf.Pow(2, -(GlobalAudioHandler.WhammyPitchShiftAmount * percent) / 12);
+            if (!_streamHandles.PitchShift.SetRatio(_pitchRatio))
             {
-                if (!BassHelpers.FXSetParameters(_reverbHandles.PitchFX, _pitchParams))
-                {
-                    YargLogger.LogFormatError("Failed to set pitch on reverb: {0}", Bass.LastError);
-                }
+                YargLogger.LogError("Failed to set pitch on stream!");
+            }
+            if (_reverbHandles.PitchShift != null && !_reverbHandles.PitchShift.SetRatio(_pitchRatio))
+            {
+                YargLogger.LogError("Failed to set pitch on reverb!");
             }
         }
 
         protected override float GetWhammyPitch_Internal()
         {
-            if (_streamHandles.PitchFX == 0)
-            {
-                return 0f;
-            }
-            return _pitchParams.fPitchShift;
+            return _streamHandles.PitchShift == null ? 0f : _pitchRatio;
         }
 
         protected override void SetPosition_Internal(double position)
@@ -102,6 +94,8 @@ namespace YARG.Audio.BASS
             }
 
             // Publish after the mixer seek so the next DSP callback cannot retain pre-seek tail.
+            _streamHandles.PitchShift?.RequestReset();
+            _reverbHandles.PitchShift?.RequestReset();
             _reverbDsp?.RequestReset();
         }
 

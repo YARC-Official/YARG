@@ -18,15 +18,17 @@
 extern "C" {
 #endif
 
-#define YARG_AUDIO_ABI_VERSION 27u
+#define YARG_AUDIO_ABI_VERSION 30u
 
 typedef struct yarg_stretch_stream yarg_stretch_stream;
 
 typedef struct yarg_read_ahead_stream yarg_read_ahead_stream;
 typedef struct yarg_gain_dsp yarg_gain_dsp;
+typedef struct yarg_peak_limiter_dsp yarg_peak_limiter_dsp;
 typedef struct yarg_freeverb_dsp yarg_freeverb_dsp;
 typedef struct yarg_dattorro_reverb_dsp yarg_dattorro_reverb_dsp;
 typedef struct yarg_noise_gate_dsp yarg_noise_gate_dsp;
+typedef struct yarg_pitch_shift_dsp yarg_pitch_shift_dsp;
 typedef struct yarg_one_shot_stream yarg_one_shot_stream;
 typedef struct yarg_sine_synth_dsp yarg_sine_synth_dsp;
 
@@ -91,6 +93,7 @@ typedef struct yarg_read_ahead_config {
     uint32_t minimum_block_frames;
     uint32_t buffer_milliseconds;
     uint32_t output_stream;
+    uint32_t position_source;
 } yarg_read_ahead_config;
 
 typedef struct yarg_read_ahead_stats {
@@ -138,6 +141,10 @@ YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_gain_dsp_attach(
 YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_gain_dsp_set_gain(
     yarg_gain_dsp* dsp, float gain);
 YARG_AUDIO_API void YARG_AUDIO_CALL yarg_gain_dsp_destroy(yarg_gain_dsp* dsp);
+YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_peak_limiter_dsp_attach(
+    uint32_t channel, float ceiling, float release_ms, int32_t priority,
+    yarg_peak_limiter_dsp** dsp, int32_t* bass_error);
+YARG_AUDIO_API void YARG_AUDIO_CALL yarg_peak_limiter_dsp_destroy(yarg_peak_limiter_dsp* dsp);
 YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_freeverb_dsp_attach(
     uint32_t channel, float dry_mix, float wet_mix, float room_size,
     float damp, float width, int32_t priority,
@@ -192,6 +199,15 @@ YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_noise_gate_dsp_reset(
 YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_noise_gate_dsp_set_params(
     yarg_noise_gate_dsp* dsp, const yarg_noise_gate_params* params);
 YARG_AUDIO_API void YARG_AUDIO_CALL yarg_noise_gate_dsp_destroy(yarg_noise_gate_dsp* dsp);
+YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_pitch_shift_dsp_attach(
+    uint32_t channel, int32_t priority, yarg_pitch_shift_dsp** dsp, int32_t* bass_error);
+YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_pitch_shift_dsp_set_ratio(
+    yarg_pitch_shift_dsp* dsp, float ratio);
+YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_pitch_shift_dsp_reset(
+    yarg_pitch_shift_dsp* dsp);
+YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_pitch_shift_dsp_get_latency(
+    yarg_pitch_shift_dsp* dsp, uint32_t* frames);
+YARG_AUDIO_API void YARG_AUDIO_CALL yarg_pitch_shift_dsp_destroy(yarg_pitch_shift_dsp* dsp);
 YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_one_shot_stream_create(
     const yarg_one_shot_config* config,
     const float* pcm, uint64_t pcm_sample_count,
@@ -242,12 +258,11 @@ YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_flush(
     yarg_read_ahead_stream* stream);
 YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_set_buffer_length(
     yarg_read_ahead_stream* stream, uint32_t buffer_milliseconds);
-YARG_AUDIO_API int64_t YARG_AUDIO_CALL yarg_read_ahead_stream_get_source_position(
-    yarg_read_ahead_stream* stream, uint32_t source_handle,
-    uint32_t endpoint_delay_frames, int32_t* error);
+YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_set_source_attribute(
+    yarg_read_ahead_stream* stream, uint32_t channel, uint32_t attribute, float value);
 YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_get_position_snapshot(
-    yarg_read_ahead_stream* stream, uint32_t source_handle,
-    uint32_t endpoint_delay_frames, yarg_read_ahead_position_snapshot* snapshot);
+    yarg_read_ahead_stream* stream, uint32_t endpoint_delay_frames,
+    yarg_read_ahead_position_snapshot* snapshot);
 YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_get_stats(
     yarg_read_ahead_stream* stream, yarg_read_ahead_stats* stats);
 YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_destroy(
