@@ -37,16 +37,12 @@ namespace YARG.Input.Bindings
         public void UpdateDebounce(double time)
         {
             if (!_debounceTimer.IsRunning || !_debounceTimer.HasElapsed(time))
+            {
+                JustPressed = false;
                 return;
+            }
 
             SetState(_debounceTimer.Stop());
-
-            if (DebounceMode == DebounceMode.PressAndRelease ||
-                (IsPressed && DebounceMode == DebounceMode.Press) ||
-                (!IsPressed && DebounceMode == DebounceMode.Release))
-            {
-                _debounceTimer.Start(time);
-            }
         }
 
         public override void UpdateState(double time, float value)
@@ -54,13 +50,20 @@ namespace YARG.Input.Bindings
             _debounceTimer.UpdateValue(value * _invertSign);
 
             if (!_debounceTimer.HasElapsed(time))
+            {
+                JustPressed = false;
                 return;
+            }
 
+            bool wasPressed = IsPressed;
             SetState(_debounceTimer.Stop());
 
-            if (DebounceMode == DebounceMode.PressAndRelease ||
-                (IsPressed && DebounceMode == DebounceMode.Press) ||
-                (!IsPressed && DebounceMode == DebounceMode.Release))
+            // Only arm the debounce timer for a real pressed-state transition, so a held
+            // control cannot keep re-arming the window and swallow subsequent presses.
+            if (IsPressed != wasPressed &&
+                (DebounceMode == DebounceMode.PressAndRelease ||
+                 (IsPressed && DebounceMode == DebounceMode.Press) ||
+                 (!IsPressed && DebounceMode == DebounceMode.Release)))
             {
                 _debounceTimer.Start(time);
             }

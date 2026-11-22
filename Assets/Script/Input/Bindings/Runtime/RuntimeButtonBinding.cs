@@ -62,6 +62,7 @@ namespace YARG.Input.Bindings
                 }
 
                 other.UpdateDebounce(time);
+                OnBindingDebounceUpdated(other, time);
                 state |= other.IsPressed;
             }
 
@@ -97,6 +98,14 @@ namespace YARG.Input.Bindings
             FireInputEvent(time, state);
         }
 
+        /// <summary>
+        /// Called after <paramref name="singleBinding"/> had its debounce window resolved, so
+        /// subclasses can react to states that were deferred past the originating input event.
+        /// </summary>
+        protected virtual void OnBindingDebounceUpdated(RuntimeSingleButtonBinding singleBinding, double time)
+        {
+        }
+
         private void UpdateDebounce(double updateTime)
         {
             // Update individual debounces
@@ -104,6 +113,7 @@ namespace YARG.Input.Bindings
             foreach (var binding in _bindings)
             {
                 binding.UpdateDebounce(updateTime);
+                OnBindingDebounceUpdated(binding, updateTime);
                 collectiveState |= binding.IsPressed;
             }
 
@@ -142,7 +152,17 @@ namespace YARG.Input.Bindings
 
             if (singleBinding.JustPressed)
             {
-                FirePressedEvent(time);
+                FirePressedEvent(singleBinding, time);
+            }
+        }
+
+        protected override void OnBindingDebounceUpdated(RuntimeSingleButtonBinding singleBinding, double time)
+        {
+            base.OnBindingDebounceUpdated(singleBinding, time);
+
+            if (singleBinding.JustPressed)
+            {
+                FirePressedEvent(singleBinding, time);
             }
         }
 
@@ -154,14 +174,11 @@ namespace YARG.Input.Bindings
             }
         }
 
-        protected virtual void FirePressedEvent(double time)
+        protected virtual void FirePressedEvent(RuntimeSingleButtonBinding singleBinding, double time)
         {
-            var velocity = 0f;
-
-            foreach (var binding in _bindings)
-            {
-                velocity = Math.Max(velocity, binding.Control.value);
-            }
+            // Use the triggering binding's state rather than the live control values, so a held
+            // sibling binding cannot donate its velocity to this press.
+            var velocity = Math.Abs(singleBinding.State);
 
             var input = new GameInput(time, Action, velocity);
 
