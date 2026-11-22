@@ -189,7 +189,7 @@ namespace YARG.Menu.History
                 return;
             }
 
-            GlobalVariables.State.CurrentSong = _songEntry;
+            GlobalVariables.State.SetPlaybackSong(_songEntry);
             GlobalVariables.State.CurrentReplay = _entry;
             var chart = _songEntry.LoadChart();
             if (chart == null)

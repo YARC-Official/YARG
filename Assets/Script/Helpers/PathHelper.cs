@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
@@ -97,8 +98,10 @@ namespace YARG.Helpers
             }
             // Save this data as Application.* is main thread only (why Unity)
             RealPersistentDataPath = SanitizePath(Application.persistentDataPath);
-#if UNITY_EDITOR || YARG_TEST_BUILD
+#if UNITY_EDITOR || YARG_DEV_BUILD
             PersistentDataPath = SanitizePath(Path.Combine(Application.persistentDataPath, "dev"));
+#elif YARG_TEST_BUILD
+            PersistentDataPath = SanitizePath(Path.Combine(Application.persistentDataPath, "testing"));
 #elif YARG_NIGHTLY_BUILD
             PersistentDataPath = SanitizePath(Path.Combine(Application.persistentDataPath, "nightly"));
 #else
@@ -122,6 +125,10 @@ namespace YARG.Helpers
 
                 PersistentDataPath = SanitizePath(CommandLineArgs.PersistentDataPath);
             }
+            else if (PersistentDataPath.EndsWith("testing"))
+            {
+                CopySettingsToTesting();
+            }
 
             // Get other paths that are only allowed on the main thread
             ApplicationDataPath = SanitizePath(Application.dataPath);
@@ -138,9 +145,9 @@ namespace YARG.Helpers
             var localAppdata = Path.Combine(Environment.GetEnvironmentVariable("HOME"),
                 "Library", "Application Support");
 #else
-            var localAppdata = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var localAppdata = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 #endif
-            LauncherPath = Path.Join(localAppdata, "YARC", "Launcher");
+            LauncherPath = Path.Join(localAppdata, "in.yarg.launcher");
 
             // Get official setlist path
             // (this is replaced by the launch argument if it is set)
@@ -298,6 +305,53 @@ namespace YARG.Helpers
         public static string SanitizeFileName(string fileName)
         {
             return _fileNameSanitize.Replace(fileName, "_");
+        }
+
+        private static void CopySettingsToTesting()
+        {
+            var testingPath = SanitizePath(Path.Combine(Application.persistentDataPath, "testing"));
+            var nightlyPath = SanitizePath(Path.Combine(Application.persistentDataPath, "nightly"));
+            var stablePath = SanitizePath(Path.Combine(Application.persistentDataPath, "release"));
+
+            if (Directory.Exists(testingPath))
+            {
+                return;
+            }
+
+            // Since we don't have testing path, that means this is fresh, so we should copy nightly or release
+            if (Directory.Exists(nightlyPath))
+            {
+                DirectoryCopy(nightlyPath, testingPath);
+            }
+            else if (Directory.Exists(stablePath))
+            {
+                DirectoryCopy(stablePath, testingPath);
+            }
+        }
+
+        private static void DirectoryCopy(string source, string dest)
+        {
+            var dir = new DirectoryInfo(source);
+
+            if (!dir.Exists)
+            {
+                return;
+            }
+
+            DirectoryInfo[] dirs = dir.GetDirectories();
+            Directory.CreateDirectory(dest);
+
+            foreach (var file in dir.GetFiles())
+            {
+                var target = Path.Combine(dest, file.Name);
+                file.CopyTo(target, true);
+            }
+
+            foreach (var subDir in dirs)
+            {
+                var newDir = Path.Combine(dest, subDir.Name);
+                DirectoryCopy(subDir.FullName, newDir);
+            }
         }
     }
 }
