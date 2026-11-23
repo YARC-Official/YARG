@@ -21,6 +21,7 @@ namespace YARG.Menu
             CareerList,
             Career,
             GameModes,
+            VenueSelect,
         }
 
         /// <summary>
@@ -33,6 +34,7 @@ namespace YARG.Menu
             Menu.History,
             Menu.Content,
             Menu.Career,
+            Menu.VenueSelect,
         };
 
         /// <summary>

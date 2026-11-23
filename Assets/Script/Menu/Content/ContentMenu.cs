@@ -33,6 +33,11 @@ namespace YARG.Menu.Content
             GlobalVariables.Instance.LoadScene(SceneIndex.Content);
         }
 
+        public void VenueSelect()
+        {
+            MenuManager.Instance.PushMenu(MenuManager.Menu.VenueSelect);
+        }
+
         public void Back()
         {
             MenuManager.Instance.PopMenu();

@@ -1201,9 +1201,50 @@
             },
             "Options": {
                 "Character": "Characters",
+                "Venue": "Venues",
                 "Back": "Main Menu"
             },
-            "MessageOfTheDay": "Here you can set your content preferences and preview certain available custom content. For now, you can only select a custom vocal character, but in the future you will be able to select venues and possibly some other things.\n\nAs always, feedback is welcome and appreciated!"
+            "VenueSelect": {
+                "Title": "Venues",
+                "NoVenues": "No venues available",
+                "NoVenuesSubtext": "Enable remote content, or drop .yarground files into the venue folder",
+                "UnspecifiedAuthor": "Unspecified Author",
+                "Summary": "{0} of {1} enabled",
+                "SummaryPinned": "{0} of {1} enabled  ·  Pinned: {2}",
+                "Filters": {
+                    "All": "All",
+                    "Remote": "Remote",
+                    "Local": "Local",
+                    "Disabled": "Disabled"
+                },
+                "Sources": {
+                    "Remote": "Remote",
+                    "Launcher": "Launcher",
+                    "Local": "Local"
+                },
+                "States": {
+                    "InRandomRotation": "In Random Rotation",
+                    "Pinned": "Pinned",
+                    "HintOnly": "Hint Only",
+                    "Disabled": "Disabled"
+                },
+                "Actions": {
+                    "Pin": "Pin",
+                    "Unpin": "Unpin",
+                    "Disable": "Disable",
+                    "Enable": "Enable",
+                    "IncludeInRandom": "Include in Random",
+                    "RestoreHintOnly": "Restore Hint Only",
+                    "OpenFolder": "Open Venue Folder",
+                    "Filter": "Filter"
+                },
+                "Banners": {
+                    "GlobalDisabled": "Global backgrounds are disabled in Settings — pinned and random venues will not be used during gameplay",
+                    "RemoteDisabled": "Remote venues are hidden because Allow Remote Content is disabled or you are offline",
+                    "EmptyPool": "No venues are enabled for random rotation — gameplay will fall back to the default venue"
+                }
+            },
+            "MessageOfTheDay": "Here you can set your content preferences and preview certain available custom content. You can select your vocal character, and choose which venues appear during gameplay.\n\nAs always, feedback is welcome and appreciated!"
         },
         "Filters": {
             "OptionsHeader": "Options",
