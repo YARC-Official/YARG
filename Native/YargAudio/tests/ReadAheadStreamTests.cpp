@@ -20,15 +20,10 @@ struct MockBass {
     std::atomic<std::size_t> availableFrames{0};
     std::atomic<std::size_t> nextFrame{0};
     std::atomic<std::size_t> decodedFrames{0};
-    std::atomic<std::uint32_t> lastPositionDelay{0};
-    std::atomic<std::uint32_t> positionCalls{0};
-    std::atomic<bool> blockPosition{false};
-    std::atomic<bool> positionBlocked{false};
     bool fail = false;
     bool freed = false;
     int errorCode = 73;
     int decodePositionError = 0;
-    int delayedPositionError = 0;
     bool positionFromDecodedFrames = false;
     std::uint32_t expectedFrequency = 1000;
     std::uint32_t channels = 1;
@@ -37,6 +32,7 @@ struct MockBass {
     bool outputLocked = false;
     bool failOutputLock = false;
     bool failOutputQuery = false;
+    bool consumeDuringOutputQuery = false;
     std::uint32_t outputLocks = 0;
     std::uint32_t outputUnlocks = 0;
 };
@@ -61,6 +57,11 @@ std::uint32_t YARG_BASS_CALL getData(std::uint32_t channel, void* buffer,
         REQUIRE(mock->outputLocked);
         REQUIRE(buffer == nullptr);
         REQUIRE(bytes == 0);
+        if (mock->consumeDuringOutputQuery) {
+            mock->consumeDuringOutputQuery = false;
+            float sample = -1;
+            mock->callback(19, &sample, sizeof(sample), mock->callbackUser);
+        }
         return mock->failOutputQuery ? UINT32_MAX : mock->outputBytes;
     }
     if (mock->fail) {
@@ -121,28 +122,12 @@ int YARG_BASS_CALL freeStream(std::uint32_t stream) {
 
 std::uint64_t YARG_BASS_CALL getPosition(
     std::uint32_t, std::uint32_t, std::uint32_t delay) {
-    mock->positionCalls.fetch_add(1);
-    mock->lastPositionDelay.store(delay);
-    if (mock->blockPosition.load()) {
-        mock->positionBlocked.store(true);
-        while (mock->blockPosition.load()) {
-            std::this_thread::yield();
-        }
-    }
-    if (delay == 0 && mock->decodePositionError != 0) {
+    REQUIRE(delay == 0);
+    if (mock->decodePositionError != 0) {
         mock->errorCode = mock->decodePositionError;
         return UINT64_MAX;
     }
-    if (delay > 0 && mock->delayedPositionError != 0) {
-        mock->errorCode = mock->delayedPositionError;
-        return UINT64_MAX;
-    }
-    if (mock->positionFromDecodedFrames) {
-        const auto delayFrames = delay / (mock->channels * sizeof(float));
-        const auto decodedFrames = mock->decodedFrames.load();
-        return decodedFrames >= delayFrames ? decodedFrames - delayFrames : 0;
-    }
-    return 100 + delay;
+    return mock->positionFromDecodedFrames ? mock->decodedFrames.load() : 100;
 }
 
 BassCoreBindings makeCore(MockBass& state) {
@@ -156,20 +141,28 @@ BassMixBindings makeMix() {
     return BassMixBindings(BassMixFunctions{&getPosition, nullptr, nullptr});
 }
 
+std::int64_t heardPosition(ReadAheadStream& stream, std::uint32_t endpointDelayFrames,
+    int& error) {
+    yarg_read_ahead_position_snapshot snapshot{sizeof(yarg_read_ahead_position_snapshot)};
+    error = stream.getPositionSnapshot(endpointDelayFrames, snapshot);
+    return error == YARG_AUDIO_OK ? snapshot.heard_position : -1;
+}
+
 yarg_read_ahead_config config(std::uint32_t milliseconds) {
     return yarg_read_ahead_config{sizeof(yarg_read_ahead_config), 7, 11,
-        1000, 1, 4, milliseconds, 0};
+        1000, 1, 4, milliseconds, 0, 23};
 }
 
 yarg_read_ahead_config configAtRate(std::uint32_t milliseconds,
     std::uint32_t sampleRate) {
     return yarg_read_ahead_config{sizeof(yarg_read_ahead_config), 7, 11,
-        sampleRate, 1, 4, milliseconds, 0};
+        sampleRate, 1, 4, milliseconds, 0, 23};
 }
 
 void testPrefillConsumptionPositionAndResize() {
     MockBass state;
     state.availableFrames.store(8);
+    state.positionFromDecodedFrames = true;
     auto core = makeCore(state);
     auto mix = makeMix();
     int bassError = -1;
@@ -186,16 +179,15 @@ void testPrefillConsumptionPositionAndResize() {
     REQUIRE(output == std::vector<float>({0, 1, 2}));
 
     int positionError = -1;
-    REQUIRE(stream->getSourcePosition(23, 0, positionError) == 120);
-    REQUIRE(state.lastPositionDelay.load() == 20);
+    REQUIRE(heardPosition(*stream, 0, positionError) == 3);
     REQUIRE(positionError == YARG_AUDIO_OK);
 
     yarg_read_ahead_position_snapshot snapshot{
         sizeof(yarg_read_ahead_position_snapshot)};
-    REQUIRE(stream->getPositionSnapshot(23, 0, snapshot) == YARG_AUDIO_OK);
+    REQUIRE(stream->getPositionSnapshot(0, snapshot) == YARG_AUDIO_OK);
     REQUIRE(snapshot.total_delay_frames == 5);
-    REQUIRE(snapshot.heard_position == 120);
-    REQUIRE(snapshot.decode_position == 100);
+    REQUIRE(snapshot.heard_position == 3);
+    REQUIRE(snapshot.decode_position == 8);
 
     REQUIRE(stream->flush() == YARG_AUDIO_OK);
     yarg_read_ahead_stats stats{sizeof(yarg_read_ahead_stats)};
@@ -264,7 +256,7 @@ void testLiveBufferChangesPreservePlayback() {
                  8u, 9u, 10u, 5000u, 1u, 0u}) {
             yarg_read_ahead_position_snapshot beforePosition{
                 sizeof(yarg_read_ahead_position_snapshot)};
-            REQUIRE(stream->getPositionSnapshot(23, 0, beforePosition) == YARG_AUDIO_OK);
+            REQUIRE(stream->getPositionSnapshot(0, beforePosition) == YARG_AUDIO_OK);
             REQUIRE(beforePosition.heard_position == static_cast<std::int64_t>(nextFrame - 2));
             yarg_read_ahead_stats before{sizeof(yarg_read_ahead_stats)};
             REQUIRE(stream->getStats(before) == YARG_AUDIO_OK);
@@ -273,7 +265,7 @@ void testLiveBufferChangesPreservePlayback() {
 
             yarg_read_ahead_position_snapshot afterPosition{
                 sizeof(yarg_read_ahead_position_snapshot)};
-            REQUIRE(stream->getPositionSnapshot(23, 0, afterPosition) == YARG_AUDIO_OK);
+            REQUIRE(stream->getPositionSnapshot(0, afterPosition) == YARG_AUDIO_OK);
             REQUIRE(afterPosition.heard_position == beforePosition.heard_position);
             REQUIRE(afterPosition.decode_position >= beforePosition.decode_position);
             yarg_read_ahead_stats after{sizeof(yarg_read_ahead_stats)};
@@ -302,7 +294,7 @@ void testLiveBufferChangesPreservePlayback() {
         }
         yarg_read_ahead_position_snapshot position{
             sizeof(yarg_read_ahead_position_snapshot)};
-        REQUIRE(stream->getPositionSnapshot(23, 0, position) == YARG_AUDIO_OK);
+        REQUIRE(stream->getPositionSnapshot(0, position) == YARG_AUDIO_OK);
         REQUIRE(position.heard_position == static_cast<std::int64_t>(nextFrame - 2));
         REQUIRE(stream->destroy(nullptr));
     }
@@ -323,16 +315,16 @@ void testBufferGrowthPreservesPlaybackClock() {
     state.callback(19, output.data(), output.size() * sizeof(float), state.callbackUser);
     clock.timestamp += 25'000'000;
     yarg_read_ahead_position_snapshot before{sizeof(yarg_read_ahead_position_snapshot)};
-    REQUIRE(stream->getPositionSnapshot(23, 100, before) == YARG_AUDIO_OK);
+    REQUIRE(stream->getPositionSnapshot(100, before) == YARG_AUDIO_OK);
     REQUIRE(before.heard_position == 35);
 
     REQUIRE(stream->setBufferLength(500) == YARG_AUDIO_OK);
 
     yarg_read_ahead_position_snapshot after{sizeof(yarg_read_ahead_position_snapshot)};
-    REQUIRE(stream->getPositionSnapshot(23, 100, after) == YARG_AUDIO_OK);
+    REQUIRE(stream->getPositionSnapshot(100, after) == YARG_AUDIO_OK);
     REQUIRE(after.heard_position == before.heard_position);
     clock.timestamp += 25'000'000;
-    REQUIRE(stream->getPositionSnapshot(23, 100, after) == YARG_AUDIO_OK);
+    REQUIRE(stream->getPositionSnapshot(100, after) == YARG_AUDIO_OK);
     REQUIRE(after.heard_position == 60);
     REQUIRE(stream->destroy(nullptr));
     fakeClock = nullptr;
@@ -397,7 +389,7 @@ void testUnderrunReturnsSilenceWithoutEndingStream() {
 void testPositionBeforeGenerationStartReturnsGenerationOrigin() {
     MockBass state;
     state.availableFrames.store(8);
-    state.delayedPositionError = 37;
+    state.positionFromDecodedFrames = true;
     auto core = makeCore(state);
     auto mix = makeMix();
     auto stream = ReadAheadStream::create(core, mix, config(4), nullptr);
@@ -405,65 +397,18 @@ void testPositionBeforeGenerationStartReturnsGenerationOrigin() {
     REQUIRE(stream->prefill(2000) == YARG_AUDIO_OK);
 
     int positionError = -1;
-    REQUIRE(stream->getSourcePosition(23, 2, positionError) == 0);
+    REQUIRE(heardPosition(*stream, 2, positionError) == 0);
     REQUIRE(positionError == YARG_AUDIO_OK);
-    REQUIRE(state.lastPositionDelay.load() == 40);
 
     REQUIRE(stream->flush() == YARG_AUDIO_OK);
     state.availableFrames.store(8);
     REQUIRE(stream->prefill(2000) == YARG_AUDIO_OK);
-    REQUIRE(stream->getSourcePosition(23, 2, positionError) == 0);
+    REQUIRE(heardPosition(*stream, 2, positionError) == 8);
     REQUIRE(positionError == YARG_AUDIO_OK);
-    REQUIRE(state.lastPositionDelay.load() == 40);
 
     yarg_read_ahead_stats stats{sizeof(yarg_read_ahead_stats)};
     REQUIRE(stream->getStats(stats) == YARG_AUDIO_OK);
     REQUIRE(stats.produced_frames == 16);
-    REQUIRE(stream->destroy(nullptr));
-}
-
-void testPositionBeforeGenerationStartUsesAvailableHistory() {
-    MockBass state;
-    state.availableFrames.store(8);
-    auto core = makeCore(state);
-    auto mix = makeMix();
-    auto stream = ReadAheadStream::create(core, mix, config(4), nullptr);
-    REQUIRE(stream);
-    REQUIRE(stream->prefill(2000) == YARG_AUDIO_OK);
-
-    int positionError = -1;
-    REQUIRE(stream->getSourcePosition(23, 2, positionError) == 140);
-    REQUIRE(positionError == YARG_AUDIO_OK);
-    REQUIRE(state.lastPositionDelay.load() == 40);
-
-    REQUIRE(stream->flush() == YARG_AUDIO_OK);
-    state.availableFrames.store(8);
-    REQUIRE(stream->prefill(2000) == YARG_AUDIO_OK);
-    REQUIRE(stream->getSourcePosition(23, 2, positionError) == 140);
-    REQUIRE(positionError == YARG_AUDIO_OK);
-    REQUIRE(state.lastPositionDelay.load() == 40);
-    REQUIRE(stream->destroy(nullptr));
-}
-
-void testPositionLookupFailureIsReported() {
-    MockBass state;
-    state.availableFrames.store(8);
-    state.delayedPositionError = 20;
-    auto core = makeCore(state);
-    auto mix = makeMix();
-    auto stream = ReadAheadStream::create(core, mix, config(4), nullptr);
-    REQUIRE(stream);
-    REQUIRE(stream->prefill(2000) == YARG_AUDIO_OK);
-
-    std::vector<float> output(3);
-    REQUIRE(state.callback(19, output.data(),
-        static_cast<std::uint32_t>(output.size() * sizeof(float)),
-        state.callbackUser) == output.size() * sizeof(float));
-
-    int positionError = -1;
-    REQUIRE(stream->getSourcePosition(23, 0, positionError) == -1);
-    REQUIRE(positionError == YARG_AUDIO_ERROR_BASS);
-    REQUIRE(state.lastPositionDelay.load() == 20);
     REQUIRE(stream->destroy(nullptr));
 }
 
@@ -479,43 +424,33 @@ void testDecodePositionLookupFailureIsReported() {
 
     yarg_read_ahead_position_snapshot snapshot{
         sizeof(yarg_read_ahead_position_snapshot)};
-    REQUIRE(stream->getPositionSnapshot(23, 0, snapshot) == YARG_AUDIO_ERROR_BASS);
+    REQUIRE(stream->getPositionSnapshot(0, snapshot) == YARG_AUDIO_ERROR_BASS);
+    yarg_read_ahead_stats stats{sizeof(yarg_read_ahead_stats)};
+    REQUIRE(stream->getStats(stats) == YARG_AUDIO_OK);
+    REQUIRE(stats.last_error == 20);
     REQUIRE(stream->destroy(nullptr));
 }
 
 void testPositionSnapshotRetriesAfterConsumption() {
     MockBass state;
+    state.outputStream = 29;
     state.availableFrames.store(8);
+    state.positionFromDecodedFrames = true;
     auto core = makeCore(state);
     auto mix = makeMix();
-    auto stream = ReadAheadStream::create(core, mix, config(4), nullptr);
+    auto settings = config(4);
+    settings.output_stream = state.outputStream;
+    auto stream = ReadAheadStream::create(core, mix, settings, nullptr);
     REQUIRE(stream);
     REQUIRE(stream->prefill(2000) == YARG_AUDIO_OK);
 
-    state.blockPosition.store(true);
+    state.consumeDuringOutputQuery = true;
     yarg_read_ahead_position_snapshot snapshot{
         sizeof(yarg_read_ahead_position_snapshot)};
-    int result = YARG_AUDIO_ERROR_INTERNAL;
-    std::thread positionThread([&] {
-        result = stream->getPositionSnapshot(23, 0, snapshot);
-    });
-
-    const auto deadline = std::chrono::steady_clock::now() +
-        std::chrono::seconds(2);
-    while (!state.positionBlocked.load() &&
-        std::chrono::steady_clock::now() < deadline) {
-        std::this_thread::yield();
-    }
-    REQUIRE(state.positionBlocked.load());
-
-    float output = -1;
-    state.callback(19, &output, sizeof(output), state.callbackUser);
-    state.blockPosition.store(false);
-    positionThread.join();
-
-    REQUIRE(result == YARG_AUDIO_OK);
-    REQUIRE(state.positionCalls.load() >= 4);
+    REQUIRE(stream->getPositionSnapshot(0, snapshot) == YARG_AUDIO_OK);
+    REQUIRE(state.outputLocks == 2);
     REQUIRE(snapshot.total_delay_frames == 7);
+    REQUIRE(snapshot.heard_position == 1);
     REQUIRE(stream->destroy(nullptr));
 }
 
@@ -533,16 +468,13 @@ void testPositionAdvancesBetweenOutputPulls() {
         static_cast<std::uint32_t>(output.size() * sizeof(float)),
         state.callbackUser);
 
-    int positionError = -1;
-    stream->getSourcePosition(23, 100, positionError);
-    const auto firstDelay = state.lastPositionDelay.load();
+    yarg_read_ahead_position_snapshot first{sizeof(yarg_read_ahead_position_snapshot)};
+    REQUIRE(stream->getPositionSnapshot(100, first) == YARG_AUDIO_OK);
     std::this_thread::sleep_for(std::chrono::milliseconds(25));
-    stream->getSourcePosition(23, 100, positionError);
-    const auto secondDelay = state.lastPositionDelay.load();
+    yarg_read_ahead_position_snapshot second{sizeof(yarg_read_ahead_position_snapshot)};
+    REQUIRE(stream->getPositionSnapshot(100, second) == YARG_AUDIO_OK);
 
-    REQUIRE(positionError == YARG_AUDIO_OK);
-    REQUIRE(secondDelay < firstDelay);
-    REQUIRE(firstDelay - secondDelay >= sizeof(float));
+    REQUIRE(second.total_delay_frames < first.total_delay_frames);
     REQUIRE(stream->destroy(nullptr));
 }
 
@@ -561,9 +493,9 @@ void testCallbackTimingDoesNotMovePositionBackward() {
         state.callbackUser);
 
     int positionError = -1;
-    stream->getSourcePosition(23, 100, positionError);
+    heardPosition(*stream, 100, positionError);
     std::this_thread::sleep_for(std::chrono::milliseconds(25));
-    stream->getSourcePosition(23, 100, positionError);
+    heardPosition(*stream, 100, positionError);
     yarg_read_ahead_stats stats{sizeof(yarg_read_ahead_stats)};
     REQUIRE(stream->getStats(stats) == YARG_AUDIO_OK);
     const auto beforeCallback = stats.position_output_frame;
@@ -572,7 +504,7 @@ void testCallbackTimingDoesNotMovePositionBackward() {
     state.callback(19, secondOutput.data(),
         static_cast<std::uint32_t>(secondOutput.size() * sizeof(float)),
         state.callbackUser);
-    stream->getSourcePosition(23, 100, positionError);
+    heardPosition(*stream, 100, positionError);
     REQUIRE(stream->getStats(stats) == YARG_AUDIO_OK);
 
     REQUIRE(positionError == YARG_AUDIO_OK);
@@ -605,16 +537,16 @@ void testLateCallbackDoesNotJumpPosition() {
     REQUIRE(stats.queued_frames >= output.size());
 
     int positionError = -1;
-    stream->getSourcePosition(23, 128, positionError);
+    heardPosition(*stream, 128, positionError);
     std::this_thread::sleep_for(std::chrono::milliseconds(300));
-    stream->getSourcePosition(23, 128, positionError);
+    heardPosition(*stream, 128, positionError);
     REQUIRE(stream->getStats(stats) == YARG_AUDIO_OK);
     const auto beforeCallback = stats.position_output_frame;
 
     state.callback(19, output.data(),
         static_cast<std::uint32_t>(output.size() * sizeof(float)),
         state.callbackUser);
-    stream->getSourcePosition(23, 128, positionError);
+    heardPosition(*stream, 128, positionError);
     REQUIRE(stream->getStats(stats) == YARG_AUDIO_OK);
 
     REQUIRE(positionError == YARG_AUDIO_OK);
@@ -651,7 +583,7 @@ void testSyntheticUiSamplingUnderCallbackRateMismatch() {
 
     yarg_read_ahead_position_snapshot snapshot{
         sizeof(yarg_read_ahead_position_snapshot)};
-    REQUIRE(stream->getPositionSnapshot(23, 128, snapshot) == YARG_AUDIO_OK);
+    REQUIRE(stream->getPositionSnapshot(128, snapshot) == YARG_AUDIO_OK);
 
     yarg_read_ahead_stats stats{sizeof(yarg_read_ahead_stats)};
     REQUIRE(stream->getStats(stats) == YARG_AUDIO_OK);
@@ -678,7 +610,7 @@ void testSyntheticUiSamplingUnderCallbackRateMismatch() {
                 state.callbackUser);
         }
         clock.timestamp = sampleTimestamp;
-        REQUIRE(stream->getPositionSnapshot(23, 128, snapshot) == YARG_AUDIO_OK);
+        REQUIRE(stream->getPositionSnapshot(128, snapshot) == YARG_AUDIO_OK);
         REQUIRE(stream->getStats(stats) == YARG_AUDIO_OK);
         REQUIRE(stats.position_output_frame >= previousOutputFrame);
         previousOutputFrame = stats.position_output_frame;
@@ -755,7 +687,7 @@ void testCallbackRateUpdateDoesNotStepPosition() {
 
     yarg_read_ahead_position_snapshot snapshot{
         sizeof(yarg_read_ahead_position_snapshot)};
-    REQUIRE(stream->getPositionSnapshot(23, 10000, snapshot) == YARG_AUDIO_OK);
+    REQUIRE(stream->getPositionSnapshot(10000, snapshot) == YARG_AUDIO_OK);
 
     yarg_read_ahead_stats stats{sizeof(yarg_read_ahead_stats)};
     REQUIRE(stream->getStats(stats) == YARG_AUDIO_OK);
@@ -777,7 +709,7 @@ void testCallbackRateUpdateDoesNotStepPosition() {
                 state.callbackUser);
         }
         clock.timestamp = sampleTimestamp;
-        REQUIRE(stream->getPositionSnapshot(23, 10000, snapshot) == YARG_AUDIO_OK);
+        REQUIRE(stream->getPositionSnapshot(10000, snapshot) == YARG_AUDIO_OK);
         REQUIRE(stream->getStats(stats) == YARG_AUDIO_OK);
         REQUIRE(stats.position_output_frame >= previousOutputFrame);
         previousOutputFrame = stats.position_output_frame;
@@ -828,7 +760,7 @@ void testCallbackClockRetainsFractionalFrames() {
 
     yarg_read_ahead_position_snapshot snapshot{
         sizeof(yarg_read_ahead_position_snapshot)};
-    REQUIRE(stream->getPositionSnapshot(23, 128, snapshot) == YARG_AUDIO_OK);
+    REQUIRE(stream->getPositionSnapshot(128, snapshot) == YARG_AUDIO_OK);
 
     yarg_read_ahead_stats stats{sizeof(yarg_read_ahead_stats)};
     REQUIRE(stream->getStats(stats) == YARG_AUDIO_OK);
@@ -853,7 +785,7 @@ void testCallbackClockRetainsFractionalFrames() {
                 state.callbackUser);
         }
         clock.timestamp = sampleTimestamp;
-        REQUIRE(stream->getPositionSnapshot(23, 128, snapshot) == YARG_AUDIO_OK);
+        REQUIRE(stream->getPositionSnapshot(128, snapshot) == YARG_AUDIO_OK);
         REQUIRE(stream->getStats(stats) == YARG_AUDIO_OK);
 
         const auto hostFrames = static_cast<double>(sample + 1) *
@@ -891,24 +823,24 @@ void testSharedQueuePositionAndLifecycle() {
 
         yarg_read_ahead_position_snapshot snapshot{sizeof(yarg_read_ahead_position_snapshot)};
         state.outputBytes = 2 * channels * sizeof(float);
-        REQUIRE(stream->getPositionSnapshot(23, 12345, snapshot) == YARG_AUDIO_OK);
+        REQUIRE(stream->getPositionSnapshot(12345, snapshot) == YARG_AUDIO_OK);
         REQUIRE(snapshot.heard_position == 6);
         state.outputBytes = channels * sizeof(float);
-        REQUIRE(stream->getPositionSnapshot(23, 12345, snapshot) == YARG_AUDIO_OK);
+        REQUIRE(stream->getPositionSnapshot(12345, snapshot) == YARG_AUDIO_OK);
         REQUIRE(snapshot.heard_position == 7);
         state.outputBytes = 0;
-        REQUIRE(stream->getPositionSnapshot(23, 12345, snapshot) == YARG_AUDIO_OK);
+        REQUIRE(stream->getPositionSnapshot(12345, snapshot) == YARG_AUDIO_OK);
         REQUIRE(snapshot.heard_position == 8);
 
         output.resize(80 * channels);
         state.callback(19, output.data(), output.size() * sizeof(float), state.callbackUser);
-        REQUIRE(stream->getPositionSnapshot(23, 12345, snapshot) == YARG_AUDIO_OK);
+        REQUIRE(stream->getPositionSnapshot(12345, snapshot) == YARG_AUDIO_OK);
         REQUIRE(snapshot.heard_position == 64);
         REQUIRE(std::all_of(output.begin() + 56 * channels, output.end(),
             [](float sample) { return sample == 0; }));
 
         REQUIRE(stream->flush() == YARG_AUDIO_OK);
-        REQUIRE(stream->getPositionSnapshot(23, 12345, snapshot) == YARG_AUDIO_OK);
+        REQUIRE(stream->getPositionSnapshot(12345, snapshot) == YARG_AUDIO_OK);
         REQUIRE(snapshot.heard_position == 0);
         REQUIRE(stream->setBufferLength(8) == YARG_AUDIO_OK);
         state.decodedFrames.store(0);
@@ -917,7 +849,7 @@ void testSharedQueuePositionAndLifecycle() {
         REQUIRE(stream->prefill(2000) == YARG_AUDIO_OK);
         output.resize(8 * channels);
         state.callback(19, output.data(), output.size() * sizeof(float), state.callbackUser);
-        REQUIRE(stream->getPositionSnapshot(23, 12345, snapshot) == YARG_AUDIO_OK);
+        REQUIRE(stream->getPositionSnapshot(12345, snapshot) == YARG_AUDIO_OK);
         REQUIRE(snapshot.heard_position == 8);
         REQUIRE(state.outputLocks == state.outputUnlocks);
         REQUIRE(!state.outputLocked);
@@ -941,22 +873,16 @@ void testSharedQueueErrorsReleaseOutput() {
     REQUIRE(stream->prefill(2000) == YARG_AUDIO_OK);
     yarg_read_ahead_position_snapshot snapshot{sizeof(yarg_read_ahead_position_snapshot)};
     state.failOutputLock = true;
-    REQUIRE(stream->getPositionSnapshot(23, 0, snapshot) == YARG_AUDIO_ERROR_BASS);
+    REQUIRE(stream->getPositionSnapshot(0, snapshot) == YARG_AUDIO_ERROR_BASS);
     REQUIRE(state.outputLocks == 0);
     REQUIRE(state.outputUnlocks == 0);
     state.failOutputLock = false;
     state.failOutputQuery = true;
-    REQUIRE(stream->getPositionSnapshot(23, 0, snapshot) == YARG_AUDIO_ERROR_BASS);
+    REQUIRE(stream->getPositionSnapshot(0, snapshot) == YARG_AUDIO_ERROR_BASS);
     state.failOutputQuery = false;
-    state.decodePositionError = 73;
-    REQUIRE(stream->getPositionSnapshot(23, 0, snapshot) == YARG_AUDIO_ERROR_BASS);
-    state.decodePositionError = 0;
-    state.delayedPositionError = 73;
-    REQUIRE(stream->getPositionSnapshot(23, 0, snapshot) == YARG_AUDIO_ERROR_BASS);
-    state.delayedPositionError = 0;
-    REQUIRE(stream->getPositionSnapshot(23, 0, snapshot) == YARG_AUDIO_OK);
-    REQUIRE(state.outputLocks == 4);
-    REQUIRE(state.outputUnlocks == 4);
+    REQUIRE(stream->getPositionSnapshot(0, snapshot) == YARG_AUDIO_OK);
+    REQUIRE(state.outputLocks == 2);
+    REQUIRE(state.outputUnlocks == 2);
     REQUIRE(!state.outputLocked);
     REQUIRE(stream->destroy(nullptr));
 }
@@ -985,8 +911,6 @@ void runReadAheadStreamTests() {
     testBufferChangesDoNotStartStoppedPlayback();
     testUnderrunReturnsSilenceWithoutEndingStream();
     testPositionBeforeGenerationStartReturnsGenerationOrigin();
-    testPositionBeforeGenerationStartUsesAvailableHistory();
-    testPositionLookupFailureIsReported();
     testDecodePositionLookupFailureIsReported();
     testPositionSnapshotRetriesAfterConsumption();
     testPositionAdvancesBetweenOutputPulls();

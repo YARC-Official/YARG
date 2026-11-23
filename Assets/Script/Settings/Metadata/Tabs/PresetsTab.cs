@@ -65,6 +65,16 @@ namespace YARG.Settings.Metadata
         private PresetSubTab CurrentSubTab => _presetTabs
             .FirstOrDefault(i => i.CustomContent == SelectedContent);
 
+        public bool IsCareerPresetSelected => CurrentSubTab is CareerPresetSubTab;
+
+        public void ClearCareerEditor()
+        {
+            if (CurrentSubTab is CareerPresetSubTab careerSubTab)
+            {
+                careerSubTab.ClearEditor();
+            }
+        }
+
         private CustomContent _selectedContent;
         public CustomContent SelectedContent
         {

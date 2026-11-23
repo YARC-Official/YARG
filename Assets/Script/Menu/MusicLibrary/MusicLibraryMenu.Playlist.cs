@@ -446,7 +446,7 @@ namespace YARG.Menu.MusicLibrary
                     _mainLibraryIndex = SelectedIndex;
                 }
 
-                GlobalVariables.State.CurrentSong = firstSong;
+                GlobalVariables.State.SetPlaybackSong(firstSong);
                 MenuManager.Instance.PushMenu(MenuManager.Menu.DifficultySelect);
             }
         }

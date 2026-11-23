@@ -14,6 +14,8 @@ namespace YARG.Audio.BASS
     /// </summary>
     internal abstract class BassTempoStream : IDisposable
     {
+        private Func<int, ChannelAttribute, float, bool>? _attributeWriter;
+
         internal abstract int Handle { get; }
         internal virtual double CommandDelay => 0;
 
@@ -36,6 +38,13 @@ namespace YARG.Audio.BASS
         internal virtual void Prime() { }
         internal abstract bool TryGetPositionSeconds(long positionBytes, out double position);
 
+        internal void SetAttributeWriter(Func<int, ChannelAttribute, float, bool>? writer) =>
+            _attributeWriter = writer;
+
+        protected bool SetAttribute(ChannelAttribute attribute, float value) =>
+            _attributeWriter?.Invoke(Handle, attribute, value) == true ||
+            Bass.ChannelSetAttribute(Handle, attribute, value);
+
         internal void SetDevice(int deviceId) => BassX.Check(
             Bass.ChannelSetDevice(Handle, deviceId),
             $"move tempo stream {Handle} to device {deviceId}");
@@ -57,7 +66,7 @@ namespace YARG.Audio.BASS
             internal override void SetSpeed(float speed, bool shiftPitch)
             {
                 float relativeSpeed = (speed * 100) - 100;
-                if (!Bass.ChannelSetAttribute(Handle, ChannelAttribute.Tempo, relativeSpeed))
+                if (!SetAttribute(ChannelAttribute.Tempo, relativeSpeed))
                 {
                     YargLogger.LogFormatError("Failed to set channel speed: {0}!", Bass.LastError);
                 }
@@ -107,7 +116,7 @@ namespace YARG.Audio.BASS
             {
                 double accurateSemitoneShift = 12 * Math.Log(speed, 2);
                 float finalSemitoneShift = (float) Math.Clamp(accurateSemitoneShift, -60, 60);
-                if (!Bass.ChannelSetAttribute(Handle, ChannelAttribute.Pitch, finalSemitoneShift))
+                if (!SetAttribute(ChannelAttribute.Pitch, finalSemitoneShift))
                 {
                     YargLogger.LogFormatError("Failed to set channel pitch: {0}!", Bass.LastError);
                 }

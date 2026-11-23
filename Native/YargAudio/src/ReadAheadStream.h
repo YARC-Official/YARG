@@ -30,10 +30,9 @@ public:
     int prefill(std::uint32_t timeoutMilliseconds) noexcept;
     int flush() noexcept;
     int setBufferLength(std::uint32_t bufferMilliseconds) noexcept;
-    std::int64_t getSourcePosition(std::uint32_t source,
-        std::uint32_t endpointDelayFrames, int& error) noexcept;
-    int getPositionSnapshot(std::uint32_t source,
-        std::uint32_t endpointDelayFrames,
+    int setSourceAttribute(std::uint32_t channel, std::uint32_t attribute,
+        float value) noexcept;
+    int getPositionSnapshot(std::uint32_t endpointDelayFrames,
         yarg_read_ahead_position_snapshot& snapshot) noexcept;
     int getStats(yarg_read_ahead_stats& stats) noexcept;
     bool destroy(int* bassError) noexcept;

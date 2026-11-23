@@ -6,16 +6,23 @@ namespace Editor
 {
     public static class MakeTestBuild
     {
+        private const string YARG_DEV_BUILD = "YARG_DEV_BUILD";
         private const string YARG_TEST_BUILD = "YARG_TEST_BUILD";
         private const string YARG_NIGHTLY_BUILD = "YARG_NIGHTLY_BUILD";
 
-        [MenuItem("File/Make Test Build", false, 220)]
-        public static void MakeTestBuildClicked()
+        [MenuItem("File/Make Dev Build", false, 220)]
+        public static void MakeDevBuildClicked()
+        {
+            MakeBuild(YARG_DEV_BUILD);
+        }
+
+        [MenuItem("File/Make Testing Build", false, 221)]
+        public static void MakeTestingBuildClicked()
         {
             MakeBuild(YARG_TEST_BUILD);
         }
 
-        [MenuItem("File/Make Nightly Build", false, 220)]
+        [MenuItem("File/Make Nightly Build", false, 222)]
         public static void MakeNightlyBuildClicked()
         {
             MakeBuild(YARG_NIGHTLY_BUILD);

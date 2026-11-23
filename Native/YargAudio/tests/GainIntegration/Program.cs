@@ -11,7 +11,7 @@ internal static class Program
     private static int Main()
     {
         Check(Environment.Is64BitProcess, "Integration probe requires a 64-bit process.");
-        Check(GainDsp.GetAbiVersion() == 27, "Unexpected YargAudio ABI version.");
+        Check(GainDsp.GetAbiVersion() == 30, "Unexpected YargAudio ABI version.");
         Check(Bass.Init(0, 48_000, 0, IntPtr.Zero, IntPtr.Zero), "BASS_Init");
 
         try
@@ -312,6 +312,7 @@ internal static class Program
                 Channels = channels,
                 MinimumBlockFrames = 64,
                 BufferMilliseconds = 2,
+                PositionSource = source,
             };
             using ReadAheadStream stream = ReadAheadStream.Create(config);
             uint finalMixer = CreateMixer(sampleRate, channels);
@@ -351,6 +352,7 @@ internal static class Program
                 using var stream = YARG.Audio.BASS.BassReadAheadStream.Create(
                     bassDeviceId: 0,
                     sourceMixer: unchecked((int) mixer),
+                    positionSource: unchecked((int) mixer),
                     sampleRate: 48_000,
                     channels: 2,
                     minimumBlockFrames: 64,
@@ -394,6 +396,7 @@ internal static class Program
             using var stream = YARG.Audio.BASS.BassReadAheadStream.Create(
                 bassDeviceId: 0,
                 sourceMixer: unchecked((int) mixer),
+                positionSource: unchecked((int) source),
                 sampleRate: SAMPLE_RATE,
                 channels: CHANNELS,
                 minimumBlockFrames: 64,
@@ -416,9 +419,8 @@ internal static class Program
                     Check(submitted != ulong.MaxValue && queued >= 0, "observe shared output progress");
                     var expected = Math.Max(0, (long) submitted - queued);
                     System.Threading.Thread.Sleep(2);
-                    Check(stream.TryGetPositionSnapshot(sourceHandle: unchecked((int) source),
-                        endpointDelayFrames: 12345, out var snapshot),
-                        $"shared position query failed: BASS={Bass.ErrorGetCode()}");
+                    Check(stream.TryGetPositionSnapshot(endpointDelayFrames: 12345, out var snapshot),
+                        $"shared position query failed: error={stream.GetStats().LastError}");
                     var actual = snapshot.HeardPosition;
                     var submittedAfter = Bass.ChannelGetPosition(unchecked((uint) stream.StreamHandle), 0x10000000);
                     var queuedAfter = Bass.ChannelGetAvailable(output, IntPtr.Zero, 0);
@@ -768,6 +770,7 @@ internal static class Program
         internal uint MinimumBlockFrames;
         internal uint BufferMilliseconds;
         internal uint OutputStream;
+        internal uint PositionSource;
     }
 
     private sealed class ReadAheadStream : SafeHandleZeroOrMinusOneIsInvalid

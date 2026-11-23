@@ -193,6 +193,14 @@ namespace YARG.Menu.Career
 
         public void Initialize(CareerPreset career, CareerEvaluation evaluation)
         {
+            if (_career is null || _career.Id != career.Id)
+            {
+                // Row order is per-career (it depends on which tiers are unlocked), so the previous
+                // career's index would select an unrelated song. The remembered position only needs to
+                // survive within one career, to return to the song that was just played.
+                _lastSelectedIndex = 0;
+            }
+
             _career = career;
             _sessionCareer = career;
             ApplyProgress(evaluation);
@@ -272,6 +280,7 @@ namespace YARG.Menu.Career
             ScoreContainer.Careers?.SoftDeleteSave(_careerSaveId);
 
             ApplyProgress(Evaluate(_career, 0));
+            _lastSelectedIndex = 0;
             SelectedIndex = 0;
             RequestViewListUpdate();
 

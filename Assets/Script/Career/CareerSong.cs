@@ -42,7 +42,7 @@ namespace YARG.Career
         public Guid?        SongId;
         [JsonConverter(typeof(JsonHashWrapperConverter))]
         public HashWrapper? SongHash;
-        public string?      ShortName;
+        public string       ShortName;
         public SongTuple?   SongTuple;
 
         // Which identifier this particular instance is using
@@ -56,11 +56,6 @@ namespace YARG.Career
         public SongEntry SongEntry;
         [NonSerialized]
         public CareerTier Parent;
-        // Should be set when song can no longer improve unlock criteria
-        // e.g. if next tier criteria is completion, when song has been finished, or if next tier criteria is
-        // stars, when player has achieved 5 stars on this song
-        [NonSerialized]
-        public bool IsCompleted;
 
         public CareerSong()
         {
@@ -153,7 +148,6 @@ namespace YARG.Career
                     }
 
                     throw new ArgumentException("Song does not have a valid RBSongId");
-                    break;
                 case CareerSongIdentifier.SongTuple:
                     return new CareerSong(new SongTuple
                     {
@@ -266,6 +260,23 @@ namespace YARG.Career
                         if (SongContainer.SongsByGuid.TryGetValue(SongId.Value, out var idEntries) && idEntries.Count > 0)
                         {
                             entry = idEntries[0];
+                        }
+                        else
+                        {
+                            // Songs without a native YARG GUID are assigned a
+                            // deterministic GUID derived from their hash by
+                            // FromSongEntry/UpdateIdentifier. Resolve that same
+                            // fallback form when the career is refreshed.
+                            foreach (var pair in SongContainer.SongsByHash)
+                            {
+                                using var md5 = MD5.Create();
+                                var derivedId = new Guid(md5.ComputeHash(pair.Key.HashBytes));
+                                if (derivedId == SongId.Value && pair.Value.Count > 0)
+                                {
+                                    entry = pair.Value[0];
+                                    break;
+                                }
+                            }
                         }
                     }
                     else

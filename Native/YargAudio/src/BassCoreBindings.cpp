@@ -38,6 +38,7 @@ bool BassCoreBindings::load() noexcept {
     (void) bind(module_, "BASS_StreamFree", functions_.streamFree);
     (void) bind(module_, "BASS_ChannelGetPosition", functions_.channelGetPosition);
     (void) bind(module_, "BASS_ChannelBytes2Seconds", functions_.channelBytes2Seconds);
+    (void) bind(module_, "BASS_ChannelSetAttribute", functions_.channelSetAttribute);
     return valid();
 }
 
@@ -78,6 +79,12 @@ bool BassCoreBindings::removeDsp(std::uint32_t channel,
 
 bool BassCoreBindings::lockChannel(std::uint32_t channel, bool lock) const noexcept {
     return functions_.channelLock && functions_.channelLock(channel, lock ? 1 : 0) != 0;
+}
+
+bool BassCoreBindings::setAttribute(std::uint32_t channel, std::uint32_t attribute,
+    float value) const noexcept {
+    return functions_.channelSetAttribute &&
+        functions_.channelSetAttribute(channel, attribute, value) != 0;
 }
 
 bool BassCoreBindings::getChannelInfo(std::uint32_t channel,

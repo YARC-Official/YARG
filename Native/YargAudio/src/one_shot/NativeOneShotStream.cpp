@@ -97,14 +97,8 @@ int NativeOneShotStream::resync(std::uint32_t mixer,
 
     if (!source_ || stream_ == 0 || mixer_ != mixer)
         return YARG_AUDIO_ERROR_INVALID_STATE;
-    if (!core_.lockChannel(mixer_, true)) {
-        setBassError(bassError, core_);
-        return YARG_AUDIO_ERROR_BASS;
-    }
-    const bool reset = source_->reset(anchorSongPosition, playbackSpeed, paused_,
-        clearActiveVoices);
-    core_.lockChannel(mixer_, false);
-    return reset ? YARG_AUDIO_OK : YARG_AUDIO_ERROR_INVALID_ARGUMENT;
+    return source_->reset(anchorSongPosition, playbackSpeed, paused_,
+        clearActiveVoices) ? YARG_AUDIO_OK : YARG_AUDIO_ERROR_INVALID_ARGUMENT;
 }
 
 int NativeOneShotStream::setPaused(std::uint32_t mixer, bool paused,

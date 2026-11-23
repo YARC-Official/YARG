@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core.Logging;
 using YARG.Helpers;
-using YARG.Input.Bindings;
+using YARG.Input;
 using YARG.Integration;
 using YARG.Localization;
 using YARG.Menu.Navigation;
@@ -74,12 +74,13 @@ namespace YARG
             if (SettingsManager.Settings.ReconnectProfiles.Value)
             {
                 PlayerContainer.AutoConnectProfiles();
-                RetryUnresolvedMicrophones().Forget();
             }
             else
             {
                 PlayerContainer.ClearProfileOrder();
             }
+
+            MicrophoneWatcher.Start();
 
             // Initialize phoneme dictionary (must load on main thread, parse on thread pool)
             var cmudictAsset = Resources.Load<TextAsset>("cmudict");
@@ -142,12 +143,6 @@ namespace YARG
                     context.SetSubText(string.Join(", ", tasks));
                 }
             }
-        }
-
-        private static async UniTaskVoid RetryUnresolvedMicrophones()
-        {
-            await UniTask.Delay(2000);
-            BindingsContainer.ResolveMicrophones();
         }
 
         private void Quit()

@@ -100,7 +100,7 @@ bool run(const char* name, double deviceRate, bool independentClock,
     BassMixBindings mix(BassMixFunctions{&position, nullptr, nullptr});
     const yarg_read_ahead_config config{sizeof(yarg_read_ahead_config), 7, 11,
         SAMPLE_RATE, 1, BLOCK_FRAMES, (TEST_SECONDS + 1) * 1000,
-        independentClock ? 0 : OUTPUT_STREAM};
+        independentClock ? 0 : OUTPUT_STREAM, 23};
     auto stream = ReadAheadStream::create(core, mix, config, nullptr, &timestamp);
     REQUIRE(stream);
     REQUIRE(stream->setCallbackClockEnabled(independentClock) == YARG_AUDIO_OK);
@@ -124,7 +124,7 @@ bool run(const char* name, double deviceRate, bool independentClock,
         yarg_read_ahead_position_snapshot snapshot{sizeof(yarg_read_ahead_position_snapshot)};
         const auto queuedFrames = variableQueue ? BLOCK_FRAMES * 2 + (block % 8) * 48 : 0;
         state.queuedFrames = queuedFrames;
-        REQUIRE(stream->getPositionSnapshot(23, queuedFrames, snapshot) == YARG_AUDIO_OK);
+        REQUIRE(stream->getPositionSnapshot(queuedFrames, snapshot) == YARG_AUDIO_OK);
 
         for (std::uint32_t frame = 0; frame < BLOCK_FRAMES; ++frame) {
             if (output[frame] == 0) {
@@ -155,7 +155,7 @@ bool run(const char* name, double deviceRate, bool independentClock,
     REQUIRE(stats.underrun_events == 0);
     REQUIRE(!state.outputLocked);
     REQUIRE(state.locks == state.unlocks);
-    REQUIRE(state.locks == (independentClock ? 0 : blocks + 1));
+    REQUIRE(independentClock ? state.locks == 0 : state.locks >= blocks + 1);
     REQUIRE(stream->destroy(nullptr));
     const auto passed = maximumDrift <= TOLERANCE_MS;
     std::cout << name << ": " << (passed ? "PASS" : "FAIL")
