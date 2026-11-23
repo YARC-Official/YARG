@@ -21,49 +21,103 @@ namespace YARG
 
         AsyncOperationHandle<IResourceLocator> _catalogHandle = default;
 
+        // A UniTaskCompletionSource, rather than a cached UniTask, so concurrent and repeated awaits are safe.
+        private readonly UniTaskCompletionSource<bool> _catalogTcs = new();
+
+        private bool _loadStarted;
+
         private void Start()
+        {
+            WaitForCatalogAsync().Forget();
+        }
+
+        public UniTask<bool> WaitForCatalogAsync()
         {
             if (GlobalVariables.OfflineMode || !SettingsManager.Settings.AllowRemoteContent.Value)
             {
-                return;
+                return UniTask.FromResult(false);
             }
 
-            var url = GetCatalogUrl();
-            if (url == null)
+            if (!_loadStarted)
             {
-                return;
+                _loadStarted = true;
+                LoadCatalogAsync().Forget();
             }
 
-            _ = Initialize(url);
+            return _catalogTcs.Task;
         }
 
-        private async UniTask<bool> Initialize(string url)
+        private async UniTaskVoid LoadCatalogAsync()
         {
-            await Addressables.InitializeAsync();
-
+            bool loaded = false;
             try
             {
-                _catalogHandle = Addressables.LoadContentCatalogAsync(url, false);
-                await _catalogHandle.Task;
-
-                if (_catalogHandle.Status == AsyncOperationStatus.Succeeded)
+                var url = GetCatalogUrl();
+                if (url != null)
                 {
-                    YargLogger.LogFormatDebug("Loaded remote content catalog: {0}", url);
-                    Addressables.Release(_catalogHandle);
-
-                    // Remove any no-longer-referenced bundles
-                    var cleanerHandle = Addressables.CleanBundleCache();
-                    await cleanerHandle.Task;
-                    Addressables.Release(cleanerHandle);
-                    return true;
+                    loaded = await Initialize(url);
                 }
             }
             catch (Exception ex)
             {
                 YargLogger.LogFormatWarning("Failed to load remote content catalog: {0}", ex.Message);
             }
+            finally
+            {
+                _catalogTcs.TrySetResult(loaded);
+            }
+        }
 
-            return false;
+        private async UniTask<bool> Initialize(string url)
+        {
+            try
+            {
+                await Addressables.InitializeAsync();
+
+                _catalogHandle = Addressables.LoadContentCatalogAsync(url, false);
+                await _catalogHandle.Task;
+
+                if (_catalogHandle.Status != AsyncOperationStatus.Succeeded)
+                {
+                    YargLogger.LogFormatWarning("Failed to load remote content catalog: {0}", url);
+                    return false;
+                }
+
+                YargLogger.LogFormatDebug("Loaded remote content catalog: {0}", url);
+
+                AsyncOperationHandle<bool> cleanerHandle = default;
+                try
+                {
+                    cleanerHandle = Addressables.CleanBundleCache();
+                    await cleanerHandle.Task;
+                }
+                catch (Exception ex)
+                {
+                    YargLogger.LogFormatWarning("Failed to clean bundle cache: {0}", ex.Message);
+                }
+                finally
+                {
+                    if (cleanerHandle.IsValid())
+                    {
+                        Addressables.Release(cleanerHandle);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                YargLogger.LogFormatWarning("Failed to load remote content catalog: {0}", ex.Message);
+                return false;
+            }
+            finally
+            {
+                if (_catalogHandle.IsValid())
+                {
+                    Addressables.Release(_catalogHandle);
+                    _catalogHandle = default;
+                }
+            }
+
+            return true;
         }
 
         private static string GetCatalogUrl()
