@@ -71,6 +71,9 @@ namespace YARG.Gameplay
         private readonly List<AsyncOperationHandle<GameObject>> _handles = new();
         private          bool                                   loadedAddressable;
 
+        // Survives across songs so the random rotation doesn't play the same global venue twice in a row
+        private static string _mostRecentGlobal;
+
         // These values are relative to the video, not to song time!
         // A negative start time will delay when the video starts, a positive one will set the video position
         // to that value when starting playback at the start of a song.
@@ -179,147 +182,427 @@ namespace YARG.Gameplay
             }
 #endif
 
-            using var result = VenueLoader.GetVenue(GameManager.Song, out _source);
+            _backgroundDimmer.color = _backgroundDimmer.color.WithAlpha(
+                1 - SettingsManager.Settings.SongBackgroundOpacity.Value);
 
-            if (result == null)
+            await ResolveVenueAsync(GameManager.Song.VocalGender);
+        }
+
+        private async UniTask ResolveVenueAsync(VocalGender vocalGender)
+        {
+            // 1. Curated career venue, unless the user disabled it
+            if (await TryLoadHintedVenueAsync(GlobalVariables.State.CurrentCareer?.VenueHint, vocalGender))
+            {
+                _mostRecentGlobal = null;
+                return;
+            }
+
+            if (this == null)
             {
                 return;
             }
 
-            var vocalGender = GameManager.Song.VocalGender;
-
-            var colorDim = _backgroundDimmer.color.WithAlpha(1 - SettingsManager.Settings.SongBackgroundOpacity.Value);
-
-            _backgroundDimmer.color = colorDim;
-
-            // Prefer the career tier's venue hint, then fall back to the song's hint.
-            var hints = new[]
+            // 2. Per-song local background
+            using (var songBackground = VenueLoader.LoadPerSongBackground(GameManager.Song))
             {
-                GlobalVariables.State.CurrentCareer?.VenueHint,
-                GameManager.Song.VenueHint,
-            };
-            foreach (var hint in hints.Distinct())
-            {
-                if (string.IsNullOrWhiteSpace(hint) || !await AddressableVenueExists(hint))
+                if (songBackground != null && await TryLoadLocalBackgroundAsync(songBackground, VenueSource.Song))
                 {
-                    continue;
-                }
-
-                if (await LoadAddressableYarground(hint, vocalGender))
-                {
-                    GameManager.CrowdEventHandler?.Start();
+                    _mostRecentGlobal = null;
                     return;
                 }
             }
 
-            // No hint resolved or loaded, so use the default venue
-
-            _type = result.Type;
-
-            // Start crowd event handler now if we aren't waiting on a yarground
-            // TODO: Figure out how to decouple this
-            if (_type != BackgroundType.Yarground)
+            if (this == null)
             {
-                GameManager.CrowdEventHandler?.Start();
+                return;
             }
 
-            switch (_type)
+            // 3. Per-song venue hint
+            if (await TryLoadHintedVenueAsync(GameManager.Song.VenueHint, vocalGender))
             {
-                case BackgroundType.Yarground:
-                    await LoadYarground(result);
-                    GameManager.CrowdEventHandler?.Start();
-                    break;
-                case BackgroundType.Video:
-                    LoadVideoBackground(result);
-                    break;
-                case BackgroundType.Image:
-                    _backgroundImage.texture = result.Image.LoadTexture(false);
-                    _backgroundImage.uvRect = new Rect(0f, 0f, 1f, -1f);
-                    _backgroundImage.gameObject.SetActive(true);
-                    break;
+                _mostRecentGlobal = null;
+                return;
+            }
+
+            if (this == null)
+            {
+                return;
+            }
+
+            // 4. Global backgrounds, which the user can disable entirely (this also beats the pinned venue)
+            if (!SettingsManager.Settings.DisableGlobalBackgrounds.Value)
+            {
+                if (await TryLoadPinnedVenueAsync(vocalGender))
+                {
+                    return;
+                }
+
+                if (this == null)
+                {
+                    return;
+                }
+
+                if (await TryLoadRandomGlobalVenueAsync(vocalGender))
+                {
+                    return;
+                }
+
+                if (this == null)
+                {
+                    return;
+                }
+            }
+
+            // 5. Default venue, which venue selection never touches
+            using (var defaultBackground = VenueLoader.LoadDefaultVenue())
+            {
+                if (defaultBackground != null &&
+                    await TryLoadLocalBackgroundAsync(defaultBackground, VenueSource.Default))
+                {
+                    _mostRecentGlobal = null;
+                }
             }
         }
 
-        private async UniTask<bool> AddressableVenueExists(string hint)
+        private async UniTask<bool> TryLoadHintedVenueAsync(string hint, VocalGender vocalGender)
         {
-            const string venueLabel = "venue";
-
-            var venueKeys = await Addressables.LoadResourceLocationsAsync(venueLabel);
-            foreach (var location in venueKeys)
+            if (string.IsNullOrWhiteSpace(hint))
             {
-                if (location.PrimaryKey == hint)
+                return false;
+            }
+
+            var key = await VenueRegistry.FindAddressableVenueKeyAsync(hint);
+            if (key == null || VenueRegistry.IsHidden(CreateAddressableVenueInfo(key)))
+            {
+                return false;
+            }
+
+            return await LoadAddressableYarground(key, vocalGender);
+        }
+
+        private async UniTask<bool> TryLoadPinnedVenueAsync(VocalGender vocalGender)
+        {
+            var pinned = SettingsManager.Settings.PinnedVenue;
+            if (pinned.Source == VenueEntrySource.None || VenueRegistry.IsHidden(pinned))
+            {
+                return false;
+            }
+
+            if (pinned.Source == VenueEntrySource.Addressable)
+            {
+                var key = await VenueRegistry.FindAddressableVenueKeyAsync(pinned.Identifier);
+                if (key == null || !await LoadAddressableYarground(key, vocalGender))
                 {
+                    return false;
+                }
+
+                _mostRecentGlobal = "addr:" + key;
+                return true;
+            }
+
+            var filePath = VenueRegistry.ResolveLocalFilePath(pinned);
+            if (filePath == null)
+            {
+                return false;
+            }
+
+            var candidate = new LocalGlobalVenueCandidate(filePath, BackgroundType.Yarground);
+            using var result = VenueLoader.OpenLocalCandidate(candidate);
+            if (result == null || !await TryLoadLocalBackgroundAsync(result, VenueSource.Global))
+            {
+                return false;
+            }
+
+            _mostRecentGlobal = candidate.CacheKey;
+            return true;
+        }
+
+        private readonly struct GlobalVenueCandidate
+        {
+            public readonly string                    CacheKey;
+            public readonly string                    AddressableKey;
+            public readonly LocalGlobalVenueCandidate Local;
+
+            private GlobalVenueCandidate(string cacheKey, string addressableKey, LocalGlobalVenueCandidate local)
+            {
+                CacheKey = cacheKey;
+                AddressableKey = addressableKey;
+                Local = local;
+            }
+
+            public static GlobalVenueCandidate FromAddressable(string key)
+            {
+                return new GlobalVenueCandidate("addr:" + key, key, default);
+            }
+
+            public static GlobalVenueCandidate FromLocal(LocalGlobalVenueCandidate local)
+            {
+                return new GlobalVenueCandidate(local.CacheKey, null, local);
+            }
+        }
+
+        private async UniTask<bool> TryLoadRandomGlobalVenueAsync(VocalGender vocalGender)
+        {
+            var candidates = new List<GlobalVenueCandidate>();
+
+            // Remote venues are already filtered out when remote content is unavailable
+            foreach (var venue in await VenueRegistry.GetAddressableVenuesAsync())
+            {
+                if (VenueRegistry.IsEligibleForRandomPool(CreateAddressableVenueInfo(venue.PrimaryKey),
+                    venue.ExcludeFromRandomByDefault))
+                {
+                    candidates.Add(GlobalVenueCandidate.FromAddressable(venue.PrimaryKey));
+                }
+            }
+
+            foreach (var venue in VenueLoader.GetGlobalLocalCandidates())
+            {
+                candidates.Add(GlobalVenueCandidate.FromLocal(venue));
+            }
+
+            if (candidates.Count > 1 && _mostRecentGlobal != null)
+            {
+                candidates.RemoveAll(candidate => candidate.CacheKey == _mostRecentGlobal);
+            }
+
+            while (candidates.Count > 0)
+            {
+                int index = Random.Range(0, candidates.Count);
+                var candidate = candidates[index];
+
+                if (await TryLoadGlobalCandidateAsync(candidate, vocalGender))
+                {
+                    _mostRecentGlobal = candidate.CacheKey;
                     return true;
                 }
+
+                candidates.RemoveAt(index);
             }
 
             return false;
         }
 
-        private async UniTask LoadAddressableYarground(VocalGender gender = VocalGender.Unspecified)
+        private async UniTask<bool> TryLoadGlobalCandidateAsync(GlobalVenueCandidate candidate, VocalGender vocalGender)
         {
-            const string venueLabel = "venue";
-            var venueKeys = await Addressables.LoadResourceLocationsAsync(venueLabel);
-            if (venueKeys.Count > 0)
+            if (candidate.AddressableKey != null)
             {
-                var location = venueKeys[Random.Range(0, venueKeys.Count)];
-                var key = location.PrimaryKey;
-                await LoadAddressableYarground(key, gender);
-            }
-            else
-            {
-                YargLogger.LogWarning("No addressable venues exist!");
+                return await LoadAddressableYarground(candidate.AddressableKey, vocalGender);
             }
 
-            Addressables.Release(venueKeys);
+            using var result = VenueLoader.OpenLocalCandidate(candidate.Local);
+            return result != null && await TryLoadLocalBackgroundAsync(result, VenueSource.Global);
+        }
+
+        private async UniTask<bool> TryLoadLocalBackgroundAsync(BackgroundResult result, VenueSource source)
+        {
+            var previousSource = _source;
+            var previousType = _type;
+
+            // A failed candidate must not leave the reported source/type pointing at it
+            void RestorePreviousSelection()
+            {
+                _source = previousSource;
+                _type = previousType;
+            }
+
+            _source = source;
+            _type = result.Type;
+
+            switch (_type)
+            {
+                case BackgroundType.Yarground:
+                    if (!await LoadYarground(result))
+                    {
+                        RestorePreviousSelection();
+                        return false;
+                    }
+
+                    GameManager.CrowdEventHandler?.Start();
+                    return true;
+                case BackgroundType.Video:
+                    // The video player can only play from a path, so the stream has to be one it can name
+                    if (result.Stream is not (FileStream or SngFileStream))
+                    {
+                        YargLogger.LogWarning("Video background is not backed by a file or song stream");
+                        RestorePreviousSelection();
+                        return false;
+                    }
+
+                    try
+                    {
+                        LoadVideoBackground(result);
+                    }
+                    catch (Exception ex)
+                    {
+                        YargLogger.LogWarning($"Failed to load video background: {ex.Message}");
+                        RestorePreviousSelection();
+                        return false;
+                    }
+
+                    GameManager.CrowdEventHandler?.Start();
+                    return true;
+                case BackgroundType.Image:
+                    if (result.Image == null)
+                    {
+                        RestorePreviousSelection();
+                        return false;
+                    }
+
+                    Texture2D texture;
+                    try
+                    {
+                        texture = result.Image.LoadTexture(false);
+                    }
+                    catch (Exception ex)
+                    {
+                        YargLogger.LogWarning($"Failed to load image background: {ex.Message}");
+                        RestorePreviousSelection();
+                        return false;
+                    }
+
+                    _backgroundImage.texture = texture;
+                    _backgroundImage.uvRect = new Rect(0f, 0f, 1f, -1f);
+                    _backgroundImage.gameObject.SetActive(true);
+                    GameManager.CrowdEventHandler?.Start();
+                    return true;
+                default:
+                    RestorePreviousSelection();
+                    return false;
+            }
+        }
+
+        private static VenueSelectionInfo CreateAddressableVenueInfo(string key)
+        {
+            return new VenueSelectionInfo
+            {
+                Source = VenueEntrySource.Addressable,
+                Identifier = key,
+            };
         }
 
         private async UniTask<bool> LoadAddressableYarground(string key, VocalGender gender)
         {
-            var handle = Addressables.LoadAssetAsync<GameObject>(key);
-            await handle;
-            if (handle.IsDone && handle.Status == AsyncOperationStatus.Succeeded)
+            AsyncOperationHandle<GameObject> handle = default;
+            try
             {
-                _handles.Add(handle);
-                loadedAddressable = true;
+                handle = Addressables.LoadAssetAsync<GameObject>(key);
+                await handle.Task;
+
+                if (this == null || handle.Status != AsyncOperationStatus.Succeeded || handle.Result == null
+                    || handle.Result.GetComponent<BundleBackgroundManager>() == null)
+                {
+                    if (this != null)
+                    {
+                        YargLogger.LogFormatWarning("Failed to load addressable venue {0}", key);
+                    }
+
+                    if (handle.IsValid())
+                    {
+                        Addressables.Release(handle);
+                    }
+
+                    return false;
+                }
             }
-            else
+            catch (Exception ex)
             {
-                // We failed, so don't do anything except log a warning
-                Debug.LogWarning("Failed to load addressable background");
+                if (this != null)
+                {
+                    YargLogger.LogWarning($"Failed to load addressable venue {key}: {ex.Message}");
+                }
+
+                if (handle.IsValid())
+                {
+                    Addressables.Release(handle);
+                }
+
                 return false;
             }
 
-            var bg = handle.Result;
+            _handles.Add(handle);
+            loadedAddressable = true;
+            _type = BackgroundType.Yarground;
+            _source = VenueSource.Addressable;
 
             await LoadCustomAudioAssetsAddressable(key);
-            await LoadYargroundPrefab(bg, gender);
+            await LoadYargroundPrefab(handle.Result, gender);
 
+            GameManager.CrowdEventHandler?.Start();
             return true;
         }
 
-        private async UniTask LoadYarground(BackgroundResult result)
+        private async UniTask<bool> LoadYarground(BackgroundResult result)
         {
+            if (result.Stream == null)
+            {
+                YargLogger.LogWarning("Venue background is missing its bundle stream");
+                return false;
+            }
+
             var bundle = AssetBundle.LoadFromStream(result.Stream);
+            if (bundle == null)
+            {
+                YargLogger.LogWarning("Failed to load venue bundle");
+                return false;
+            }
+
             AssetBundle shaderBundle = null;
 
-            // KEEP THIS PATH LOWERCASE
-            // Breaks things for other platforms, because Unity
-            var bg = (GameObject) await bundle.LoadAssetAsync<GameObject>(
-                BackgroundHelper.BACKGROUND_PREFAB_PATH.ToLowerInvariant());
+            // The background manager owns the bundles from the moment it is handed them, and unloads them
+            // on its own destruction
+            var bundleTransferred = false;
 
-            // Load Metal shaders, if necessary
-            shaderBundle = BackgroundHelper.LoadMetalShaders(bundle, bg, BackgroundHelper.ExportType.Background);
-
-            // Load custom audio
-            await LoadCustomAudioAssets(bg, bundle);
-
-            var gender = GameManager.Song.VocalGender;
-            await LoadYargroundPrefab(bg, gender, manager =>
+            try
             {
-                manager.Bundle = bundle;
-                manager.ShaderBundles.Add(shaderBundle);
-            });
+                // KEEP THIS PATH LOWERCASE
+                // Breaks things for other platforms, because Unity
+                var bg = (GameObject) await bundle.LoadAssetAsync<GameObject>(
+                    BackgroundHelper.BACKGROUND_PREFAB_PATH.ToLowerInvariant());
+
+                if (this == null || bg == null || bg.GetComponent<BundleBackgroundManager>() == null)
+                {
+                    if (this != null)
+                    {
+                        YargLogger.LogFormatWarning("Venue bundle {0} is missing its background prefab", bundle.name);
+                    }
+
+                    bundle.Unload(true);
+                    return false;
+                }
+
+                // Load Metal shaders, if necessary
+                shaderBundle = BackgroundHelper.LoadMetalShaders(bundle, bg, BackgroundHelper.ExportType.Background);
+
+                // Load custom audio
+                await LoadCustomAudioAssets(bg, bundle);
+
+                var gender = GameManager.Song.VocalGender;
+                await LoadYargroundPrefab(bg, gender, manager =>
+                {
+                    bundleTransferred = true;
+                    manager.Bundle = bundle;
+                    manager.ShaderBundles.Add(shaderBundle);
+                });
+            }
+            catch (Exception ex)
+            {
+                YargLogger.LogWarning($"Failed to load venue bundle: {ex.Message}");
+
+                // Once the prefab manager holds the bundles, unloading here would free assets it is still using
+                if (!bundleTransferred)
+                {
+                    if (shaderBundle != null)
+                    {
+                        shaderBundle.Unload(true);
+                    }
+
+                    bundle.Unload(true);
+                }
+
+                return false;
+            }
+
+            return true;
         }
 
         private async UniTask LoadYargroundPrefab(GameObject bg, VocalGender gender,
