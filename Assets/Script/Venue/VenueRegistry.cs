@@ -468,26 +468,55 @@ namespace YARG.Venue
 
         private static async UniTask<AsyncOperationHandle<IList<VenueMetadata>>> LoadVenueMetadataAsync()
         {
-            AsyncOperationHandle<IList<VenueMetadata>> handle = default;
+            AsyncOperationHandle<IList<IResourceLocation>> locationHandle = default;
+            AsyncOperationHandle<IList<VenueMetadata>> metadataHandle = default;
+
             try
             {
-                handle = Addressables.LoadAssetsAsync<VenueMetadata>(
-                    VenueAddressablesConstants.VenueMetadataLabel, null);
-                await handle.Task;
+                locationHandle = Addressables.LoadResourceLocationsAsync(
+                    VenueAddressablesConstants.VenueMetadataLabel, typeof(VenueMetadata));
 
-                if (handle.Status == AsyncOperationStatus.Succeeded)
+                await locationHandle.Task;
+
+                if (locationHandle.Status != AsyncOperationStatus.Succeeded ||
+                    locationHandle.Result == null ||
+                    locationHandle.Result.Count == 0)
                 {
-                    return handle;
+                    YargLogger.LogFormatWarning("Failed to load venue metadata: Label {0} not found.",
+                        VenueAddressablesConstants.VenueMetadataLabel);
+                    return default;
+                }
+
+                metadataHandle = Addressables.LoadAssetsAsync<VenueMetadata>(
+                    VenueAddressablesConstants.VenueMetadataLabel);
+                await metadataHandle.Task;
+
+                if (metadataHandle.Status == AsyncOperationStatus.Succeeded)
+                {
+                    return metadataHandle;
+                }
+
+                if (metadataHandle.OperationException != null)
+                {
+                    YargLogger.LogFormatWarning("Failed to load venue metadata: {0}",
+                        metadataHandle.OperationException.Message);
                 }
             }
             catch (Exception ex)
             {
                 YargLogger.LogFormatWarning("Failed to load venue metadata: {0}", ex.Message);
             }
-
-            if (handle.IsValid())
+            finally
             {
-                Addressables.Release(handle);
+                if (locationHandle.IsValid())
+                {
+                    Addressables.Release(locationHandle);
+                }
+            }
+
+            if (metadataHandle.IsValid())
+            {
+                Addressables.Release(metadataHandle);
             }
 
             return default;
