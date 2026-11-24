@@ -1,10 +1,9 @@
 using System;
-using YARG.Localization;
 using YARG.Menu.ListMenu;
 using YARG.Settings;
 using YARG.Venue;
 
-namespace YARG.Menu.VenueSelect
+namespace YARG.Menu.Content.VenueSelect
 {
     public class VenueViewType : BaseViewType
     {
@@ -29,22 +28,11 @@ namespace YARG.Menu.VenueSelect
             var type = state == VenueAvailabilityState.Disabled ? TextType.Secondary : TextType.Bright;
 
             var name = Descriptor.DisplayName;
-            if (VenueRegistry.IsPinned(Descriptor.Info))
-            {
-                name = PIN_INDICATOR + name;
-            }
 
             return FormatAs(name, type, selected);
         }
 
-        public override string GetSecondaryText(bool selected)
-        {
-            var source = Localize.Key(GetSourceKey(Descriptor.Info.Source));
-            var stateKey = GetStateKey();
-            var text = stateKey == null ? source : source + "  \u00b7  " + Localize.Key(stateKey);
-
-            return FormatAs(text, TextType.Secondary, selected);
-        }
+        public override string GetSecondaryText(bool selected) => string.Empty;
 
         public void ViewClick()
         {
@@ -90,21 +78,6 @@ namespace YARG.Menu.VenueSelect
                 VenueAvailabilityState.HintOnly => "Menu.Content.VenueSelect.Actions.IncludeInRandom",
                 VenueAvailabilityState.Enabled  => "Menu.Content.VenueSelect.Actions.Disable",
                 _                               => "Menu.Content.VenueSelect.Actions.RestoreHintOnly",
-            };
-        }
-
-        private string GetStateKey()
-        {
-            if (VenueRegistry.IsPinned(Descriptor.Info))
-            {
-                return "Menu.Content.VenueSelect.States.Pinned";
-            }
-
-            return VenueRegistry.GetAvailabilityState(Descriptor) switch
-            {
-                VenueAvailabilityState.Disabled => "Menu.Content.VenueSelect.States.Disabled",
-                VenueAvailabilityState.HintOnly => "Menu.Content.VenueSelect.States.HintOnly",
-                _                               => null,
             };
         }
     }

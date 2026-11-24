@@ -14,7 +14,7 @@ using YARG.Menu.Navigation;
 using YARG.Settings;
 using YARG.Venue;
 
-namespace YARG.Menu.VenueSelect
+namespace YARG.Menu.Content.VenueSelect
 {
     public enum VenueFilter
     {

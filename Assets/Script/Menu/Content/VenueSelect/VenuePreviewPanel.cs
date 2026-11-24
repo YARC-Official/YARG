@@ -5,11 +5,9 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Localization;
-using YARG.Menu.Data;
-using YARG.Settings;
 using YARG.Venue;
 
-namespace YARG.Menu.VenueSelect
+namespace YARG.Menu.Content.VenueSelect
 {
     public class VenuePreviewPanel : MonoBehaviour
     {
@@ -34,18 +32,6 @@ namespace YARG.Menu.VenueSelect
         [SerializeField]
         private TextMeshProUGUI _statusText;
 
-        [Space]
-        [SerializeField]
-        private ColoredButton _pinButton;
-        [SerializeField]
-        private TextMeshProUGUI _pinButtonText;
-        [SerializeField]
-        private ColoredButton _availabilityButton;
-        [SerializeField]
-        private TextMeshProUGUI _availabilityButtonText;
-        [SerializeField]
-        private ColoredButton _openFolderButton;
-
         public event Action PinClicked;
         public event Action AvailabilityClicked;
         public event Action OpenFolderClicked;
@@ -54,33 +40,8 @@ namespace YARG.Menu.VenueSelect
         private Texture2D _previewTexture;
         private VenueDescriptor _venue;
 
-        private void Start()
-        {
-            // ColoredButton caches its "original" color on enable, so colors are always set explicitly
-            var colors = MenuData.Instance != null ? MenuData.Colors : null;
-            if (colors == null)
-            {
-                return;
-            }
-
-            _pinButton.SetBackgroundAndTextColor(colors.BrightButton);
-            _availabilityButton.SetBackgroundAndTextColor(colors.BrightButton);
-            _openFolderButton.SetBackgroundAndTextColor(colors.DarkButton);
-        }
-
-        private void OnEnable()
-        {
-            _pinButton.OnClick.AddListener(OnPinButtonClicked);
-            _availabilityButton.OnClick.AddListener(OnAvailabilityButtonClicked);
-            _openFolderButton.OnClick.AddListener(OnOpenFolderButtonClicked);
-        }
-
         private void OnDisable()
         {
-            _pinButton.OnClick.RemoveListener(OnPinButtonClicked);
-            _availabilityButton.OnClick.RemoveListener(OnAvailabilityButtonClicked);
-            _openFolderButton.OnClick.RemoveListener(OnOpenFolderButtonClicked);
-
             Clear();
         }
 
@@ -106,13 +67,6 @@ namespace YARG.Menu.VenueSelect
             _descriptionText.text = venue.Description ?? string.Empty;
             _statusText.text = BuildStatus(venue);
 
-            _pinButtonText.text = Localize.Key(VenueViewType.GetPinActionKey(venue));
-            _availabilityButtonText.text = Localize.Key(VenueViewType.GetAvailabilityActionKey(venue));
-
-            _pinButton.gameObject.SetActive(true);
-            _availabilityButton.gameObject.SetActive(true);
-            _openFolderButton.gameObject.SetActive(true);
-
             ShowPreview(venue);
         }
 
@@ -133,12 +87,6 @@ namespace YARG.Menu.VenueSelect
             _texturePreviewImage.gameObject.SetActive(false);
             _placeholderContainer.SetActive(false);
             _placeholderText.text = string.Empty;
-
-            _pinButtonText.text = string.Empty;
-            _availabilityButtonText.text = string.Empty;
-            _pinButton.gameObject.SetActive(false);
-            _availabilityButton.gameObject.SetActive(false);
-            _openFolderButton.gameObject.SetActive(false);
         }
 
         private void ShowPreview(VenueDescriptor venue)
