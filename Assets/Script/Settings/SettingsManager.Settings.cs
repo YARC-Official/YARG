@@ -160,6 +160,53 @@ namespace YARG.Settings
         }
     }
 
+    public enum VenueEntrySource
+    {
+        // None means "the user did not select a venue", i.e. random rotation
+        None,
+        Addressable,
+        LocalFile,
+        LauncherFile
+    }
+
+    public struct VenueSelectionInfo : IEquatable<VenueSelectionInfo>
+    {
+        public VenueEntrySource Source;
+        // Addressables primary key, or a path relative to the source's root folder.
+        public string           Identifier;
+
+        // Identifiers are paths or Addressables keys, whose casing is not stable across platforms
+        // and hand-authored venue hints, so compare them case-insensitively.
+        public bool Equals(VenueSelectionInfo other)
+        {
+            return Source == other.Source
+                && string.Equals(Identifier, other.Identifier, StringComparison.OrdinalIgnoreCase);
+        }
+
+#nullable enable
+        public override bool Equals(object? obj)
+#nullable disable
+        {
+            return obj is VenueSelectionInfo other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Source,
+                Identifier == null ? 0 : StringComparer.OrdinalIgnoreCase.GetHashCode(Identifier));
+        }
+
+        public static bool operator == (VenueSelectionInfo left, VenueSelectionInfo right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator != (VenueSelectionInfo left, VenueSelectionInfo right)
+        {
+            return !left.Equals(right);
+        }
+    }
+
     public static partial class SettingsManager
     {
         public class SettingContainer
@@ -200,6 +247,11 @@ namespace YARG.Settings
             // and we want to enforce the constraint that kind be unique
             public Dictionary<CharacterType,CustomCharacterInfo> CustomCharacters = new();
             public List<CustomCharacterInfo> HiddenCharacters = new();
+
+            public VenueSelectionInfo PinnedVenue;
+            public List<VenueSelectionInfo> HiddenVenues = new();
+            // Opt-in random rotation for venues tagged "venue-no-random".
+            public List<VenueSelectionInfo> IncludedVenues = new();
 
             #endregion
 
