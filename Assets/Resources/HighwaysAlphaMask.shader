@@ -4,12 +4,19 @@ Shader "HighwaysAlphaMask"
     {
         Tags { "RenderType"="Opaque" "UniversalMaterialType"="Unlit" }
 
+        // Pass 0: renders fade coverage into the mask texture's R channel.
+        // Max-blended with no depth testing, so any rendered geometry can only
+        // raise the mask. This is what lets the vocal track (which outputs a
+        // full alpha of 1) override the highway fade instead of the highway
+        // fade cutting holes into the vocal track.
         Pass
         {
             Tags { "LightMode"="UniversalForward" }
 
             ZWrite Off
+            ZTest Always
             Cull Off
+            ColorMask R
             Blend One One
             BlendOp Max
 
@@ -68,6 +75,39 @@ Shader "HighwaysAlphaMask"
 
                 // Only write into R channel, others zero
                 return half4(alpha, 0, 0, 0);
+            }
+            ENDHLSL
+        }
+
+        // Pass 1: full-screen pass that min-blends the mask into the alpha channel
+        // of the highways output texture. By the time this runs, post-processing
+        // has already written the final color and the scene alpha, so the result
+        // is finalAlpha = min(sceneAlpha, mask), matching what the old UberPP
+        // fork computed.
+        Pass
+        {
+            Name "ApplyFadeAlphaMask"
+
+            ZWrite Off
+            ZTest Always
+            Cull Off
+            ColorMask A
+            Blend One One
+            BlendOp Min
+
+            HLSLPROGRAM
+            #pragma vertex Vert
+            #pragma fragment FragApplyAlphaMask
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
+
+            half4 FragApplyAlphaMask(Varyings input) : SV_Target
+            {
+                half mask = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp,
+                    input.texcoord * _BlitScaleBias.xy + _BlitScaleBias.zw).r;
+
+                // Only the alpha channel is blended (ColorMask A + BlendOp Min)
+                return half4(0, 0, 0, mask);
             }
             ENDHLSL
         }

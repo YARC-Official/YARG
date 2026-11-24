@@ -26,10 +26,14 @@ namespace YARG.Gameplay
 
         private static RawImage _venueOutput;
         private static RenderTexture _venueTexture;
-        private static RenderTexture _trailsTexture;
-        private static RTHandle _trailsTextureHandle;
 
-        private static readonly int _IsVenueId = Shader.PropertyToID("_YargIsVenue");
+        // Ping-pong pair for the trails effect. The venue post-processing shader
+        // samples the previous frame while writing the new one, so the pass reads
+        // and writes different textures.
+        private static readonly RenderTexture[] _trailsTextures = new RenderTexture[2];
+        private static readonly RTHandle[] _trailsTextureHandles = new RTHandle[2];
+        private static int _trailsIndex;
+
         private static readonly int _trailsLengthId = Shader.PropertyToID("_YargTrailLength");
         private static readonly int _trailsTextureId = Shader.PropertyToID("_YargPrevFrame");
         private static readonly int _posterizeStepsId = Shader.PropertyToID("_YargPosterizeSteps");
@@ -124,12 +128,9 @@ namespace YARG.Gameplay
 
             ScalableBufferManager.ResizeBuffers(renderScale, renderScale);
 
-            if (_trailsTexture != null)
+            if (_trailsTextures[0] != null)
             {
-                _trailsTextureHandle?.Release();
-                _trailsTextureHandle = null;
-                _trailsTexture.Release();
-                _trailsTexture.DiscardContents();
+                ReleaseTrailsTextures();
             }
 
             var descriptor = new RenderTextureDescriptor(outputWidth, outputHeight, RenderTextureFormat.DefaultHDR, 16, 0);
@@ -152,13 +153,18 @@ namespace YARG.Gameplay
             }
 
             descriptor.depthBufferBits = 0;
-            _trailsTexture = new RenderTexture(descriptor);
-            _trailsTexture.filterMode = FilterMode.Bilinear;
-            _trailsTexture.wrapMode = TextureWrapMode.Clamp;
-            _trailsTexture.Create();
-            _trailsTextureHandle = RTHandles.Alloc(_trailsTexture);
-            Shader.SetGlobalTexture(_trailsTextureId, _trailsTexture);
-            Graphics.Blit(Texture2D.blackTexture, _trailsTexture);
+            for (int i = 0; i < _trailsTextures.Length; i++)
+            {
+                var trails = new RenderTexture(descriptor);
+                trails.filterMode = FilterMode.Bilinear;
+                trails.wrapMode = TextureWrapMode.Clamp;
+                trails.Create();
+                _trailsTextures[i] = trails;
+                _trailsTextureHandles[i] = RTHandles.Alloc(trails);
+                Graphics.Blit(Texture2D.blackTexture, trails);
+            }
+            _trailsIndex = 0;
+            Shader.SetGlobalTexture(_trailsTextureId, _trailsTextures[_trailsIndex]);
         }
 
         private static void ResetRenderState()
@@ -193,13 +199,9 @@ namespace YARG.Gameplay
                 _venueTexture = null;
             }
 
-            if (_trailsTexture != null)
+            if (_trailsTextures[0] != null)
             {
-                _trailsTextureHandle?.Release();
-                _trailsTextureHandle = null;
-                _trailsTexture.Release();
-                Destroy(_trailsTexture);
-                _trailsTexture = null;
+                ReleaseTrailsTextures();
             }
 
             if (_alphaFixMaterial != null)
@@ -212,6 +214,19 @@ namespace YARG.Gameplay
             IsRendered = false;
         }
 
+        private static void ReleaseTrailsTextures()
+        {
+            for (int i = 0; i < _trailsTextures.Length; i++)
+            {
+                _trailsTextureHandles[i]?.Release();
+                _trailsTextureHandles[i] = null;
+
+                _trailsTextures[i].Release();
+                Destroy(_trailsTextures[i]);
+                _trailsTextures[i] = null;
+            }
+        }
+
         private void OnSceneUnloaded(Scene scene)
         {
             if (_venueTexture != null)
@@ -221,13 +236,9 @@ namespace YARG.Gameplay
                 _venueTexture = null;
             }
 
-            if (_trailsTexture != null)
+            if (_trailsTextures[0] != null)
             {
-                _trailsTextureHandle?.Release();
-                _trailsTextureHandle = null;
-                _trailsTexture.Release();
-                Destroy(_trailsTexture);
-                _trailsTexture = null;
+                ReleaseTrailsTextures();
             }
 
             _venueOutput = null;
@@ -305,7 +316,6 @@ namespace YARG.Gameplay
 
             Shader.SetGlobalInteger(_posterizeStepsId, 0);
             Shader.SetGlobalFloat(_startTimeId, 0);
-            Shader.SetGlobalFloat(_IsVenueId, 0);
             Shader.SetGlobalInt(_scanlineSizeId, 0);
             Shader.SetGlobalFloat(_trailsLengthId, 0);
         }
@@ -316,8 +326,6 @@ namespace YARG.Gameplay
             {
                 return;
             }
-
-            Shader.SetGlobalFloat(_IsVenueId, 1);
 
             // URP replaces VolumeManager.instance.stack with either the global stack
             // or the camera's local volumeStack during rendering setup, depending on
@@ -335,17 +343,20 @@ namespace YARG.Gameplay
             }
 
             var mirrorEffect = stack.GetComponent<MirrorComponent>();
-            if (mirrorEffect.IsActive())
+            if (mirrorEffect.IsActive() && _alphaFixMaterial != null)
             {
+                // The mirror keywords are multi_compile_local, so they must be
+                // enabled on the material that runs the pass. Enabling them
+                // globally does not affect local keywords.
                 for (int i = 0; i < _mirrorKeywords.Length; ++i)
                 {
                     if (i == mirrorEffect.wipeIndex.value)
                     {
-                        Shader.EnableKeyword(_mirrorKeywords[i]);
+                        _alphaFixMaterial.EnableKeyword(_mirrorKeywords[i]);
                     }
                     else
                     {
-                        Shader.DisableKeyword(_mirrorKeywords[i]);
+                        _alphaFixMaterial.DisableKeyword(_mirrorKeywords[i]);
                     }
                 }
                 YargLogger.LogFormatTrace("Venue PP: mirror, wipeStart: {0}", mirrorEffect.startTime.value);
@@ -412,16 +423,25 @@ namespace YARG.Gameplay
                 UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
 
                 TextureHandle source = resourceData.activeColorTexture;
-                TextureHandle trailsTexture = renderGraph.ImportTexture(_trailsTextureHandle);
+                TextureHandle currTrails = renderGraph.ImportTexture(_trailsTextureHandles[1 - _trailsIndex]);
 
-                // Blit through alpha-fix shader to force alpha to 1.0, preventing transparency artifacts
-                // when the venue renders without post-processing (UberPP doesn't run to fix alpha).
+                // The trails effect samples the previous frame, so point _YargPrevFrame
+                // at the ping-pong texture that holds it, while this pass writes the new
+                // frame into the other one. Reading and writing the same texture in one
+                // pass would be undefined behavior.
+                Shader.SetGlobalTexture(_trailsTextureId, _trailsTextures[_trailsIndex]);
 
-                var blitParams = new BlitMaterialParameters(source, trailsTexture, _alphaFixMaterial, 0);
-                renderGraph.AddBlitPass(blitParams, passName: "Venue Alpha Fix / Trails Copy");
+                // Blit through the venue post-processing shader (mirror, posterize,
+                // scanlines, trails), which also forces alpha to 1.0, preventing
+                // transparency artifacts when the venue is composited over the background.
+                var blitParams = new BlitMaterialParameters(source, currTrails, _alphaFixMaterial, 0);
+                renderGraph.AddBlitPass(blitParams, passName: "Venue Post Processing / Trails Copy");
 
-                // Update cameraColor so the final blit uses the alpha-fixed texture.
-                resourceData.cameraColor = trailsTexture;
+                // Update cameraColor so the final blit uses the processed texture.
+                resourceData.cameraColor = currTrails;
+
+                // The next render reads from the texture this pass just wrote.
+                _trailsIndex = 1 - _trailsIndex;
             }
         }
 

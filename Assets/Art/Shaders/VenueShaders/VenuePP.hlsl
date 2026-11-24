@@ -1,6 +1,8 @@
-float _YargIsVenue;
 // Mirror params
-#pragma multi_compile_local YARG_MIRROR_LEFT YARG_MIRROR_RIGHT YARG_MIRROR_CLOCK_CCW YARG_MIRROR_NONE
+// Processed via #include_with_pragmas by the including shader.
+// The leading _ variant is the default (no keywords enabled = no mirror),
+// all mirror modes are selected explicitly on the material.
+#pragma multi_compile_local _ YARG_MIRROR_LEFT YARG_MIRROR_RIGHT YARG_MIRROR_CLOCK_CCW YARG_MIRROR_NONE
 float  _YargMirrorStartTime;
 float  _YargMirrorWipeLength;
 // Posterize params
