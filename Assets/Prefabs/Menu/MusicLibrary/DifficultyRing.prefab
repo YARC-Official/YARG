@@ -32,7 +32,6 @@ RectTransform:
   m_Children:
   - {fileID: 7525821467028091687}
   m_Father: {fileID: 0}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -63,14 +62,13 @@ MonoBehaviour:
   _ringSprite: {fileID: 8661995293277028539}
   _ringBase: {fileID: 6906573424770152524}
   _intensityNumber: {fileID: 5815463076847458703}
+  _selectionBackdropSprite: {fileID: 21300000, guid: 9cb16eda6bfc31f4fb4ad264387e59cd, type: 3}
   _ringEmptyColor: {r: 0.1882353, g: 0.1882353, b: 0.1882353, a: 1}
   _ringWhiteColor: {r: 1, g: 1, b: 1, a: 1}
   _ringRedColor: {r: 0.9843137, g: 0.26666668, b: 0.24705882, a: 1}
   _ringPurpleColor: {r: 0.53333336, g: 0.26666668, b: 0.9843137, a: 1}
-  _ringRainbowMaterial: {fileID: 2100000, guid: 38b352628af319449b76ad71b1dea81a,
-    type: 2}
+  _ringRainbowMaterial: {fileID: 2100000, guid: 38b352628af319449b76ad71b1dea81a, type: 2}
   _partSelectedColor: {r: 0.18039216, g: 0.8509804, b: 1, a: 0}
-  _selectionBackdropSprite: {fileID: 21300000, guid: 9cb16eda6bfc31f4fb4ad264387e59cd, type: 3}
 --- !u!1 &431087603098892755
 GameObject:
   m_ObjectHideFlags: 0
@@ -102,7 +100,6 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 7525821467028091687}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -178,7 +175,6 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 7525821467028091687}
-  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -216,8 +212,7 @@ MonoBehaviour:
   m_text: 13
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: bffddd65d4fb7684ebfc65052053fc71, type: 2}
-  m_sharedMaterial: {fileID: 4249517445589659644, guid: bffddd65d4fb7684ebfc65052053fc71,
-    type: 2}
+  m_sharedMaterial: {fileID: 4249517445589659644, guid: bffddd65d4fb7684ebfc65052053fc71, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -252,20 +247,23 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
   m_paragraphSpacing: 0
   m_charWidthMaxAdj: 0
-  m_enableWordWrapping: 1
+  m_TextWrappingMode: 1
   m_wordWrappingRatios: 0.4
   m_overflowMode: 0
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_enableKerning: 1
+  m_ActiveFontFeatures: 6e72656b
   m_enableExtraPadding: 0
   checkPaddingRequired: 0
   m_isRichText: 1
+  m_EmojiFallbackSupport: 1
   m_parseCtrlCharacters: 1
   m_isOrthographic: 1
   m_isCullingEnabled: 0
@@ -314,7 +312,6 @@ RectTransform:
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 7525821467028091687}
-  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -349,7 +346,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -1834431651, guid: 66fae0a679753ea4a9110a183b8d2af9, type: 3}
+  m_Sprite: {fileID: 2028331755, guid: 66fae0a679753ea4a9110a183b8d2af9, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -393,7 +390,6 @@ RectTransform:
   - {fileID: 6670584188681310990}
   - {fileID: 6682197850596711470}
   m_Father: {fileID: 397774209812536632}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -445,7 +441,6 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 7525821467028091687}
-  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
