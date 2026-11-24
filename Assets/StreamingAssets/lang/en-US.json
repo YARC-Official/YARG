@@ -2677,7 +2677,7 @@
             },
             "AllowRemoteContent": {
                 "Name": "Allow Remote Content",
-                "Description": "Allows YARG to download and use content from remote sources. (Does not affect OpenSource and Genrelizer, requires restart to take effect)"
+                "Description": "Allows YARG to download and use content from remote sources. (Does not affect OpenSource and Genrelizer)"
             },
             "WrapAroundNavigation": {
                 "Name": "Wrap-Around Navigation",
