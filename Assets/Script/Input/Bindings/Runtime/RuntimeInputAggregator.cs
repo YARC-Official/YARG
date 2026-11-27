@@ -46,17 +46,6 @@ namespace YARG.Input.Bindings
                 if (binding is RuntimeImpulseBinding impulse)
                 {
                     impulse.Pressed += OnButtonPressed;
-                    GameInputProcessed handler = (ref GameInput input) => OnButtonInputProcessed(source, ref input);
-                    _buttonHandlers[impulse] = handler;
-                    impulse.InputProcessed += handler;
-
-                    if (impulse.State)
-                    {
-                        _activeButtonCounts[impulse.Action] =
-                            _activeButtonCounts.GetValueOrDefault(impulse.Action) + 1;
-
-                        _buttonStates[impulse.Action] = true;
-                    }
                 }
                 else if (binding is RuntimeButtonBinding button)
                 {
@@ -84,24 +73,6 @@ namespace YARG.Input.Bindings
                 if (binding is RuntimeImpulseBinding impulse)
                 {
                     impulse.Pressed -= OnButtonPressed;
-                    impulse.InputProcessed -= _buttonHandlers[impulse];
-                    _buttonHandlers.Remove(impulse);
-
-                    if (impulse.State)
-                    {
-                        var count = _activeButtonCounts.GetValueOrDefault(impulse.Action);
-                        count--;
-
-                        if (count <= 0)
-                        {
-                            _activeButtonCounts.Remove(impulse.Action);
-                            _buttonStates[impulse.Action] = false;
-                        }
-                        else
-                        {
-                            _activeButtonCounts[impulse.Action] = count;
-                        }
-                    }
                 }
                 else if (binding is RuntimeButtonBinding button)
                 {
@@ -251,7 +222,8 @@ namespace YARG.Input.Bindings
             }
             else
             {
-                count--;
+                // Never below zero: a release whose press was not seen must not eat the next press
+                count = Math.Max(count - 1, 0);
             }
 
             _activeButtonCounts[input.Action] = count;
