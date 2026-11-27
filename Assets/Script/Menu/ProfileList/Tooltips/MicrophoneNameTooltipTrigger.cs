@@ -12,7 +12,7 @@ namespace YARG.Menu.ProfileList
         protected override (IReadOnlyList<string> titleParams, IReadOnlyList<string> textParams) GetParameters()
         {
             return (
-                new List<string>() { _entry.Microphone.DisplayName },
+                new List<string>() { _entry.DisplayName },
                 new List<string>() { }
             );
         }

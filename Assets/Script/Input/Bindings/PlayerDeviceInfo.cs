@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Switch;
 using UnityEngine.InputSystem.Utilities;
+using YARG.Audio.BASS.Wasapi;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Game;
@@ -215,21 +216,46 @@ namespace YARG.Input
         {
             bool resolvedAny = false;
 
-            for (int i = _unresolvedMics.Count - 1; i >= 0; i--)
+            List<InputDeviceInfo> available = null;
+            for (int i = 0; i < _unresolvedMics.Count;)
             {
                 var mic = _unresolvedMics[i];
-                if (IsClaimedByAnotherPlayer(mic.Id))
+                MicDevice device = null;
+                if (mic.Id.EndpointId == null)
                 {
-                    _unresolvedMics.RemoveAt(i);
-                    continue;
+                    // Older bindings identify only a name and channel. Adopt the first free match
+                    // once, reserving any endpoints already explicitly assigned to this profile.
+                    available ??= GlobalAudioHandler.GetAllInputDevices();
+                    foreach (var input in available)
+                    {
+                        if (!MatchesMicrophoneBinding(mic.Id, input.Id) || IsClaimedByAnotherPlayer(input.Id) ||
+                            _microphones.Any(m => m.Id == input.Id) ||
+                            (input.Id.EndpointId != null && _unresolvedMics.Any(m => m.Id == input.Id)))
+                        {
+                            continue;
+                        }
+
+                        device = GlobalAudioHandler.CreateInputDevice(input);
+                        if (device != null)
+                        {
+                            break;
+                        }
+                    }
+                }
+                else if (!IsClaimedByAnotherPlayer(mic.Id))
+                {
+                    device = GlobalAudioHandler.GetInputDevice(mic.Id);
                 }
 
-                var device = GlobalAudioHandler.GetInputDevice(mic.Id);
                 if (device != null)
                 {
                     _unresolvedMics.RemoveAt(i);
-                    AddMicrophone(device);
+                    ClaimMicrophone(device);
                     resolvedAny = true;
+                }
+                else
+                {
+                    i++;
                 }
             }
 
@@ -238,7 +264,15 @@ namespace YARG.Input
 
         private bool IsClaimedByAnotherPlayer(MicId id)
         {
-            return PlayerContainer.Players.Any(p => p.DeviceInfo != this && p.DeviceInfo.ContainsMicrophone(id));
+            var owner = PlayerContainer.GetMicrophoneUser(id);
+            return owner != null && owner.DeviceInfo != this;
+        }
+
+        private static bool MatchesMicrophoneBinding(MicId binding, MicId input)
+        {
+            var comparison = BassWasapiOutput.IsWasapiDevice(input.BaseName)
+                ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+            return binding.MatchesInput(input, comparison);
         }
 
         public void ReleaseMicrophones()
@@ -780,14 +814,46 @@ namespace YARG.Input
                 return;
             }
 
-            _microphones.Add(microphone);
+            if (_unresolvedMics.RemoveAll(m => m.Id == microphone.Id) == 0)
+            {
+                int legacy = _unresolvedMics.FindIndex(m => MatchesMicrophoneBinding(m.Id, microphone.Id));
+                if (legacy >= 0)
+                {
+                    _unresolvedMics.RemoveAt(legacy);
+                }
+            }
 
-            _unresolvedMics.RemoveAll(m => m.Id == microphone.Id);
+            ClaimMicrophone(microphone);
+        }
+
+        private void ClaimMicrophone(MicDevice microphone)
+        {
+            _microphones.Add(microphone);
+            foreach (var player in PlayerContainer.Players)
+            {
+                if (player.DeviceInfo != this)
+                {
+                    player.DeviceInfo._unresolvedMics.RemoveAll(m => m.Id == microphone.Id);
+                }
+            }
+        }
+
+        public bool TransferMicrophoneTo(MicId id, PlayerDeviceInfo recipient)
+        {
+            var mic = _microphones.Find(m => m.Id == id);
+            if (mic == null)
+            {
+                return false;
+            }
+
+            _microphones.Remove(mic);
+            recipient.AddMicrophone(mic);
+            return true;
         }
 
         public void OnMicrophoneAdded(MicId id)
         {
-            if (!_unresolvedMics.Any(m => m.Id == id))
+            if (!_unresolvedMics.Any(m => MatchesMicrophoneBinding(m.Id, id)))
             {
                 return;
             }

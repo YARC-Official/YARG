@@ -81,7 +81,7 @@ namespace YARG.Audio.BASS.Wasapi
 
                     for (int channel = 0; channel < channelCount; channel++)
                     {
-                        result.Add(new InputDeviceInfo(i, baseName, channel, channelCount));
+                        result.Add(new InputDeviceInfo(i, baseName, channel, channelCount, info.ID));
                     }
                 }
             }
@@ -127,7 +127,7 @@ namespace YARG.Audio.BASS.Wasapi
                 return null;
             }
 
-            var mic = BassMicDevice.Create(source);
+            var mic = BassMicDevice.Create(source, device.Id);
             if (mic == null)
             {
                 source.Dispose();
@@ -240,9 +240,10 @@ namespace YARG.Audio.BASS.Wasapi
                 bool nameMatches = string.IsNullOrEmpty(requested.Name) ||
                     string.Equals(displayName, requested.Name, StringComparison.OrdinalIgnoreCase);
 
-                if (nameMatches && requested.Channel.IsValidChannel(channelCount))
+                bool matches = requested.Id.EndpointId == null ? nameMatches : requested.Id.EndpointId == info.ID;
+                if (matches && requested.Channel.IsValidChannel(channelCount))
                 {
-                    resolved = new InputDeviceInfo(deviceId, displayName, requested.Channel, channelCount);
+                    resolved = new InputDeviceInfo(deviceId, displayName, requested.Channel, channelCount, info.ID);
                     return true;
                 }
             }

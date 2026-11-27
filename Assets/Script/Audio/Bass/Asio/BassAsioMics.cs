@@ -68,7 +68,7 @@ namespace YARG.Audio.BASS.Asio
 
             var source = new BassAsioMicSource(this, asioInput.DriverId, claimedInput, info);
             _sources.Add(source);
-            return BassMicDevice.Create(source);
+            return BassMicDevice.Create(source, info.Id);
         }
 
         internal void Release(BassAsioMicSource source) => _sources.Remove(source);

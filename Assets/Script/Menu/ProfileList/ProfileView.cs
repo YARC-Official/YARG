@@ -1,6 +1,7 @@
 using Cysharp.Threading.Tasks;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -354,15 +355,18 @@ namespace YARG.Menu.ProfileList
             PopulateMicsAsync(dialog, player, mic =>
             {
                 var claimant = PlayerContainer.GetMicrophoneUser(mic.Id);
-                if (claimant is not null && claimant != player)
+                if (claimant == player)
                 {
-                    claimant.DeviceInfo.RemoveMicrophone(mic.Id);
+                    return;
                 }
 
-                if (TryAddMicrophone(mic))
+                if (claimant != null && claimant.DeviceInfo.TransferMicrophoneTo(mic.Id, player.DeviceInfo))
                 {
                     selectedMicrophone = true;
+                    return;
                 }
+
+                selectedMicrophone = TryAddMicrophone(mic);
             }).Forget();
 
             await dialog.WaitUntilClosed();
@@ -404,6 +408,7 @@ namespace YARG.Menu.ProfileList
                 return;
             }
 
+            var connectedIds = mics.Select(m => m.Id).ToArray();
             int addedCount = 0;
             foreach (var mic in mics)
             {
@@ -413,9 +418,10 @@ namespace YARG.Menu.ProfileList
                     continue;
                 }
 
+                string name = MicrophoneWatcher.GetDisplayName(mic.DisplayName, mic.Id, connectedIds);
                 var text = (existingUser is null)
-                    ? mic.DisplayName
-                    : Localize.KeyFormat("Menu.ProfileList.StealDevice", mic.DisplayName, existingUser.Profile.Name);
+                    ? name
+                    : Localize.KeyFormat("Menu.ProfileList.StealDevice", name, existingUser.Profile.Name);
 
                 var localMic = mic;
                 dialog.AddListButton(text, () => onMicSelected(localMic));

@@ -109,7 +109,7 @@ namespace YARG.Audio.BASS
                 return null;
             }
 
-            var mic = BassMicDevice.Create(source);
+            var mic = BassMicDevice.Create(source, device.Id);
             if (mic == null)
             {
                 source.Dispose();
@@ -225,21 +225,20 @@ namespace YARG.Audio.BASS
 
         private static bool TryResolveRequestedDevice(InputDeviceInfo requested, out InputDeviceInfo resolved)
         {
-            if (requested.DeviceId >= 0)
+            foreach (var device in FindUsableDevices())
             {
-                resolved = requested;
-                return true;
+                var candidate = new InputDeviceInfo(device.Id, device.Info.Name, requested.Channel,
+                    requested.ChannelCount, GetPersistentEndpointId(device.Info));
+                if (requested.Id.MatchesInput(candidate.Id) &&
+                    (requested.Id.EndpointId != null || requested.DeviceId < 0 || requested.DeviceId == device.Id))
+                {
+                    resolved = candidate;
+                    return true;
+                }
             }
 
-            int foundId = FindDeviceIdByName(requested.Name);
-            if (foundId < 0)
-            {
-                resolved = default;
-                return false;
-            }
-
-            resolved = new InputDeviceInfo(foundId, requested.Name, requested.Channel, requested.ChannelCount);
-            return true;
+            resolved = default;
+            return false;
         }
 
         private static bool IsChannelInRange(InputDeviceInfo device, int channelCount)
@@ -267,6 +266,16 @@ namespace YARG.Audio.BASS
             }
 
             return list;
+        }
+
+        private static string? GetPersistentEndpointId(DeviceInfo info)
+        {
+#if UNITY_EDITOR_OSX || UNITY_EDITOR_WIN || (!UNITY_EDITOR && (UNITY_STANDALONE_OSX || UNITY_STANDALONE_WIN))
+            return info.Driver;
+#else
+            // ALSA addresses can be reassigned to a different sound card after reconnecting.
+            return null;
+#endif
         }
 
         private static bool IsUsableDevice(DeviceInfo info)
@@ -326,19 +335,6 @@ namespace YARG.Audio.BASS
             driver.StartsWith(device + ":", StringComparison.OrdinalIgnoreCase);
 #endif
 
-        private static int FindDeviceIdByName(string name)
-        {
-            foreach (var device in FindUsableDevices())
-            {
-                if (device.Info.Name == name)
-                {
-                    return device.Id;
-                }
-            }
-
-            return -1;
-        }
-
         private static List<InputDeviceInfo> BuildAvailableInputs(List<(int Id, DeviceInfo Info)> devices,
             Dictionary<DeviceKey, int> channelCounts)
         {
@@ -353,7 +349,8 @@ namespace YARG.Audio.BASS
 
                 for (int channel = 0; channel < channels; channel++)
                 {
-                    available.Add(new InputDeviceInfo(device.Id, device.Info.Name, channel, channels));
+                    available.Add(new InputDeviceInfo(device.Id, device.Info.Name, channel, channels,
+                        GetPersistentEndpointId(device.Info)));
                 }
             }
 

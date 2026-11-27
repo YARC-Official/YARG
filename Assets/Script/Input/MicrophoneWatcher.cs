@@ -18,6 +18,31 @@ namespace YARG.Input
 
         public static event Action<MicId> MicrophoneAdded;
         public static event Action<MicId> MicrophoneRemoved;
+        public static event Action MicrophonesChanged;
+
+        public static string GetDisplayName(string name, MicId id, IEnumerable<MicId> connected = null)
+        {
+            if (id.EndpointId == null)
+            {
+                return name;
+            }
+
+            int count = 0;
+            int number = 1;
+            foreach (var other in connected ?? _previous)
+            {
+                if (other.BaseName == id.BaseName && other.Channel == id.Channel)
+                {
+                    count++;
+                    if (string.CompareOrdinal(other.EndpointId, id.EndpointId) < 0)
+                    {
+                        number++;
+                    }
+                }
+            }
+
+            return count > 1 ? $"{name} ({number})" : name;
+        }
 
         public static void Start()
         {
@@ -82,6 +107,11 @@ namespace YARG.Input
             foreach (var id in added)
             {
                 MicrophoneAdded?.Invoke(id);
+            }
+
+            if (removed.Count > 0 || added.Count > 0)
+            {
+                MicrophonesChanged?.Invoke();
             }
         }
     }

@@ -315,15 +315,9 @@ namespace YARG.Player
 
         public static YargPlayer? GetMicrophoneUser(MicId id)
         {
-            foreach (var player in _players)
-            {
-                if (player.DeviceInfo.ContainsMicrophone(id))
-                {
-                    return player;
-                }
-            }
-
-            return null;
+            // The live owner takes precedence. Otherwise resolve competing saved bindings in player order.
+            return _players.Find(p => p.DeviceInfo.Microphones.Exists(m => m.Id == id))
+                ?? _players.Find(p => p.DeviceInfo.ContainsMicrophone(id));
         }
 #nullable disable
 
