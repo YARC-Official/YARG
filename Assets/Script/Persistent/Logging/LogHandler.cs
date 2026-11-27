@@ -30,6 +30,8 @@ namespace YARG.Logging
 
 #if UNITY_EDITOR || YARG_DEV_BUILD
             persistentPath = PathHelper.SanitizePath(Path.Combine(persistentPath, "dev"));
+#elif YARG_TEST_BUILD
+            persistentPath = PathHelper.SanitizePath(Path.Combine(persistentPath, "testing"));
 #elif YARG_NIGHTLY_BUILD
             persistentPath = PathHelper.SanitizePath(Path.Combine(persistentPath, "nightly"));
 #else
