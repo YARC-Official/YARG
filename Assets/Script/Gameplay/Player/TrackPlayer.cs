@@ -1347,6 +1347,7 @@ namespace YARG.Gameplay.Player
                 }
             }
 
+            ComboMeter.JudgementPerfect();
             LastCombo = Combo;
         }
 
@@ -1374,6 +1375,7 @@ namespace YARG.Gameplay.Player
                 }
             }
 
+            ComboMeter.JudgementMiss();
             LastCombo = Combo;
         }
 
@@ -1390,6 +1392,7 @@ namespace YARG.Gameplay.Player
                 CameraPositioner.Punch();
             }
 
+            ComboMeter.JudgementPoor();
             LastCombo = Combo;
         }
 
