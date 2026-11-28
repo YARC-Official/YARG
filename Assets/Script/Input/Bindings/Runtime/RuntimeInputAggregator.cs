@@ -10,8 +10,7 @@ namespace YARG.Input.Bindings
     {
         private readonly List<RuntimeBindingSet> _sources = new();
 
-        private readonly Dictionary<int, bool> _buttonStates = new();
-        private readonly Dictionary<int, int> _activeButtonCounts = new();
+        private readonly Dictionary<int, HashSet<RuntimeButtonBinding>> _pressedButtons = new();
         private readonly Dictionary<RuntimeButtonBinding, GameInputProcessed> _buttonHandlers = new();
 
         private readonly Dictionary<int, float> _axisStates = new();
@@ -46,30 +45,16 @@ namespace YARG.Input.Bindings
                 if (binding is RuntimeImpulseBinding impulse)
                 {
                     impulse.Pressed += OnButtonPressed;
-                    GameInputProcessed handler = (ref GameInput input) => OnButtonInputProcessed(source, ref input);
-                    _buttonHandlers[impulse] = handler;
-                    impulse.InputProcessed += handler;
-
-                    if (impulse.State)
-                    {
-                        _activeButtonCounts[impulse.Action] =
-                            _activeButtonCounts.GetValueOrDefault(impulse.Action) + 1;
-
-                        _buttonStates[impulse.Action] = true;
-                    }
                 }
                 else if (binding is RuntimeButtonBinding button)
                 {
-                    GameInputProcessed handler = (ref GameInput input) => OnButtonInputProcessed(source, ref input);
+                    GameInputProcessed handler = (ref GameInput input) => OnButtonInputProcessed(source, button, ref input);
                     _buttonHandlers[button] = handler;
                     button.InputProcessed += handler;
 
                     if (button.State)
                     {
-                        _activeButtonCounts[button.Action] =
-                            _activeButtonCounts.GetValueOrDefault(button.Action) + 1;
-
-                        _buttonStates[button.Action] = true;
+                        GetPressedButtons(button.Action).Add(button);
                     }
                 }
             }
@@ -84,44 +69,14 @@ namespace YARG.Input.Bindings
                 if (binding is RuntimeImpulseBinding impulse)
                 {
                     impulse.Pressed -= OnButtonPressed;
-                    impulse.InputProcessed -= _buttonHandlers[impulse];
-                    _buttonHandlers.Remove(impulse);
-
-                    if (impulse.State)
-                    {
-                        var count = _activeButtonCounts.GetValueOrDefault(impulse.Action);
-                        count--;
-
-                        if (count <= 0)
-                        {
-                            _activeButtonCounts.Remove(impulse.Action);
-                            _buttonStates[impulse.Action] = false;
-                        }
-                        else
-                        {
-                            _activeButtonCounts[impulse.Action] = count;
-                        }
-                    }
                 }
                 else if (binding is RuntimeButtonBinding button)
                 {
                     button.InputProcessed -= _buttonHandlers[button];
                     _buttonHandlers.Remove(button);
-
-                    if (button.State)
+                    if (_pressedButtons.TryGetValue(button.Action, out var pressed))
                     {
-                        var count = _activeButtonCounts.GetValueOrDefault(button.Action);
-                        count--;
-
-                        if (count <= 0)
-                        {
-                            _activeButtonCounts.Remove(button.Action);
-                            _buttonStates[button.Action] = false;
-                        }
-                        else
-                        {
-                            _activeButtonCounts[button.Action] = count;
-                        }
+                        pressed.Remove(button);
                     }
                 }
             }
@@ -236,36 +191,43 @@ namespace YARG.Input.Bindings
             InputProcessed?.Invoke(ref input);
         }
 
-        private void OnButtonInputProcessed(RuntimeBindingSet source, ref GameInput input)
+        private void OnButtonInputProcessed(RuntimeBindingSet source, RuntimeButtonBinding button, ref GameInput input)
         {
             if (source.Controller == _suppressedController)
             {
                 return;
             }
 
-            var count = _activeButtonCounts.GetValueOrDefault(input.Action);
+            var pressed = GetPressedButtons(input.Action);
+            bool wasPressed = pressed.Count > 0;
 
             if (input.Button)
             {
-                count++;
+                pressed.Add(button);
             }
             else
             {
-                count--;
+                pressed.Remove(button);
             }
 
-            _activeButtonCounts[input.Action] = count;
-
-            var newState = count > 0;
-
-            if (_buttonStates.GetValueOrDefault(input.Action) == newState)
+            // Only the first press and the last release of an action are passed on
+            if (pressed.Count > 0 == wasPressed)
             {
                 return;
             }
 
-            _buttonStates[input.Action] = newState;
-
             InputProcessed?.Invoke(ref input);
+        }
+
+        private HashSet<RuntimeButtonBinding> GetPressedButtons(int action)
+        {
+            if (!_pressedButtons.TryGetValue(action, out var pressed))
+            {
+                pressed = new();
+                _pressedButtons[action] = pressed;
+            }
+
+            return pressed;
         }
     }
 }
