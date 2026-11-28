@@ -45,36 +45,57 @@ namespace YARG.Gameplay.HUD
             int realIndex = hoveredIndex + _relativeSectionIndex;
 
             // Hide if out of range
-            if (realIndex < 0 || realIndex >= _practiceSectionMenu.Sections.Count)
+            if (realIndex < 0 || realIndex >= _practiceSectionMenu.TotalItemCount)
             {
                 _canvasGroup.alpha = 0f;
                 _button.interactable = false;
                 return;
             }
 
-            int? firstSelected = _practiceSectionMenu.FirstSelectedIndex;
+            bool hasRestoreOption = _practiceSectionMenu.HasRestoreOption;
+            bool isRestoreRow = hasRestoreOption && realIndex == 0;
 
             bool selected = _relativeSectionIndex == 0;
-            bool isFirst = firstSelected == realIndex;
-            bool highlighted = selected || isFirst;
-
+            bool isFirst = false;
             bool between = false;
-            if (firstSelected < hoveredIndex)
+
+            if (!isRestoreRow)
             {
-                between = realIndex > firstSelected && realIndex < hoveredIndex;
-            }
-            else if (firstSelected > hoveredIndex)
-            {
-                between = realIndex > hoveredIndex && realIndex < firstSelected;
+                int? firstSelected = _practiceSectionMenu.FirstSelectedIndex;
+                int? firstSelectedVisual = firstSelected.HasValue
+                    ? firstSelected.Value + (hasRestoreOption ? 1 : 0)
+                    : null;
+
+                isFirst = firstSelectedVisual == realIndex;
+
+                if (firstSelectedVisual < hoveredIndex)
+                {
+                    between = realIndex > firstSelectedVisual && realIndex < hoveredIndex;
+                }
+                else if (firstSelectedVisual > hoveredIndex)
+                {
+                    between = realIndex > hoveredIndex && realIndex < firstSelectedVisual;
+                }
             }
 
-            var section = _practiceSectionMenu.Sections[realIndex];
+            bool highlighted = selected || isFirst;
 
             _canvasGroup.alpha = 1f;
             _button.interactable = true;
 
             // Set text
-            _sectionName.text = PracticeSectionHelper.ParseSectionName(section.Name);
+            if (isRestoreRow)
+            {
+                // Use Localize.Key("Menu.Practice.RestoreLast") if using YARG.Localization
+                _sectionName.text = "Restore Last Session";
+            }
+            else
+            {
+                int sectionIndex = hasRestoreOption ? realIndex - 1 : realIndex;
+                var section = _practiceSectionMenu.Sections[sectionIndex];
+                _sectionName.text = PracticeSectionHelper.ParseSectionName(section.Name);
+            }
+
             if (highlighted || between)
             {
                 _sectionName.color = _highlightedTextColor;

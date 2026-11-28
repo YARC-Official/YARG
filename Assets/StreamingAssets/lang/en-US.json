@@ -1348,7 +1348,8 @@
                 "SetBPosition": "Set B Position",
                 "ClearAB": "Clear A/B",
                 "SelectNewSections": "Select New Sections",
-                "Quickplay": "Quickplay"
+                "Quickplay": "Quickplay",
+                "RestoreLast": "Restore Last Session"
             },
             "Quickplay": {
                 "SaveReplay": "Save Replay"
@@ -2281,6 +2282,14 @@
             "PracticeRestartDelay": {
                 "Name": "Practice Restart Delay",
                 "Description": "The amount of time (in seconds) to delay the beginning of a section in Practice Mode."
+            },
+             "UseMeasureSnapping": {
+                "Name": "Use Measure Snapping",
+                "Description": "Snap A/B sections to nearest measure in Practice Mode.",
+                "Dropdown": {
+                    "Measures": "Measure",
+                    "Time": "Time"
+                }
             },
             "PreviewVolume": {
                 "Name": "Preview Volume",

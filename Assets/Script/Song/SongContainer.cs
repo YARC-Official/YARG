@@ -1,4 +1,4 @@
-using Cysharp.Threading.Tasks;
+﻿using Cysharp.Threading.Tasks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +9,7 @@ using YARG.Core.Logging;
 using YARG.Core.Song;
 using YARG.Core.Song.Cache;
 using YARG.Core.Utility;
+using YARG.Gameplay.Practice;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Localization;
@@ -221,6 +222,7 @@ namespace YARG.Song
             FillContainers();
             // After FillContainers, so Setlist.Changed subscribers resolve songs against the new library
             Setlist.ReplaceUpdatedSongHashes(updatedSongHashes);
+            PracticeCacheManager.ReplaceUpdatedSongHashes(updatedSongHashes);
             stopwatch.Stop();
 
             YargLogger.LogFormatInfo("Scan time: {0}s", stopwatch.Elapsed.TotalSeconds);

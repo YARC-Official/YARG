@@ -10,6 +10,7 @@ using YARG.Core.Chart;
 using YARG.Core.Input;
 using YARG.Menu.Navigation;
 using YARG.Settings;
+using YARG.Gameplay.Practice;
 
 namespace YARG.Gameplay.HUD
 {
@@ -25,6 +26,10 @@ namespace YARG.Gameplay.HUD
         private bool _navigationPushed;
         private bool _hasSelectedSections;
         private bool _allowWrapAround;
+
+        private PracticeSessionData _savedSession;
+        public bool HasRestoreOption => _savedSession != null;
+        public int TotalItemCount => _sections.Count + (HasRestoreOption ? 1 : 0);
 
         private List<Section> _sections;
         public IReadOnlyList<Section> Sections => _sections;
@@ -48,13 +53,13 @@ namespace YARG.Gameplay.HUD
             {
                 if (_allowWrapAround)
                 {
-                    if (value > _sections.Count - 1)
+                    if (value > TotalItemCount - 1)
                     {
                         _hoveredIndex = 0;
                     }
                     else if (value < 0)
                     {
-                        _hoveredIndex = _sections.Count - 1;
+                        _hoveredIndex = TotalItemCount - 1;
                     }
                     else
                     {
@@ -63,7 +68,7 @@ namespace YARG.Gameplay.HUD
                 }
                 else
                 {
-                     _hoveredIndex = Mathf.Clamp(value, 0, _sections.Count - 1);
+                     _hoveredIndex = Mathf.Clamp(value, 0, TotalItemCount - 1);
                 }
 
                 UpdateSectionViews();
@@ -130,8 +135,6 @@ namespace YARG.Gameplay.HUD
         protected override void OnChartLoaded(SongChart chart)
         {
             _sections = chart.Sections;
-            _finalTick = chart.GetLastTick();
-            _finalChartTime = chart.SyncTrack.TickToTime(_finalTick);
 
             //_pauseMenuManager.PushMenu(PauseMenuManager.Menu.SelectSections);
         }
@@ -140,6 +143,18 @@ namespace YARG.Gameplay.HUD
         {
             FirstSelectedIndex = null;
             LastSelectedIndex = null;
+
+            if (PracticeCacheManager.TryGetSession(GameManager.Song.Hash, out var session) && IsSessionValid(session))
+            {
+                _savedSession = session;
+            }
+            else
+            {
+                _savedSession = null;
+            }
+
+            HoveredIndex = 0;
+
             RegisterNavigationScheme();
             UpdateSectionViews();
             UpdatePreviewAudio();
@@ -186,9 +201,31 @@ namespace YARG.Gameplay.HUD
                 return;
             }
 
-            var section = _sections[HoveredIndex];
-            var startTime = section.Time;
-            var length = section.TimeLength;
+            double startTime;
+            double length;
+
+            if (HasRestoreOption && HoveredIndex == 0)
+            {
+                if (_savedSession.HasValidABLoop)
+                {
+                    startTime = _savedSession.LoopStartTime.Value;
+                    length = _savedSession.LoopEndTime.Value - startTime;
+                }
+                else
+                {
+                    var firstSec = _sections[_savedSession.StartSectionIndex.Value];
+                    var lastSec = _sections[_savedSession.EndSectionIndex.Value];
+                    startTime = firstSec.Time;
+                    length = (lastSec.Time + lastSec.TimeLength) - firstSec.Time;
+                }
+            }
+            else
+            {
+                int sectionIndex = HasRestoreOption ? HoveredIndex - 1 : HoveredIndex;
+                var section = _sections[sectionIndex];
+                startTime = section.Time;
+                length = section.TimeLength;
+            }
 
             _ = _previewPlayer.StopPreview();
             _ = _previewPlayer.StartPreview(
@@ -204,18 +241,31 @@ namespace YARG.Gameplay.HUD
 
         private void Confirm()
         {
+            if (HasRestoreOption && HoveredIndex == 0)
+            {
+                // Only allow restoring if the user hasn't already picked a starting section
+                if (FirstSelectedIndex == null)
+                {
+                    RestoreSession(_savedSession);
+                }
+                return;
+            }
+
+            int sectionIndex = HasRestoreOption ? HoveredIndex - 1 : HoveredIndex;
+
             if (FirstSelectedIndex == null)
             {
-                FirstSelectedIndex = HoveredIndex;
+                FirstSelectedIndex = sectionIndex;
             }
             else
             {
-                LastSelectedIndex = HoveredIndex;
+                LastSelectedIndex = sectionIndex;
 
                 int first = FirstSelectedIndex.Value;
                 int last = LastSelectedIndex.Value;
 
                 GameManager.PracticeManager.SetPracticeSection(_sections[first], _sections[last]);
+                PracticeCacheManager.SaveSections(GameManager.Song.Hash, first, last);
                 GameManager.Resume();
 
                 _hasSelectedSections = true;
@@ -244,6 +294,69 @@ namespace YARG.Gameplay.HUD
                     _pauseMenuManager.PushMenu(PauseMenuManager.Menu.PracticePause);
                 }
             }
+        }
+
+
+        private bool IsSessionValid(PracticeSessionData session)
+        {
+            if (session.HasValidSections)
+            {
+                int first = session.StartSectionIndex.Value;
+                int last = session.EndSectionIndex.Value;
+                if (first < 0 || first >= _sections.Count || last < 0 || last >= _sections.Count)
+                {
+                    return false;
+                }
+            }
+
+            if (session.HasValidABLoop)
+            {
+                return session.LoopStartTime.Value >= 0
+                    && session.LoopEndTime.Value <= GameManager.SongLength + 0.1;
+            }
+
+            return session.HasValidSections;
+        }
+
+        private void RestoreSession(PracticeSessionData session)
+        {
+            var practiceManager = GameManager.PracticeManager;
+
+            if (session.HasValidABLoop)
+            {
+                double loopStart = session.LoopStartTime.Value;
+                double loopEnd = session.LoopEndTime.Value;
+
+                // 1. Initialize the enclosing section bounds for the HUD and ResetAbPositions()
+                if (session.HasValidSections)
+                {
+                    int first = session.StartSectionIndex.Value;
+                    int last = session.EndSectionIndex.Value;
+                    FirstSelectedIndex = first;
+                    LastSelectedIndex = last;
+                    practiceManager.SetPracticeSection(_sections[first], _sections[last]);
+                }
+                else
+                {
+                    practiceManager.SetPracticeSection(_sections[0], _sections[^1]);
+                }
+
+                // 2. Apply the A/B loop positions on top
+                practiceManager.SetAPosition(loopStart);
+                practiceManager.SetBPosition(loopEnd);
+            }
+            else if (session.HasValidSections)
+            {
+                int first = session.StartSectionIndex.Value;
+                int last = session.EndSectionIndex.Value;
+
+                FirstSelectedIndex = first;
+                LastSelectedIndex = last;
+                practiceManager.SetPracticeSection(_sections[first], _sections[last]);
+            }
+
+            _hasSelectedSections = true;
+            GameManager.Resume();
         }
 
         private void Update()
