@@ -177,7 +177,7 @@ namespace YARG.Audio.BASS.Asio
 
             var input = _inputs[requested.Channel];
             string name = $"{DEVICE_PREFIX}{input.DriverName}";
-            if (!string.Equals(name, requested.Name, StringComparison.Ordinal))
+            if (!requested.Id.MatchesInput(new MicId(name, input.ChannelIndex)))
             {
                 return null;
             }

@@ -17,18 +17,19 @@ namespace YARG.Audio.BASS
         private readonly object          _lifecycleLock = new();
         private          bool                 _disposed;
 
-        internal BassMicDevice(IBassMicSource source) : base(source.DisplayName)
+        internal BassMicDevice(IBassMicSource source, MicId id) : base(source.DisplayName)
         {
             _source = source;
+            Id = id;
             _analyzer = CreateAnalyzer();
             _source.InputChanged += RecreateAnalyzer;
         }
 
-        internal static BassMicDevice? Create(IBassMicSource source)
+        internal static BassMicDevice? Create(IBassMicSource source, MicId id)
         {
             try
             {
-                return new BassMicDevice(source);
+                return new BassMicDevice(source, id);
             }
             catch (Exception exception)
             {
@@ -98,7 +99,7 @@ namespace YARG.Audio.BASS
 
         public override void SetReverbLevel(float wet) => _source.SetReverbLevel(wet);
 
-        public override MicId Id => new(_source.BaseName, _source.Channel);
+        public override MicId Id { get; }
 
         public override SerializedMic Serialize() => new(Id);
 
