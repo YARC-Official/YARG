@@ -33,6 +33,8 @@ namespace YARG.Themes
                 {
                     VisualStyle.FiveFretGuitar,
                     VisualStyle.SixFretGuitar,
+                    VisualStyle.FourLaneDrums,
+                    VisualStyle.FiveLaneDrums,
                     VisualStyle.FiveLaneKeys
                 },
                 PreferredColorProfile = ColorProfile.CircularDefault.Id,
