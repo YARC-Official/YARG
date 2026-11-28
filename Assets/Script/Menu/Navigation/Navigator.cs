@@ -337,11 +337,15 @@ namespace YARG.Menu.Navigation
                 return;
             }
 
+            // Capture the scheme this event belongs to before notifying subscribers
+            var target = _schemeStack.Count > 0 ? _schemeStack.Peek() : null;
+
             NavigationEvent?.Invoke(ctx);
 
-            if (_schemeStack.Count > 0)
+            // Avoid double notifications if the event handler changed the scheme
+            if (target != null && _schemeStack.Count > 0 && ReferenceEquals(_schemeStack.Peek(), target))
             {
-                _schemeStack.Peek().InvokeFuncs(ctx);
+                target.InvokeFuncs(ctx);
             }
         }
 
