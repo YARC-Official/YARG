@@ -3187,6 +3187,8 @@ MonoBehaviour:
   _sortInfoHeaderSongCountText: {fileID: 3509007690705291402}
   _sortInfoHeaderStarCountText: {fileID: 3962095324017665022}
   _sortInfoHeaderStarIcon: {fileID: 6176945539076547266}
+  _sortInfoHeaderFullComboContainer: {fileID: 812341000000000100}
+  _sortInfoHeaderFullComboLaurels: {fileID: 812341000000000101}
   _starGoldSprite: {fileID: 21300000, guid: aca38790aaa530d4badafd0b372e56f3, type: 3}
   _starWhiteSprite: {fileID: 21300000, guid: 96bc245f161ec1642b7168cd0794499e, type: 3}
 --- !u!1 &4030813026311060844
@@ -9961,6 +9963,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &812341000000000100 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6012949907685217146, guid: 65e13b7c168673844aafd68c9c01d1c5, type: 3}
+  m_PrefabInstance: {fileID: 2170920773550452447}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &812341000000000101 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 812340000000000100, guid: 65e13b7c168673844aafd68c9c01d1c5, type: 3}
+  m_PrefabInstance: {fileID: 2170920773550452447}
+  m_PrefabAsset: {fileID: 0}
 --- !u!114 &7173456613399233765 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 9056057400455014970, guid: 65e13b7c168673844aafd68c9c01d1c5, type: 3}
